@@ -29,7 +29,7 @@ interface UserProfile {
   name: string;
   email: string;
   created_at: string;
-  role: AppRole | "user";
+  role: AppRole;
 }
 
 const Users = () => {
@@ -61,7 +61,7 @@ const Users = () => {
           name: profile.full_name,
           email: "Loading...",
           created_at: profile.created_at,
-          role: (userRole?.role || "user") as AppRole | "user",
+          role: (userRole?.role || "student") as AppRole,
         };
       }) || [];
 
