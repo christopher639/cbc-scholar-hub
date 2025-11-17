@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Plus, BookOpen, User } from "lucide-react";
 import { useState } from "react";
-import { AddPerformanceDialog } from "@/components/AddPerformanceDialog";
+import AddPerformanceDialog from "@/components/AddPerformanceDialog";
 import { ManageLearningAreasDialog } from "@/components/ManageLearningAreasDialog";
 import { Badge } from "@/components/ui/badge";
 import { useLearningAreas } from "@/hooks/useLearningAreas";

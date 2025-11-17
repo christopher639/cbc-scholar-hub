@@ -23,6 +23,7 @@ const Grades = () => {
   // Transform grades data with real information
   const gradesData = grades.map((grade) => {
     const streams = grade.streams?.map((stream: any) => ({
+      id: stream.id,
       name: stream.name,
       teacher: "Not assigned",
       students: 0,
@@ -30,6 +31,7 @@ const Grades = () => {
     })) || [];
 
     return {
+      id: grade.id,
       grade: grade.name,
       totalStudents: 0,
       streams,
@@ -67,7 +69,7 @@ const Grades = () => {
             </Card>
           ) : (
             gradesData.map((gradeData) => (
-            <Link key={gradeData.grade} to={`/grades/${gradeData.grade.replace('Grade ', '')}`}>
+            <Link key={gradeData.id} to={`/grades/${gradeData.id}`}>
               <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -93,9 +95,9 @@ const Grades = () => {
                     const isNearCapacity = fillPercentage >= 90;
 
                     return (
+                      <Link key={stream.id} to={`/grades/${gradeData.id}/${stream.id}`} onClick={(e) => e.stopPropagation()}>
                       <div
-                        key={stream.name}
-                        className="rounded-lg border border-border bg-muted/50 p-4 space-y-3"
+                        className="rounded-lg border border-border bg-muted/50 p-4 space-y-3 hover:bg-muted transition-colors cursor-pointer"
                       >
                         <div className="flex items-start justify-between">
                           <div>
@@ -130,6 +132,7 @@ const Grades = () => {
                           View Learners
                         </Button>
                       </div>
+                      </Link>
                     );
                   })}
                 </div>
