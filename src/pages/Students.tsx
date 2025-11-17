@@ -3,7 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical } from "lucide-react";
+import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical, User } from "lucide-react";
+import { useGrades } from "@/hooks/useGrades";
+import { useStreams } from "@/hooks/useStreams";
 import { AddLearnerDialog } from "@/components/AddLearnerDialog";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -25,7 +27,26 @@ import {
 
 const Students = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const { learners, loading } = useLearners();
+  const [selectedGrade, setSelectedGrade] = useState("");
+  const [selectedStream, setSelectedStream] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const { learners, loading } = useLearners(selectedGrade, selectedStream);
+  const { grades } = useGrades();
+  const { streams } = useStreams();
+
+  // Filter streams based on selected grade
+  const filteredStreams = selectedGrade
+    ? streams.filter((stream) => stream.grade_id === selectedGrade)
+    : streams;
+
+  // Filter learners by search query
+  const filteredLearners = learners.filter((learner) => {
+    const fullName = `${learner.first_name} ${learner.last_name}`.toLowerCase();
+    const admissionNumber = learner.admission_number?.toLowerCase() || "";
+    const query = searchQuery.toLowerCase();
+    return fullName.includes(query) || admissionNumber.includes(query);
+  });
 
   return (
     <DashboardLayout>
@@ -48,32 +69,37 @@ const Students = () => {
             <div className="flex flex-col gap-4 sm:flex-row">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Search learner by name, admission number..." className="pl-9" />
+                <Input 
+                  placeholder="Search learner by name, admission number..." 
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-              <Select>
+              <Select value={selectedGrade} onValueChange={setSelectedGrade}>
                 <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder="Grade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Grades</SelectItem>
-                  <SelectItem value="1">Grade 1</SelectItem>
-                  <SelectItem value="2">Grade 2</SelectItem>
-                  <SelectItem value="3">Grade 3</SelectItem>
-                  <SelectItem value="4">Grade 4</SelectItem>
-                  <SelectItem value="5">Grade 5</SelectItem>
-                  <SelectItem value="6">Grade 6</SelectItem>
+                  <SelectItem value="">All Grades</SelectItem>
+                  {grades.map((grade) => (
+                    <SelectItem key={grade.id} value={grade.id}>
+                      {grade.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <Select>
+              <Select value={selectedStream} onValueChange={setSelectedStream}>
                 <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder="Stream" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Streams</SelectItem>
-                  <SelectItem value="green">Green</SelectItem>
-                  <SelectItem value="red">Red</SelectItem>
-                  <SelectItem value="blue">Blue</SelectItem>
-                  <SelectItem value="yellow">Yellow</SelectItem>
+                  <SelectItem value="">All Streams</SelectItem>
+                  {filteredStreams.map((stream) => (
+                    <SelectItem key={stream.id} value={stream.id}>
+                      {stream.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button variant="outline" className="gap-2">
@@ -91,7 +117,7 @@ const Students = () => {
         {/* Learners Table */}
         <Card>
           <CardHeader>
-            <CardTitle>All Learners ({learners.length})</CardTitle>
+            <CardTitle>All Learners ({filteredLearners.length})</CardTitle>
             <CardDescription>Complete list of enrolled learners</CardDescription>
           </CardHeader>
           <CardContent>
@@ -102,7 +128,7 @@ const Students = () => {
                       <Skeleton key={i} className="h-16 w-full" />
                     ))}
                   </div>
-                ) : learners.length === 0 ? (
+                ) : filteredLearners.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground mb-4">No learners found</p>
                     <Button onClick={() => setIsAddDialogOpen(true)}>
@@ -114,41 +140,46 @@ const Students = () => {
                   <table className="w-full">
                     <thead className="border-b border-border">
                       <tr className="text-left text-sm font-medium text-muted-foreground">
+                        <th className="pb-3 pr-4">Photo</th>
                         <th className="pb-3 pr-4">Admission No.</th>
                         <th className="pb-3 pr-4">Learner Name</th>
                         <th className="pb-3 pr-4">Grade</th>
                         <th className="pb-3 pr-4">Stream</th>
-                        <th className="pb-3 pr-4">Gender</th>
                         <th className="pb-3">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {learners.map((learner) => (
+                      {filteredLearners.map((learner) => (
                         <tr key={learner.id} className="text-sm hover:bg-muted/50 transition-colors">
+                          <td className="py-4 pr-4">
+                            {learner.photo_url ? (
+                              <img 
+                                src={learner.photo_url} 
+                                alt={`${learner.first_name} ${learner.last_name}`}
+                                className="h-10 w-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                                <User className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                            )}
+                          </td>
                           <td className="py-4 pr-4">
                             <Link to={`/learners/${learner.id}`} className="font-medium text-primary hover:underline">
                               {learner.admission_number}
                             </Link>
                           </td>
                           <td className="py-4 pr-4">
-                            <Link to={`/learners/${learner.id}`}>
-                              <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                  <span className="text-xs font-semibold text-primary">
-                                    {learner.first_name?.[0]}{learner.last_name?.[0]}
-                                  </span>
-                                </div>
-                                <span className="font-medium text-foreground hover:text-primary transition-colors">
-                                  {learner.first_name} {learner.last_name}
-                                </span>
-                              </div>
-                            </Link>
+                            <span className="font-medium text-foreground">
+                              {learner.first_name} {learner.last_name}
+                            </span>
                           </td>
-                          <td className="py-4 pr-4 text-muted-foreground">{learner.current_grade?.name || 'N/A'}</td>
+                          <td className="py-4 pr-4">
+                            <Badge variant="outline">{learner.current_grade?.name || 'N/A'}</Badge>
+                          </td>
                           <td className="py-4 pr-4">
                             <Badge variant="secondary">{learner.current_stream?.name || 'N/A'}</Badge>
                           </td>
-                          <td className="py-4 pr-4 text-muted-foreground capitalize">{learner.gender}</td>
                           <td className="py-4">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>

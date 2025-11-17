@@ -21,6 +21,7 @@ import {
   LogOut,
   School,
   UserCog,
+  ShieldCheck,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -37,6 +38,7 @@ const navigation = [
   { name: "Admissions", href: "/admissions", icon: UserCheck },
   { name: "Reports", href: "/reports", icon: FileText },
   { name: "School Info", href: "/school-info", icon: School },
+  { name: "Users & Roles", href: "/users", icon: ShieldCheck },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

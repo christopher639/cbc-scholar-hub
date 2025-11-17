@@ -12,7 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 const SchoolInfo = () => {
   const { toast } = useToast();
-  const { schoolInfo, loading, updateSchoolInfo } = useSchoolInfo();
+  const { schoolInfo, loading: dataLoading, updateSchoolInfo } = useSchoolInfo();
+  const [loading, setLoading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>("/placeholder.svg");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
@@ -52,36 +53,67 @@ const SchoolInfo = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
-    let logoUrl = schoolInfo?.logo_url;
+    try {
+      let logoUrl = schoolInfo?.logo_url;
 
-    if (logoFile) {
-      const fileExt = logoFile.name.split('.').pop();
-      const fileName = `school-logo-${Math.random()}.${fileExt}`;
-      const { error: uploadError, data } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, logoFile, { upsert: true });
+      if (logoFile) {
+        // Validate file type
+        const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+        if (!validTypes.includes(logoFile.type)) {
+          throw new Error('Please upload a PNG, JPG, or JPEG file');
+        }
 
-      if (uploadError) {
-        toast({
-          title: "Error uploading logo",
-          description: uploadError.message,
-          variant: "destructive",
-        });
-        return;
+        // Validate file size (max 5MB)
+        if (logoFile.size > 5 * 1024 * 1024) {
+          throw new Error('File size must be less than 5MB');
+        }
+
+        const fileExt = logoFile.name.split('.').pop();
+        const fileName = `school-logo-${Date.now()}.${fileExt}`;
+        const filePath = `logos/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, logoFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+        
+        logoUrl = publicUrl;
       }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      logoUrl = publicUrl;
+      
+      await updateSchoolInfo({
+        school_name: formData.school_name,
+        motto: formData.motto,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        logo_url: logoUrl,
+      });
+      
+      setLogoFile(null);
+      
+      toast({
+        title: "Success",
+        description: "School information updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    await updateSchoolInfo({
-      ...formData,
-      logo_url: logoUrl,
-    });
   };
 
   return (
