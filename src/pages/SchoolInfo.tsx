@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { School, Upload, Save } from "lucide-react";
+import { School, Upload, Save, User } from "lucide-react";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SchoolInfo = () => {
   const { toast } = useToast();
@@ -16,12 +17,20 @@ const SchoolInfo = () => {
   const [loading, setLoading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>("/placeholder.svg");
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [directorPhotoPreview, setDirectorPhotoPreview] = useState<string>("/placeholder.svg");
+  const [directorPhotoFile, setDirectorPhotoFile] = useState<File | null>(null);
+  
   const [formData, setFormData] = useState({
     school_name: "",
     motto: "",
     email: "",
     phone: "",
     address: "",
+    director_name: "",
+    director_email: "",
+    director_phone: "",
+    director_qualification: "",
+    director_message: "",
   });
 
   useEffect(() => {
@@ -32,9 +41,17 @@ const SchoolInfo = () => {
         email: schoolInfo.email || "",
         phone: schoolInfo.phone || "",
         address: schoolInfo.address || "",
+        director_name: schoolInfo.director_name || "",
+        director_email: schoolInfo.director_email || "",
+        director_phone: schoolInfo.director_phone || "",
+        director_qualification: schoolInfo.director_qualification || "",
+        director_message: schoolInfo.director_message || "",
       });
       if (schoolInfo.logo_url) {
         setLogoPreview(schoolInfo.logo_url);
+      }
+      if (schoolInfo.director_photo_url) {
+        setDirectorPhotoPreview(schoolInfo.director_photo_url);
       }
     }
   }, [schoolInfo]);
@@ -51,21 +68,32 @@ const SchoolInfo = () => {
     }
   };
 
+  const handleDirectorPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setDirectorPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDirectorPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     try {
       let logoUrl = schoolInfo?.logo_url;
+      let directorPhotoUrl = schoolInfo?.director_photo_url;
 
       if (logoFile) {
-        // Validate file type
         const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
         if (!validTypes.includes(logoFile.type)) {
           throw new Error('Please upload a PNG, JPG, or JPEG file');
         }
 
-        // Validate file size (max 5MB)
         if (logoFile.size > 5 * 1024 * 1024) {
           throw new Error('File size must be less than 5MB');
         }
@@ -89,6 +117,36 @@ const SchoolInfo = () => {
         
         logoUrl = publicUrl;
       }
+
+      if (directorPhotoFile) {
+        const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+        if (!validTypes.includes(directorPhotoFile.type)) {
+          throw new Error('Please upload a PNG, JPG, or JPEG file for director photo');
+        }
+
+        if (directorPhotoFile.size > 5 * 1024 * 1024) {
+          throw new Error('Director photo size must be less than 5MB');
+        }
+
+        const fileExt = directorPhotoFile.name.split('.').pop();
+        const fileName = `director-photo-${Date.now()}.${fileExt}`;
+        const filePath = `director/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, directorPhotoFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+        
+        directorPhotoUrl = publicUrl;
+      }
       
       await updateSchoolInfo({
         school_name: formData.school_name,
@@ -97,9 +155,16 @@ const SchoolInfo = () => {
         phone: formData.phone,
         address: formData.address,
         logo_url: logoUrl,
+        director_name: formData.director_name,
+        director_email: formData.director_email,
+        director_phone: formData.director_phone,
+        director_photo_url: directorPhotoUrl,
+        director_qualification: formData.director_qualification,
+        director_message: formData.director_message,
       });
       
       setLogoFile(null);
+      setDirectorPhotoFile(null);
       
       toast({
         title: "Success",
@@ -124,124 +189,222 @@ const SchoolInfo = () => {
             <School className="h-8 w-8" />
             School Information
           </h1>
-          <p className="text-muted-foreground">Manage your school's profile and branding</p>
+          <p className="text-muted-foreground">Manage your school's basic information and settings</p>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>School Branding</CardTitle>
-              <CardDescription>Upload your school logo</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
-                <Label htmlFor="logo">School Logo</Label>
-                <div className="flex flex-col items-center gap-4 border-2 border-dashed border-border rounded-lg p-6">
-                  <img
-                    src={logoPreview}
-                    alt="School Logo"
-                    className="h-32 w-32 object-contain rounded-lg"
-                  />
-                  <div className="text-center">
+        <form onSubmit={handleSave}>
+          <Tabs defaultValue="school" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="school">School Details</TabsTrigger>
+              <TabsTrigger value="director">Director Information</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="school" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Basic Information</CardTitle>
+                  <CardDescription>Update your school's basic details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="school_name">School Name *</Label>
                     <Input
-                      id="logo"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoChange}
-                      className="hidden"
+                      id="school_name"
+                      value={formData.school_name}
+                      onChange={(e) => setFormData({ ...formData, school_name: e.target.value })}
+                      placeholder="Enter school name"
+                      required
                     />
-                    <Label
-                      htmlFor="logo"
-                      className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                    >
-                      <Upload className="h-4 w-4" />
-                      Upload Logo
-                    </Label>
-                    <p className="text-xs text-muted-foreground mt-2">PNG, JPG up to 5MB</p>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>School identification and contact details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="schoolName">School Name *</Label>
-                <Input
-                  id="schoolName"
-                  placeholder="Enter school name"
-                  value={formData.school_name}
-                  onChange={(e) => setFormData({ ...formData, school_name: e.target.value })}
-                  required
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="motto">School Motto</Label>
+                    <Input
+                      id="motto"
+                      value={formData.motto}
+                      onChange={(e) => setFormData({ ...formData, motto: e.target.value })}
+                      placeholder="Enter school motto"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="motto">School Motto</Label>
-                <Input
-                  id="motto"
-                  placeholder="Enter school motto"
-                  value={formData.motto}
-                  onChange={(e) => setFormData({ ...formData, motto: e.target.value })}
-                />
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="school@example.com"
+                      />
+                    </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="school@example.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="+254 XXX XXX XXX"
+                      />
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+254 700 000000"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Textarea
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      placeholder="Enter school address"
+                      rows={3}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Location Details</CardTitle>
-              <CardDescription>Physical address and location information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="address">Full Address</Label>
-                <Textarea
-                  id="address"
-                  placeholder="Enter school's physical address"
-                  rows={3}
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                />
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>School Logo</CardTitle>
+                  <CardDescription>Upload your school's logo (PNG, JPG, or JPEG - Max 5MB)</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-6">
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={logoPreview} 
+                        alt="School Logo" 
+                        className="h-32 w-32 rounded-lg object-contain border border-border"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor="logo" className="cursor-pointer">
+                        <div className="flex items-center gap-2 text-primary hover:text-primary/80">
+                          <Upload className="h-4 w-4" />
+                          <span>Choose Logo</span>
+                        </div>
+                      </Label>
+                      <Input
+                        id="logo"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={handleLogoChange}
+                        className="hidden"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Recommended size: 200x200px
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <div className="flex justify-end">
-            <Button type="submit" className="gap-2" disabled={loading}>
+            <TabsContent value="director" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Director Information</CardTitle>
+                  <CardDescription>Manage school director's details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="director_name">Director Name</Label>
+                    <Input
+                      id="director_name"
+                      value={formData.director_name}
+                      onChange={(e) => setFormData({ ...formData, director_name: e.target.value })}
+                      placeholder="Enter director's full name"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="director_email">Director Email</Label>
+                      <Input
+                        id="director_email"
+                        type="email"
+                        value={formData.director_email}
+                        onChange={(e) => setFormData({ ...formData, director_email: e.target.value })}
+                        placeholder="director@example.com"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="director_phone">Director Phone</Label>
+                      <Input
+                        id="director_phone"
+                        value={formData.director_phone}
+                        onChange={(e) => setFormData({ ...formData, director_phone: e.target.value })}
+                        placeholder="+254 XXX XXX XXX"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="director_qualification">Qualifications</Label>
+                    <Input
+                      id="director_qualification"
+                      value={formData.director_qualification}
+                      onChange={(e) => setFormData({ ...formData, director_qualification: e.target.value })}
+                      placeholder="e.g., PhD in Education, M.Ed."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="director_message">Director's Message</Label>
+                    <Textarea
+                      id="director_message"
+                      value={formData.director_message}
+                      onChange={(e) => setFormData({ ...formData, director_message: e.target.value })}
+                      placeholder="Welcome message from the director..."
+                      rows={4}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Director Photo</CardTitle>
+                  <CardDescription>Upload director's photo (PNG, JPG, or JPEG - Max 5MB)</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-6">
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={directorPhotoPreview} 
+                        alt="Director Photo" 
+                        className="h-32 w-32 rounded-full object-cover border border-border"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor="director_photo" className="cursor-pointer">
+                        <div className="flex items-center gap-2 text-primary hover:text-primary/80">
+                          <Upload className="h-4 w-4" />
+                          <span>Choose Photo</span>
+                        </div>
+                      </Label>
+                      <Input
+                        id="director_photo"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={handleDirectorPhotoChange}
+                        className="hidden"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Professional headshot recommended
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end mt-6">
+            <Button type="submit" disabled={loading} className="gap-2">
               <Save className="h-4 w-4" />
-              Save School Information
+              {loading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
