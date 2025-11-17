@@ -1,13 +1,17 @@
+import React, { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp } from "lucide-react";
+import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History } from "lucide-react";
+import { PromotionHistoryDialog } from "@/components/PromotionHistoryDialog";
 
 const LearnerProfile = () => {
+  const [promotionHistoryOpen, setPromotionHistoryOpen] = useState(false);
+
   // Mock learner data
   const learner = {
     admissionNumber: "CBC2024001",
@@ -100,6 +104,10 @@ const LearnerProfile = () => {
               <div className="flex flex-col gap-2">
                 <Button>Edit Profile</Button>
                 <Button variant="outline">Print Report</Button>
+                <Button variant="outline" onClick={() => setPromotionHistoryOpen(true)}>
+                  <History className="h-4 w-4 mr-2" />
+                  View History
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -298,6 +306,12 @@ const LearnerProfile = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <PromotionHistoryDialog 
+          open={promotionHistoryOpen}
+          onOpenChange={setPromotionHistoryOpen}
+          learnerName={`${learner.firstName} ${learner.lastName}`}
+        />
       </div>
     </DashboardLayout>
   );
