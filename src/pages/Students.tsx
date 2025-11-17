@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical } from "lucide-react";
+import { AddLearnerDialog } from "@/components/AddLearnerDialog";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +21,9 @@ import {
 } from "@/components/ui/select";
 
 const Students = () => {
-  const students = [
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  
+  const learners = [
     {
       admissionNo: "ADM001",
       name: "John Kamau Mwangi",
@@ -82,12 +86,12 @@ const Students = () => {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Students</h1>
-            <p className="text-muted-foreground">Manage and track all student records</p>
+            <h1 className="text-3xl font-bold text-foreground">Learners</h1>
+            <p className="text-muted-foreground">Manage and track all learner records</p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="h-4 w-4" />
-            Add New Student
+            Add New Learner
           </Button>
         </div>
 
@@ -97,7 +101,7 @@ const Students = () => {
             <div className="flex flex-col gap-4 sm:flex-row">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Search by name, admission number..." className="pl-9" />
+                <Input placeholder="Search learner by name, admission number..." className="pl-9" />
               </div>
               <Select>
                 <SelectTrigger className="w-full sm:w-40">
@@ -137,11 +141,11 @@ const Students = () => {
           </CardContent>
         </Card>
 
-        {/* Students Table */}
+        {/* Learners Table */}
         <Card>
           <CardHeader>
-            <CardTitle>All Students ({students.length})</CardTitle>
-            <CardDescription>Complete list of enrolled students</CardDescription>
+            <CardTitle>All Learners ({learners.length})</CardTitle>
+            <CardDescription>Complete list of enrolled learners</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -149,7 +153,7 @@ const Students = () => {
                 <thead className="border-b border-border">
                   <tr className="text-left text-sm font-medium text-muted-foreground">
                     <th className="pb-3 pr-4">Admission No.</th>
-                    <th className="pb-3 pr-4">Student Name</th>
+                    <th className="pb-3 pr-4">Learner Name</th>
                     <th className="pb-3 pr-4">Grade</th>
                     <th className="pb-3 pr-4">Stream</th>
                     <th className="pb-3 pr-4">Gender</th>
@@ -159,34 +163,34 @@ const Students = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {students.map((student) => (
-                    <tr key={student.admissionNo} className="text-sm">
+                  {learners.map((learner) => (
+                    <tr key={learner.admissionNo} className="text-sm">
                       <td className="py-4 pr-4">
-                        <span className="font-mono font-medium text-foreground">{student.admissionNo}</span>
+                        <span className="font-mono font-medium text-foreground">{learner.admissionNo}</span>
                       </td>
                       <td className="py-4 pr-4">
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                             <span className="text-xs font-semibold text-primary">
-                              {student.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                              {learner.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
                             </span>
                           </div>
-                          <span className="font-medium text-foreground">{student.name}</span>
+                          <span className="font-medium text-foreground">{learner.name}</span>
                         </div>
                       </td>
-                      <td className="py-4 pr-4 text-foreground">{student.grade}</td>
+                      <td className="py-4 pr-4 text-foreground">{learner.grade}</td>
                       <td className="py-4 pr-4">
-                        <Badge variant="secondary">{student.stream}</Badge>
+                        <Badge variant="secondary">{learner.stream}</Badge>
                       </td>
-                      <td className="py-4 pr-4 text-foreground">{student.gender}</td>
+                      <td className="py-4 pr-4 text-foreground">{learner.gender}</td>
                       <td className="py-4 pr-4">
                         <Badge variant="outline" className="border-success text-success">
-                          {student.status}
+                          {learner.status}
                         </Badge>
                       </td>
                       <td className="py-4 pr-4">
-                        {student.feeBalance > 0 ? (
-                          <span className="font-semibold text-warning">KES {student.feeBalance.toLocaleString()}</span>
+                        {learner.feeBalance > 0 ? (
+                          <span className="font-semibold text-warning">KES {learner.feeBalance.toLocaleString()}</span>
                         ) : (
                           <span className="font-semibold text-success">Paid</span>
                         )}
@@ -218,6 +222,8 @@ const Students = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AddLearnerDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
     </DashboardLayout>
   );
 };
