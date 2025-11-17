@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { useToast } from "@/hooks/use-toast";
 
 interface AddGradeStreamDialogProps {
@@ -18,8 +18,6 @@ export function AddGradeStreamDialog({ open, onOpenChange }: AddGradeStreamDialo
   const [capacity, setCapacity] = useState("");
   const [classTeacher, setClassTeacher] = useState("");
 
-  const grades = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
-  const streamColors = ["Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Pink", "White"];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,35 +54,25 @@ export function AddGradeStreamDialog({ open, onOpenChange }: AddGradeStreamDialo
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="grade">Grade *</Label>
-            <Select value={grade} onValueChange={setGrade} required>
-              <SelectTrigger id="grade">
-                <SelectValue placeholder="Select grade level" />
-              </SelectTrigger>
-              <SelectContent>
-                {grades.map((g) => (
-                  <SelectItem key={g} value={g}>
-                    {g}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="grade">Grade Name *</Label>
+            <Input
+              id="grade"
+              placeholder="e.g., Grade 1, Grade 2"
+              value={grade}
+              onChange={(e) => setGrade(e.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="streamName">Stream Name *</Label>
-            <Select value={streamName} onValueChange={setStreamName} required>
-              <SelectTrigger id="streamName">
-                <SelectValue placeholder="Select stream color" />
-              </SelectTrigger>
-              <SelectContent>
-                {streamColors.map((color) => (
-                  <SelectItem key={color} value={color}>
-                    {color} Stream
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              id="streamName"
+              placeholder="e.g., Red, Blue, Green"
+              value={streamName}
+              onChange={(e) => setStreamName(e.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">
