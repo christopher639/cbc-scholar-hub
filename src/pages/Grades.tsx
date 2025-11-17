@@ -11,7 +11,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const Grades = () => {
   const [addStreamDialogOpen, setAddStreamDialogOpen] = useState(false);
-  const { grades, loading } = useGrades();
+  const { grades, loading, fetchGrades } = useGrades();
+
+  const handleDialogClose = (open: boolean) => {
+    setAddStreamDialogOpen(open);
+    if (!open) {
+      fetchGrades();
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -103,7 +110,10 @@ const Grades = () => {
           ))}
         </div>
 
-        <AddGradeStreamDialog open={addStreamDialogOpen} onOpenChange={setAddStreamDialogOpen} />
+        <AddGradeStreamDialog 
+          open={addStreamDialogOpen} 
+          onOpenChange={handleDialogClose}
+        />
       </div>
     </DashboardLayout>
   );

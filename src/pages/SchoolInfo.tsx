@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,15 +7,41 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { School, Upload, Save } from "lucide-react";
+import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import { supabase } from "@/integrations/supabase/client";
 
 const SchoolInfo = () => {
   const { toast } = useToast();
+  const { schoolInfo, loading, updateSchoolInfo } = useSchoolInfo();
   const [logoPreview, setLogoPreview] = useState<string>("/placeholder.svg");
-  const [bannerPreview, setBannerPreview] = useState<string>("/placeholder.svg");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [formData, setFormData] = useState({
+    school_name: "",
+    motto: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
+
+  useEffect(() => {
+    if (schoolInfo) {
+      setFormData({
+        school_name: schoolInfo.school_name || "",
+        motto: schoolInfo.motto || "",
+        email: schoolInfo.email || "",
+        phone: schoolInfo.phone || "",
+        address: schoolInfo.address || "",
+      });
+      if (schoolInfo.logo_url) {
+        setLogoPreview(schoolInfo.logo_url);
+      }
+    }
+  }, [schoolInfo]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setLogoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result as string);
@@ -24,29 +50,43 @@ const SchoolInfo = () => {
     }
   };
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBannerPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "School Information Saved",
-      description: "School details have been updated successfully",
+    
+    let logoUrl = schoolInfo?.logo_url;
+
+    if (logoFile) {
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `school-logo-${Math.random()}.${fileExt}`;
+      const { error: uploadError, data } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, logoFile, { upsert: true });
+
+      if (uploadError) {
+        toast({
+          title: "Error uploading logo",
+          description: uploadError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      logoUrl = publicUrl;
+    }
+
+    await updateSchoolInfo({
+      ...formData,
+      logo_url: logoUrl,
     });
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
             <School className="h-8 w-8" />
@@ -56,118 +96,97 @@ const SchoolInfo = () => {
         </div>
 
         <form onSubmit={handleSave} className="space-y-6">
-          {/* School Branding */}
           <Card>
             <CardHeader>
               <CardTitle>School Branding</CardTitle>
-              <CardDescription>Upload your school logo and banner image</CardDescription>
+              <CardDescription>Upload your school logo</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Logo Upload */}
-                <div className="space-y-3">
-                  <Label htmlFor="logo">School Logo</Label>
-                  <div className="flex flex-col items-center gap-4 border-2 border-dashed border-border rounded-lg p-6">
-                    <img
-                      src={logoPreview}
-                      alt="School Logo"
-                      className="h-32 w-32 object-contain rounded-lg"
+              <div className="space-y-3">
+                <Label htmlFor="logo">School Logo</Label>
+                <div className="flex flex-col items-center gap-4 border-2 border-dashed border-border rounded-lg p-6">
+                  <img
+                    src={logoPreview}
+                    alt="School Logo"
+                    className="h-32 w-32 object-contain rounded-lg"
+                  />
+                  <div className="text-center">
+                    <Input
+                      id="logo"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      className="hidden"
                     />
-                    <div className="text-center">
-                      <Input
-                        id="logo"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoChange}
-                        className="hidden"
-                      />
-                      <Label
-                        htmlFor="logo"
-                        className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                      >
-                        <Upload className="h-4 w-4" />
-                        Upload Logo
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-2">PNG, JPG up to 5MB</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Banner Upload */}
-                <div className="space-y-3">
-                  <Label htmlFor="banner">School Banner</Label>
-                  <div className="flex flex-col items-center gap-4 border-2 border-dashed border-border rounded-lg p-6">
-                    <img
-                      src={bannerPreview}
-                      alt="School Banner"
-                      className="h-32 w-full object-cover rounded-lg"
-                    />
-                    <div className="text-center">
-                      <Input
-                        id="banner"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleBannerChange}
-                        className="hidden"
-                      />
-                      <Label
-                        htmlFor="banner"
-                        className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                      >
-                        <Upload className="h-4 w-4" />
-                        Upload Banner
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-2">PNG, JPG up to 10MB</p>
-                    </div>
+                    <Label
+                      htmlFor="logo"
+                      className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Upload Logo
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-2">PNG, JPG up to 5MB</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Basic Information */}
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
               <CardDescription>School identification and contact details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="schoolName">School Name *</Label>
-                  <Input id="schoolName" defaultValue="CBC Primary School" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="schoolCode">School Code *</Label>
-                  <Input id="schoolCode" defaultValue="CBC001" required />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="schoolName">School Name *</Label>
+                <Input
+                  id="schoolName"
+                  placeholder="Enter school name"
+                  value={formData.school_name}
+                  onChange={(e) => setFormData({ ...formData, school_name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="motto">School Motto</Label>
+                <Input
+                  id="motto"
+                  placeholder="Enter school motto"
+                  value={formData.motto}
+                  onChange={(e) => setFormData({ ...formData, motto: e.target.value })}
+                />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input id="phone" defaultValue="+254 712 345 678" required />
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address *</Label>
-                  <Input id="email" type="email" defaultValue="info@cbcschool.ac.ke" required />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="school@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                  />
                 </div>
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input id="website" placeholder="www.cbcschool.ac.ke" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="principal">Principal Name</Label>
-                  <Input id="principal" placeholder="Enter principal's name" />
+                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+254 700 000000"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    required
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Location Details */}
           <Card>
             <CardHeader>
               <CardTitle>Location Details</CardTitle>
@@ -175,67 +194,20 @@ const SchoolInfo = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="physicalAddress">Physical Address *</Label>
-                <Input id="physicalAddress" defaultValue="123 Education Road, Nairobi" required />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="postalAddress">Postal Address</Label>
-                <Input id="postalAddress" placeholder="P.O. Box 12345-00100" />
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="county">County *</Label>
-                  <Input id="county" defaultValue="Nairobi" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="subCounty">Sub-County *</Label>
-                  <Input id="subCounty" defaultValue="Westlands" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ward">Ward</Label>
-                  <Input id="ward" placeholder="Enter ward" />
-                </div>
+                <Label htmlFor="address">Full Address</Label>
+                <Textarea
+                  id="address"
+                  placeholder="Enter school's physical address"
+                  rows={3}
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                />
               </div>
             </CardContent>
           </Card>
 
-          {/* School Description */}
-          <Card>
-            <CardHeader>
-              <CardTitle>School Description</CardTitle>
-              <CardDescription>About your school, mission, and vision</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="mission">Mission Statement</Label>
-                <Textarea
-                  id="mission"
-                  placeholder="Enter your school's mission statement"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="vision">Vision Statement</Label>
-                <Textarea
-                  id="vision"
-                  placeholder="Enter your school's vision statement"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="motto">School Motto</Label>
-                <Input id="motto" placeholder="Enter school motto" />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Save Button */}
           <div className="flex justify-end">
-            <Button type="submit" size="lg" className="gap-2">
+            <Button type="submit" className="gap-2" disabled={loading}>
               <Save className="h-4 w-4" />
               Save School Information
             </Button>
