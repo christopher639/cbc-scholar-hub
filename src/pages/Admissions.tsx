@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,9 +6,11 @@ import { UserPlus, FileText, Upload, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLearners } from "@/hooks/useLearners";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AddLearnerDialog } from "@/components/AddLearnerDialog";
 
 const Admissions = () => {
-  const { learners, loading } = useLearners();
+  const [isAddLearnerOpen, setIsAddLearnerOpen] = useState(false);
+  const { learners, loading, fetchLearners } = useLearners();
 
   // Get recent admissions (last 10)
   const recentAdmissions = learners
@@ -36,7 +39,7 @@ const Admissions = () => {
             <h1 className="text-3xl font-bold text-foreground">Learner Admissions</h1>
             <p className="text-muted-foreground">Manage new learner registrations and admissions</p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setIsAddLearnerOpen(true)}>
             <UserPlus className="h-4 w-4" />
             New Admission
           </Button>
@@ -165,6 +168,11 @@ const Admissions = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AddLearnerDialog 
+        open={isAddLearnerOpen} 
+        onOpenChange={setIsAddLearnerOpen}
+      />
     </DashboardLayout>
   );
 };

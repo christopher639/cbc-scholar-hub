@@ -174,10 +174,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden sm:block text-sm text-left">
-                <p className="font-medium text-foreground">{profile?.full_name || "User"}</p>
-                <p className="text-xs text-muted-foreground">{user?.email}</p>
-              </div>
+              <span className="hidden md:block text-sm font-medium text-foreground">
+                {profile?.full_name || user?.email || "User"}
+              </span>
             </Button>
           </div>
         </header>
