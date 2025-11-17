@@ -191,7 +191,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          admission_number: string
+          admission_number?: string
           created_at?: string
           current_grade_id?: string | null
           current_stream_id?: string | null
@@ -654,6 +654,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_admission_number: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

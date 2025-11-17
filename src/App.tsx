@@ -21,6 +21,7 @@ import SchoolInfo from "./pages/SchoolInfo";
 import LearnerProfile from "./pages/LearnerProfile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Users from "./pages/Users";
 
 import Profile from "./pages/Profile";
 
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
