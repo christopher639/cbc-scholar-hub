@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Users, DollarSign, TrendingUp, GraduationCap } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FileText, Download, Users, DollarSign, TrendingUp, GraduationCap, Calendar } from "lucide-react";
 
 const Reports = () => {
+  const [timePeriod, setTimePeriod] = useState("current-term");
+  const [academicYear, setAcademicYear] = useState("2024-2025");
+
   const reportCategories = [
     {
       title: "Learner Reports",
@@ -61,6 +67,52 @@ const Reports = () => {
             Export All
           </Button>
         </div>
+
+        {/* Time Period Filter */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Analytics Time Period
+            </CardTitle>
+            <CardDescription>Select the time range for generating reports and viewing analytics</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="timePeriod">Time Period</Label>
+                <Select value={timePeriod} onValueChange={setTimePeriod}>
+                  <SelectTrigger id="timePeriod">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="current-term">Current Term</SelectItem>
+                    <SelectItem value="current-year">Current Academic Year</SelectItem>
+                    <SelectItem value="last-term">Last Term</SelectItem>
+                    <SelectItem value="last-year">Last Academic Year</SelectItem>
+                    <SelectItem value="custom">Custom Range</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="academicYear">Academic Year</Label>
+                <Select value={academicYear} onValueChange={setAcademicYear}>
+                  <SelectTrigger id="academicYear">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024-2025">2024/2025</SelectItem>
+                    <SelectItem value="2023-2024">2023/2024</SelectItem>
+                    <SelectItem value="2022-2023">2022/2023</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button className="w-full">Apply Filters</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Stats */}
         <div className="grid gap-4 md:grid-cols-4">

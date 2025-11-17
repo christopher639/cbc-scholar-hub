@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { School, Users, Bell, Shield, DollarSign } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
+import { SetFeeStructureDialog } from "@/components/SetFeeStructureDialog";
 
 const Settings = () => {
+  const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
+  const [feeStructureDialogOpen, setFeeStructureDialogOpen] = useState(false);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -153,43 +159,51 @@ const Settings = () => {
           <TabsContent value="fees" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Fee Configuration</CardTitle>
-                <CardDescription>Manage fee structures and discount policies</CardDescription>
+                <CardTitle>Fee Structure by Grade</CardTitle>
+                <CardDescription>Set different fee amounts for each grade level</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Configure fee structures for each grade, term, and academic year.
+                </p>
+                <Button onClick={() => setFeeStructureDialogOpen(true)}>
+                  Set Fee Structure
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Discount Settings</CardTitle>
+                <CardDescription>Configure automatic fee discounts</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b border-border">
                     <div>
-                      <p className="font-medium">Staff Discount</p>
-                      <p className="text-sm text-muted-foreground">Automatic 50% discount for staff children</p>
+                      <p className="font-medium">Staff Parent Discount</p>
+                      <p className="text-sm text-muted-foreground">50% discount enabled</p>
                     </div>
                     <Switch defaultChecked />
                   </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between py-2 border-b border-border">
                     <div>
                       <p className="font-medium">Sibling Discount</p>
-                      <p className="text-sm text-muted-foreground">15% discount for multiple children</p>
+                      <p className="text-sm text-muted-foreground">15% discount enabled</p>
                     </div>
                     <Switch defaultChecked />
                   </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between py-2">
                     <div>
                       <p className="font-medium">Early Payment Discount</p>
-                      <p className="text-sm text-muted-foreground">5% discount for payments within 2 weeks</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Produce Payments</p>
-                      <p className="text-sm text-muted-foreground">Accept food items as payment</p>
+                      <p className="text-sm text-muted-foreground">5% discount enabled</p>
                     </div>
                     <Switch defaultChecked />
                   </div>
                 </div>
+                <Button onClick={() => setDiscountDialogOpen(true)}>
+                  Configure Discounts
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -261,6 +275,9 @@ const Settings = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <DiscountSettingsDialog open={discountDialogOpen} onOpenChange={setDiscountDialogOpen} />
+        <SetFeeStructureDialog open={feeStructureDialogOpen} onOpenChange={setFeeStructureDialogOpen} />
       </div>
     </DashboardLayout>
   );

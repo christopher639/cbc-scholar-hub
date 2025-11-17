@@ -14,6 +14,8 @@ import {
   Menu,
   X,
   LogOut,
+  School,
+  UserCog,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -25,9 +27,11 @@ const navigation = [
   { name: "Learners", href: "/students", icon: Users },
   { name: "Grades & Streams", href: "/grades", icon: GraduationCap },
   { name: "Performance", href: "/performance", icon: FileText },
+  { name: "Teachers", href: "/teachers", icon: UserCog },
   { name: "Fee Management", href: "/fees", icon: DollarSign },
   { name: "Admissions", href: "/admissions", icon: UserCheck },
   { name: "Reports", href: "/reports", icon: FileText },
+  { name: "School Info", href: "/school-info", icon: School },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
