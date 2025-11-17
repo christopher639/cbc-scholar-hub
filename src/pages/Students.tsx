@@ -8,7 +8,7 @@ import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { AddLearnerDialog } from "@/components/AddLearnerDialog";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLearners } from "@/hooks/useLearners";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -30,6 +30,7 @@ const Students = () => {
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedStream, setSelectedStream] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
   
   const { learners, loading } = useLearners(selectedGrade, selectedStream);
   const { grades } = useGrades();
@@ -148,7 +149,11 @@ const Students = () => {
                     </thead>
                     <tbody className="divide-y divide-border">
                       {filteredLearners.map((learner) => (
-                        <tr key={learner.id} className="text-sm hover:bg-muted/50 transition-colors">
+                        <tr 
+                          key={learner.id} 
+                          className="text-sm hover:bg-muted/50 transition-colors cursor-pointer"
+                          onClick={() => navigate(`/learner/${learner.id}`)}
+                        >
                           <td className="py-4 pr-4">
                             {learner.photo_url ? (
                               <img 
@@ -163,9 +168,9 @@ const Students = () => {
                             )}
                           </td>
                           <td className="py-4 pr-4">
-                            <Link to={`/learners/${learner.id}`} className="font-medium text-primary hover:underline">
+                            <span className="font-medium text-primary">
                               {learner.admission_number}
-                            </Link>
+                            </span>
                           </td>
                           <td className="py-4 pr-4">
                             <span className="font-medium text-foreground">
@@ -180,19 +185,20 @@ const Students = () => {
                           </td>
                           <td className="py-4">
                             <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                 <Button variant="ghost" size="icon">
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <Link to={`/learners/${learner.id}`}>
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    View Details
-                                  </Link>
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/learner/${learner.id}`);
+                                }}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                                   <Edit className="mr-2 h-4 w-4" />
                                   Edit Learner
                                 </DropdownMenuItem>
