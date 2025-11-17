@@ -6,66 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Users, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AddGradeStreamDialog } from "@/components/AddGradeStreamDialog";
+import { useGrades } from "@/hooks/useGrades";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Grades = () => {
   const [addStreamDialogOpen, setAddStreamDialogOpen] = useState(false);
-
-  const grades = [
-    {
-      grade: "Grade 1",
-      totalStudents: 215,
-      streams: [
-        { name: "Red", students: 72, capacity: 75, teacher: "Mrs. Njeri" },
-        { name: "Blue", students: 71, capacity: 75, teacher: "Mr. Kamau" },
-        { name: "Green", students: 72, capacity: 75, teacher: "Mrs. Akinyi" },
-      ],
-    },
-    {
-      grade: "Grade 2",
-      totalStudents: 208,
-      streams: [
-        { name: "Red", students: 69, capacity: 75, teacher: "Mr. Omondi" },
-        { name: "Blue", students: 70, capacity: 75, teacher: "Mrs. Wanjiku" },
-        { name: "Yellow", students: 69, capacity: 75, teacher: "Ms. Chebet" },
-      ],
-    },
-    {
-      grade: "Grade 3",
-      totalStudents: 198,
-      streams: [
-        { name: "Red", students: 66, capacity: 75, teacher: "Mr. Kipchoge" },
-        { name: "Blue", students: 65, capacity: 75, teacher: "Mrs. Njoki" },
-        { name: "Green", students: 67, capacity: 75, teacher: "Mr. Otieno" },
-      ],
-    },
-    {
-      grade: "Grade 4",
-      totalStudents: 195,
-      streams: [
-        { name: "Green", students: 65, capacity: 75, teacher: "Mrs. Mutua" },
-        { name: "Red", students: 65, capacity: 75, teacher: "Mr. Kimani" },
-        { name: "Yellow", students: 65, capacity: 75, teacher: "Ms. Auma" },
-      ],
-    },
-    {
-      grade: "Grade 5",
-      totalStudents: 218,
-      streams: [
-        { name: "Green", students: 73, capacity: 75, teacher: "Mr. Kariuki" },
-        { name: "Red", students: 72, capacity: 75, teacher: "Mrs. Adhiambo" },
-        { name: "Blue", students: 73, capacity: 75, teacher: "Mr. Rotich" },
-      ],
-    },
-    {
-      grade: "Grade 6",
-      totalStudents: 213,
-      streams: [
-        { name: "Red", students: 71, capacity: 75, teacher: "Mrs. Mwangi" },
-        { name: "Blue", students: 71, capacity: 75, teacher: "Mr. Njoroge" },
-        { name: "Green", students: 71, capacity: 75, teacher: "Ms. Wambui" },
-      ],
-    },
-  ];
+  const { grades, loading } = useGrades();
 
   return (
     <DashboardLayout>
