@@ -6,14 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { School, Users, Bell, Shield, DollarSign } from "lucide-react";
+import { School, Users, Bell, Shield, DollarSign, Moon, Sun } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
 import { SetFeeStructureDialog } from "@/components/SetFeeStructureDialog";
+import { useTheme } from "next-themes";
 
 const Settings = () => {
   const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
   const [feeStructureDialogOpen, setFeeStructureDialogOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   return (
     <DashboardLayout>
@@ -89,6 +91,48 @@ const Settings = () => {
                   <Input id="address" placeholder="Enter physical address" defaultValue="123 Education Road, Nairobi" />
                 </div>
                 <Button>Save School Information</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+                <CardDescription>Customize the look and feel</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Theme</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Choose your preferred theme
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={theme === "light" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTheme("light")}
+                    >
+                      <Sun className="h-4 w-4 mr-2" />
+                      Light
+                    </Button>
+                    <Button
+                      variant={theme === "dark" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTheme("dark")}
+                    >
+                      <Moon className="h-4 w-4 mr-2" />
+                      Dark
+                    </Button>
+                    <Button
+                      variant={theme === "system" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTheme("system")}
+                    >
+                      System
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 

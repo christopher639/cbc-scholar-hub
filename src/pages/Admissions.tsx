@@ -1,40 +1,31 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Upload, UserPlus, FileText, CheckCircle } from "lucide-react";
+import { UserPlus, FileText, Upload, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useLearners } from "@/hooks/useLearners";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Admissions = () => {
-  const recentAdmissions = [
-    {
-      admissionNo: "ADM007",
-      name: "James Muthoni Kamau",
-      grade: "Grade 1",
-      stream: "Green",
-      dateAdmitted: "2025-01-15",
-      status: "Completed",
-    },
-    {
-      admissionNo: "ADM008",
-      name: "Lucy Achieng Odhiambo",
-      grade: "Grade 2",
-      stream: "Red",
-      dateAdmitted: "2025-01-14",
-      status: "Pending Documents",
-    },
-    {
-      admissionNo: "ADM009",
-      name: "Kevin Kiprop Sang",
-      grade: "Grade 4",
-      stream: "Blue",
-      dateAdmitted: "2025-01-13",
-      status: "Completed",
-    },
-  ];
+  const { learners, loading } = useLearners();
+
+  // Get recent admissions (last 10)
+  const recentAdmissions = learners
+    .sort((a, b) => new Date(b.enrollment_date).getTime() - new Date(a.enrollment_date).getTime())
+    .slice(0, 10);
+
+  // Calculate stats
+  const thisMonth = learners.filter(l => {
+    const enrollDate = new Date(l.enrollment_date);
+    const now = new Date();
+    return enrollDate.getMonth() === now.getMonth() && enrollDate.getFullYear() === now.getFullYear();
+  }).length;
+
+  const thisYear = learners.filter(l => {
+    const enrollDate = new Date(l.enrollment_date);
+    const now = new Date();
+    return enrollDate.getFullYear() === now.getFullYear();
+  }).length;
 
   return (
     <DashboardLayout>
@@ -56,7 +47,7 @@ const Admissions = () => {
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>This Month</CardDescription>
-              <CardTitle className="text-3xl">24</CardTitle>
+              <CardTitle className="text-3xl">{loading ? "..." : thisMonth}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">New admissions</p>
@@ -65,7 +56,7 @@ const Admissions = () => {
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Pending</CardDescription>
-              <CardTitle className="text-3xl">5</CardTitle>
+              <CardTitle className="text-3xl">0</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">Awaiting documentation</p>
@@ -74,7 +65,7 @@ const Admissions = () => {
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>This Year</CardDescription>
-              <CardTitle className="text-3xl">187</CardTitle>
+              <CardTitle className="text-3xl">{loading ? "..." : thisYear}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">Total admissions</p>
@@ -129,34 +120,48 @@ const Admissions = () => {
             <CardDescription>Latest learner registrations</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentAdmissions.map((admission) => (
-                <div
-                  key={admission.admissionNo}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-semibold text-primary">
-                        {admission.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                      </span>
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            ) : recentAdmissions.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No recent admissions</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentAdmissions.map((admission: any) => (
+                  <div
+                    key={admission.id}
+                    className="flex items-center justify-between p-4 border border-border rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-primary">
+                          {admission.first_name?.[0]}{admission.last_name?.[0]}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {admission.first_name} {admission.last_name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {admission.admission_number} • {admission.current_grade?.name} {admission.current_stream?.name}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{admission.name}</p>
+                    <div className="flex items-center gap-4">
                       <p className="text-sm text-muted-foreground">
-                        {admission.admissionNo} • {admission.grade} {admission.stream}
+                        {new Date(admission.enrollment_date).toLocaleDateString()}
                       </p>
+                      <Badge>Completed</Badge>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <p className="text-sm text-muted-foreground">{admission.dateAdmitted}</p>
-                    <Badge variant={admission.status === "Completed" ? "default" : "secondary"}>
-                      {admission.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

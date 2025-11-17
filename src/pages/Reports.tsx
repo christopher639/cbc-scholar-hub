@@ -4,51 +4,41 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Download, Users, DollarSign, TrendingUp, GraduationCap, Calendar } from "lucide-react";
+import { FileText, Download, Users, DollarSign, GraduationCap, Calendar } from "lucide-react";
+import { useReportAnalytics } from "@/hooks/useReportAnalytics";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Reports = () => {
   const [timePeriod, setTimePeriod] = useState("current-term");
   const [academicYear, setAcademicYear] = useState("2024-2025");
+  const { analytics, loading } = useReportAnalytics();
 
   const reportCategories = [
     {
       title: "Learner Reports",
       icon: Users,
+      stats: loading ? "..." : `${analytics.learnerStats.total} Total`,
       reports: [
-        { name: "Learner Population Report", description: "Complete breakdown by grade and stream" },
-        { name: "Learner Demographics", description: "Gender distribution and statistics" },
-        { name: "Learner Attendance Report", description: "Monthly attendance tracking" },
-        { name: "Alumni Database", description: "Graduated learners listing" },
+        { name: "Learner Population Report", description: "Complete breakdown by grade and stream", count: analytics.learnerStats.total },
+        { name: "Learner Demographics", description: `${analytics.learnerStats.byGender.male}M / ${analytics.learnerStats.byGender.female}F`, count: analytics.learnerStats.total },
       ],
     },
     {
       title: "Fee Reports",
       icon: DollarSign,
+      stats: loading ? "..." : `${analytics.feeStats.collectionRate.toFixed(0)}% Rate`,
       reports: [
-        { name: "Fee Collection Summary", description: "Total collections and outstanding balances" },
-        { name: "Discount Analysis", description: "Staff, sibling, and bursary discounts" },
-        { name: "Payment Method Analysis", description: "Breakdown by payment channels" },
-        { name: "Balance Outstanding Report", description: "Learners with pending payments" },
+        { name: "Fee Collection Summary", description: `KES ${(analytics.feeStats.totalCollected / 1000).toFixed(0)}K collected`, count: 0 },
+        { name: "Balance Outstanding", description: `KES ${(analytics.feeStats.outstanding / 1000).toFixed(0)}K pending`, count: 0 },
       ],
     },
     {
       title: "Academic Reports",
       icon: GraduationCap,
+      stats: loading ? "..." : `${analytics.learnerStats.byGrade.length} Grades`,
       reports: [
-        { name: "Grade Distribution", description: "Learner count per grade and stream" },
-        { name: "Promotion History", description: "Learner progression tracking" },
-        { name: "Transfer Records", description: "Inter-stream transfer history" },
-        { name: "Staff Children Report", description: "Learners with staff parents" },
-      ],
-    },
-    {
-      title: "Administrative Reports",
-      icon: TrendingUp,
-      reports: [
-        { name: "Sibling Relationships", description: "Families with multiple learners" },
-        { name: "Admission Trends", description: "New admissions over time" },
-        { name: "Stream Capacity Analysis", description: "Occupancy rates by stream" },
-        { name: "Annual Summary Report", description: "Comprehensive yearly overview" },
+        { name: "Grade Distribution", description: "Learner count per grade", count: analytics.learnerStats.byGrade.length },
+        { name: "Promotion History", description: "Learner progression tracking", count: 0 },
       ],
     },
   ];
@@ -118,38 +108,38 @@ const Reports = () => {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Total Reports</CardDescription>
-              <CardTitle className="text-3xl">16</CardTitle>
+              <CardDescription>Total Learners</CardDescription>
+              <CardTitle className="text-3xl">{loading ? "..." : analytics.learnerStats.total}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Available report types</p>
+              <p className="text-sm text-muted-foreground">Enrolled students</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>This Month</CardDescription>
-              <CardTitle className="text-3xl">42</CardTitle>
+              <CardDescription>Fee Collection</CardDescription>
+              <CardTitle className="text-3xl">{loading ? "..." : `${analytics.feeStats.collectionRate.toFixed(0)}%`}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Reports generated</p>
+              <p className="text-sm text-muted-foreground">Collection rate</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Most Used</CardDescription>
-              <CardTitle className="text-xl">Fee Collection</CardTitle>
+              <CardDescription>Grades</CardDescription>
+              <CardTitle className="text-3xl">{loading ? "..." : analytics.learnerStats.byGrade.length}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">24 times this month</p>
+              <p className="text-sm text-muted-foreground">Active grade levels</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Last Generated</CardDescription>
-              <CardTitle className="text-xl">2 hours ago</CardTitle>
+              <CardDescription>Admissions</CardDescription>
+              <CardTitle className="text-3xl">{loading ? "..." : analytics.admissionTrends.reduce((sum, t) => sum + t.count, 0)}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Learner Population</p>
+              <p className="text-sm text-muted-foreground">Last 6 months</p>
             </CardContent>
           </Card>
         </div>
