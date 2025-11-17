@@ -91,19 +91,21 @@ const StreamDetail = () => {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {learners.map((learner) => (
-                    <tr key={learner.admissionNo} className="text-sm">
+                    <tr key={learner.admissionNo} className="text-sm hover:bg-muted/50 transition-colors">
                       <td className="py-4 pr-4">
                         <span className="font-mono font-medium text-foreground">{learner.admissionNo}</span>
                       </td>
                       <td className="py-4 pr-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-xs font-semibold text-primary">
-                              {learner.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                            </span>
+                        <Link to={`/learner/${learner.admissionNo}`}>
+                          <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-xs font-semibold text-primary">
+                                {learner.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                              </span>
+                            </div>
+                            <span className="font-medium text-foreground hover:text-primary transition-colors">{learner.name}</span>
                           </div>
-                          <span className="font-medium text-foreground">{learner.name}</span>
-                        </div>
+                        </Link>
                       </td>
                       <td className="py-4 pr-4 text-foreground">{learner.gender}</td>
                       <td className="py-4 pr-4 text-foreground">{learner.dateOfBirth}</td>

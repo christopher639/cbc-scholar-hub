@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical } from "lucide-react";
 import { AddLearnerDialog } from "@/components/AddLearnerDialog";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -169,14 +170,16 @@ const Students = () => {
                         <span className="font-mono font-medium text-foreground">{learner.admissionNo}</span>
                       </td>
                       <td className="py-4 pr-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-xs font-semibold text-primary">
-                              {learner.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                            </span>
+                        <Link to={`/learner/${learner.admissionNo}`}>
+                          <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-xs font-semibold text-primary">
+                                {learner.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                              </span>
+                            </div>
+                            <span className="font-medium text-foreground hover:text-primary transition-colors">{learner.name}</span>
                           </div>
-                          <span className="font-medium text-foreground">{learner.name}</span>
-                        </div>
+                        </Link>
                       </td>
                       <td className="py-4 pr-4 text-foreground">{learner.grade}</td>
                       <td className="py-4 pr-4">
@@ -203,9 +206,11 @@ const Students = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="gap-2">
-                              <Eye className="h-4 w-4" />
-                              View Profile
+                            <DropdownMenuItem className="gap-2" asChild>
+                              <Link to={`/learner/${learner.admissionNo}`}>
+                                <Eye className="h-4 w-4" />
+                                View Profile
+                              </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem className="gap-2">
                               <Edit className="h-4 w-4" />

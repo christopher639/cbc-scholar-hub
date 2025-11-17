@@ -162,7 +162,7 @@ const GradeDetail = () => {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {learners.map((learner) => (
-                    <tr key={learner.admissionNo} className="text-sm">
+                    <tr key={learner.admissionNo} className="text-sm hover:bg-muted/50 transition-colors">
                       <td className="py-4 pr-4">
                         <Checkbox 
                           checked={selectedLearners.includes(learner.admissionNo)}
@@ -178,7 +178,11 @@ const GradeDetail = () => {
                       <td className="py-4 pr-4">
                         <span className="font-mono font-medium text-foreground">{learner.admissionNo}</span>
                       </td>
-                      <td className="py-4 pr-4 font-medium text-foreground">{learner.name}</td>
+                      <td className="py-4 pr-4">
+                        <Link to={`/learner/${learner.admissionNo}`} className="font-medium text-foreground hover:text-primary transition-colors cursor-pointer">
+                          {learner.name}
+                        </Link>
+                      </td>
                       <td className="py-4 pr-4">
                         <Badge variant="secondary">{learner.stream}</Badge>
                       </td>
