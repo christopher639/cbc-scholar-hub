@@ -595,6 +595,12 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
+          director_email: string | null
+          director_message: string | null
+          director_name: string | null
+          director_phone: string | null
+          director_photo_url: string | null
+          director_qualification: string | null
           email: string | null
           id: string
           logo_url: string | null
@@ -606,6 +612,12 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string
+          director_email?: string | null
+          director_message?: string | null
+          director_name?: string | null
+          director_phone?: string | null
+          director_photo_url?: string | null
+          director_qualification?: string | null
           email?: string | null
           id?: string
           logo_url?: string | null
@@ -617,6 +629,12 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string
+          director_email?: string | null
+          director_message?: string | null
+          director_name?: string | null
+          director_phone?: string | null
+          director_photo_url?: string | null
+          director_qualification?: string | null
           email?: string | null
           id?: string
           logo_url?: string | null
