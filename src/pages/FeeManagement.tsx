@@ -6,48 +6,30 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useFeePayments } from "@/hooks/useFeePayments";
+import { useFeeStats } from "@/hooks/useFeeStats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const FeeManagement = () => {
+  const { payments, loading: paymentsLoading } = useFeePayments();
+  const { stats, loading: statsLoading } = useFeeStats();
+
   const feeStats = [
-    { label: "Total Collected", value: "KES 2,450,000", trend: "+12%", icon: DollarSign },
-    { label: "Outstanding", value: "KES 580,000", trend: "-5%", icon: AlertCircle },
-    { label: "Collection Rate", value: "81%", trend: "+3%", icon: TrendingUp },
-  ];
-
-  const recentPayments = [
-    {
-      admissionNo: "ADM001",
-      name: "John Kamau Mwangi",
-      grade: "Grade 4",
-      amount: 15000,
-      balance: 0,
-      date: "2025-01-15",
-      method: "MPESA",
+    { 
+      label: "Total Collected", 
+      value: statsLoading ? "..." : `KES ${(stats.totalCollected / 1000).toFixed(1)}K`,
+      icon: DollarSign 
     },
-    {
-      admissionNo: "ADM003",
-      name: "David Omondi Otieno",
-      grade: "Grade 3",
-      amount: 10000,
-      balance: 5000,
-      date: "2025-01-14",
-      method: "Bank",
+    { 
+      label: "Outstanding", 
+      value: statsLoading ? "..." : `KES ${(stats.outstanding / 1000).toFixed(1)}K`,
+      icon: AlertCircle 
     },
-    {
-      admissionNo: "ADM006",
-      name: "Sarah Njoki Kariuki",
-      grade: "Grade 6",
-      amount: 8000,
-      balance: 7000,
-      date: "2025-01-13",
-      method: "Cash",
+    { 
+      label: "Collection Rate", 
+      value: statsLoading ? "..." : `${stats.collectionRate.toFixed(0)}%`,
+      icon: TrendingUp 
     },
-  ];
-
-  const outstandingBalances = [
-    { admissionNo: "ADM001", name: "John Kamau Mwangi", grade: "Grade 4", balance: 15000, lastPayment: "2024-12-10" },
-    { admissionNo: "ADM003", name: "David Omondi Otieno", grade: "Grade 3", balance: 8500, lastPayment: "2024-11-20" },
-    { admissionNo: "ADM006", name: "Sarah Njoki Kariuki", grade: "Grade 6", balance: 12000, lastPayment: "2024-12-05" },
   ];
 
   return (
@@ -81,9 +63,6 @@ const FeeManagement = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-success">{stat.trend}</span> from last term
-                </p>
               </CardContent>
             </Card>
           ))}
@@ -122,46 +101,62 @@ const FeeManagement = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="border-b border-border">
-                      <tr className="text-left text-sm font-medium text-muted-foreground">
-                        <th className="pb-3 pr-4">Admission No.</th>
-                        <th className="pb-3 pr-4">Learner Name</th>
-                        <th className="pb-3 pr-4">Grade</th>
-                        <th className="pb-3 pr-4">Amount Paid</th>
-                        <th className="pb-3 pr-4">Balance</th>
-                        <th className="pb-3 pr-4">Date</th>
-                        <th className="pb-3">Method</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {recentPayments.map((payment) => (
-                        <tr key={payment.admissionNo} className="text-sm">
-                          <td className="py-4 pr-4">
-                            <span className="font-mono font-medium text-foreground">{payment.admissionNo}</span>
-                          </td>
-                          <td className="py-4 pr-4 font-medium text-foreground">{payment.name}</td>
-                          <td className="py-4 pr-4 text-foreground">{payment.grade}</td>
-                          <td className="py-4 pr-4 font-semibold text-success">
-                            KES {payment.amount.toLocaleString()}
-                          </td>
-                          <td className="py-4 pr-4">
-                            {payment.balance > 0 ? (
-                              <span className="font-semibold text-warning">KES {payment.balance.toLocaleString()}</span>
-                            ) : (
-                              <span className="font-semibold text-success">Paid</span>
-                            )}
-                          </td>
-                          <td className="py-4 pr-4 text-muted-foreground">{payment.date}</td>
-                          <td className="py-4">
-                            <Badge variant="secondary">{payment.method}</Badge>
-                          </td>
+                {paymentsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : payments.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">No payments recorded yet</p>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Record First Payment
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="border-b border-border">
+                        <tr className="text-left text-sm font-medium text-muted-foreground">
+                          <th className="pb-3 pr-4">Admission No.</th>
+                          <th className="pb-3 pr-4">Learner Name</th>
+                          <th className="pb-3 pr-4">Grade</th>
+                          <th className="pb-3 pr-4">Amount Paid</th>
+                          <th className="pb-3 pr-4">Date</th>
+                          <th className="pb-3">Method</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {payments.slice(0, 10).map((payment: any) => (
+                          <tr key={payment.id} className="text-sm">
+                            <td className="py-4 pr-4">
+                              <span className="font-mono font-medium text-foreground">
+                                {payment.learner?.admission_number || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="py-4 pr-4 font-medium text-foreground">
+                              {payment.learner?.first_name} {payment.learner?.last_name}
+                            </td>
+                            <td className="py-4 pr-4 text-foreground">
+                              {payment.learner?.current_grade?.name || 'N/A'}
+                            </td>
+                            <td className="py-4 pr-4 font-semibold text-success">
+                              KES {Number(payment.amount_paid).toLocaleString()}
+                            </td>
+                            <td className="py-4 pr-4 text-muted-foreground">
+                              {new Date(payment.payment_date).toLocaleDateString()}
+                            </td>
+                            <td className="py-4">
+                              <Badge variant="secondary">{payment.payment_method || 'Cash'}</Badge>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -174,37 +169,12 @@ const FeeManagement = () => {
                 <CardDescription>Learners with pending fee payments</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="border-b border-border">
-                      <tr className="text-left text-sm font-medium text-muted-foreground">
-                        <th className="pb-3 pr-4">Admission No.</th>
-                        <th className="pb-3 pr-4">Learner Name</th>
-                        <th className="pb-3 pr-4">Grade</th>
-                        <th className="pb-3 pr-4">Balance</th>
-                        <th className="pb-3 pr-4">Last Payment</th>
-                        <th className="pb-3">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {outstandingBalances.map((student) => (
-                        <tr key={student.admissionNo} className="text-sm">
-                          <td className="py-4 pr-4">
-                            <span className="font-mono font-medium text-foreground">{student.admissionNo}</span>
-                          </td>
-                          <td className="py-4 pr-4 font-medium text-foreground">{student.name}</td>
-                          <td className="py-4 pr-4 text-foreground">{student.grade}</td>
-                          <td className="py-4 pr-4 font-semibold text-warning">
-                            KES {student.balance.toLocaleString()}
-                          </td>
-                          <td className="py-4 pr-4 text-muted-foreground">{student.lastPayment}</td>
-                          <td className="py-4">
-                            <Button size="sm" variant="outline">Record Payment</Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">Outstanding balances feature coming soon</p>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Record Payment
+                  </Button>
                 </div>
               </CardContent>
             </Card>

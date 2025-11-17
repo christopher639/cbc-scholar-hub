@@ -5,24 +5,35 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useGrades } from "@/hooks/useGrades";
+import { useStreams } from "@/hooks/useStreams";
+import { usePromoteLearners } from "@/hooks/usePromoteLearners";
 
 interface PromoteLearnerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedLearners: string[];
   currentGrade: string;
+  onSuccess?: () => void;
 }
 
-export function PromoteLearnerDialog({ open, onOpenChange, selectedLearners, currentGrade }: PromoteLearnerDialogProps) {
+export function PromoteLearnerDialog({ 
+  open, 
+  onOpenChange, 
+  selectedLearners, 
+  currentGrade,
+  onSuccess 
+}: PromoteLearnerDialogProps) {
   const { toast } = useToast();
+  const { grades } = useGrades();
   const [targetGrade, setTargetGrade] = useState("");
+  const { streams } = useStreams(targetGrade);
   const [targetStream, setTargetStream] = useState("");
   const [checkFeeBalance, setCheckFeeBalance] = useState(true);
+  const { promoteLearners } = usePromoteLearners();
+  const [isPromoting, setIsPromoting] = useState(false);
 
-  const grades = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
-  const streams = ["Red", "Blue", "Green", "Yellow"];
-
-  const handlePromote = () => {
+  const handlePromote = async () => {
     if (!targetGrade || !targetStream) {
       toast({
         title: "Error",
@@ -32,11 +43,24 @@ export function PromoteLearnerDialog({ open, onOpenChange, selectedLearners, cur
       return;
     }
 
-    toast({
-      title: "Learners Promoted",
-      description: `${selectedLearners.length} learner(s) promoted to ${targetGrade} ${targetStream}`,
-    });
-    onOpenChange(false);
+    setIsPromoting(true);
+    const academicYear = new Date().getFullYear().toString();
+    
+    const result = await promoteLearners(
+      selectedLearners,
+      targetGrade,
+      targetStream,
+      academicYear
+    );
+
+    setIsPromoting(false);
+
+    if (result.success) {
+      onOpenChange(false);
+      setTargetGrade("");
+      setTargetStream("");
+      if (onSuccess) onSuccess();
+    }
   };
 
   return (
@@ -58,8 +82,8 @@ export function PromoteLearnerDialog({ open, onOpenChange, selectedLearners, cur
               </SelectTrigger>
               <SelectContent>
                 {grades.map((grade) => (
-                  <SelectItem key={grade} value={grade}>
-                    {grade}
+                  <SelectItem key={grade.id} value={grade.id}>
+                    {grade.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -68,14 +92,18 @@ export function PromoteLearnerDialog({ open, onOpenChange, selectedLearners, cur
 
           <div className="space-y-2">
             <Label htmlFor="targetStream">Target Stream</Label>
-            <Select value={targetStream} onValueChange={setTargetStream}>
+            <Select 
+              value={targetStream} 
+              onValueChange={setTargetStream}
+              disabled={!targetGrade}
+            >
               <SelectTrigger id="targetStream">
-                <SelectValue placeholder="Select stream" />
+                <SelectValue placeholder={targetGrade ? "Select stream" : "Select grade first"} />
               </SelectTrigger>
               <SelectContent>
                 {streams.map((stream) => (
-                  <SelectItem key={stream} value={stream}>
-                    {stream} Stream
+                  <SelectItem key={stream.id} value={stream.id}>
+                    {stream.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -98,7 +126,9 @@ export function PromoteLearnerDialog({ open, onOpenChange, selectedLearners, cur
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handlePromote}>Promote Learners</Button>
+          <Button onClick={handlePromote} disabled={isPromoting}>
+            {isPromoting ? "Promoting..." : "Promote Learners"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

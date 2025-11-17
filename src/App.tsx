@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
@@ -25,30 +26,32 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/students" element={<ProtectedRoute><Students /></ProtectedRoute>} />
-          <Route path="/grades" element={<ProtectedRoute><Grades /></ProtectedRoute>} />
-          <Route path="/grades/:grade" element={<ProtectedRoute><GradeDetail /></ProtectedRoute>} />
-          <Route path="/grades/:grade/:stream" element={<ProtectedRoute><StreamDetail /></ProtectedRoute>} />
-          <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
-          <Route path="/teachers" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
-          <Route path="/admissions" element={<ProtectedRoute><Admissions /></ProtectedRoute>} />
-          <Route path="/fees" element={<ProtectedRoute><FeeManagement /></ProtectedRoute>} />
-          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-          <Route path="/school-info" element={<ProtectedRoute><SchoolInfo /></ProtectedRoute>} />
-          <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/students" element={<ProtectedRoute><Students /></ProtectedRoute>} />
+            <Route path="/grades" element={<ProtectedRoute><Grades /></ProtectedRoute>} />
+            <Route path="/grades/:grade" element={<ProtectedRoute><GradeDetail /></ProtectedRoute>} />
+            <Route path="/grades/:grade/:stream" element={<ProtectedRoute><StreamDetail /></ProtectedRoute>} />
+            <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
+            <Route path="/teachers" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
+            <Route path="/admissions" element={<ProtectedRoute><Admissions /></ProtectedRoute>} />
+            <Route path="/fees" element={<ProtectedRoute><FeeManagement /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/school-info" element={<ProtectedRoute><SchoolInfo /></ProtectedRoute>} />
+            <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
