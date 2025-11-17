@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -15,23 +14,38 @@ interface AddGradeStreamDialogProps {
 
 export function AddGradeStreamDialog({ open, onOpenChange }: AddGradeStreamDialogProps) {
   const { toast } = useToast();
-  const [gradeLevel, setGradeLevel] = useState<Database["public"]["Enums"]["grade_level"]>("grade_1");
+  const [gradeName, setGradeName] = useState("");
   const [streamName, setStreamName] = useState("");
   const [capacity, setCapacity] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const gradeLevels: Database["public"]["Enums"]["grade_level"][] = [
-    "grade_1", "grade_2", "grade_3", "grade_4", "grade_5", "grade_6",
-    "grade_7", "grade_8", "grade_9", "grade_10", "grade_11", "grade_12"
-  ];
+  const gradeNameToLevel = (name: string): Database["public"]["Enums"]["grade_level"] | null => {
+    const match = name.match(/(\d+)/);
+    if (!match) return null;
+    const gradeNum = parseInt(match[1]);
+    if (gradeNum >= 1 && gradeNum <= 12) {
+      return `grade_${gradeNum}` as Database["public"]["Enums"]["grade_level"];
+    }
+    return null;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!gradeLevel || !streamName || !capacity) {
+    if (!gradeName || !streamName || !capacity) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const gradeLevel = gradeNameToLevel(gradeName);
+    if (!gradeLevel) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid grade (e.g., Grade 1, Grade 2, etc.)",
         variant: "destructive",
       });
       return;
@@ -41,12 +55,11 @@ export function AddGradeStreamDialog({ open, onOpenChange }: AddGradeStreamDialo
 
     try {
       // First, get or create the grade
-      const gradeName = `Grade ${gradeLevel.replace('grade_', '')}`;
       const { data: existingGrade } = await supabase
         .from("grades")
         .select("id")
         .eq("grade_level", gradeLevel)
-        .single();
+        .maybeSingle();
 
       let gradeId = existingGrade?.id;
 
@@ -81,7 +94,7 @@ export function AddGradeStreamDialog({ open, onOpenChange }: AddGradeStreamDialo
       });
 
       onOpenChange(false);
-      setGradeLevel("grade_1");
+      setGradeName("");
       setStreamName("");
       setCapacity("");
     } catch (error: any) {
@@ -107,19 +120,17 @@ export function AddGradeStreamDialog({ open, onOpenChange }: AddGradeStreamDialo
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="grade">Grade Level *</Label>
-            <Select value={gradeLevel} onValueChange={(value) => setGradeLevel(value as Database["public"]["Enums"]["grade_level"])}>
-              <SelectTrigger id="grade">
-                <SelectValue placeholder="Select grade level" />
-              </SelectTrigger>
-              <SelectContent>
-                {gradeLevels.map((level) => (
-                  <SelectItem key={level} value={level}>
-                    Grade {level.replace('grade_', '')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="grade">Grade Name *</Label>
+            <Input
+              id="grade"
+              placeholder="e.g., Grade 1, Grade 2"
+              value={gradeName}
+              onChange={(e) => setGradeName(e.target.value)}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter the grade name (e.g., Grade 1, Grade 2, etc.)
+            </p>
           </div>
 
           <div className="space-y-2">
