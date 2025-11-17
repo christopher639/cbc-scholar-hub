@@ -95,81 +95,87 @@ const Students = () => {
             <CardDescription>Complete list of enrolled learners</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b border-border">
-                  <tr className="text-left text-sm font-medium text-muted-foreground">
-                    <th className="pb-3 pr-4">Admission No.</th>
-                    <th className="pb-3 pr-4">Learner Name</th>
-                    <th className="pb-3 pr-4">Grade</th>
-                    <th className="pb-3 pr-4">Stream</th>
-                    <th className="pb-3 pr-4">Gender</th>
-                    <th className="pb-3 pr-4">Status</th>
-                    <th className="pb-3 pr-4">Fee Balance</th>
-                    <th className="pb-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {learners.map((learner) => (
-                    <tr key={learner.admissionNo} className="text-sm">
-                      <td className="py-4 pr-4">
-                        <span className="font-mono font-medium text-foreground">{learner.admissionNo}</span>
-                      </td>
-                      <td className="py-4 pr-4">
-                        <Link to={`/learner/${learner.admissionNo}`}>
-                          <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-xs font-semibold text-primary">
-                                {learner.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                              </span>
-                            </div>
-                            <span className="font-medium text-foreground hover:text-primary transition-colors">{learner.name}</span>
-                          </div>
-                        </Link>
-                      </td>
-                      <td className="py-4 pr-4 text-foreground">{learner.grade}</td>
-                      <td className="py-4 pr-4">
-                        <Badge variant="secondary">{learner.stream}</Badge>
-                      </td>
-                      <td className="py-4 pr-4 text-foreground">{learner.gender}</td>
-                      <td className="py-4 pr-4">
-                        <Badge variant="outline" className="border-success text-success">
-                          {learner.status}
-                        </Badge>
-                      </td>
-                      <td className="py-4 pr-4">
-                        {learner.feeBalance > 0 ? (
-                          <span className="font-semibold text-warning">KES {learner.feeBalance.toLocaleString()}</span>
-                        ) : (
-                          <span className="font-semibold text-success">Paid</span>
-                        )}
-                      </td>
-                      <td className="py-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="gap-2" asChild>
-                              <Link to={`/learner/${learner.admissionNo}`}>
-                                <Eye className="h-4 w-4" />
-                                View Profile
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2">
-                              <Edit className="h-4 w-4" />
-                              Edit Details
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+              <div className="overflow-x-auto">
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : learners.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">No learners found</p>
+                    <Button onClick={() => setIsAddDialogOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Learner
+                    </Button>
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead className="border-b border-border">
+                      <tr className="text-left text-sm font-medium text-muted-foreground">
+                        <th className="pb-3 pr-4">Admission No.</th>
+                        <th className="pb-3 pr-4">Learner Name</th>
+                        <th className="pb-3 pr-4">Grade</th>
+                        <th className="pb-3 pr-4">Stream</th>
+                        <th className="pb-3 pr-4">Gender</th>
+                        <th className="pb-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {learners.map((learner) => (
+                        <tr key={learner.id} className="text-sm hover:bg-muted/50 transition-colors">
+                          <td className="py-4 pr-4">
+                            <Link to={`/learners/${learner.id}`} className="font-medium text-primary hover:underline">
+                              {learner.admission_number}
+                            </Link>
+                          </td>
+                          <td className="py-4 pr-4">
+                            <Link to={`/learners/${learner.id}`}>
+                              <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                  <span className="text-xs font-semibold text-primary">
+                                    {learner.first_name?.[0]}{learner.last_name?.[0]}
+                                  </span>
+                                </div>
+                                <span className="font-medium text-foreground hover:text-primary transition-colors">
+                                  {learner.first_name} {learner.last_name}
+                                </span>
+                              </div>
+                            </Link>
+                          </td>
+                          <td className="py-4 pr-4 text-muted-foreground">{learner.current_grade?.name || 'N/A'}</td>
+                          <td className="py-4 pr-4">
+                            <Badge variant="secondary">{learner.current_stream?.name || 'N/A'}</Badge>
+                          </td>
+                          <td className="py-4 pr-4 text-muted-foreground capitalize">{learner.gender}</td>
+                          <td className="py-4">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild>
+                                  <Link to={`/learners/${learner.id}`}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    View Details
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit Learner
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
           </CardContent>
         </Card>
       </div>

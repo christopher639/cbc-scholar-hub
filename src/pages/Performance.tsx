@@ -1,29 +1,18 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, User, TrendingUp } from "lucide-react";
+import { Plus, BookOpen, User } from "lucide-react";
 import { useState } from "react";
 import { AddPerformanceDialog } from "@/components/AddPerformanceDialog";
 import { ManageLearningAreasDialog } from "@/components/ManageLearningAreasDialog";
 import { Badge } from "@/components/ui/badge";
+import { useLearningAreas } from "@/hooks/useLearningAreas";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Performance = () => {
   const [isAddPerformanceOpen, setIsAddPerformanceOpen] = useState(false);
   const [isManageLearningAreasOpen, setIsManageLearningAreasOpen] = useState(false);
-
-  const learningAreas = [
-    { id: 1, name: "Mathematics", teacher: "Mr. James Mwangi", learners: 45 },
-    { id: 2, name: "English", teacher: "Mrs. Grace Njeri", learners: 48 },
-    { id: 3, name: "Kiswahili", teacher: "Mr. David Omondi", learners: 48 },
-    { id: 4, name: "Science & Technology", teacher: "Mrs. Mary Wanjiku", learners: 45 },
-    { id: 5, name: "Social Studies", teacher: "Mr. Peter Kipchoge", learners: 42 },
-  ];
-
-  const recentPerformance = [
-    { learner: "John Kamau", grade: "Grade 4", area: "Mathematics", score: 85, exam: "End Term 1 2024" },
-    { learner: "Mary Wanjiku", grade: "Grade 1", area: "English", score: 92, exam: "End Term 1 2024" },
-    { learner: "David Omondi", grade: "Grade 3", area: "Science & Technology", score: 78, exam: "End Term 1 2024" },
-  ];
+  const { learningAreas, loading } = useLearningAreas();
 
   return (
     <DashboardLayout>
@@ -49,7 +38,7 @@ const Performance = () => {
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Learning Areas</CardDescription>
-              <CardTitle className="text-3xl">{learningAreas.length}</CardTitle>
+              <CardTitle className="text-3xl">{loading ? "..." : learningAreas.length}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">Active subjects</p>
@@ -57,23 +46,22 @@ const Performance = () => {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Average Score</CardDescription>
-              <CardTitle className="text-3xl">82.5%</CardTitle>
+              <CardDescription>Total Assessments</CardDescription>
+              <CardTitle className="text-3xl">0</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-success flex items-center gap-1">
-                <TrendingUp className="h-4 w-4" />
-                +5.2% from last term
-              </p>
+              <p className="text-sm text-muted-foreground">Recorded this term</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Assessments This Term</CardDescription>
-              <CardTitle className="text-3xl">156</CardTitle>
+              <CardDescription>Teachers Assigned</CardDescription>
+              <CardTitle className="text-3xl">
+                {loading ? "..." : learningAreas.filter(a => a.teacher_id).length}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Across all grades</p>
+              <p className="text-sm text-muted-foreground">With learning area assignments</p>
             </CardContent>
           </Card>
         </div>
@@ -84,25 +72,43 @@ const Performance = () => {
             <CardDescription>Subjects and assigned teachers</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {learningAreas.map((area) => (
-                <div key={area.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <BookOpen className="h-5 w-5 text-primary" />
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            ) : learningAreas.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">No learning areas found</p>
+                <Button onClick={() => setIsManageLearningAreasOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Learning Area
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {learningAreas.map((area) => (
+                  <div key={area.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground">{area.name}</h4>
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <User className="h-3 w-3" />
+                          {area.teacher 
+                            ? `${area.teacher.first_name} ${area.teacher.last_name}`
+                            : 'No teacher assigned'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">{area.name}</h4>
-                      <p className="text-sm text-muted-foreground flex items-center gap-2">
-                        <User className="h-3 w-3" />
-                        {area.teacher}
-                      </p>
-                    </div>
+                    <Badge variant="secondary">Code: {area.code}</Badge>
                   </div>
-                  <Badge variant="secondary">{area.learners} learners</Badge>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -112,33 +118,12 @@ const Performance = () => {
             <CardDescription>Latest assessment entries</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b border-border">
-                  <tr className="text-left text-sm font-medium text-muted-foreground">
-                    <th className="pb-3 pr-4">Learner</th>
-                    <th className="pb-3 pr-4">Grade</th>
-                    <th className="pb-3 pr-4">Learning Area</th>
-                    <th className="pb-3 pr-4">Exam</th>
-                    <th className="pb-3">Score</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {recentPerformance.map((record, index) => (
-                    <tr key={index} className="text-sm">
-                      <td className="py-4 pr-4 font-medium text-foreground">{record.learner}</td>
-                      <td className="py-4 pr-4 text-foreground">{record.grade}</td>
-                      <td className="py-4 pr-4 text-foreground">{record.area}</td>
-                      <td className="py-4 pr-4 text-muted-foreground">{record.exam}</td>
-                      <td className="py-4">
-                        <Badge variant={record.score >= 80 ? "default" : record.score >= 60 ? "secondary" : "outline"}>
-                          {record.score}%
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">No performance records yet</p>
+              <Button onClick={() => setIsAddPerformanceOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Record First Performance
+              </Button>
             </div>
           </CardContent>
         </Card>
