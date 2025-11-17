@@ -175,6 +175,7 @@ export type Database = {
       learners: {
         Row: {
           admission_number: string
+          birth_certificate_number: string | null
           created_at: string
           current_grade_id: string | null
           current_stream_id: string | null
@@ -192,6 +193,7 @@ export type Database = {
         }
         Insert: {
           admission_number?: string
+          birth_certificate_number?: string | null
           created_at?: string
           current_grade_id?: string | null
           current_stream_id?: string | null
@@ -209,6 +211,7 @@ export type Database = {
         }
         Update: {
           admission_number?: string
+          birth_certificate_number?: string | null
           created_at?: string
           current_grade_id?: string | null
           current_stream_id?: string | null
@@ -282,6 +285,79 @@ export type Database = {
             columns: ["teacher_id"]
             isOneToOne: false
             referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          learner_id: string
+          message: string
+          sender_id: string
+          sender_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          learner_id: string
+          message: string
+          sender_id: string
+          sender_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          learner_id?: string
+          message?: string
+          sender_id?: string
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: false
+            referencedRelation: "learners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          last_accessed: string
+          learner_id: string
+          session_token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_accessed?: string
+          learner_id: string
+          session_token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_accessed?: string
+          learner_id?: string
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_sessions_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: false
+            referencedRelation: "learners"
             referencedColumns: ["id"]
           },
         ]

@@ -214,8 +214,19 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2 text-sm text-muted-foreground text-center">
-          <p>By continuing, you agree to our Terms of Service and Privacy Policy.</p>
+        <CardFooter className="flex flex-col space-y-3">
+          <div className="w-full text-sm text-muted-foreground text-center space-y-2">
+            <p>By continuing, you agree to our Terms of Service and Privacy Policy.</p>
+          </div>
+          <div className="w-full border-t pt-3">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => navigate("/parent-login")}
+            >
+              Parent Portal Login
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     </div>
