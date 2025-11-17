@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Grades from "./pages/Grades";
+import GradeDetail from "./pages/GradeDetail";
+import StreamDetail from "./pages/StreamDetail";
+import Performance from "./pages/Performance";
 import Admissions from "./pages/Admissions";
 import FeeManagement from "./pages/FeeManagement";
 import Reports from "./pages/Reports";
@@ -24,6 +27,9 @@ const App = () => (
           <Route path="/" element={<Dashboard />} />
           <Route path="/students" element={<Students />} />
           <Route path="/grades" element={<Grades />} />
+          <Route path="/grades/:grade" element={<GradeDetail />} />
+          <Route path="/grades/:grade/:stream" element={<StreamDetail />} />
+          <Route path="/performance" element={<Performance />} />
           <Route path="/admissions" element={<Admissions />} />
           <Route path="/fees" element={<FeeManagement />} />
           <Route path="/reports" element={<Reports />} />
