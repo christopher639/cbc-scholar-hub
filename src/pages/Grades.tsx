@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Users, BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Grades = () => {
   const grades = [
@@ -80,7 +81,8 @@ const Grades = () => {
         {/* Grade Cards */}
         <div className="grid gap-6">
           {grades.map((gradeData) => (
-            <Card key={gradeData.grade}>
+            <Link key={gradeData.grade} to={`/grades/${gradeData.grade.replace('Grade ', '')}`}>
+              <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
@@ -146,7 +148,8 @@ const Grades = () => {
                   })}
                 </div>
               </CardContent>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>

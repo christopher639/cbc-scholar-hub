@@ -16,6 +16,18 @@ interface AddLearnerDialogProps {
 
 export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) {
   const [currentTab, setCurrentTab] = useState("basic");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -43,6 +55,22 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                 <div className="flex items-center gap-2 mb-4">
                   <User className="h-5 w-5 text-primary" />
                   <h3 className="font-semibold">Learner Information</h3>
+                </div>
+
+                <div className="flex flex-col items-center gap-4 mb-6">
+                  <div className="relative">
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="Learner" className="h-32 w-32 rounded-full object-cover border-4 border-border" />
+                    ) : (
+                      <div className="h-32 w-32 rounded-full bg-muted flex items-center justify-center border-4 border-border">
+                        <User className="h-16 w-16 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="photo">Learner Photo *</Label>
+                    <Input id="photo" type="file" accept="image/*" onChange={handleImageChange} />
+                  </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">

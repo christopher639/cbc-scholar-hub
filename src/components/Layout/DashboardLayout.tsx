@@ -24,6 +24,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Learners", href: "/students", icon: Users },
   { name: "Grades & Streams", href: "/grades", icon: GraduationCap },
+  { name: "Performance", href: "/performance", icon: FileText },
   { name: "Fee Management", href: "/fees", icon: DollarSign },
   { name: "Admissions", href: "/admissions", icon: UserCheck },
   { name: "Reports", href: "/reports", icon: FileText },
