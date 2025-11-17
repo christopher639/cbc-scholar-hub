@@ -22,7 +22,7 @@ interface DashboardLayoutProps {
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Students", href: "/students", icon: Users },
+  { name: "Learners", href: "/students", icon: Users },
   { name: "Grades & Streams", href: "/grades", icon: GraduationCap },
   { name: "Fee Management", href: "/fees", icon: DollarSign },
   { name: "Admissions", href: "/admissions", icon: UserCheck },

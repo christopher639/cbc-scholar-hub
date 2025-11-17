@@ -69,7 +69,7 @@ const Grades = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Grades & Streams</h1>
-            <p className="text-muted-foreground">Manage grade levels and class streams</p>
+            <p className="text-muted-foreground">Manage grade levels, streams, and learner distribution</p>
           </div>
           <Button className="gap-2">
             <Plus className="h-4 w-4" />
@@ -89,7 +89,7 @@ const Grades = () => {
                       {gradeData.grade}
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      {gradeData.totalStudents} students • {gradeData.streams.length} streams
+                      {gradeData.totalStudents} learners • {gradeData.streams.length} streams
                     </CardDescription>
                   </div>
                   <Badge variant="secondary" className="text-base">
@@ -139,7 +139,7 @@ const Grades = () => {
                         </div>
 
                         <Button variant="outline" size="sm" className="w-full">
-                          View Students
+                          View Learners
                         </Button>
                       </div>
                     );

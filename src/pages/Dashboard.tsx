@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const Dashboard = () => {
   const stats = [
     {
-      title: "Total Students",
+      title: "Total Learners",
       value: "1,247",
       icon: Users,
       trend: { value: "12%", positive: true },
@@ -72,7 +72,7 @@ const Dashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle>Recent Admissions</CardTitle>
-              <CardDescription>Latest students enrolled in the system</CardDescription>
+              <CardDescription>Latest learners enrolled in the system</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -105,7 +105,7 @@ const Dashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle>Grade Distribution</CardTitle>
-              <CardDescription>Student enrollment by grade level</CardDescription>
+              <CardDescription>Learner enrollment by grade level</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -144,7 +144,7 @@ const Dashboard = () => {
               <Button className="h-auto flex-col items-start gap-2 p-4">
                 <UserCheck className="h-5 w-5" />
                 <span className="font-semibold">New Admission</span>
-                <span className="text-xs text-primary-foreground/80">Register a new student</span>
+                <span className="text-xs text-primary-foreground/80">Register a new learner</span>
               </Button>
               <Button variant="secondary" className="h-auto flex-col items-start gap-2 p-4">
                 <DollarSign className="h-5 w-5" />
@@ -153,7 +153,7 @@ const Dashboard = () => {
               </Button>
               <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4">
                 <GraduationCap className="h-5 w-5" />
-                <span className="font-semibold">Promote Students</span>
+                <span className="font-semibold">Promote Learners</span>
                 <span className="text-xs text-muted-foreground">Grade progression</span>
               </Button>
               <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4">
