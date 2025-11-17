@@ -1,8 +1,12 @@
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddPerformanceDialogProps {
   open: boolean;
@@ -10,6 +14,139 @@ interface AddPerformanceDialogProps {
 }
 
 const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps) => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [learningAreas, setLearningAreas] = useState<any[]>([]);
+  const [academicPeriods, setAcademicPeriods] = useState<any[]>([]);
+  const [grades, setGrades] = useState<any[]>([]);
+  
+  const [formData, setFormData] = useState({
+    admissionNumber: "",
+    learningAreaCode: "",
+    academicPeriodId: "",
+    marks: "",
+    gradeId: "",
+    remarks: "",
+  });
+
+  useEffect(() => {
+    if (open) {
+      fetchLearningAreas();
+      fetchAcademicPeriods();
+      fetchGrades();
+    }
+  }, [open]);
+
+  const fetchLearningAreas = async () => {
+    const { data, error } = await supabase
+      .from("learning_areas")
+      .select("*")
+      .order("name", { ascending: true });
+    
+    if (!error && data) {
+      setLearningAreas(data);
+    }
+  };
+
+  const fetchAcademicPeriods = async () => {
+    const { data, error } = await supabase
+      .from("academic_periods")
+      .select("*")
+      .order("academic_year", { ascending: false });
+    
+    if (!error && data) {
+      setAcademicPeriods(data);
+    }
+  };
+
+  const fetchGrades = async () => {
+    const { data, error } = await supabase
+      .from("grades")
+      .select("*")
+      .order("grade_level", { ascending: true });
+    
+    if (!error && data) {
+      setGrades(data);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+
+      // Find learner by admission number
+      const { data: learner, error: learnerError } = await supabase
+        .from("learners")
+        .select("id")
+        .eq("admission_number", formData.admissionNumber)
+        .maybeSingle();
+
+      if (learnerError || !learner) {
+        toast({
+          title: "Error",
+          description: "Learner not found with this admission number",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Find learning area by code
+      const { data: learningArea, error: areaError } = await supabase
+        .from("learning_areas")
+        .select("id")
+        .eq("code", formData.learningAreaCode.toUpperCase())
+        .maybeSingle();
+
+      if (areaError || !learningArea) {
+        toast({
+          title: "Error",
+          description: "Learning area not found with this code",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Insert performance record
+      const { error: insertError } = await supabase
+        .from("performance_records")
+        .insert({
+          learner_id: learner.id,
+          learning_area_id: learningArea.id,
+          academic_period_id: formData.academicPeriodId,
+          grade_id: formData.gradeId,
+          marks: parseFloat(formData.marks),
+          remarks: formData.remarks || null,
+        });
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: "Success",
+        description: "Performance record added successfully",
+      });
+
+      // Reset form
+      setFormData({
+        admissionNumber: "",
+        learningAreaCode: "",
+        academicPeriodId: "",
+        marks: "",
+        gradeId: "",
+        remarks: "",
+      });
+      
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -20,132 +157,127 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="learner">Learner *</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select learner" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">John Kamau - ADM001</SelectItem>
-                  <SelectItem value="2">Mary Wanjiku - ADM002</SelectItem>
-                  <SelectItem value="3">David Omondi - ADM003</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="admissionNumber">Admission Number *</Label>
+              <Input
+                id="admissionNumber"
+                placeholder="e.g., 2500001"
+                value={formData.admissionNumber}
+                onChange={(e) => setFormData({ ...formData, admissionNumber: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter learner's admission number
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="learningArea">Learning Area *</Label>
+              <Label htmlFor="learningAreaCode">Learning Area Code *</Label>
               <div className="flex gap-2">
-                <Input 
-                  id="learningAreaCode" 
-                  placeholder="Code (e.g., MATH)" 
-                  className="uppercase font-mono w-32"
-                  maxLength={6}
+                <Input
+                  id="learningAreaCode"
+                  placeholder="e.g., MATH"
+                  className="uppercase font-mono"
+                  maxLength={10}
+                  value={formData.learningAreaCode}
+                  onChange={(e) => setFormData({ ...formData, learningAreaCode: e.target.value.toUpperCase() })}
                 />
-                <Select>
+                <Select 
+                  value={formData.learningAreaCode}
+                  onValueChange={(value) => setFormData({ ...formData, learningAreaCode: value })}
+                >
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Or select learning area" />
+                    <SelectValue placeholder="Or select" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="MATH">MATH - Mathematics</SelectItem>
-                    <SelectItem value="ENG">ENG - English</SelectItem>
-                    <SelectItem value="KIS">KIS - Kiswahili</SelectItem>
-                    <SelectItem value="SCI">SCI - Science</SelectItem>
-                    <SelectItem value="SST">SST - Social Studies</SelectItem>
-                    <SelectItem value="CRE">CRE - Christian RE</SelectItem>
-                    <SelectItem value="ART">ART - Creative Arts</SelectItem>
+                    {learningAreas.map((area) => (
+                      <SelectItem key={area.id} value={area.code}>
+                        {area.code} - {area.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <p className="text-xs text-muted-foreground">
-                Enter the code assigned to this learning area
+                Enter or select learning area code
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="academicYear">Academic Year *</Label>
-              <Select>
+              <Label htmlFor="academicPeriod">Academic Period *</Label>
+              <Select
+                value={formData.academicPeriodId}
+                onValueChange={(value) => setFormData({ ...formData, academicPeriodId: value })}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
+                  <SelectValue placeholder="Select period" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2024">2024</SelectItem>
-                  <SelectItem value="2023">2023</SelectItem>
+                  {academicPeriods.map((period) => (
+                    <SelectItem key={period.id} value={period.id}>
+                      {period.academic_year} - {period.term.replace('term_', 'Term ')}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="term">Term *</Label>
-              <Select>
+              <Label htmlFor="grade">Grade Level *</Label>
+              <Select
+                value={formData.gradeId}
+                onValueChange={(value) => setFormData({ ...formData, gradeId: value })}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select term" />
+                  <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Term 1</SelectItem>
-                  <SelectItem value="2">Term 2</SelectItem>
-                  <SelectItem value="3">Term 3</SelectItem>
+                  {grades.map((grade) => (
+                    <SelectItem key={grade.id} value={grade.id}>
+                      {grade.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="examType">Exam Type *</Label>
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Select exam type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="midterm">Mid-Term Exam</SelectItem>
-                <SelectItem value="endterm">End-Term Exam</SelectItem>
-                <SelectItem value="cat">Continuous Assessment (CAT)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="paper1">Paper 1 Score</Label>
-              <Input id="paper1" type="number" placeholder="0-100" min="0" max="100" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="paper2">Paper 2 Score</Label>
-              <Input id="paper2" type="number" placeholder="0-100" min="0" max="100" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="paper3">Paper 3 Score</Label>
-              <Input id="paper3" type="number" placeholder="0-100" min="0" max="100" />
-            </div>
+            <Label htmlFor="marks">Marks / Score *</Label>
+            <Input
+              id="marks"
+              type="number"
+              placeholder="Enter marks (e.g., 85)"
+              min="0"
+              max="100"
+              value={formData.marks}
+              onChange={(e) => setFormData({ ...formData, marks: e.target.value })}
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="totalScore">Total Score *</Label>
-            <Input id="totalScore" type="number" placeholder="0-100" min="0" max="100" />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="grade">Grade</Label>
-            <Input id="grade" placeholder="e.g., A, B+, C" />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="remarks">Teacher Remarks</Label>
-            <Input id="remarks" placeholder="Optional comments" />
+            <Label htmlFor="remarks">Remarks (Optional)</Label>
+            <Textarea
+              id="remarks"
+              placeholder="Add any comments about the learner's performance..."
+              className="min-h-[80px]"
+              value={formData.remarks}
+              onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+            />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button>Save Performance</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={loading}>
+            {loading ? "Saving..." : "Save Performance"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
-export { AddPerformanceDialog };
+export default AddPerformanceDialog;
