@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useFeePayments } from "@/hooks/useFeePayments";
 import { useFeeStats } from "@/hooks/useFeeStats";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 
 const FeeManagement = () => {
-  const { payments, loading: paymentsLoading } = useFeePayments();
-  const { stats, loading: statsLoading } = useFeeStats();
+  const { payments, loading: paymentsLoading, fetchPayments } = useFeePayments();
+  const { stats, loading: statsLoading, fetchStats } = useFeeStats();
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+
+  const handlePaymentSuccess = () => {
+    fetchPayments();
+    fetchStats();
+  };
 
   const feeStats = [
     { 
@@ -45,7 +53,7 @@ const FeeManagement = () => {
               <Download className="h-4 w-4" />
               Export Report
             </Button>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={() => setRecordPaymentOpen(true)}>
               <Plus className="h-4 w-4" />
               Record Payment
             </Button>
@@ -220,9 +228,16 @@ const FeeManagement = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <RecordPaymentDialog
+          open={recordPaymentOpen}
+          onOpenChange={setRecordPaymentOpen}
+          onSuccess={handlePaymentSuccess}
+        />
       </div>
     </DashboardLayout>
   );
 };
 
 export default FeeManagement;
+

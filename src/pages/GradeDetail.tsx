@@ -1,36 +1,60 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Download, Users, ArrowUp, Calendar, History } from "lucide-react";
 import { PromoteLearnerDialog } from "@/components/PromoteLearnerDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ViewHistoricalDataDialog } from "@/components/ViewHistoricalDataDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useGradeDetail } from "@/hooks/useGradeDetail";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const GradeDetail = () => {
   const { grade } = useParams();
+  const navigate = useNavigate();
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedLearners, setSelectedLearners] = useState<string[]>([]);
   const [historicalDialogOpen, setHistoricalDialogOpen] = useState(false);
   const [academicYear, setAcademicYear] = useState("2024-2025");
   const [term, setTerm] = useState("Term 3");
 
-  const streams = [
-    { name: "Green", learners: 35, capacity: 40 },
-    { name: "Red", learners: 38, capacity: 40 },
-    { name: "Blue", learners: 32, capacity: 40 },
-    { name: "Yellow", learners: 36, capacity: 40 },
-  ];
+  const { gradeData, streams, learners, loading } = useGradeDetail(grade || "");
 
-  const learners = [
-    { admissionNo: "ADM001", name: "John Kamau Mwangi", stream: "Green", gender: "Male", feeBalance: 15000 },
-    { admissionNo: "ADM003", name: "David Omondi Otieno", stream: "Blue", gender: "Male", feeBalance: 8500 },
-    { admissionNo: "ADM007", name: "Sarah Njoki Kariuki", stream: "Green", gender: "Female", feeBalance: 12000 },
-  ];
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedLearners(learners.map(l => l.id));
+    } else {
+      setSelectedLearners([]);
+    }
+  };
+
+  const handleSelectLearner = (learnerId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLearners([...selectedLearners, learnerId]);
+    } else {
+      setSelectedLearners(selectedLearners.filter(id => id !== learnerId));
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-12 w-64" />
+          <div className="grid gap-4 md:grid-cols-4">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32" />)}
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const totalLearners = learners.length;
+  const totalCapacity = streams.reduce((sum, s) => sum + (s.capacity || 0), 0);
 
   return (
     <DashboardLayout>
@@ -42,7 +66,7 @@ const GradeDetail = () => {
             </Button>
           </Link>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-foreground">Grade {grade}</h1>
+            <h1 className="text-3xl font-bold text-foreground">{gradeData?.name || `Grade ${grade}`}</h1>
             <p className="text-muted-foreground">View all learners and streams in this grade</p>
           </div>
           <div className="flex gap-2">
@@ -57,7 +81,6 @@ const GradeDetail = () => {
           </div>
         </div>
 
-        {/* Period Filter */}
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
@@ -90,9 +113,6 @@ const GradeDetail = () => {
                   </Select>
                 </div>
               </div>
-              <Badge variant="secondary" className="text-sm">
-                Current Period: {academicYear} - {term}
-              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -100,74 +120,85 @@ const GradeDetail = () => {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
+              <CardDescription>Total Streams</CardDescription>
+              <CardTitle className="text-3xl">{streams.length}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Active streams</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
               <CardDescription>Total Learners</CardDescription>
-              <CardTitle className="text-3xl">141</CardTitle>
+              <CardTitle className="text-3xl">{totalLearners}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Across 4 streams</p>
+              <p className="text-sm text-muted-foreground">Out of {totalCapacity} capacity</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Male</CardDescription>
-              <CardTitle className="text-3xl">72</CardTitle>
+              <CardDescription>Average per Stream</CardDescription>
+              <CardTitle className="text-3xl">
+                {streams.length > 0 ? Math.round(totalLearners / streams.length) : 0}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">51% of total</p>
+              <p className="text-sm text-muted-foreground">Learners per stream</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Female</CardDescription>
-              <CardTitle className="text-3xl">69</CardTitle>
+              <CardDescription>Available Space</CardDescription>
+              <CardTitle className="text-3xl">{Math.max(0, totalCapacity - totalLearners)}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">49% of total</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Average Capacity</CardDescription>
-              <CardTitle className="text-3xl">88%</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Utilization rate</p>
+              <p className="text-sm text-muted-foreground">More learners can join</p>
             </CardContent>
           </Card>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Streams in Grade {grade}</CardTitle>
-            <CardDescription>Click on a stream to view learners</CardDescription>
+            <CardTitle>Streams</CardTitle>
+            <CardDescription>{streams.length} streams in this grade</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {streams.map((stream) => (
-                <Link key={stream.name} to={`/grades/${grade}/${stream.name.toLowerCase()}`}>
-                  <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-bold text-foreground">{stream.name}</h3>
-                        <Users className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Learners:</span>
-                          <span className="font-semibold text-foreground">{stream.learners}/{stream.capacity}</span>
+            {streams.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No streams found for this grade</p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {streams.map((stream: any) => {
+                  const streamLearners = learners.filter(l => l.current_stream_id === stream.id);
+                  const percentage = stream.capacity ? (streamLearners.length / stream.capacity) * 100 : 0;
+                  
+                  return (
+                    <Card key={stream.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate(`/grades/${grade}/${stream.name}`)}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-xl">{stream.name}</CardTitle>
+                          <Users className="h-5 w-5 text-muted-foreground" />
                         </div>
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div
-                            className="bg-primary h-2 rounded-full transition-all"
-                            style={{ width: `${(stream.learners / stream.capacity) * 100}%` }}
-                          />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Enrollment</span>
+                            <span className="font-medium">{streamLearners.length}/{stream.capacity || 0}</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div 
+                              className="bg-primary h-2 rounded-full transition-all" 
+                              style={{ width: `${Math.min(percentage, 100)}%` }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -175,90 +206,77 @@ const GradeDetail = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>All Learners in Grade {grade}</CardTitle>
-                <CardDescription>{learners.length} total learners • {selectedLearners.length} selected</CardDescription>
+                <CardTitle>Learners</CardTitle>
+                <CardDescription>{learners.length} learners in this grade</CardDescription>
               </div>
-              <Button 
-                onClick={() => setPromoteDialogOpen(true)}
+              <Button
                 disabled={selectedLearners.length === 0}
-                className="gap-2"
+                onClick={() => setPromoteDialogOpen(true)}
               >
-                <ArrowUp className="h-4 w-4" />
-                Promote Selected
+                <ArrowUp className="h-4 w-4 mr-2" />
+                Promote Selected ({selectedLearners.length})
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b border-border">
-                  <tr className="text-left text-sm font-medium text-muted-foreground">
-                    <th className="pb-3 pr-4">
-                      <Checkbox 
-                        checked={selectedLearners.length === learners.length}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedLearners(learners.map(l => l.admissionNo));
-                          } else {
-                            setSelectedLearners([]);
-                          }
-                        }}
-                      />
-                    </th>
-                    <th className="pb-3 pr-4">Admission No.</th>
-                    <th className="pb-3 pr-4">Learner Name</th>
-                    <th className="pb-3 pr-4">Stream</th>
-                    <th className="pb-3 pr-4">Gender</th>
-                    <th className="pb-3">Fee Balance</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {learners.map((learner) => (
-                    <tr key={learner.admissionNo} className="text-sm hover:bg-muted/50 transition-colors">
-                      <td className="py-4 pr-4">
-                        <Checkbox 
-                          checked={selectedLearners.includes(learner.admissionNo)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedLearners([...selectedLearners, learner.admissionNo]);
-                            } else {
-                              setSelectedLearners(selectedLearners.filter(id => id !== learner.admissionNo));
-                            }
-                          }}
+            {learners.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No learners found in this grade</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b border-border">
+                    <tr className="text-left text-sm font-medium text-muted-foreground">
+                      <th className="pb-3 pr-4">
+                        <Checkbox
+                          checked={selectedLearners.length === learners.length && learners.length > 0}
+                          onCheckedChange={handleSelectAll}
                         />
-                      </td>
-                      <td className="py-4 pr-4">
-                        <span className="font-mono font-medium text-foreground">{learner.admissionNo}</span>
-                      </td>
-                      <td className="py-4 pr-4">
-                        <Link to={`/learner/${learner.admissionNo}`} className="font-medium text-foreground hover:text-primary transition-colors cursor-pointer">
-                          {learner.name}
-                        </Link>
-                      </td>
-                      <td className="py-4 pr-4">
-                        <Badge variant="secondary">{learner.stream}</Badge>
-                      </td>
-                      <td className="py-4 pr-4 text-foreground">{learner.gender}</td>
-                      <td className="py-4">
-                        {learner.feeBalance > 0 ? (
-                          <span className="font-semibold text-warning">KES {learner.feeBalance.toLocaleString()}</span>
-                        ) : (
-                          <span className="font-semibold text-success">Paid</span>
-                        )}
-                      </td>
+                      </th>
+                      <th className="pb-3 pr-4">Admission No.</th>
+                      <th className="pb-3 pr-4">Learner Name</th>
+                      <th className="pb-3 pr-4">Stream</th>
+                      <th className="pb-3 pr-4">Gender</th>
+                      <th className="pb-3">Fee Balance</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {learners.map((learner) => (
+                      <tr key={learner.id} className="text-sm hover:bg-muted/50 transition-colors">
+                        <td className="py-3 pr-4">
+                          <Checkbox
+                            checked={selectedLearners.includes(learner.id)}
+                            onCheckedChange={(checked) => handleSelectLearner(learner.id, checked as boolean)}
+                          />
+                        </td>
+                        <td className="py-3 pr-4">
+                          <Link to={`/students/${learner.id}`} className="text-primary hover:underline">
+                            {learner.admission_number}
+                          </Link>
+                        </td>
+                        <td className="py-3 pr-4 font-medium">{learner.first_name} {learner.last_name}</td>
+                        <td className="py-3 pr-4">
+                          <Badge variant="outline">{learner.current_stream?.name || "N/A"}</Badge>
+                        </td>
+                        <td className="py-3 pr-4 capitalize">{learner.gender}</td>
+                        <td className="py-3">
+                          <Badge variant={learner.feeBalance > 0 ? "destructive" : "default"}>
+                            KES {learner.feeBalance.toLocaleString()}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        <PromoteLearnerDialog 
-          open={promoteDialogOpen} 
+        <PromoteLearnerDialog
+          open={promoteDialogOpen}
           onOpenChange={setPromoteDialogOpen}
           selectedLearners={selectedLearners}
-          currentGrade={`Grade ${grade}`}
+          currentGrade={grade || ""}
         />
 
         <ViewHistoricalDataDialog
