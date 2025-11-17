@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import {
   LayoutDashboard,
   Users,
@@ -46,6 +47,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const { schoolInfo } = useSchoolInfo();
 
   useEffect(() => {
     if (user) {
@@ -106,9 +108,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
       >
         <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-          <GraduationCap className="h-8 w-8 text-primary" />
+          {schoolInfo?.logo_url ? (
+            <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 object-contain" />
+          ) : (
+            <GraduationCap className="h-8 w-8 text-primary" />
+          )}
           <div className="flex flex-col">
-            <span className="font-bold text-lg text-foreground">CBC School</span>
+            <span className="font-bold text-lg text-foreground">
+              {schoolInfo?.school_name || "CBC School"}
+            </span>
             <span className="text-xs text-muted-foreground">Management System</span>
           </div>
         </div>
