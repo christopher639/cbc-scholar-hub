@@ -13,9 +13,9 @@ export function useSchoolInfo() {
       const { data, error } = await supabase
         .from("school_info")
         .select("*")
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       setSchoolInfo(data);
     } catch (error: any) {
       console.error("Error fetching school info:", error);

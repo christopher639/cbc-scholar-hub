@@ -20,6 +20,18 @@ const Grades = () => {
     }
   };
 
+  // Transform grades data to match the expected format
+  const gradesData = grades.map((grade) => ({
+    grade: grade.name,
+    totalStudents: 0, // TODO: Calculate from learners
+    streams: grade.streams?.map((stream: any) => ({
+      name: stream.name,
+      teacher: "Not assigned", // TODO: Get from teacher assignment
+      students: 0, // TODO: Calculate from learners
+      capacity: stream.capacity || 0,
+    })) || [],
+  }));
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -37,7 +49,20 @@ const Grades = () => {
 
         {/* Grade Cards */}
         <div className="grid gap-6">
-          {grades.map((gradeData) => (
+          {loading ? (
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-muted-foreground">Loading grades...</p>
+              </CardContent>
+            </Card>
+          ) : gradesData.length === 0 ? (
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-muted-foreground">No grades found. Click "Add New Stream" to create your first grade and stream.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            gradesData.map((gradeData) => (
             <Link key={gradeData.grade} to={`/grades/${gradeData.grade.replace('Grade ', '')}`}>
               <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
               <CardHeader>
@@ -107,7 +132,8 @@ const Grades = () => {
               </CardContent>
               </Card>
             </Link>
-          ))}
+          ))
+          )}
         </div>
 
         <AddGradeStreamDialog 
