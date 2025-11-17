@@ -76,12 +76,11 @@ const Students = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+              <Select value={selectedGrade || undefined} onValueChange={(value) => setSelectedGrade(value || "")}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Grade" />
+                  <SelectValue placeholder="All Grades" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Grades</SelectItem>
                   {grades.map((grade) => (
                     <SelectItem key={grade.id} value={grade.id}>
                       {grade.name}
@@ -89,12 +88,11 @@ const Students = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedStream} onValueChange={setSelectedStream}>
+              <Select value={selectedStream || undefined} onValueChange={(value) => setSelectedStream(value || "")}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Stream" />
+                  <SelectValue placeholder="All Streams" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Streams</SelectItem>
                   {filteredStreams.map((stream) => (
                     <SelectItem key={stream.id} value={stream.id}>
                       {stream.name}
