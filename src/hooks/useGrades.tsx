@@ -10,16 +10,31 @@ export function useGrades() {
   const fetchGrades = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch grades with streams
+      const { data: gradesData, error: gradesError } = await supabase
         .from("grades")
-        .select(`
-          *,
-          streams(*)
-        `)
+        .select("*")
         .order("grade_level", { ascending: true });
 
-      if (error) throw error;
-      setGrades(data || []);
+      if (gradesError) throw gradesError;
+
+      // For each grade, count learners
+      const gradesWithCounts = await Promise.all(
+        (gradesData || []).map(async (grade) => {
+          const { count } = await supabase
+            .from("learners")
+            .select("*", { count: "exact", head: true })
+            .eq("current_grade_id", grade.id);
+
+          return {
+            ...grade,
+            learner_count: count || 0,
+          };
+        })
+      );
+
+      setGrades(gradesWithCounts);
     } catch (error: any) {
       toast({
         title: "Error",

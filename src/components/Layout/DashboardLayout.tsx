@@ -111,12 +111,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         <div className="flex h-16 items-center gap-2 border-b border-border px-6">
           {schoolInfo?.logo_url ? (
-            <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 object-contain rounded-full" />
+            <img src={schoolInfo.logo_url} alt="School Logo" className="h-12 w-12 object-contain rounded-full" />
           ) : (
-            <GraduationCap className="h-8 w-8 text-primary" />
+            <GraduationCap className="h-12 w-12 text-primary" />
           )}
           <div className="flex flex-col">
-            <span className="font-bold text-lg text-foreground">
+            <span className="font-semibold text-base">
               {schoolInfo?.school_name || "CBC School"}
             </span>
             <span className="text-xs text-muted-foreground">Management System</span>

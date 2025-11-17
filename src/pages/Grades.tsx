@@ -20,21 +20,13 @@ const Grades = () => {
     }
   };
 
-  // Transform grades data with real information
-  const gradesData = grades.map((grade) => {
-    const streams = grade.streams?.map((stream: any) => ({
-      id: stream.id,
-      name: stream.name,
-      teacher: "Not assigned",
-      students: 0,
-      capacity: stream.capacity || 40,
-    })) || [];
-
+  // Transform grades data with real learner counts
+  const gradesData = grades.map((grade: any) => {
     return {
       id: grade.id,
       grade: grade.name,
-      totalStudents: 0,
-      streams,
+      totalStudents: grade.learner_count || 0,
+      streamCount: 0, // Will be fetched in grade detail
     };
   });
 
@@ -79,7 +71,7 @@ const Grades = () => {
                       {gradeData.grade}
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      {gradeData.totalStudents} learners • {gradeData.streams.length} streams
+                      {gradeData.totalStudents} learners • {gradeData.streamCount} streams
                     </CardDescription>
                   </div>
                   <Badge variant="secondary" className="text-base">
@@ -88,54 +80,10 @@ const Grades = () => {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {gradeData.streams.map((stream) => {
-                    const fillPercentage = (stream.students / stream.capacity) * 100;
-                    const isNearCapacity = fillPercentage >= 90;
-
-                    return (
-                      <Link key={stream.id} to={`/grades/${gradeData.id}/${stream.id}`} onClick={(e) => e.stopPropagation()}>
-                      <div
-                        className="rounded-lg border border-border bg-muted/50 p-4 space-y-3 hover:bg-muted transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-semibold text-foreground">{stream.name} Stream</h4>
-                            <p className="text-sm text-muted-foreground mt-0.5">{stream.teacher}</p>
-                          </div>
-                          {isNearCapacity && (
-                            <Badge variant="outline" className="border-warning text-warning">
-                              Near Full
-                            </Badge>
-                          )}
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Enrollment</span>
-                            <span className="font-semibold text-foreground">
-                              {stream.students}/{stream.capacity}
-                            </span>
-                          </div>
-                          <div className="h-2 w-full bg-background rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all ${
-                                isNearCapacity ? "bg-warning" : "bg-primary"
-                              }`}
-                              style={{ width: `${fillPercentage}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        <Button variant="outline" size="sm" className="w-full">
-                          View Learners
-                        </Button>
-                      </div>
-                      </Link>
-                    );
-                  })}
-                </div>
+              <CardContent className="pt-4">
+                <Button variant="outline" className="w-full">
+                  View Streams & Learners
+                </Button>
               </CardContent>
               </Card>
             </Link>

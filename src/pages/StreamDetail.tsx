@@ -3,16 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, ArrowUp } from "lucide-react";
 import { useStreamDetail } from "@/hooks/useStreamDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PromoteLearnerDialog } from "@/components/PromoteLearnerDialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const StreamDetail = () => {
   const { grade, stream } = useParams();
   const [gradeId, setGradeId] = useState("");
   const [streamId, setStreamId] = useState("");
+  const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
+  const [selectedLearners, setSelectedLearners] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchIds = async () => {
@@ -45,7 +49,23 @@ const StreamDetail = () => {
     }
   }, [grade, stream]);
 
-  const { streamData, learners, stats, loading } = useStreamDetail(gradeId, streamId);
+  const { streamData, learners, stats, loading, refetch } = useStreamDetail(gradeId, streamId);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedLearners(learners.map(l => l.id));
+    } else {
+      setSelectedLearners([]);
+    }
+  };
+
+  const handleSelectLearner = (learnerId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLearners([...selectedLearners, learnerId]);
+    } else {
+      setSelectedLearners(selectedLearners.filter(id => id !== learnerId));
+    }
+  };
 
   if (loading || !gradeId || !streamId) {
     return (
@@ -73,12 +93,22 @@ const StreamDetail = () => {
             <h1 className="text-3xl font-bold text-foreground">
               {streamData?.grade?.name || grade} - {stream} Stream
             </h1>
-            <p className="text-muted-foreground">All learners in this stream</p>
+            <p className="text-muted-foreground">{stats.total} learners in this stream</p>
           </div>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Export List
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              disabled={selectedLearners.length === 0}
+              onClick={() => setPromoteDialogOpen(true)}
+              className="gap-2"
+            >
+              <ArrowUp className="h-4 w-4" />
+              Promote Selected ({selectedLearners.length})
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Export List
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
