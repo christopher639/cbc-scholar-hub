@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard,
   Users,
@@ -39,10 +41,43 @@ const navigation = [
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
+
+  const loadProfile = async () => {
+    try {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("id", user?.id)
+        .single();
+      
+      if (data) {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+    }
+  };
+
+  const getInitials = () => {
+    if (!profile?.full_name) return "U";
+    return profile.full_name
+      .split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -128,15 +163,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </Button>
 
           <div className="ml-auto flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-semibold text-primary">AD</span>
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2"
+              onClick={() => navigate("/profile")}
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatar_url} />
+                <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="hidden sm:block text-sm text-left">
+                <p className="font-medium text-foreground">{profile?.full_name || "User"}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
-              <div className="hidden sm:block text-sm">
-                <p className="font-medium text-foreground">Administrator</p>
-                <p className="text-xs text-muted-foreground">admin@school.ke</p>
-              </div>
-            </div>
+            </Button>
           </div>
         </header>
 
