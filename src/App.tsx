@@ -22,6 +22,8 @@ import LearnerProfile from "./pages/LearnerProfile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
+import Profile from "./pages/Profile";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -45,6 +47,7 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/school-info" element={<ProtectedRoute><SchoolInfo /></ProtectedRoute>} />
             <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

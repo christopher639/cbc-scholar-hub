@@ -7,7 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Upload, User, Users, FileText, Heart } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useGrades } from "@/hooks/useGrades";
+import { useStreams } from "@/hooks/useStreams";
 
 interface AddLearnerDialogProps {
   open: boolean;
@@ -17,6 +19,15 @@ interface AddLearnerDialogProps {
 export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) {
   const [currentTab, setCurrentTab] = useState("basic");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedGrade, setSelectedGrade] = useState("");
+  
+  const { grades, loading: gradesLoading } = useGrades();
+  const { streams, loading: streamsLoading } = useStreams();
+  
+  // Filter streams based on selected grade
+  const filteredStreams = selectedGrade
+    ? streams.filter((stream) => stream.grade_id === selectedGrade)
+    : [];
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -249,31 +260,37 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="grade">Grade *</Label>
-                    <Select>
+                    <Select value={selectedGrade} onValueChange={setSelectedGrade}>
                       <SelectTrigger id="grade">
-                        <SelectValue placeholder="Select grade" />
+                        <SelectValue placeholder={gradesLoading ? "Loading grades..." : "Select grade"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">Grade 1</SelectItem>
-                        <SelectItem value="2">Grade 2</SelectItem>
-                        <SelectItem value="3">Grade 3</SelectItem>
-                        <SelectItem value="4">Grade 4</SelectItem>
-                        <SelectItem value="5">Grade 5</SelectItem>
-                        <SelectItem value="6">Grade 6</SelectItem>
+                        {grades.map((grade) => (
+                          <SelectItem key={grade.id} value={grade.id}>
+                            {grade.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="stream">Stream *</Label>
-                    <Select>
+                    <Select disabled={!selectedGrade}>
                       <SelectTrigger id="stream">
-                        <SelectValue placeholder="Select stream" />
+                        <SelectValue placeholder={
+                          !selectedGrade 
+                            ? "Select grade first" 
+                            : streamsLoading 
+                              ? "Loading streams..." 
+                              : "Select stream"
+                        } />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="green">Green</SelectItem>
-                        <SelectItem value="red">Red</SelectItem>
-                        <SelectItem value="blue">Blue</SelectItem>
-                        <SelectItem value="yellow">Yellow</SelectItem>
+                        {filteredStreams.map((stream) => (
+                          <SelectItem key={stream.id} value={stream.id}>
+                            {stream.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
