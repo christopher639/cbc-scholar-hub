@@ -19,17 +19,23 @@ export function useGrades() {
 
       if (gradesError) throw gradesError;
 
-      // For each grade, count learners
+      // For each grade, count learners and streams
       const gradesWithCounts = await Promise.all(
         (gradesData || []).map(async (grade) => {
-          const { count } = await supabase
+          const { count: learnerCount } = await supabase
             .from("learners")
             .select("*", { count: "exact", head: true })
             .eq("current_grade_id", grade.id);
 
+          const { count: streamCount } = await supabase
+            .from("streams")
+            .select("*", { count: "exact", head: true })
+            .eq("grade_id", grade.id);
+
           return {
             ...grade,
-            learner_count: count || 0,
+            learner_count: learnerCount || 0,
+            stream_count: streamCount || 0,
           };
         })
       );

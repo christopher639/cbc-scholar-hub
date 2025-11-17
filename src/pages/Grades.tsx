@@ -20,13 +20,13 @@ const Grades = () => {
     }
   };
 
-  // Transform grades data with real learner counts
+  // Transform grades data with real learner and stream counts
   const gradesData = grades.map((grade: any) => {
     return {
       id: grade.id,
       grade: grade.name,
       totalStudents: grade.learner_count || 0,
-      streamCount: 0, // Will be fetched in grade detail
+      streamCount: grade.stream_count || 0,
     };
   });
 

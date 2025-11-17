@@ -173,28 +173,30 @@ const GradeDetail = () => {
                   const percentage = stream.capacity ? (streamLearners.length / stream.capacity) * 100 : 0;
                   
                   return (
-                    <Card key={stream.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate(`/grades/${grade}/${stream.name}`)}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-xl">{stream.name}</CardTitle>
-                          <Users className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Enrollment</span>
-                            <span className="font-medium">{streamLearners.length}/{stream.capacity || 0}</span>
+                    <Link key={stream.id} to={`/grades/${gradeData?.name || grade}/${stream.name}`}>
+                      <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-xl">{stream.name}</CardTitle>
+                            <Users className="h-5 w-5 text-muted-foreground" />
                           </div>
-                          <div className="w-full bg-muted rounded-full h-2">
-                            <div 
-                              className="bg-primary h-2 rounded-full transition-all" 
-                              style={{ width: `${Math.min(percentage, 100)}%` }}
-                            />
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Enrollment</span>
+                              <span className="font-medium">{streamLearners.length}/{stream.capacity || 0}</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div 
+                                className="bg-primary h-2 rounded-full transition-all" 
+                                style={{ width: `${Math.min(percentage, 100)}%` }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
