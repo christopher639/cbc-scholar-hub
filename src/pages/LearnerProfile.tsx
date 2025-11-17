@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,81 +7,100 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History } from "lucide-react";
+import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History, ArrowLeft } from "lucide-react";
 import { PromotionHistoryDialog } from "@/components/PromotionHistoryDialog";
+import { useLearnerDetail } from "@/hooks/useLearnerDetail";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const LearnerProfile = () => {
+  const { id } = useParams<{ id: string }>();
   const [promotionHistoryOpen, setPromotionHistoryOpen] = useState(false);
+  const { learner, loading } = useLearnerDetail(id || "");
 
-  // Mock learner data
-  const learner = {
-    admissionNumber: "CBC2024001",
-    firstName: "Jane",
-    middleName: "Wanjiku",
-    lastName: "Kamau",
-    photo: "/placeholder.svg",
-    dateOfBirth: "2015-03-15",
-    gender: "Female",
-    grade: "Grade 4",
-    stream: "Green",
-    status: "Active",
-    enrollmentDate: "2021-01-10",
-    birthCertificateNumber: "123456789",
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-12 w-64" />
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex gap-6">
+                <Skeleton className="h-32 w-32 rounded-full" />
+                <div className="flex-1 space-y-4">
+                  <Skeleton className="h-8 w-64" />
+                  <Skeleton className="h-4 w-48" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-6 w-24" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!learner) {
+    return (
+      <DashboardLayout>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">Learner not found</p>
+          </CardContent>
+        </Card>
+      </DashboardLayout>
+    );
+  }
+
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   };
-
-  const parentInfo = {
-    name: "John Kamau",
-    relationship: "Father",
-    phone: "+254 712 345 678",
-    email: "j.kamau@email.com",
-    isStaff: true,
-    occupation: "Teacher",
-  };
-
-  const feeInfo = {
-    totalFees: 45000,
-    paid: 30000,
-    balance: 15000,
-    discounts: [
-      { type: "Staff Discount", amount: 22500 },
-    ],
-  };
-
-  const performance = [
-    { subject: "Mathematics", grade: "A", score: 92, term: "Term 3 2024" },
-    { subject: "English", grade: "A-", score: 87, term: "Term 3 2024" },
-    { subject: "Science", grade: "B+", score: 81, term: "Term 3 2024" },
-    { subject: "Social Studies", grade: "A", score: 90, term: "Term 3 2024" },
-  ];
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Back Button */}
+        <Link to="/students">
+          <Button variant="ghost" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Learners
+          </Button>
+        </Link>
+
         {/* Header Section */}
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
               <Avatar className="h-32 w-32">
-                <AvatarImage src={learner.photo} alt={`${learner.firstName} ${learner.lastName}`} />
+                <AvatarImage src={learner.photo_url} alt={`${learner.first_name} ${learner.last_name}`} />
                 <AvatarFallback className="text-3xl">
-                  {learner.firstName[0]}{learner.lastName[0]}
+                  {learner.first_name[0]}{learner.last_name[0]}
                 </AvatarFallback>
               </Avatar>
 
               <div className="flex-1 space-y-4">
                 <div>
                   <h1 className="text-3xl font-bold text-foreground">
-                    {learner.firstName} {learner.middleName} {learner.lastName}
+                    {learner.first_name} {learner.last_name}
                   </h1>
-                  <p className="text-muted-foreground">Admission No: {learner.admissionNumber}</p>
+                  <p className="text-muted-foreground">Admission No: {learner.admission_number}</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="text-base">
-                    {learner.grade} {learner.stream}
+                    {learner.current_grade?.name} {learner.current_stream?.name}
                   </Badge>
-                  <Badge className="text-base">{learner.status}</Badge>
-                  {parentInfo.isStaff && (
+                  <Badge className="text-base">Active</Badge>
+                  {learner.parent?.occupation === "Teacher" && (
                     <Badge variant="outline" className="text-base">Staff Child</Badge>
                   )}
                 </div>
@@ -88,25 +108,21 @@ const LearnerProfile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>Born: {new Date(learner.dateOfBirth).toLocaleDateString()}</span>
+                    <span>Born: {new Date(learner.date_of_birth).toLocaleDateString()} ({calculateAge(learner.date_of_birth)} years)</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <User className="h-4 w-4" />
-                    <span>{learner.gender}</span>
+                    <span className="capitalize">{learner.gender}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>Enrolled: {new Date(learner.enrollmentDate).toLocaleDateString()}</span>
+                    <span>Enrolled: {new Date(learner.enrollment_date).toLocaleDateString()}</span>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <Button>Edit Profile</Button>
-                <Button variant="outline">Print Report</Button>
-                <Button variant="outline" onClick={() => setPromotionHistoryOpen(true)}>
-                  <History className="h-4 w-4 mr-2" />
-                  View History
+                <Button onClick={() => setPromotionHistoryOpen(true)} variant="outline" className="gap-2">
+                  <History className="h-4 w-4" />
+                  View Promotion History
                 </Button>
               </div>
             </div>
@@ -115,125 +131,142 @@ const LearnerProfile = () => {
 
         {/* Tabbed Content */}
         <Tabs defaultValue="personal" className="space-y-4">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto">
             <TabsTrigger value="personal">Personal Info</TabsTrigger>
             <TabsTrigger value="academic">Academic</TabsTrigger>
             <TabsTrigger value="fees">Fees</TabsTrigger>
             <TabsTrigger value="parent">Parent/Guardian</TabsTrigger>
           </TabsList>
 
-          {/* Personal Information */}
+          {/* Personal Info Tab */}
           <TabsContent value="personal" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">First Name</p>
-                    <p className="font-medium">{learner.firstName}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">First Name</p>
+                    <p className="text-base font-medium">{learner.first_name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Middle Name</p>
-                    <p className="font-medium">{learner.middleName}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Last Name</p>
+                    <p className="text-base font-medium">{learner.last_name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Last Name</p>
-                    <p className="font-medium">{learner.lastName}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
+                    <p className="text-base font-medium">{new Date(learner.date_of_birth).toLocaleDateString()}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Gender</p>
-                    <p className="font-medium">{learner.gender}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Gender</p>
+                    <p className="text-base font-medium capitalize">{learner.gender}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Date of Birth</p>
-                    <p className="font-medium">{new Date(learner.dateOfBirth).toLocaleDateString()}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Admission Number</p>
+                    <p className="text-base font-medium">{learner.admission_number}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Birth Certificate No.</p>
-                    <p className="font-medium">{learner.birthCertificateNumber}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Enrollment Date</p>
+                    <p className="text-base font-medium">{new Date(learner.enrollment_date).toLocaleDateString()}</p>
                   </div>
                 </div>
+                {learner.medical_info && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Medical Information</p>
+                      <p className="text-base">{learner.medical_info}</p>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Academic Information */}
+          {/* Academic Tab */}
           <TabsContent value="academic" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Current Academic Status</CardTitle>
+                <CardTitle>Current Academic Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Current Grade</p>
-                    <p className="font-medium text-lg">{learner.grade}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Grade</p>
+                    <Badge variant="secondary" className="text-base">{learner.current_grade?.name}</Badge>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Stream</p>
-                    <p className="font-medium text-lg">{learner.stream}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <Badge className="mt-1">{learner.status}</Badge>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Stream</p>
+                    <Badge variant="outline" className="text-base">{learner.current_stream?.name}</Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Performance Records */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Recent Performance
-                </CardTitle>
+                <CardTitle>Performance Records</CardTitle>
+                <CardDescription>Recent assessment results</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {performance.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0">
-                      <div>
-                        <p className="font-medium">{item.subject}</p>
-                        <p className="text-sm text-muted-foreground">{item.term}</p>
+                {learner.performance.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No performance records found</p>
+                ) : (
+                  <div className="space-y-4">
+                    {learner.performance.map((record: any) => (
+                      <div key={record.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                        <div className="space-y-1">
+                          <p className="font-medium">{record.learning_area?.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {record.academic_period?.academic_year} - {record.academic_period?.term?.replace('_', ' ')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-2">
+                            <Badge className="text-base">{record.grade_letter || 'N/A'}</Badge>
+                            <span className="text-2xl font-bold">{record.marks}</span>
+                          </div>
+                          {record.remarks && (
+                            <p className="text-xs text-muted-foreground mt-1">{record.remarks}</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <Badge variant="secondary" className="text-base">{item.grade}</Badge>
-                        <p className="text-sm text-muted-foreground mt-1">{item.score}%</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Fees Information */}
+          {/* Fees Tab */}
           <TabsContent value="fees" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader className="pb-3">
                   <CardDescription>Total Fees</CardDescription>
-                  <CardTitle className="text-2xl">KSH {feeInfo.totalFees.toLocaleString()}</CardTitle>
+                  <CardTitle className="text-2xl">KES {learner.feeInfo.totalFees.toLocaleString()}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">Academic Year 2024/2025</p>
+                  <p className="text-sm text-muted-foreground">Annual fee structure</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-3">
-                  <CardDescription>Amount Paid</CardDescription>
-                  <CardTitle className="text-2xl text-success">KSH {feeInfo.paid.toLocaleString()}</CardTitle>
+                  <CardDescription>Paid</CardDescription>
+                  <CardTitle className="text-2xl text-green-600">KES {learner.feeInfo.paid.toLocaleString()}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">{((feeInfo.paid / feeInfo.totalFees) * 100).toFixed(1)}% paid</p>
+                  <p className="text-sm text-muted-foreground">
+                    {learner.feeInfo.totalFees > 0 ? Math.round((learner.feeInfo.paid / learner.feeInfo.totalFees) * 100) : 0}% paid
+                  </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-3">
                   <CardDescription>Balance</CardDescription>
-                  <CardTitle className="text-2xl text-warning">KSH {feeInfo.balance.toLocaleString()}</CardTitle>
+                  <CardTitle className="text-2xl text-destructive">KES {learner.feeInfo.balance.toLocaleString()}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">Outstanding amount</p>
@@ -241,76 +274,100 @@ const LearnerProfile = () => {
               </Card>
             </div>
 
+            {/* Payment History */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Applied Discounts
-                </CardTitle>
+                <CardTitle>Payment History</CardTitle>
+                <CardDescription>Recent fee payments</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {feeInfo.discounts.map((discount, index) => (
-                    <div key={index} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
-                      <span className="font-medium">{discount.type}</span>
-                      <Badge variant="secondary">- KSH {discount.amount.toLocaleString()}</Badge>
-                    </div>
-                  ))}
-                </div>
+                {learner.feeInfo.payments.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No payment records found</p>
+                ) : (
+                  <div className="space-y-4">
+                    {learner.feeInfo.payments.map((payment: any) => (
+                      <div key={payment.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                        <div className="space-y-1">
+                          <p className="font-medium">KES {Number(payment.amount_paid).toLocaleString()}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(payment.payment_date).toLocaleDateString()}
+                          </p>
+                          {payment.receipt_number && (
+                            <p className="text-xs text-muted-foreground">Receipt: {payment.receipt_number}</p>
+                          )}
+                        </div>
+                        <Badge variant={payment.status === 'paid' ? 'default' : 'secondary'}>
+                          {payment.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Parent Information */}
+          {/* Parent/Guardian Tab */}
           <TabsContent value="parent" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Parent/Guardian Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Name</p>
-                    <p className="font-medium">{parentInfo.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Relationship</p>
-                    <p className="font-medium">{parentInfo.relationship}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Phone Number</p>
-                      <p className="font-medium">{parentInfo.phone}</p>
+              <CardContent>
+                {!learner.parent ? (
+                  <p className="text-center text-muted-foreground py-8">No parent/guardian information available</p>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Full Name</p>
+                        <p className="text-base font-medium">{learner.parent.first_name} {learner.parent.last_name}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <p className="text-base font-medium">{learner.parent.phone}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Email</p>
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <p className="text-base font-medium">{learner.parent.email}</p>
+                        </div>
+                      </div>
+                      {learner.parent.occupation && (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-muted-foreground">Occupation</p>
+                          <p className="text-base font-medium">{learner.parent.occupation}</p>
+                        </div>
+                      )}
                     </div>
+                    {learner.parent.address && (
+                      <>
+                        <Separator />
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-muted-foreground">Address</p>
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                            <p className="text-base">{learner.parent.address}</p>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{parentInfo.email}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Occupation</p>
-                    <p className="font-medium">{parentInfo.occupation}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Staff Member</p>
-                    <Badge variant={parentInfo.isStaff ? "default" : "secondary"}>
-                      {parentInfo.isStaff ? "Yes" : "No"}
-                    </Badge>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
 
-        <PromotionHistoryDialog 
+        <PromotionHistoryDialog
           open={promotionHistoryOpen}
           onOpenChange={setPromotionHistoryOpen}
-          learnerName={`${learner.firstName} ${learner.lastName}`}
+          learnerName={`${learner.first_name} ${learner.last_name}`}
+          promotionHistory={learner.promotionHistory}
         />
       </div>
     </DashboardLayout>
