@@ -7,6 +7,7 @@ import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical, User } from "l
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { AddLearnerDialog } from "@/components/AddLearnerDialog";
+import { EditLearnerDialog } from "@/components/EditLearnerDialog";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLearners } from "@/hooks/useLearners";
@@ -27,12 +28,14 @@ import {
 
 const Students = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedLearner, setSelectedLearner] = useState<any>(null);
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedStream, setSelectedStream] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   
-  const { learners, loading } = useLearners(selectedGrade, selectedStream);
+  const { learners, loading, fetchLearners } = useLearners(selectedGrade, selectedStream);
   const { grades } = useGrades();
   const { streams } = useStreams();
 
@@ -198,10 +201,14 @@ const Students = () => {
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit Learner
-                                </DropdownMenuItem>
+                                 <DropdownMenuItem onClick={(e) => {
+                                   e.stopPropagation();
+                                   setSelectedLearner(learner);
+                                   setIsEditDialogOpen(true);
+                                 }}>
+                                   <Edit className="mr-2 h-4 w-4" />
+                                   Edit Learner
+                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </td>
@@ -216,6 +223,12 @@ const Students = () => {
       </div>
 
       <AddLearnerDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <EditLearnerDialog 
+        open={isEditDialogOpen} 
+        onOpenChange={setIsEditDialogOpen}
+        learner={selectedLearner}
+        onSuccess={fetchLearners}
+      />
     </DashboardLayout>
   );
 };

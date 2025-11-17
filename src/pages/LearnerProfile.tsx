@@ -7,15 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History, ArrowLeft } from "lucide-react";
+import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History, ArrowLeft, Edit } from "lucide-react";
 import { PromotionHistoryDialog } from "@/components/PromotionHistoryDialog";
+import { EditLearnerDialog } from "@/components/EditLearnerDialog";
 import { useLearnerDetail } from "@/hooks/useLearnerDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const LearnerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const [promotionHistoryOpen, setPromotionHistoryOpen] = useState(false);
-  const { learner, loading } = useLearnerDetail(id || "");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { learner, loading, refetch } = useLearnerDetail(id || "");
 
   if (loading) {
     return (
@@ -123,6 +125,10 @@ const LearnerProfile = () => {
                 <Button onClick={() => setPromotionHistoryOpen(true)} variant="outline" className="gap-2">
                   <History className="h-4 w-4" />
                   View Promotion History
+                </Button>
+                <Button onClick={() => setEditDialogOpen(true)} className="gap-2">
+                  <Edit className="h-4 w-4" />
+                  Edit Information
                 </Button>
               </div>
             </div>
@@ -368,6 +374,13 @@ const LearnerProfile = () => {
           onOpenChange={setPromotionHistoryOpen}
           learnerName={`${learner.first_name} ${learner.last_name}`}
           promotionHistory={learner.promotionHistory}
+        />
+        
+        <EditLearnerDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          learner={learner}
+          onSuccess={refetch}
         />
       </div>
     </DashboardLayout>
