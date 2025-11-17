@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 
 interface AddPerformanceDialogProps {
   open: boolean;
@@ -17,22 +18,27 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [learningAreas, setLearningAreas] = useState<any[]>([]);
-  const [academicPeriods, setAcademicPeriods] = useState<any[]>([]);
   const [grades, setGrades] = useState<any[]>([]);
+  const { currentPeriod } = useAcademicPeriods();
   
   const [formData, setFormData] = useState({
     admissionNumber: "",
     learningAreaCode: "",
-    academicPeriodId: "",
     marks: "",
     gradeId: "",
+    term: "",
     remarks: "",
   });
 
   useEffect(() => {
+    if (open && currentPeriod) {
+      setFormData(prev => ({ ...prev, term: currentPeriod.term }));
+    }
+  }, [open, currentPeriod]);
+
+  useEffect(() => {
     if (open) {
       fetchLearningAreas();
-      fetchAcademicPeriods();
       fetchGrades();
     }
   }, [open]);
@@ -48,16 +54,6 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
     }
   };
 
-  const fetchAcademicPeriods = async () => {
-    const { data, error } = await supabase
-      .from("academic_periods")
-      .select("*")
-      .order("academic_year", { ascending: false });
-    
-    if (!error && data) {
-      setAcademicPeriods(data);
-    }
-  };
 
   const fetchGrades = async () => {
     const { data, error } = await supabase
@@ -106,13 +102,22 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
         return;
       }
 
+      if (!currentPeriod) {
+        toast({
+          title: "Error",
+          description: "No current academic period found",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Insert performance record
       const { error: insertError } = await supabase
         .from("performance_records")
         .insert({
           learner_id: learner.id,
           learning_area_id: learningArea.id,
-          academic_period_id: formData.academicPeriodId,
+          academic_period_id: currentPeriod.id,
           grade_id: formData.gradeId,
           marks: parseFloat(formData.marks),
           remarks: formData.remarks || null,
@@ -129,9 +134,9 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
       setFormData({
         admissionNumber: "",
         learningAreaCode: "",
-        academicPeriodId: "",
         marks: "",
         gradeId: "",
+        term: currentPeriod?.term || "",
         remarks: "",
       });
       
@@ -204,22 +209,25 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="academicPeriod">Academic Period *</Label>
+              <Label htmlFor="term">Term *</Label>
               <Select
-                value={formData.academicPeriodId}
-                onValueChange={(value) => setFormData({ ...formData, academicPeriodId: value })}
+                value={formData.term}
+                onValueChange={(value) => setFormData({ ...formData, term: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select period" />
+                  <SelectValue placeholder="Select term" />
                 </SelectTrigger>
                 <SelectContent>
-                  {academicPeriods.map((period) => (
-                    <SelectItem key={period.id} value={period.id}>
-                      {period.academic_year} - {period.term.replace('term_', 'Term ')}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="term_1">Term 1</SelectItem>
+                  <SelectItem value="term_2">Term 2</SelectItem>
+                  <SelectItem value="term_3">Term 3</SelectItem>
                 </SelectContent>
               </Select>
+              {currentPeriod && (
+                <p className="text-xs text-muted-foreground">
+                  Academic Year: {currentPeriod.academic_year}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

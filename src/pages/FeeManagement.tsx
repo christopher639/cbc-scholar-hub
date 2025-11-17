@@ -10,11 +10,13 @@ import { useFeePayments } from "@/hooks/useFeePayments";
 import { useFeeStats } from "@/hooks/useFeeStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
+import { SetFeeStructureDialog } from "@/components/SetFeeStructureDialog";
 
 const FeeManagement = () => {
   const { payments, loading: paymentsLoading, fetchPayments } = useFeePayments();
   const { stats, loading: statsLoading, fetchStats } = useFeeStats();
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [setStructureDialogOpen, setSetStructureDialogOpen] = useState(false);
 
   const handlePaymentSuccess = () => {
     fetchPayments();
@@ -52,6 +54,10 @@ const FeeManagement = () => {
             <Button variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
               Export Report
+            </Button>
+            <Button className="gap-2" onClick={() => setSetStructureDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Set Fee Structure
             </Button>
             <Button className="gap-2" onClick={() => setRecordPaymentOpen(true)}>
               <Plus className="h-4 w-4" />
@@ -233,6 +239,12 @@ const FeeManagement = () => {
           open={recordPaymentOpen}
           onOpenChange={setRecordPaymentOpen}
           onSuccess={handlePaymentSuccess}
+        />
+        
+        <SetFeeStructureDialog
+          open={setStructureDialogOpen}
+          onOpenChange={setSetStructureDialogOpen}
+          onSuccess={fetchStats}
         />
       </div>
     </DashboardLayout>

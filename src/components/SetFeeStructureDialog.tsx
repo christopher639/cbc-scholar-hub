@@ -1,60 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2 } from "lucide-react";
-
-interface FeeItem {
-  id: string;
-  name: string;
-  amount: string;
-  type: string;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 
 interface SetFeeStructureDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function SetFeeStructureDialog({ open, onOpenChange }: SetFeeStructureDialogProps) {
+export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeStructureDialogProps) {
   const { toast } = useToast();
-  const [grade, setGrade] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [grades, setGrades] = useState<any[]>([]);
+  const [gradeId, setGradeId] = useState("");
   const [term, setTerm] = useState("");
-  const [academicYear, setAcademicYear] = useState("");
-  const [feeItems, setFeeItems] = useState<FeeItem[]>([
-    { id: "1", name: "Tuition", amount: "", type: "Tuition" },
-  ]);
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const { currentPeriod } = useAcademicPeriods();
 
-  const grades = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
-  const terms = ["Term 1", "Term 2", "Term 3"];
-  const feeTypes = ["Tuition", "Activity", "Exam", "Library", "Sports", "Transport", "Lunch", "Other"];
+  useEffect(() => {
+    if (open) {
+      fetchGrades();
+      if (currentPeriod) {
+        setTerm(currentPeriod.term);
+      }
+    }
+  }, [open, currentPeriod]);
 
-  const addFeeItem = () => {
-    setFeeItems([
-      ...feeItems,
-      { id: Date.now().toString(), name: "", amount: "", type: "Tuition" },
-    ]);
+  const fetchGrades = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("grades")
+        .select("*")
+        .order("grade_level", { ascending: true });
+
+      if (error) throw error;
+      setGrades(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const removeFeeItem = (id: string) => {
-    setFeeItems(feeItems.filter((item) => item.id !== id));
-  };
-
-  const updateFeeItem = (id: string, field: keyof FeeItem, value: string) => {
-    setFeeItems(
-      feeItems.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      )
-    );
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!grade || !term || !academicYear) {
+    if (!gradeId || !term || !amount || !currentPeriod) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -63,37 +63,64 @@ export function SetFeeStructureDialog({ open, onOpenChange }: SetFeeStructureDia
       return;
     }
 
-    const total = feeItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("fee_structures")
+        .insert({
+          grade_id: gradeId,
+          term: term as any,
+          academic_year: currentPeriod.academic_year,
+          amount: parseFloat(amount),
+          description: description || null,
+        });
 
-    toast({
-      title: "Fee Structure Saved",
-      description: `Fee structure for ${grade} ${term} ${academicYear} saved. Total: KSH ${total.toLocaleString()}`,
-    });
-    onOpenChange(false);
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Fee structure created successfully",
+      });
+      
+      onSuccess?.();
+      onOpenChange(false);
+      
+      // Reset form
+      setGradeId("");
+      setTerm("");
+      setAmount("");
+      setDescription("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const totalAmount = feeItems.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Set Fee Structure</DialogTitle>
           <DialogDescription>Define fee structure for a specific grade and term</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="grade">Grade *</Label>
-              <Select value={grade} onValueChange={setGrade} required>
+              <Select value={gradeId} onValueChange={setGradeId} required>
                 <SelectTrigger id="grade">
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
                 <SelectContent>
                   {grades.map((g) => (
-                    <SelectItem key={g} value={g}>
-                      {g}
+                    <SelectItem key={g.id} value={g.id}>
+                      {g.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -107,104 +134,52 @@ export function SetFeeStructureDialog({ open, onOpenChange }: SetFeeStructureDia
                   <SelectValue placeholder="Select term" />
                 </SelectTrigger>
                 <SelectContent>
-                  {terms.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="term_1">Term 1</SelectItem>
+                  <SelectItem value="term_2">Term 2</SelectItem>
+                  <SelectItem value="term_3">Term 3</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="academicYear">Academic Year *</Label>
-              <Input
-                id="academicYear"
-                placeholder="2024/2025"
-                value={academicYear}
-                onChange={(e) => setAcademicYear(e.target.value)}
-                required
-              />
-            </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Fee Items</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addFeeItem}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Item
-              </Button>
+          {currentPeriod && (
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Academic Year: <span className="font-semibold text-foreground">{currentPeriod.academic_year}</span>
+              </p>
             </div>
+          )}
 
-            {feeItems.map((item, index) => (
-              <div key={item.id} className="flex gap-2 items-start border border-border rounded-lg p-3">
-                <div className="flex-1 grid grid-cols-3 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Item Name</Label>
-                    <Input
-                      placeholder="Fee item name"
-                      value={item.name}
-                      onChange={(e) => updateFeeItem(item.id, "name", e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Amount (KSH)</Label>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      value={item.amount}
-                      onChange={(e) => updateFeeItem(item.id, "amount", e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Type</Label>
-                    <Select
-                      value={item.type}
-                      onValueChange={(value) => updateFeeItem(item.id, "type", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {feeTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                {feeItems.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="mt-6"
-                    onClick={() => removeFeeItem(item.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                )}
-              </div>
-            ))}
+          <div className="space-y-2">
+            <Label htmlFor="amount">Total Fee Amount (KSH) *</Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+            />
           </div>
 
-          <div className="flex items-center justify-between border-t border-border pt-4">
-            <span className="text-lg font-semibold">Total Fee Amount:</span>
-            <span className="text-2xl font-bold text-primary">
-              KSH {totalAmount.toLocaleString()}
-            </span>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description (Optional)</Label>
+            <Input
+              id="description"
+              placeholder="e.g., Tuition, activity fees, exam fees"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">Save Fee Structure</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : "Save Fee Structure"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
