@@ -1,12 +1,17 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Download, Users } from "lucide-react";
+import { ArrowLeft, Download, Users, ArrowUp } from "lucide-react";
+import { PromoteLearnerDialog } from "@/components/PromoteLearnerDialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const GradeDetail = () => {
   const { grade } = useParams();
+  const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
+  const [selectedLearners, setSelectedLearners] = useState<string[]>([]);
 
   const streams = [
     { name: "Green", learners: 35, capacity: 40 },
@@ -116,14 +121,38 @@ const GradeDetail = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>All Learners in Grade {grade}</CardTitle>
-            <CardDescription>{learners.length} total learners</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>All Learners in Grade {grade}</CardTitle>
+                <CardDescription>{learners.length} total learners • {selectedLearners.length} selected</CardDescription>
+              </div>
+              <Button 
+                onClick={() => setPromoteDialogOpen(true)}
+                disabled={selectedLearners.length === 0}
+                className="gap-2"
+              >
+                <ArrowUp className="h-4 w-4" />
+                Promote Selected
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="border-b border-border">
                   <tr className="text-left text-sm font-medium text-muted-foreground">
+                    <th className="pb-3 pr-4">
+                      <Checkbox 
+                        checked={selectedLearners.length === learners.length}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedLearners(learners.map(l => l.admissionNo));
+                          } else {
+                            setSelectedLearners([]);
+                          }
+                        }}
+                      />
+                    </th>
                     <th className="pb-3 pr-4">Admission No.</th>
                     <th className="pb-3 pr-4">Learner Name</th>
                     <th className="pb-3 pr-4">Stream</th>
@@ -134,6 +163,18 @@ const GradeDetail = () => {
                 <tbody className="divide-y divide-border">
                   {learners.map((learner) => (
                     <tr key={learner.admissionNo} className="text-sm">
+                      <td className="py-4 pr-4">
+                        <Checkbox 
+                          checked={selectedLearners.includes(learner.admissionNo)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedLearners([...selectedLearners, learner.admissionNo]);
+                            } else {
+                              setSelectedLearners(selectedLearners.filter(id => id !== learner.admissionNo));
+                            }
+                          }}
+                        />
+                      </td>
                       <td className="py-4 pr-4">
                         <span className="font-mono font-medium text-foreground">{learner.admissionNo}</span>
                       </td>
@@ -156,6 +197,13 @@ const GradeDetail = () => {
             </div>
           </CardContent>
         </Card>
+
+        <PromoteLearnerDialog 
+          open={promoteDialogOpen} 
+          onOpenChange={setPromoteDialogOpen}
+          selectedLearners={selectedLearners}
+          currentGrade={`Grade ${grade}`}
+        />
       </div>
     </DashboardLayout>
   );

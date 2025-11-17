@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Users, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AddGradeStreamDialog } from "@/components/AddGradeStreamDialog";
 
 const Grades = () => {
+  const [addStreamDialogOpen, setAddStreamDialogOpen] = useState(false);
+
   const grades = [
     {
       grade: "Grade 1",
@@ -72,7 +76,7 @@ const Grades = () => {
             <h1 className="text-3xl font-bold text-foreground">Grades & Streams</h1>
             <p className="text-muted-foreground">Manage grade levels, streams, and learner distribution</p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setAddStreamDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add New Stream
           </Button>
@@ -152,6 +156,8 @@ const Grades = () => {
             </Link>
           ))}
         </div>
+
+        <AddGradeStreamDialog open={addStreamDialogOpen} onOpenChange={setAddStreamDialogOpen} />
       </div>
     </DashboardLayout>
   );
