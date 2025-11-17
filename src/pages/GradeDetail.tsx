@@ -1,17 +1,23 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Download, Users, ArrowUp } from "lucide-react";
+import { ArrowLeft, Download, Users, ArrowUp, Calendar, History } from "lucide-react";
 import { PromoteLearnerDialog } from "@/components/PromoteLearnerDialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ViewHistoricalDataDialog } from "@/components/ViewHistoricalDataDialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 const GradeDetail = () => {
   const { grade } = useParams();
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedLearners, setSelectedLearners] = useState<string[]>([]);
+  const [historicalDialogOpen, setHistoricalDialogOpen] = useState(false);
+  const [academicYear, setAcademicYear] = useState("2024-2025");
+  const [term, setTerm] = useState("Term 3");
 
   const streams = [
     { name: "Green", learners: 35, capacity: 40 },
@@ -39,11 +45,57 @@ const GradeDetail = () => {
             <h1 className="text-3xl font-bold text-foreground">Grade {grade}</h1>
             <p className="text-muted-foreground">View all learners and streams in this grade</p>
           </div>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Export List
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setHistoricalDialogOpen(true)}>
+              <History className="h-4 w-4 mr-2" />
+              View History
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Export List
+            </Button>
+          </div>
         </div>
+
+        {/* Period Filter */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <div className="flex gap-4 flex-1">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Academic Year</Label>
+                  <Select value={academicYear} onValueChange={setAcademicYear}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2024-2025">2024/2025</SelectItem>
+                      <SelectItem value="2023-2024">2023/2024</SelectItem>
+                      <SelectItem value="2022-2023">2022/2023</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Term</Label>
+                  <Select value={term} onValueChange={setTerm}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Term 1">Term 1</SelectItem>
+                      <SelectItem value="Term 2">Term 2</SelectItem>
+                      <SelectItem value="Term 3">Term 3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Badge variant="secondary" className="text-sm">
+                Current Period: {academicYear} - {term}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
@@ -207,6 +259,15 @@ const GradeDetail = () => {
           onOpenChange={setPromoteDialogOpen}
           selectedLearners={selectedLearners}
           currentGrade={`Grade ${grade}`}
+        />
+
+        <ViewHistoricalDataDialog
+          open={historicalDialogOpen}
+          onOpenChange={setHistoricalDialogOpen}
+          onPeriodSelect={(year, term) => {
+            setAcademicYear(year);
+            setTerm(term);
+          }}
         />
       </div>
     </DashboardLayout>

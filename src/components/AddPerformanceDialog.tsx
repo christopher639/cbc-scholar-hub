@@ -35,18 +35,31 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
 
             <div className="space-y-2">
               <Label htmlFor="learningArea">Learning Area *</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select learning area" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="math">Mathematics</SelectItem>
-                  <SelectItem value="english">English</SelectItem>
-                  <SelectItem value="kiswahili">Kiswahili</SelectItem>
-                  <SelectItem value="science">Science & Technology</SelectItem>
-                  <SelectItem value="social">Social Studies</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Input 
+                  id="learningAreaCode" 
+                  placeholder="Code (e.g., MATH)" 
+                  className="uppercase font-mono w-32"
+                  maxLength={6}
+                />
+                <Select>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Or select learning area" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MATH">MATH - Mathematics</SelectItem>
+                    <SelectItem value="ENG">ENG - English</SelectItem>
+                    <SelectItem value="KIS">KIS - Kiswahili</SelectItem>
+                    <SelectItem value="SCI">SCI - Science</SelectItem>
+                    <SelectItem value="SST">SST - Social Studies</SelectItem>
+                    <SelectItem value="CRE">CRE - Christian RE</SelectItem>
+                    <SelectItem value="ART">ART - Creative Arts</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Enter the code assigned to this learning area
+              </p>
             </div>
           </div>
 
