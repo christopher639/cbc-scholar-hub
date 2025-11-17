@@ -7,6 +7,8 @@ import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical } from "lucide-
 import { AddLearnerDialog } from "@/components/AddLearnerDialog";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useLearners } from "@/hooks/useLearners";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,63 +25,7 @@ import {
 
 const Students = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  
-  const learners = [
-    {
-      admissionNo: "ADM001",
-      name: "John Kamau Mwangi",
-      grade: "Grade 4",
-      stream: "Green",
-      gender: "Male",
-      status: "Active",
-      feeBalance: 15000,
-    },
-    {
-      admissionNo: "ADM002",
-      name: "Mary Wanjiku Njeri",
-      grade: "Grade 1",
-      stream: "Red",
-      gender: "Female",
-      status: "Active",
-      feeBalance: 0,
-    },
-    {
-      admissionNo: "ADM003",
-      name: "David Omondi Otieno",
-      grade: "Grade 3",
-      stream: "Blue",
-      gender: "Male",
-      status: "Active",
-      feeBalance: 8500,
-    },
-    {
-      admissionNo: "ADM004",
-      name: "Grace Akinyi Adhiambo",
-      grade: "Grade 2",
-      stream: "Yellow",
-      gender: "Female",
-      status: "Active",
-      feeBalance: 5000,
-    },
-    {
-      admissionNo: "ADM005",
-      name: "Peter Kipchoge Rotich",
-      grade: "Grade 5",
-      stream: "Green",
-      gender: "Male",
-      status: "Active",
-      feeBalance: 0,
-    },
-    {
-      admissionNo: "ADM006",
-      name: "Sarah Njoki Kariuki",
-      grade: "Grade 6",
-      stream: "Red",
-      gender: "Female",
-      status: "Active",
-      feeBalance: 12000,
-    },
-  ];
+  const { learners, loading } = useLearners();
 
   return (
     <DashboardLayout>

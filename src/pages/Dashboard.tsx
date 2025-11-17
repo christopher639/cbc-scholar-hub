@@ -1,54 +1,40 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, GraduationCap, DollarSign, UserCheck, TrendingUp, AlertCircle } from "lucide-react";
+import { Users, GraduationCap, DollarSign, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
-  const stats = [
+  const { stats, recentAdmissions, gradeDistribution, loading } = useDashboardStats();
+
+  const statsDisplay = [
     {
       title: "Total Learners",
-      value: "1,247",
+      value: loading ? "..." : stats.totalLearners.toString(),
       icon: Users,
-      trend: { value: "12%", positive: true },
       colorClass: "text-primary",
     },
     {
       title: "Active Streams",
-      value: "18",
+      value: loading ? "..." : stats.activeStreams.toString(),
       icon: GraduationCap,
       colorClass: "text-secondary",
     },
     {
       title: "Fee Collection",
-      value: "KES 4.2M",
+      value: loading ? "..." : `KES ${(stats.feeCollection / 1000000).toFixed(1)}M`,
       icon: DollarSign,
-      trend: { value: "8%", positive: true },
       colorClass: "text-success",
     },
     {
       title: "Pending Admissions",
-      value: "23",
+      value: loading ? "..." : stats.pendingAdmissions.toString(),
       icon: UserCheck,
       colorClass: "text-warning",
     },
-  ];
-
-  const recentAdmissions = [
-    { name: "John Kamau", grade: "Grade 4", stream: "Green", date: "2024-11-15" },
-    { name: "Mary Wanjiku", grade: "Grade 1", stream: "Red", date: "2024-11-14" },
-    { name: "David Omondi", grade: "Grade 3", stream: "Blue", date: "2024-11-14" },
-    { name: "Grace Akinyi", grade: "Grade 2", stream: "Yellow", date: "2024-11-13" },
-  ];
-
-  const gradeDistribution = [
-    { grade: "Grade 1", students: 215, streams: 3 },
-    { grade: "Grade 2", students: 208, streams: 3 },
-    { grade: "Grade 3", students: 198, streams: 3 },
-    { grade: "Grade 4", students: 195, streams: 3 },
-    { grade: "Grade 5", students: 218, streams: 3 },
-    { grade: "Grade 6", students: 213, streams: 3 },
   ];
 
   return (
@@ -62,7 +48,7 @@ const Dashboard = () => {
 
         {/* Stats Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
+          {statsDisplay.map((stat) => (
             <StatCard key={stat.title} {...stat} />
           ))}
         </div>
@@ -76,24 +62,34 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentAdmissions.map((admission, index) => (
-                  <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-semibold text-primary">
-                          {admission.name.split(" ").map(n => n[0]).join("")}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{admission.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {admission.grade} - {admission.stream}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">{admission.date}</span>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
                   </div>
-                ))}
+                ) : recentAdmissions.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4">No recent admissions</p>
+                ) : (
+                  recentAdmissions.map((admission, index) => (
+                    <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-primary">
+                            {admission.first_name?.[0]}{admission.last_name?.[0]}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{admission.first_name} {admission.last_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {admission.current_grade?.name} - {admission.current_stream?.name}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{new Date(admission.enrollment_date).toLocaleDateString()}</span>
+                    </div>
+                  ))
+                )}
               </div>
               <Button variant="outline" className="w-full mt-4">
                 View All Admissions
@@ -134,10 +130,7 @@ const Dashboard = () => {
         {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Quick Actions
-            </CardTitle>
+            <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -157,7 +150,7 @@ const Dashboard = () => {
                 <span className="text-xs text-muted-foreground">Grade progression</span>
               </Button>
               <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4">
-                <AlertCircle className="h-5 w-5" />
+                <Users className="h-5 w-5" />
                 <span className="font-semibold">View Reports</span>
                 <span className="text-xs text-muted-foreground">Analytics & insights</span>
               </Button>
