@@ -17,16 +17,14 @@ export default function Auth() {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    if (user) {
-      if (user.role === "admin") {
-        navigate("/dashboard");
-      } else if (user.role === "teacher") {
-        navigate("/dashboard");
+    if (user && !loading) {
+      if (user.role === "admin" || user.role === "teacher") {
+        navigate("/dashboard", { replace: true });
       } else if (user.role === "learner") {
-        navigate("/parent-portal");
+        navigate("/parent-portal", { replace: true });
       }
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,12 +32,11 @@ export default function Auth() {
     const result = await unifiedLogin(username, password);
     
     if (result.success) {
-      if (result.role === "admin") {
-        navigate("/dashboard");
-      } else if (result.role === "teacher") {
-        navigate("/dashboard");
+      // Navigation will be handled by the useEffect above when user state updates
+      if (result.role === "admin" || result.role === "teacher") {
+        navigate("/dashboard", { replace: true });
       } else if (result.role === "learner") {
-        navigate("/parent-portal");
+        navigate("/parent-portal", { replace: true });
       }
     }
   };
