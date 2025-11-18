@@ -18,10 +18,10 @@ export default function Auth() {
 
   useEffect(() => {
     if (user && !loading) {
-      if (user.role === "admin" || user.role === "teacher") {
+      if (user.role === "learner") {
+        navigate("/learner-portal", { replace: true });
+      } else {
         navigate("/dashboard", { replace: true });
-      } else if (user.role === "learner") {
-        navigate("/parent-portal", { replace: true });
       }
     }
   }, [user, loading, navigate]);
@@ -31,12 +31,11 @@ export default function Auth() {
     
     const result = await unifiedLogin(username, password);
     
-    if (result.success) {
-      // Navigation will be handled by the useEffect above when user state updates
-      if (result.role === "admin" || result.role === "teacher") {
+    if (result.success && result.role) {
+      if (result.role === "learner") {
+        navigate("/learner-portal", { replace: true });
+      } else {
         navigate("/dashboard", { replace: true });
-      } else if (result.role === "learner") {
-        navigate("/parent-portal", { replace: true });
       }
     }
   };

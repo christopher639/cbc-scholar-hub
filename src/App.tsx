@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import Users from "./pages/Users";
 import ParentPortal from "./pages/ParentPortal";
 import Profile from "./pages/Profile";
+import AcademicYears from "./pages/AcademicYears";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+            <Route path="/academic-years" element={<ProtectedRoute><AcademicYears /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -34,17 +34,37 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
     { category_id: "", amount: "", description: "" }
   ]);
   const { academicPeriods, currentPeriod } = useAcademicPeriods();
+  const [academicYears, setAcademicYears] = useState<any[]>([]);
 
   useEffect(() => {
     if (open) {
       fetchGrades();
       fetchCategories();
+      fetchAcademicYears();
       if (currentPeriod) {
         setTerm(currentPeriod.term);
         setAcademicYear(currentPeriod.academic_year);
       }
     }
   }, [open, currentPeriod]);
+
+  const fetchAcademicYears = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("academic_years")
+        .select("*")
+        .eq("is_active", true)
+        .order("year", { ascending: false });
+      if (error) throw error;
+      setAcademicYears(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch academic years",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchGrades = async () => {
     try {
@@ -234,8 +254,8 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
                 <SelectValue placeholder="Select academic year" />
               </SelectTrigger>
               <SelectContent>
-                {[...new Set(academicPeriods?.map((p:any) => p.academic_year) ?? [])].map((year:string) => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                {academicYears.map((ay) => (
+                  <SelectItem key={ay.id} value={ay.year}>{ay.year}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
