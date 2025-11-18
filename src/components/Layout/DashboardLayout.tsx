@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/useAuth";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
@@ -47,7 +47,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [profile, setProfile] = useState<any>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, logout } = useUnifiedAuth();
   const { toast } = useToast();
   const { schoolInfo } = useSchoolInfo();
 
@@ -59,14 +59,26 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const loadProfile = async () => {
     try {
-      const { data } = await supabase
-        .from("profiles")
-        .select("full_name, avatar_url")
-        .eq("id", user?.id)
-        .single();
-      
-      if (data) {
-        setProfile(data);
+      if (user?.role === "admin") {
+        const { data } = await supabase
+          .from("profiles")
+          .select("full_name, avatar_url")
+          .eq("id", user?.id)
+          .single();
+        
+        if (data) {
+          setProfile(data);
+        }
+      } else if (user?.role === "teacher") {
+        setProfile({
+          full_name: `${user.data.first_name} ${user.data.last_name}`,
+          avatar_url: null,
+        });
+      } else if (user?.role === "learner") {
+        setProfile({
+          full_name: `${user.data.first_name} ${user.data.last_name}`,
+          avatar_url: user.data.photo_url,
+        });
       }
     } catch (error) {
       console.error("Error loading profile:", error);
@@ -84,7 +96,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const handleLogout = async () => {
-    await signOut();
+    await logout();
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
@@ -185,7 +197,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </AvatarFallback>
               </Avatar>
               <span className="hidden md:block text-sm font-medium text-foreground">
-                {profile?.full_name || user?.email || "User"}
+                {profile?.full_name || "User"}
               </span>
             </Button>
           </div>

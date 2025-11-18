@@ -22,9 +22,7 @@ import LearnerProfile from "./pages/LearnerProfile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Users from "./pages/Users";
-import ParentLogin from "./pages/ParentLogin";
 import ParentPortal from "./pages/ParentPortal";
-
 import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
@@ -38,8 +36,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/parent-login" element={<ParentLogin />} />
             <Route path="/parent-portal" element={<ParentPortal />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/students" element={<ProtectedRoute><Students /></ProtectedRoute>} />
             <Route path="/grades" element={<ProtectedRoute><Grades /></ProtectedRoute>} />
