@@ -29,17 +29,17 @@ interface DashboardLayoutProps {
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Learners", href: "/students", icon: Users },
-  { name: "Grades & Streams", href: "/grades", icon: GraduationCap },
-  { name: "Performance", href: "/performance", icon: FileText },
-  { name: "Teachers", href: "/teachers", icon: UserCog },
-  { name: "Fee Management", href: "/fees", icon: DollarSign },
-  { name: "Admissions", href: "/admissions", icon: UserCheck },
-  { name: "Reports", href: "/reports", icon: FileText },
-  { name: "School Info", href: "/school-info", icon: School },
-  { name: "Users & Roles", href: "/users", icon: ShieldCheck },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin", "teacher"] },
+  { name: "Learners", href: "/students", icon: Users, roles: ["admin", "teacher"] },
+  { name: "Grades & Streams", href: "/grades", icon: GraduationCap, roles: ["admin", "teacher"] },
+  { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher"] },
+  { name: "Teachers", href: "/teachers", icon: UserCog, roles: ["admin", "teacher"] },
+  { name: "Fee Management", href: "/fees", icon: DollarSign, roles: ["admin"] },
+  { name: "Admissions", href: "/admissions", icon: UserCheck, roles: ["admin"] },
+  { name: "Reports", href: "/reports", icon: FileText, roles: ["admin", "teacher"] },
+  { name: "School Info", href: "/school-info", icon: School, roles: ["admin", "teacher"] },
+  { name: "Users & Roles", href: "/users", icon: ShieldCheck, roles: ["admin"] },
+  { name: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -137,25 +137,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <ScrollArea className="h-[calc(100vh-4rem)]">
           <nav className="flex flex-col gap-1 p-4">
-            {navigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {item.name}
-                </Link>
-              );
-            })}
+            {navigation
+              .filter((item) => !item.roles || item.roles.includes(user?.role || ""))
+              .map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                );
+              })}
           </nav>
 
           <div className="mt-auto border-t border-border p-4">

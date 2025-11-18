@@ -42,6 +42,20 @@ export function useTeachers() {
 
       if (error) throw error;
       
+      // Create user_role entry for the teacher
+      if (data) {
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({
+            user_id: data.id,
+            role: "teacher",
+          });
+        
+        if (roleError) {
+          console.error("Error creating user role:", roleError);
+        }
+      }
+      
       toast({
         title: "Success",
         description: "Teacher added successfully",
