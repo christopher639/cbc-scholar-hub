@@ -129,9 +129,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           )}
           <div className="flex flex-col">
             <span className="font-semibold text-base">
-              {schoolInfo?.school_name || "CBC School"}
+              {schoolInfo?.school_name || "School"}
             </span>
-            <span className="text-xs text-muted-foreground">Management System</span>
+          
           </div>
         </div>
 
