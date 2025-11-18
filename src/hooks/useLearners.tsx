@@ -55,6 +55,20 @@ export function useLearners(gradeId?: string, streamId?: string) {
 
       if (error) throw error;
       
+      // Create user_role entry for the learner (student role)
+      if (data) {
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({
+            user_id: data.id,
+            role: "student",
+          });
+        
+        if (roleError) {
+          console.error("Error creating user role:", roleError);
+        }
+      }
+      
       toast({
         title: "Success",
         description: "Learner added successfully",
