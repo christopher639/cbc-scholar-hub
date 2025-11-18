@@ -56,7 +56,7 @@ export function useUnifiedAuth() {
           .gt("expires_at", new Date().toISOString())
           .single();
 
-        if (learnerSession) {
+        if (learnerSession && learnerSession.learner) {
           setUser({
             id: learnerSession.learner.id,
             role: "learner",
@@ -64,6 +64,9 @@ export function useUnifiedAuth() {
           });
           setLoading(false);
           return;
+        } else {
+          // Cleanup invalid token
+          localStorage.removeItem(LEARNER_SESSION_KEY);
         }
       }
 
@@ -77,7 +80,7 @@ export function useUnifiedAuth() {
           .gt("expires_at", new Date().toISOString())
           .single();
 
-        if (teacherSession) {
+        if (teacherSession && teacherSession.teacher) {
           setUser({
             id: teacherSession.teacher.id,
             role: "teacher",
@@ -85,6 +88,8 @@ export function useUnifiedAuth() {
           });
           setLoading(false);
           return;
+        } else {
+          localStorage.removeItem(TEACHER_SESSION_KEY);
         }
       }
 
