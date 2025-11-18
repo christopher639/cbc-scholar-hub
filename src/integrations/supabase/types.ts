@@ -47,6 +47,57 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_settings: {
+        Row: {
+          created_at: string | null
+          discount_type: string
+          id: string
+          is_enabled: boolean | null
+          percentage: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discount_type: string
+          id?: string
+          is_enabled?: boolean | null
+          percentage: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discount_type?: string
+          id?: string
+          is_enabled?: boolean | null
+          percentage?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      fee_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       fee_payments: {
         Row: {
           amount_paid: number
@@ -108,6 +159,7 @@ export type Database = {
         Row: {
           academic_year: string
           amount: number
+          category_id: string | null
           created_at: string
           description: string | null
           grade_id: string
@@ -118,6 +170,7 @@ export type Database = {
         Insert: {
           academic_year: string
           amount: number
+          category_id?: string | null
           created_at?: string
           description?: string | null
           grade_id: string
@@ -128,6 +181,7 @@ export type Database = {
         Update: {
           academic_year?: string
           amount?: number
+          category_id?: string | null
           created_at?: string
           description?: string | null
           grade_id?: string
@@ -136,6 +190,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fee_structures_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "fee_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fee_structures_grade_id_fkey"
             columns: ["grade_id"]
@@ -184,6 +245,7 @@ export type Database = {
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
           id: string
+          is_staff_child: boolean | null
           last_name: string
           medical_info: string | null
           parent_id: string | null
@@ -202,6 +264,7 @@ export type Database = {
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
           id?: string
+          is_staff_child?: boolean | null
           last_name: string
           medical_info?: string | null
           parent_id?: string | null
@@ -220,6 +283,7 @@ export type Database = {
           first_name?: string
           gender?: Database["public"]["Enums"]["gender"]
           id?: string
+          is_staff_child?: boolean | null
           last_name?: string
           medical_info?: string | null
           parent_id?: string | null
@@ -648,6 +712,7 @@ export type Database = {
       streams: {
         Row: {
           capacity: number | null
+          class_teacher_id: string | null
           created_at: string
           grade_id: string
           id: string
@@ -656,6 +721,7 @@ export type Database = {
         }
         Insert: {
           capacity?: number | null
+          class_teacher_id?: string | null
           created_at?: string
           grade_id: string
           id?: string
@@ -664,6 +730,7 @@ export type Database = {
         }
         Update: {
           capacity?: number | null
+          class_teacher_id?: string | null
           created_at?: string
           grade_id?: string
           id?: string
@@ -672,10 +739,52 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "streams_class_teacher_id_fkey"
+            columns: ["class_teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "streams_grade_id_fkey"
             columns: ["grade_id"]
             isOneToOne: false
             referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          last_accessed: string | null
+          session_token: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          last_accessed?: string | null
+          session_token: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          last_accessed?: string | null
+          session_token?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_sessions_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
             referencedColumns: ["id"]
           },
         ]
@@ -688,6 +797,7 @@ export type Database = {
           first_name: string
           hired_date: string | null
           id: string
+          id_number: string | null
           last_name: string
           phone: string | null
           specialization: string | null
@@ -701,6 +811,7 @@ export type Database = {
           first_name: string
           hired_date?: string | null
           id?: string
+          id_number?: string | null
           last_name: string
           phone?: string | null
           specialization?: string | null
@@ -714,6 +825,7 @@ export type Database = {
           first_name?: string
           hired_date?: string | null
           id?: string
+          id_number?: string | null
           last_name?: string
           phone?: string | null
           specialization?: string | null
