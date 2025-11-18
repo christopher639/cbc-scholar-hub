@@ -22,7 +22,7 @@ import LearnerProfile from "./pages/LearnerProfile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Users from "./pages/Users";
-import ParentPortal from "./pages/ParentPortal";
+import LearnerPortal from "./pages/LearnerPortal";
 import Profile from "./pages/Profile";
 import AcademicYears from "./pages/AcademicYears";
 
@@ -37,8 +37,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/parent-portal" element={<ParentPortal />} />
-            <Route path="/learner-portal" element={<ParentPortal />} />
+            <Route path="/learner-portal" element={<LearnerPortal />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/students" element={<ProtectedRoute><Students /></ProtectedRoute>} />

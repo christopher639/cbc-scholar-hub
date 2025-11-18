@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, TrendingUp, AlertCircle, Download, Plus } from "lucide-react";
+import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFeePayments } from "@/hooks/useFeePayments";
 import { useFeeStats } from "@/hooks/useFeeStats";
@@ -13,6 +14,7 @@ import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 import { SetFeeStructureDialog } from "@/components/SetFeeStructureDialog";
 
 const FeeManagement = () => {
+  const navigate = useNavigate();
   const { payments, loading: paymentsLoading, fetchPayments } = useFeePayments();
   const { stats, loading: statsLoading, fetchStats } = useFeeStats();
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
@@ -51,6 +53,10 @@ const FeeManagement = () => {
             <p className="text-muted-foreground">Manage school fees, payments, and balances</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => navigate("/academic-years")}>
+              <Calendar className="h-4 w-4" />
+              Manage Academic Years
+            </Button>
             <Button variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
               Export Report
