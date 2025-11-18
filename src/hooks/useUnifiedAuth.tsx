@@ -98,12 +98,14 @@ export function useUnifiedAuth() {
   const unifiedLogin = async (username: string, password: string) => {
     try {
       setLoading(true);
+      const uname = username.trim();
+      const pwd = password.trim();
 
       // Try admin login (email format)
-      if (username.includes("@")) {
+      if (uname.includes("@")) {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: username,
-          password,
+          email: uname.toLowerCase(),
+          password: pwd,
         });
 
         if (!error && data.user) {
@@ -134,8 +136,8 @@ export function useUnifiedAuth() {
       const { data: learnerData } = await supabase
         .from("learners")
         .select("*")
-        .eq("admission_number", username)
-        .eq("birth_certificate_number", password)
+        .eq("admission_number", uname)
+        .eq("birth_certificate_number", pwd)
         .maybeSingle();
 
       if (learnerData) {
@@ -161,8 +163,8 @@ export function useUnifiedAuth() {
       const { data: teacherData } = await supabase
         .from("teachers")
         .select("*")
-        .eq("employee_number", username)
-        .eq("id_number", password)
+        .eq("employee_number", uname)
+        .eq("id_number", pwd)
         .maybeSingle();
 
       if (teacherData) {

@@ -21,7 +21,7 @@ export default function Auth() {
       if (user.role === "admin") {
         navigate("/dashboard");
       } else if (user.role === "teacher") {
-        navigate("/performance");
+        navigate("/dashboard");
       } else if (user.role === "learner") {
         navigate("/parent-portal");
       }
@@ -37,7 +37,7 @@ export default function Auth() {
       if (result.role === "admin") {
         navigate("/dashboard");
       } else if (result.role === "teacher") {
-        navigate("/performance");
+        navigate("/dashboard");
       } else if (result.role === "learner") {
         navigate("/parent-portal");
       }

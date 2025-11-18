@@ -99,10 +99,26 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!gradeId || !term || !currentPeriod) {
+    if (!gradeId) {
       toast({
         title: "Error",
-        description: "Please fill in grade and term",
+        description: "Please select a grade",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!term) {
+      toast({
+        title: "Error",
+        description: "Please select a term",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!currentPeriod) {
+      toast({
+        title: "Error",
+        description: "Set a current academic period in Settings before creating fee structures",
         variant: "destructive",
       });
       return;
@@ -169,7 +185,7 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Set Fee Structure</DialogTitle>
           <DialogDescription>Define fee structure with multiple categories for a specific grade and term</DialogDescription>
