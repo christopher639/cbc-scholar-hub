@@ -35,6 +35,10 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
     current_stream_id: "",
     medical_info: "",
     birth_certificate_number: "",
+    is_staff_child: false,
+    previous_school: "",
+    previous_grade: "",
+    reason_for_transfer: "",
     allergies: "",
     blood_type: "",
     emergency_contact: "",
@@ -61,6 +65,10 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
         current_stream_id: learner.current_stream_id || "",
         medical_info: learner.medical_info || "",
         birth_certificate_number: learner.birth_certificate_number || "",
+        is_staff_child: learner.is_staff_child || false,
+        previous_school: learner.previous_school || "",
+        previous_grade: learner.previous_grade || "",
+        reason_for_transfer: learner.reason_for_transfer || "",
         allergies: learner.allergies || "",
         blood_type: learner.blood_type || "",
         emergency_contact: learner.emergency_contact || "",
@@ -164,6 +172,14 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
           current_stream_id: formData.current_stream_id || null,
           medical_info: formData.medical_info || null,
           birth_certificate_number: formData.birth_certificate_number || null,
+          is_staff_child: formData.is_staff_child,
+          previous_school: formData.previous_school || null,
+          previous_grade: formData.previous_grade || null,
+          reason_for_transfer: formData.reason_for_transfer || null,
+          allergies: formData.allergies || null,
+          blood_type: formData.blood_type || null,
+          emergency_contact: formData.emergency_contact || null,
+          emergency_phone: formData.emergency_phone || null,
           photo_url: photoUrl,
         })
         .eq("id", learner.id);
@@ -213,9 +229,10 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
               <TabsTrigger value="parent">Parent Info</TabsTrigger>
+              <TabsTrigger value="academic">Academic</TabsTrigger>
               <TabsTrigger value="medical">Medical Info</TabsTrigger>
             </TabsList>
 
@@ -316,8 +333,22 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
                   id="birth_certificate_number"
                   value={formData.birth_certificate_number}
                   onChange={(e) => setFormData({ ...formData, birth_certificate_number: e.target.value })}
-                  placeholder="For parent portal access"
+                  placeholder="For learner portal access (used as password)"
                 />
+                <p className="text-xs text-muted-foreground">This will be used as password for learner login</p>
+              </div>
+
+              <div className="flex items-center space-x-2 p-4 bg-muted rounded-lg">
+                <input
+                  type="checkbox"
+                  id="is_staff_child"
+                  checked={formData.is_staff_child}
+                  onChange={(e) => setFormData({ ...formData, is_staff_child: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="is_staff_child" className="cursor-pointer">
+                  This learner is a child of a staff member (discount applies)
+                </Label>
               </div>
 
               <div className="space-y-2">
@@ -336,6 +367,40 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
                     <p className="text-xs text-muted-foreground mt-1">Upload a photo (optional)</p>
                   </div>
                 </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="academic" className="space-y-4 mt-4">
+              <h3 className="font-medium mb-4">Previous School Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="previous_school">Previous School</Label>
+                  <Input
+                    id="previous_school"
+                    value={formData.previous_school}
+                    onChange={(e) => setFormData({ ...formData, previous_school: e.target.value })}
+                    placeholder="Enter previous school name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="previous_grade">Previous Grade</Label>
+                  <Input
+                    id="previous_grade"
+                    value={formData.previous_grade}
+                    onChange={(e) => setFormData({ ...formData, previous_grade: e.target.value })}
+                    placeholder="Enter previous grade"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reason_for_transfer">Reason for Transfer</Label>
+                <Textarea
+                  id="reason_for_transfer"
+                  value={formData.reason_for_transfer}
+                  onChange={(e) => setFormData({ ...formData, reason_for_transfer: e.target.value })}
+                  placeholder="Enter reason for transferring schools"
+                  rows={3}
+                />
               </div>
             </TabsContent>
 
@@ -402,6 +467,48 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
                   placeholder="Any medical conditions..."
                   rows={3}
                 />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="allergies">Allergies</Label>
+                  <Input
+                    id="allergies"
+                    value={formData.allergies}
+                    onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+                    placeholder="Any known allergies"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="blood_type">Blood Type</Label>
+                  <Input
+                    id="blood_type"
+                    value={formData.blood_type}
+                    onChange={(e) => setFormData({ ...formData, blood_type: e.target.value })}
+                    placeholder="e.g., A+, O-, B+"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="emergency_contact">Emergency Contact Name</Label>
+                  <Input
+                    id="emergency_contact"
+                    value={formData.emergency_contact}
+                    onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
+                    placeholder="Emergency contact person"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="emergency_phone">Emergency Contact Phone</Label>
+                  <Input
+                    id="emergency_phone"
+                    value={formData.emergency_phone}
+                    onChange={(e) => setFormData({ ...formData, emergency_phone: e.target.value })}
+                    placeholder="Emergency phone number"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

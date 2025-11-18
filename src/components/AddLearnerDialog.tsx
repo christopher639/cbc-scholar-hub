@@ -26,6 +26,8 @@ interface FormData {
   dateOfBirth: string;
   gender: string;
   photoFile: File | null;
+  birthCertificateNumber: string;
+  isStaffChild: boolean;
   
   // Parent Info
   parentFirstName: string;
@@ -39,6 +41,9 @@ interface FormData {
   gradeId: string;
   streamId: string;
   enrollmentDate: string;
+  previousSchool: string;
+  previousGrade: string;
+  reasonForTransfer: string;
   
   // Medical Info
   medicalInfo: string;
@@ -60,6 +65,8 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
     dateOfBirth: "",
     gender: "",
     photoFile: null,
+    birthCertificateNumber: "",
+    isStaffChild: false,
     parentFirstName: "",
     parentLastName: "",
     parentPhone: "",
@@ -69,6 +76,9 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
     gradeId: "",
     streamId: "",
     enrollmentDate: new Date().toISOString().split('T')[0],
+    previousSchool: "",
+    previousGrade: "",
+    reasonForTransfer: "",
     medicalInfo: "",
     allergies: "",
     bloodType: "",
@@ -145,6 +155,8 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
       dateOfBirth: "",
       gender: "",
       photoFile: null,
+      birthCertificateNumber: "",
+      isStaffChild: false,
       parentFirstName: "",
       parentLastName: "",
       parentPhone: "",
@@ -154,6 +166,9 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
       gradeId: "",
       streamId: "",
       enrollmentDate: new Date().toISOString().split('T')[0],
+      previousSchool: "",
+      previousGrade: "",
+      reasonForTransfer: "",
       medicalInfo: "",
       allergies: "",
       bloodType: "",
@@ -269,9 +284,16 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         photo_url: publicUrl,
         parent_id: parentId,
         enrollment_date: formData.enrollmentDate,
-        medical_info: formData.medicalInfo || formData.allergies || formData.bloodType 
-          ? `Allergies: ${formData.allergies}\nBlood Type: ${formData.bloodType}\nEmergency Contact: ${formData.emergencyContact} (${formData.emergencyPhone})\n${formData.medicalInfo}`
-          : null,
+        birth_certificate_number: formData.birthCertificateNumber || null,
+        is_staff_child: formData.isStaffChild,
+        previous_school: formData.previousSchool || null,
+        previous_grade: formData.previousGrade || null,
+        reason_for_transfer: formData.reasonForTransfer || null,
+        allergies: formData.allergies || null,
+        blood_type: formData.bloodType || null,
+        emergency_contact: formData.emergencyContact || null,
+        emergency_phone: formData.emergencyPhone || null,
+        medical_info: formData.medicalInfo || null,
       });
 
       handleCancel();
@@ -387,6 +409,28 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="birthCertificateNumber">Birth Certificate Number</Label>
+                      <Input
+                        id="birthCertificateNumber"
+                        placeholder="Enter birth certificate number"
+                        value={formData.birthCertificateNumber}
+                        onChange={(e) => setFormData({ ...formData, birthCertificateNumber: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 p-4 bg-muted rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="isStaffChild"
+                      checked={formData.isStaffChild}
+                      onChange={(e) => setFormData({ ...formData, isStaffChild: e.target.checked })}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <Label htmlFor="isStaffChild" className="cursor-pointer">
+                      This learner is a child of a staff member (discount applies)
+                    </Label>
                   </div>
                 </CardContent>
               </Card>
@@ -528,6 +572,39 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                         value={formData.enrollmentDate}
                         onChange={(e) => setFormData({ ...formData, enrollmentDate: e.target.value })}
                       />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="font-medium mb-4 text-sm text-muted-foreground">Previous School Information (Optional)</h4>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="previousSchool">Previous School</Label>
+                        <Input
+                          id="previousSchool"
+                          placeholder="Enter previous school name"
+                          value={formData.previousSchool}
+                          onChange={(e) => setFormData({ ...formData, previousSchool: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="previousGrade">Previous Grade</Label>
+                        <Input
+                          id="previousGrade"
+                          placeholder="Enter previous grade"
+                          value={formData.previousGrade}
+                          onChange={(e) => setFormData({ ...formData, previousGrade: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="reasonForTransfer">Reason for Transfer</Label>
+                        <Textarea
+                          id="reasonForTransfer"
+                          placeholder="Enter reason for transferring schools"
+                          value={formData.reasonForTransfer}
+                          onChange={(e) => setFormData({ ...formData, reasonForTransfer: e.target.value })}
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardContent>

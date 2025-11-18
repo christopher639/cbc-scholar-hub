@@ -236,11 +236,15 @@ export type Database = {
       learners: {
         Row: {
           admission_number: string
+          allergies: string | null
           birth_certificate_number: string | null
+          blood_type: string | null
           created_at: string
           current_grade_id: string | null
           current_stream_id: string | null
           date_of_birth: string
+          emergency_contact: string | null
+          emergency_phone: string | null
           enrollment_date: string
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
@@ -250,16 +254,23 @@ export type Database = {
           medical_info: string | null
           parent_id: string | null
           photo_url: string | null
+          previous_grade: string | null
+          previous_school: string | null
+          reason_for_transfer: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
           admission_number?: string
+          allergies?: string | null
           birth_certificate_number?: string | null
+          blood_type?: string | null
           created_at?: string
           current_grade_id?: string | null
           current_stream_id?: string | null
           date_of_birth: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
           enrollment_date?: string
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
@@ -269,16 +280,23 @@ export type Database = {
           medical_info?: string | null
           parent_id?: string | null
           photo_url?: string | null
+          previous_grade?: string | null
+          previous_school?: string | null
+          reason_for_transfer?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           admission_number?: string
+          allergies?: string | null
           birth_certificate_number?: string | null
+          blood_type?: string | null
           created_at?: string
           current_grade_id?: string | null
           current_stream_id?: string | null
           date_of_birth?: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
           enrollment_date?: string
           first_name?: string
           gender?: Database["public"]["Enums"]["gender"]
@@ -288,6 +306,9 @@ export type Database = {
           medical_info?: string | null
           parent_id?: string | null
           photo_url?: string | null
+          previous_grade?: string | null
+          previous_school?: string | null
+          reason_for_transfer?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -800,6 +821,7 @@ export type Database = {
           id_number: string | null
           last_name: string
           phone: string | null
+          salary: number | null
           specialization: string | null
           updated_at: string
           user_id: string | null
@@ -814,6 +836,7 @@ export type Database = {
           id_number?: string | null
           last_name: string
           phone?: string | null
+          salary?: number | null
           specialization?: string | null
           updated_at?: string
           user_id?: string | null
@@ -828,6 +851,7 @@ export type Database = {
           id_number?: string | null
           last_name?: string
           phone?: string | null
+          salary?: number | null
           specialization?: string | null
           updated_at?: string
           user_id?: string | null
