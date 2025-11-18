@@ -892,6 +892,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      validate_learner_credentials: {
+        Args: { _admission: string; _birth: string }
+        Returns: {
+          admission_number: string
+          birth_certificate_number: string
+          current_grade_id: string
+          current_stream_id: string
+          date_of_birth: string
+          first_name: string
+          id: string
+          last_name: string
+          parent_id: string
+          photo_url: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "teacher" | "parent" | "student"
