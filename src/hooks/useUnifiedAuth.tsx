@@ -95,147 +95,128 @@ export function useUnifiedAuth() {
     }
   };
 
-  const loginLearner = async (admissionNumber: string, birthCertificate: string) => {
+  const unifiedLogin = async (username: string, password: string) => {
     try {
       setLoading(true);
 
-      const { data: learnerData, error } = await supabase
-        .from("learners")
-        .select("*")
-        .eq("admission_number", admissionNumber)
-        .eq("birth_certificate_number", birthCertificate)
-        .single();
-
-      if (error || !learnerData) {
-        toast({
-          title: "Login Failed",
-          description: "Invalid admission number or birth certificate",
-          variant: "destructive",
+      // Try admin login (email format)
+      if (username.includes("@")) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: username,
+          password,
         });
-        return false;
-      }
 
-      const sessionToken = `learner_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        if (!error && data.user) {
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", data.user.id)
+            .single();
 
-      await supabase.from("parent_sessions").insert({
-        learner_id: learnerData.id,
-        session_token: sessionToken,
-      });
+          if (roleData) {
+            setUser({
+              id: data.user.id,
+              role: roleData.role as UserRole,
+              data: data.user,
+            });
 
-      localStorage.setItem(LEARNER_SESSION_KEY, sessionToken);
-      setUser({ id: learnerData.id, role: "learner", data: learnerData });
+            toast({
+              title: "Welcome!",
+              description: "Successfully logged in",
+            });
 
-      toast({
-        title: "Welcome!",
-        description: `Welcome back, ${learnerData.first_name}`,
-      });
-
-      return true;
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loginTeacher = async (employeeNumber: string, idNumber: string) => {
-    try {
-      setLoading(true);
-
-      const { data: teacherData, error } = await supabase
-        .from("teachers")
-        .select("*")
-        .eq("employee_number", employeeNumber)
-        .eq("id_number", idNumber)
-        .single();
-
-      if (error || !teacherData) {
-        toast({
-          title: "Login Failed",
-          description: "Invalid TSC number or ID number",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      const sessionToken = `teacher_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-      await supabase.from("teacher_sessions").insert({
-        teacher_id: teacherData.id,
-        session_token: sessionToken,
-      });
-
-      localStorage.setItem(TEACHER_SESSION_KEY, sessionToken);
-      setUser({ id: teacherData.id, role: "teacher", data: teacherData });
-
-      toast({
-        title: "Welcome!",
-        description: `Welcome back, ${teacherData.first_name}`,
-      });
-
-      return true;
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loginAdmin = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.user.id)
-          .single();
-
-        if (roleData) {
-          setUser({
-            id: data.user.id,
-            role: roleData.role as UserRole,
-            data: data.user,
-          });
-
-          toast({
-            title: "Welcome!",
-            description: "Successfully logged in",
-          });
-
-          return true;
+            return { success: true, role: roleData.role };
+          }
         }
       }
 
-      return false;
-    } catch (error: any) {
+      // Try learner login (admission number + birth certificate)
+      const { data: learnerData } = await supabase
+        .from("learners")
+        .select("*")
+        .eq("admission_number", username)
+        .eq("birth_certificate_number", password)
+        .maybeSingle();
+
+      if (learnerData) {
+        const sessionToken = `learner_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        await supabase.from("parent_sessions").insert({
+          learner_id: learnerData.id,
+          session_token: sessionToken,
+        });
+
+        localStorage.setItem(LEARNER_SESSION_KEY, sessionToken);
+        setUser({ id: learnerData.id, role: "learner", data: learnerData });
+
+        toast({
+          title: "Welcome!",
+          description: `Welcome back, ${learnerData.first_name}`,
+        });
+
+        return { success: true, role: "learner" };
+      }
+
+      // Try teacher login (TSC/employee number + ID number)
+      const { data: teacherData } = await supabase
+        .from("teachers")
+        .select("*")
+        .eq("employee_number", username)
+        .eq("id_number", password)
+        .maybeSingle();
+
+      if (teacherData) {
+        const sessionToken = `teacher_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        await supabase.from("teacher_sessions").insert({
+          teacher_id: teacherData.id,
+          session_token: sessionToken,
+        });
+
+        localStorage.setItem(TEACHER_SESSION_KEY, sessionToken);
+        setUser({ id: teacherData.id, role: "teacher", data: teacherData });
+
+        toast({
+          title: "Welcome!",
+          description: `Welcome back, ${teacherData.first_name}`,
+        });
+
+        return { success: true, role: "teacher" };
+      }
+
+      // No match found
       toast({
         title: "Login Failed",
+        description: "Invalid credentials. Please check your username and password.",
+        variant: "destructive",
+      });
+
+      return { success: false, role: null };
+    } catch (error: any) {
+      toast({
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
-      return false;
+      return { success: false, role: null };
     } finally {
       setLoading(false);
     }
+  };
+
+  const loginLearner = async (admissionNumber: string, birthCertificate: string) => {
+    const result = await unifiedLogin(admissionNumber, birthCertificate);
+    return result.success;
+  };
+
+  const loginTeacher = async (employeeNumber: string, idNumber: string) => {
+    const result = await unifiedLogin(employeeNumber, idNumber);
+    return result.success;
+  };
+
+  const loginAdmin = async (email: string, password: string) => {
+    const result = await unifiedLogin(email, password);
+    return result.success;
   };
 
   const logout = async () => {
@@ -274,6 +255,7 @@ export function useUnifiedAuth() {
   return {
     user,
     loading,
+    unifiedLogin,
     loginLearner,
     loginTeacher,
     loginAdmin,

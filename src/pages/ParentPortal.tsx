@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { useParentAuth } from "@/hooks/useParentAuth";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +14,7 @@ import { LogOut, User, BookOpen, DollarSign, MessageSquare } from "lucide-react"
 
 export default function ParentPortal() {
   const navigate = useNavigate();
-  const { learner, loading: authLoading, logout } = useParentAuth();
+  const { user, loading: authLoading, logout } = useUnifiedAuth();
   const { toast } = useToast();
   const [performance, setPerformance] = useState<any[]>([]);
   const [feeInfo, setFeeInfo] = useState<any>(null);
@@ -22,9 +22,11 @@ export default function ParentPortal() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const learner = user?.role === "learner" ? user.data : null;
+
   useEffect(() => {
     if (!authLoading && !learner) {
-      navigate("/parent-login");
+      navigate("/auth");
     } else if (learner) {
       fetchData();
     }
@@ -125,7 +127,7 @@ export default function ParentPortal() {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/parent-login");
+    navigate("/auth");
   };
 
   if (authLoading || loading) {
