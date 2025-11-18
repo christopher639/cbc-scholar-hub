@@ -133,30 +133,32 @@ export function useUnifiedAuth() {
       }
 
       // Try learner login (admission number + birth certificate)
-      const { data: learnerData } = await supabase
-        .from("learners")
-        .select("*")
-        .eq("admission_number", uname)
-        .eq("birth_certificate_number", pwd)
-        .maybeSingle();
+      const { data: learnerData, error: learnerError } = await supabase
+        .rpc("validate_learner_credentials", {
+          _admission: uname,
+          _birth: pwd,
+        });
 
-      if (learnerData) {
+      if (!learnerError && learnerData && learnerData.length > 0) {
+        const learner = learnerData[0];
         const sessionToken = `learner_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        await supabase.from("parent_sessions").insert({
-          learner_id: learnerData.id,
+        const { error: sessionError } = await supabase.from("parent_sessions").insert({
+          learner_id: learner.id,
           session_token: sessionToken,
         });
 
-        localStorage.setItem(LEARNER_SESSION_KEY, sessionToken);
-        setUser({ id: learnerData.id, role: "learner", data: learnerData });
+        if (!sessionError) {
+          localStorage.setItem(LEARNER_SESSION_KEY, sessionToken);
+          setUser({ id: learner.id, role: "learner", data: learner });
 
-        toast({
-          title: "Welcome!",
-          description: `Welcome back, ${learnerData.first_name}`,
-        });
+          toast({
+            title: "Welcome!",
+            description: `Welcome back, ${learner.first_name}`,
+          });
 
-        return { success: true, role: "learner" };
+          return { success: true, role: "learner" };
+        }
       }
 
       // Try teacher login (TSC/employee number + ID number)

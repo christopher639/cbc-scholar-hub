@@ -76,31 +76,25 @@ export default function Auth() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username / Email / ID Number</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                placeholder="Enter your email, admission number, or TSC number"
+                placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                Admin: Email | Learner: Admission Number | Teacher: TSC Number
-              </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password / ID Number</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password, birth certificate, or ID number"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                Admin: Password | Learner: Birth Certificate | Teacher: ID Number
-              </p>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
