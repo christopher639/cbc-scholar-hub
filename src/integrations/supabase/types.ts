@@ -47,6 +47,30 @@ export type Database = {
         }
         Relationships: []
       }
+      academic_years: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          year: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          year: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          year?: string
+        }
+        Relationships: []
+      }
       discount_settings: {
         Row: {
           created_at: string | null
