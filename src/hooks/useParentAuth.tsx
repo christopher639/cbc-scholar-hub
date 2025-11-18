@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const SESSION_KEY = "parent_portal_session";
+const SESSION_KEY = "learner_session";
 
 export function useParentAuth() {
   const [learner, setLearner] = useState<any>(null);

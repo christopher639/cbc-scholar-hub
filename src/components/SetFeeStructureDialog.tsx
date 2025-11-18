@@ -29,10 +29,11 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
   const [categories, setCategories] = useState<any[]>([]);
   const [gradeId, setGradeId] = useState("");
   const [term, setTerm] = useState("");
+  const [academicYear, setAcademicYear] = useState("");
   const [feeItems, setFeeItems] = useState<FeeItem[]>([
     { category_id: "", amount: "", description: "" }
   ]);
-  const { currentPeriod } = useAcademicPeriods();
+  const { academicPeriods, currentPeriod } = useAcademicPeriods();
 
   useEffect(() => {
     if (open) {
@@ -40,6 +41,7 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
       fetchCategories();
       if (currentPeriod) {
         setTerm(currentPeriod.term);
+        setAcademicYear(currentPeriod.academic_year);
       }
     }
   }, [open, currentPeriod]);
@@ -115,10 +117,10 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
       });
       return;
     }
-    if (!currentPeriod) {
+    if (!academicYear) {
       toast({
         title: "Error",
-        description: "Set a current academic period in Settings before creating fee structures",
+        description: "Please select an academic year",
         variant: "destructive",
       });
       return;
@@ -141,7 +143,7 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
       const feeStructures = validItems.map(item => ({
         grade_id: gradeId,
         term: term as any,
-        academic_year: currentPeriod.academic_year,
+        academic_year: academicYear,
         amount: parseFloat(item.amount),
         category_id: item.category_id,
         description: item.description || null,
@@ -164,6 +166,7 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
       // Reset form
       setGradeId("");
       setTerm("");
+      setAcademicYear("");
       setFeeItems([{ category_id: "", amount: "", description: "" }]);
     } catch (error: any) {
       toast({
@@ -224,10 +227,24 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="academicYear">Academic Year *</Label>
+            <Select value={academicYear} onValueChange={setAcademicYear} required>
+              <SelectTrigger id="academicYear">
+                <SelectValue placeholder="Select academic year" />
+              </SelectTrigger>
+              <SelectContent>
+                {[...new Set(academicPeriods?.map((p:any) => p.academic_year) ?? [])].map((year:string) => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {currentPeriod && (
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">
-                Academic Year: <span className="font-semibold text-foreground">{currentPeriod.academic_year}</span>
+                Current Period: <span className="font-semibold text-foreground">{currentPeriod.academic_year} · {currentPeriod.term.replace("_"," ")}</span>
               </p>
             </div>
           )}
