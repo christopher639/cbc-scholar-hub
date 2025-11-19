@@ -81,13 +81,13 @@ export function useLearners(gradeId?: string, streamId?: string) {
 
       if (error) throw error;
       
-      // Create user_role entry for the learner (student role)
+      // Create user_role entry for the learner
       if (data && userId) {
         const { error: roleError } = await supabase
           .from("user_roles")
           .insert({
             user_id: userId,
-            role: "student",
+            role: "learner",
           });
         
         if (roleError) {

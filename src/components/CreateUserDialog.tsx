@@ -20,7 +20,7 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
     fullName: "",
     email: "",
     password: "",
-    role: "student",
+    role: "learner",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,7 +71,7 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
           fullName: "",
           email: "",
           password: "",
-          role: "student",
+          role: "learner",
         });
 
         onSuccess();
@@ -142,7 +142,7 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
               <SelectContent>
                 <SelectItem value="admin">Administrator</SelectItem>
                 <SelectItem value="teacher">Teacher</SelectItem>
-                <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="learner">Learner</SelectItem>
               </SelectContent>
             </Select>
           </div>

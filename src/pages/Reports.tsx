@@ -112,7 +112,7 @@ const Reports = () => {
               <CardTitle className="text-3xl">{loading ? "..." : analytics.learnerStats.total}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Enrolled students</p>
+              <p className="text-sm text-muted-foreground">Enrolled learners</p>
             </CardContent>
           </Card>
           <Card>

@@ -178,7 +178,7 @@ const StreamDetail = () => {
                     {learners.map((learner) => (
                       <tr key={learner.id} className="text-sm hover:bg-muted/50 transition-colors">
                         <td className="py-3 pr-4">
-                          <Link to={`/students/${learner.id}`} className="text-primary hover:underline">
+                          <Link to={`/learners/${learner.id}`} className="text-primary hover:underline">
                             {learner.admission_number}
                           </Link>
                         </td>

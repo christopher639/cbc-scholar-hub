@@ -177,7 +177,7 @@ export function DiscountSettingsDialog({ open, onOpenChange }: DiscountSettingsD
               <div className="space-y-0.5">
                 <Label className="text-base font-semibold">Bursary Support</Label>
                 <p className="text-sm text-muted-foreground">
-                  Custom discounts for needy students (set individually)
+                  Custom discounts for needy learners (set individually)
                 </p>
               </div>
               <Switch

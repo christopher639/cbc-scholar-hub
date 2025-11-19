@@ -16,7 +16,7 @@ export default function Auth() {
   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loginType, setLoginType] = useState<"admin" | "teacher" | "student">("student");
+  const [loginType, setLoginType] = useState<"admin" | "teacher" | "learner">("learner");
 
   useEffect(() => {
     if (user && !loading) {
@@ -82,8 +82,8 @@ export default function Auth() {
               <Label>Login As</Label>
               <RadioGroup value={loginType} onValueChange={(value) => setLoginType(value as any)} className="flex flex-row gap-4">
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="student" id="student" />
-                  <Label htmlFor="student" className="cursor-pointer">Student</Label>
+                  <RadioGroupItem value="learner" id="learner" />
+                  <Label htmlFor="learner" className="cursor-pointer">Learner</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="teacher" id="teacher" />
@@ -97,11 +97,11 @@ export default function Auth() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="username">
-                {loginType === "student" ? "Admission Number" : "Username/Email"}
+                {loginType === "learner" ? "Admission Number" : "Username/Email"}
               </Label>
               <Input
                 id="username"
-                placeholder={loginType === "student" ? "Enter admission number" : "Enter username or email"}
+                placeholder={loginType === "learner" ? "Enter admission number" : "Enter username or email"}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -109,12 +109,12 @@ export default function Auth() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">
-                {loginType === "student" ? "Birth Certificate Number" : "Password"}
+                {loginType === "learner" ? "Birth Certificate Number" : "Password"}
               </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder={loginType === "student" ? "Enter birth certificate number" : "Enter password"}
+                placeholder={loginType === "learner" ? "Enter birth certificate number" : "Enter password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
