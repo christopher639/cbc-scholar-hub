@@ -47,20 +47,46 @@ export function useLearners(gradeId?: string, streamId?: string) {
 
   const addLearner = async (learnerData: any) => {
     try {
+      // First create the auth user account if birth certificate number is provided
+      let userId = null;
+      if (learnerData.birth_certificate_number) {
+        // Create auth account with admission number as email and birth cert as password
+        const tempEmail = `${learnerData.admission_number || 'temp'}@learner.temp`;
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: tempEmail,
+          password: learnerData.birth_certificate_number,
+          options: {
+            data: {
+              admission_number: learnerData.admission_number,
+              is_learner: true,
+            }
+          }
+        });
+
+        if (authError) {
+          console.error("Error creating auth user:", authError);
+          // Continue even if auth creation fails
+        } else if (authData.user) {
+          userId = authData.user.id;
+        }
+      }
+
+      // Insert learner record
+      const learnerInsertData = userId ? { ...learnerData, user_id: userId } : learnerData;
       const { data, error } = await supabase
         .from("learners")
-        .insert([learnerData])
+        .insert([learnerInsertData])
         .select()
         .single();
 
       if (error) throw error;
       
       // Create user_role entry for the learner (student role)
-      if (data) {
+      if (data && userId) {
         const { error: roleError } = await supabase
           .from("user_roles")
           .insert({
-            user_id: data.id,
+            user_id: userId,
             role: "student",
           });
         
@@ -71,7 +97,7 @@ export function useLearners(gradeId?: string, streamId?: string) {
       
       toast({
         title: "Success",
-        description: "Learner added successfully",
+        description: "Learner added successfully" + (userId ? " and can now log in" : ""),
       });
       
       fetchLearners();

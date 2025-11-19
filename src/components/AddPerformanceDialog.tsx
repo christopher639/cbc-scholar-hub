@@ -27,6 +27,8 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
     marks: "",
     gradeId: "",
     academicYear: "",
+    term: "",
+    examType: "",
     remarks: "",
   });
 
@@ -114,14 +116,16 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
       // Insert performance record
       const { error: insertError } = await supabase
         .from("performance_records")
-        .insert({
+        .insert([{
           learner_id: learner.id,
           learning_area_id: learningArea.id,
           academic_year: formData.academicYear,
+          term: formData.term as any || null,
+          exam_type: formData.examType || null,
           grade_id: formData.gradeId,
           marks: parseFloat(formData.marks),
           remarks: formData.remarks || null,
-        });
+        }]);
 
       if (insertError) throw insertError;
 
@@ -137,6 +141,8 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
         marks: "",
         gradeId: "",
         academicYear: currentYear?.year || "",
+        term: "",
+        examType: "",
         remarks: "",
       });
       
@@ -242,6 +248,44 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
                       {grade.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="term">Term</Label>
+              <Select
+                value={formData.term}
+                onValueChange={(value) => setFormData({ ...formData, term: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select term" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="term_1">Term 1</SelectItem>
+                  <SelectItem value="term_2">Term 2</SelectItem>
+                  <SelectItem value="term_3">Term 3</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="examType">Exam Type</Label>
+              <Select
+                value={formData.examType}
+                onValueChange={(value) => setFormData({ ...formData, examType: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select exam type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="opener">Opener</SelectItem>
+                  <SelectItem value="midterm">Mid-Term</SelectItem>
+                  <SelectItem value="endterm">End-Term</SelectItem>
+                  <SelectItem value="mock">Mock Exam</SelectItem>
+                  <SelectItem value="final">Final Exam</SelectItem>
                 </SelectContent>
               </Select>
             </div>
