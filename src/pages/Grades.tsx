@@ -3,16 +3,18 @@ import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, BookOpen, Pencil } from "lucide-react";
+import { Plus, Users, BookOpen, Pencil, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AddGradeStreamDialog } from "@/components/AddGradeStreamDialog";
 import { EditGradeDialog } from "@/components/EditGradeDialog";
+import { SetLastGradeDialog } from "@/components/SetLastGradeDialog";
 import { useGrades } from "@/hooks/useGrades";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Grades = () => {
   const [addStreamDialogOpen, setAddStreamDialogOpen] = useState(false);
   const [editGradeDialogOpen, setEditGradeDialogOpen] = useState(false);
+  const [lastGradeDialogOpen, setLastGradeDialogOpen] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<any>(null);
   const { grades, loading, fetchGrades } = useGrades();
 
@@ -97,6 +99,17 @@ const Grades = () => {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
+                        <Button
+                          variant={fullGrade?.is_last_grade ? "default" : "ghost"}
+                          size="icon"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setSelectedGrade(fullGrade);
+                            setLastGradeDialogOpen(true);
+                          }}
+                        >
+                          <GraduationCap className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
@@ -119,12 +132,22 @@ const Grades = () => {
         />
 
         {selectedGrade && (
-          <EditGradeDialog
-            open={editGradeDialogOpen}
-            onOpenChange={setEditGradeDialogOpen}
-            grade={selectedGrade}
-            onSuccess={fetchGrades}
-          />
+          <>
+            <EditGradeDialog
+              open={editGradeDialogOpen}
+              onOpenChange={setEditGradeDialogOpen}
+              grade={selectedGrade}
+              onSuccess={fetchGrades}
+            />
+            <SetLastGradeDialog
+              open={lastGradeDialogOpen}
+              onOpenChange={setLastGradeDialogOpen}
+              gradeId={selectedGrade.id}
+              gradeName={selectedGrade.name}
+              isCurrentlyLastGrade={selectedGrade.is_last_grade || false}
+              onSuccess={fetchGrades}
+            />
+          </>
         )}
       </div>
     </DashboardLayout>
