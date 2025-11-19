@@ -632,7 +632,8 @@ export type Database = {
       }
       performance_records: {
         Row: {
-          academic_period_id: string
+          academic_period_id: string | null
+          academic_year: string | null
           created_at: string
           grade_id: string
           grade_letter: string | null
@@ -646,7 +647,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          academic_period_id: string
+          academic_period_id?: string | null
+          academic_year?: string | null
           created_at?: string
           grade_id: string
           grade_letter?: string | null
@@ -660,7 +662,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          academic_period_id?: string
+          academic_period_id?: string | null
+          academic_year?: string | null
           created_at?: string
           grade_id?: string
           grade_letter?: string | null

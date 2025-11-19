@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
+import { useAcademicYears } from "@/hooks/useAcademicYears";
 
 interface AddPerformanceDialogProps {
   open: boolean;
@@ -19,22 +19,22 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
   const [loading, setLoading] = useState(false);
   const [learningAreas, setLearningAreas] = useState<any[]>([]);
   const [grades, setGrades] = useState<any[]>([]);
-  const { currentPeriod } = useAcademicPeriods();
+  const { academicYears, currentYear } = useAcademicYears();
   
   const [formData, setFormData] = useState({
     admissionNumber: "",
     learningAreaCode: "",
     marks: "",
     gradeId: "",
-    term: "",
+    academicYear: "",
     remarks: "",
   });
 
   useEffect(() => {
-    if (open && currentPeriod) {
-      setFormData(prev => ({ ...prev, term: currentPeriod.term }));
+    if (open && currentYear) {
+      setFormData(prev => ({ ...prev, academicYear: currentYear.year }));
     }
-  }, [open, currentPeriod]);
+  }, [open, currentYear]);
 
   useEffect(() => {
     if (open) {
@@ -102,10 +102,10 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
         return;
       }
 
-      if (!currentPeriod) {
+      if (!formData.academicYear) {
         toast({
           title: "Error",
-          description: "No current academic period found",
+          description: "Please select an academic year",
           variant: "destructive",
         });
         return;
@@ -117,7 +117,7 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
         .insert({
           learner_id: learner.id,
           learning_area_id: learningArea.id,
-          academic_period_id: currentPeriod.id,
+          academic_year: formData.academicYear,
           grade_id: formData.gradeId,
           marks: parseFloat(formData.marks),
           remarks: formData.remarks || null,
@@ -136,7 +136,7 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
         learningAreaCode: "",
         marks: "",
         gradeId: "",
-        term: currentPeriod?.term || "",
+        academicYear: currentYear?.year || "",
         remarks: "",
       });
       
@@ -209,25 +209,22 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="term">Term *</Label>
+              <Label htmlFor="academicYear">Academic Year *</Label>
               <Select
-                value={formData.term}
-                onValueChange={(value) => setFormData({ ...formData, term: value })}
+                value={formData.academicYear}
+                onValueChange={(value) => setFormData({ ...formData, academicYear: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select term" />
+                  <SelectValue placeholder="Select academic year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="term_1">Term 1</SelectItem>
-                  <SelectItem value="term_2">Term 2</SelectItem>
-                  <SelectItem value="term_3">Term 3</SelectItem>
+                  {academicYears.map((year) => (
+                    <SelectItem key={year.id} value={year.year}>
+                      {year.year}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              {currentPeriod && (
-                <p className="text-xs text-muted-foreground">
-                  Academic Year: {currentPeriod.academic_year}
-                </p>
-              )}
             </div>
 
             <div className="space-y-2">
