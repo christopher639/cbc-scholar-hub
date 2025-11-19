@@ -54,10 +54,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { schoolInfo } = useSchoolInfo();
 
   useEffect(() => {
-    if (user) {
+    if (user && !profile) {
       loadProfile();
     }
-  }, [user]);
+  }, [user, profile]);
 
   const loadProfile = async () => {
     try {

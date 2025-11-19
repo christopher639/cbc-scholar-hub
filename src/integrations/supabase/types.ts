@@ -635,6 +635,7 @@ export type Database = {
           academic_period_id: string | null
           academic_year: string | null
           created_at: string
+          exam_type: string | null
           grade_id: string
           grade_letter: string | null
           id: string
@@ -644,12 +645,14 @@ export type Database = {
           remarks: string | null
           stream_id: string | null
           teacher_id: string | null
+          term: Database["public"]["Enums"]["term"] | null
           updated_at: string
         }
         Insert: {
           academic_period_id?: string | null
           academic_year?: string | null
           created_at?: string
+          exam_type?: string | null
           grade_id: string
           grade_letter?: string | null
           id?: string
@@ -659,12 +662,14 @@ export type Database = {
           remarks?: string | null
           stream_id?: string | null
           teacher_id?: string | null
+          term?: Database["public"]["Enums"]["term"] | null
           updated_at?: string
         }
         Update: {
           academic_period_id?: string | null
           academic_year?: string | null
           created_at?: string
+          exam_type?: string | null
           grade_id?: string
           grade_letter?: string | null
           id?: string
@@ -674,6 +679,7 @@ export type Database = {
           remarks?: string | null
           stream_id?: string | null
           teacher_id?: string | null
+          term?: Database["public"]["Enums"]["term"] | null
           updated_at?: string
         }
         Relationships: [

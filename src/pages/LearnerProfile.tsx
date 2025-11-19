@@ -223,16 +223,18 @@ const LearnerProfile = () => {
                   <div className="space-y-4">
                     {learner.performance.map((record: any) => (
                       <div key={record.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                        <div className="space-y-1">
+                        <div className="space-y-1 flex-1">
                           <p className="font-medium">{record.learning_area?.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {record.academic_period?.academic_year} - {record.academic_period?.term?.replace('_', ' ')}
-                          </p>
+                          <div className="flex gap-2 text-sm text-muted-foreground">
+                            <span>{record.academic_year}</span>
+                            {record.term && <span>• {record.term.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>}
+                            {record.exam_type && <span>• {record.exam_type}</span>}
+                          </div>
                         </div>
                         <div className="text-right">
                           <div className="flex items-center gap-2">
                             <Badge className="text-base">{record.grade_letter || 'N/A'}</Badge>
-                            <span className="text-2xl font-bold">{record.marks}</span>
+                            <span className="text-2xl font-bold">{record.marks}%</span>
                           </div>
                           {record.remarks && (
                             <p className="text-xs text-muted-foreground mt-1">{record.remarks}</p>
