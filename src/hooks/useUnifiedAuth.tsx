@@ -214,18 +214,15 @@ export function useUnifiedAuth() {
   };
 
   const loginLearner = async (admissionNumber: string, birthCertificate: string) => {
-    const result = await unifiedLogin(admissionNumber, birthCertificate);
-    return result.success;
+    return await unifiedLogin(admissionNumber, birthCertificate);
   };
 
   const loginTeacher = async (employeeNumber: string, idNumber: string) => {
-    const result = await unifiedLogin(employeeNumber, idNumber);
-    return result.success;
+    return await unifiedLogin(employeeNumber, idNumber);
   };
 
   const loginAdmin = async (email: string, password: string) => {
-    const result = await unifiedLogin(email, password);
-    return result.success;
+    return await unifiedLogin(email, password);
   };
 
   const logout = async () => {
