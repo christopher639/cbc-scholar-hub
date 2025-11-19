@@ -26,6 +26,9 @@ export function useLearners(gradeId?: string, streamId?: string) {
         query = query.eq("current_stream_id", streamId);
       }
 
+      // Only fetch active learners (exclude alumni and transferred)
+      query = query.eq("status", "active");
+
       const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw error;

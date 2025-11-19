@@ -110,6 +110,64 @@ export type Database = {
         }
         Relationships: []
       }
+      alumni: {
+        Row: {
+          created_at: string | null
+          final_grade_id: string | null
+          final_stream_id: string | null
+          graduation_date: string
+          graduation_year: string
+          id: string
+          learner_id: string
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          final_grade_id?: string | null
+          final_stream_id?: string | null
+          graduation_date?: string
+          graduation_year: string
+          id?: string
+          learner_id: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          final_grade_id?: string | null
+          final_stream_id?: string | null
+          graduation_date?: string
+          graduation_year?: string
+          id?: string
+          learner_id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alumni_final_grade_id_fkey"
+            columns: ["final_grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alumni_final_stream_id_fkey"
+            columns: ["final_stream_id"]
+            isOneToOne: false
+            referencedRelation: "streams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alumni_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: true
+            referencedRelation: "learners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bulk_messages: {
         Row: {
           created_at: string
@@ -392,6 +450,7 @@ export type Database = {
           description: string | null
           grade_level: Database["public"]["Enums"]["grade_level"]
           id: string
+          is_last_grade: boolean | null
           name: string
           updated_at: string
         }
@@ -400,6 +459,7 @@ export type Database = {
           description?: string | null
           grade_level: Database["public"]["Enums"]["grade_level"]
           id?: string
+          is_last_grade?: boolean | null
           name: string
           updated_at?: string
         }
@@ -408,6 +468,7 @@ export type Database = {
           description?: string | null
           grade_level?: Database["public"]["Enums"]["grade_level"]
           id?: string
+          is_last_grade?: boolean | null
           name?: string
           updated_at?: string
         }
@@ -438,6 +499,7 @@ export type Database = {
           previous_grade: string | null
           previous_school: string | null
           reason_for_transfer: string | null
+          status: string | null
           updated_at: string
           user_id: string | null
         }
@@ -465,6 +527,7 @@ export type Database = {
           previous_grade?: string | null
           previous_school?: string | null
           reason_for_transfer?: string | null
+          status?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -492,6 +555,7 @@ export type Database = {
           previous_grade?: string | null
           previous_school?: string | null
           reason_for_transfer?: string | null
+          status?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -1049,6 +1113,41 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      transfer_records: {
+        Row: {
+          created_at: string | null
+          destination_school: string
+          id: string
+          learner_id: string
+          reason: string | null
+          transfer_date: string
+        }
+        Insert: {
+          created_at?: string | null
+          destination_school: string
+          id?: string
+          learner_id: string
+          reason?: string | null
+          transfer_date?: string
+        }
+        Update: {
+          created_at?: string | null
+          destination_school?: string
+          id?: string
+          learner_id?: string
+          reason?: string | null
+          transfer_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfer_records_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: true
+            referencedRelation: "learners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

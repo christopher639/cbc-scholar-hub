@@ -14,7 +14,7 @@ export function useGrades() {
       // Fetch grades with streams
       const { data: gradesData, error: gradesError } = await supabase
         .from("grades")
-        .select("*")
+        .select("*, is_last_grade")
         .order("grade_level", { ascending: true });
 
       if (gradesError) throw gradesError;
@@ -25,7 +25,8 @@ export function useGrades() {
           const { count: learnerCount } = await supabase
             .from("learners")
             .select("*", { count: "exact", head: true })
-            .eq("current_grade_id", grade.id);
+            .eq("current_grade_id", grade.id)
+            .eq("status", "active");
 
           const { count: streamCount } = await supabase
             .from("streams")
