@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Learners from "./pages/Students";
+import Alumni from "./pages/Alumni";
 import Grades from "./pages/Grades";
 import GradeDetail from "./pages/GradeDetail";
 import StreamDetail from "./pages/StreamDetail";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/learners" element={<ProtectedRoute><Learners /></ProtectedRoute>} />
             <Route path="/learners/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
+            <Route path="/alumni" element={<ProtectedRoute><Alumni /></ProtectedRoute>} />
             <Route path="/grades" element={<ProtectedRoute><Grades /></ProtectedRoute>} />
             <Route path="/grades/:grade" element={<ProtectedRoute><GradeDetail /></ProtectedRoute>} />
             <Route path="/grades/:grade/:stream" element={<ProtectedRoute><StreamDetail /></ProtectedRoute>} />

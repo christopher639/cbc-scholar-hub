@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History, ArrowLeft, Edit } from "lucide-react";
+import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History, ArrowLeft, Edit, UserX } from "lucide-react";
 import { PromotionHistoryDialog } from "@/components/PromotionHistoryDialog";
 import { EditLearnerDialog } from "@/components/EditLearnerDialog";
+import { TransferLearnerDialog } from "@/components/TransferLearnerDialog";
 import { useLearnerDetail } from "@/hooks/useLearnerDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -17,6 +18,7 @@ const LearnerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const [promotionHistoryOpen, setPromotionHistoryOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const { learner, loading, refetch } = useLearnerDetail(id || "");
 
   if (loading) {
