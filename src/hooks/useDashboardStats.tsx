@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 export function useDashboardStats(startDate?: Date, endDate?: Date) {
   const [stats, setStats] = useState({
     totalLearners: 0,
+    totalAlumni: 0,
     activeStreams: 0,
     feeCollection: 0,
     pendingAdmissions: 0,
@@ -22,9 +23,15 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
     try {
       setLoading(true);
 
-      // Get total learners
+      // Get total active learners
       const { count: learnersCount } = await supabase
         .from("learners")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "active");
+
+      // Get total alumni
+      const { count: alumniCount } = await supabase
+        .from("alumni")
         .select("*", { count: "exact", head: true });
 
       // Get active streams
@@ -84,6 +91,7 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
 
       setStats({
         totalLearners: learnersCount || 0,
+        totalAlumni: alumniCount || 0,
         activeStreams: streamsCount || 0,
         feeCollection: totalCollection,
         pendingAdmissions: 0, // Can be calculated based on status field if added
