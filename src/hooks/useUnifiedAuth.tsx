@@ -127,6 +127,16 @@ export function useUnifiedAuth() {
               data: data.user,
             });
 
+            // Log login activity
+            await supabase.from("activity_logs").insert({
+              action: "login",
+              entity_type: "authentication",
+              entity_name: data.user.email,
+              user_id: data.user.id,
+              user_name: data.user.email,
+              user_role: roleData.role,
+            });
+
             toast({
               title: "Welcome!",
               description: "Successfully logged in",
@@ -162,6 +172,16 @@ export function useUnifiedAuth() {
           localStorage.setItem(LEARNER_SESSION_KEY, sessionToken);
           setUser({ id: learner.id, role: "learner", data: learner });
 
+          // Log login activity
+          await supabase.from("activity_logs").insert({
+            action: "login",
+            entity_type: "authentication",
+            entity_name: `${learner.first_name} ${learner.last_name}`,
+            entity_id: learner.id,
+            user_name: `${learner.first_name} ${learner.last_name}`,
+            user_role: "learner",
+          });
+
           toast({
             title: "Welcome!",
             description: `Welcome back, ${learner.first_name}`,
@@ -194,6 +214,16 @@ export function useUnifiedAuth() {
 
         localStorage.setItem(TEACHER_SESSION_KEY, sessionToken);
         setUser({ id: teacherData.id, role: "teacher", data: teacherData });
+
+        // Log login activity
+        await supabase.from("activity_logs").insert({
+          action: "login",
+          entity_type: "authentication",
+          entity_name: `${teacherData.first_name} ${teacherData.last_name}`,
+          entity_id: teacherData.id,
+          user_name: `${teacherData.first_name} ${teacherData.last_name}`,
+          user_role: "teacher",
+        });
 
         toast({
           title: "Welcome!",
