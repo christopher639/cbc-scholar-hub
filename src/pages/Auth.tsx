@@ -41,13 +41,7 @@ export default function Auth() {
       result = await loginLearner(username, password);
     }
     
-    if (result?.success && result.role) {
-      if (result.role === "learner") {
-        navigate("/learner-portal", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
-    }
+    // Don't navigate here - let the useEffect handle it after user state is updated
   };
 
   if (loading || schoolLoading) {
@@ -86,7 +80,7 @@ export default function Auth() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-3">
               <Label>Login As</Label>
-              <RadioGroup value={loginType} onValueChange={(value) => setLoginType(value as any)}>
+              <RadioGroup value={loginType} onValueChange={(value) => setLoginType(value as any)} className="flex flex-row gap-4">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="student" id="student" />
                   <Label htmlFor="student" className="cursor-pointer">Student</Label>
@@ -97,7 +91,7 @@ export default function Auth() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="admin" id="admin" />
-                  <Label htmlFor="admin" className="cursor-pointer">Administrator</Label>
+                  <Label htmlFor="admin" className="cursor-pointer">Admin</Label>
                 </div>
               </RadioGroup>
             </div>
