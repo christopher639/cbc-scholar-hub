@@ -1,11 +1,13 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, ShieldCheck, Users as UsersIcon } from "lucide-react";
+import { Shield, ShieldCheck, Users as UsersIcon, Plus } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
+import { CreateUserDialog } from "@/components/CreateUserDialog";
 import {
   Select,
   SelectContent,
@@ -35,6 +37,7 @@ interface UserProfile {
 const Users = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchUsers = async () => {
@@ -128,6 +131,10 @@ const Users = () => {
             <p className="text-muted-foreground">Manage user access and permissions</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create User
+            </Button>
             <Badge variant="secondary" className="gap-2">
               <UsersIcon className="h-4 w-4" />
               {users.length} Total Users
@@ -214,6 +221,12 @@ const Users = () => {
           </CardContent>
         </Card>
       </div>
+      
+      <CreateUserDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSuccess={fetchUsers}
+      />
     </DashboardLayout>
   );
 };

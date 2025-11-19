@@ -22,6 +22,7 @@ import {
   School,
   UserCog,
   ShieldCheck,
+  MessageSquare,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -35,6 +36,7 @@ const navigation = [
   { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher"] },
   { name: "Teachers", href: "/teachers", icon: UserCog, roles: ["admin", "teacher"] },
   { name: "Fee Management", href: "/fees", icon: DollarSign, roles: ["admin"] },
+  { name: "Communication", href: "/communication", icon: MessageSquare, roles: ["admin"] },
   { name: "Admissions", href: "/admissions", icon: UserCheck, roles: ["admin"] },
   { name: "Reports", href: "/reports", icon: FileText, roles: ["admin", "teacher"] },
   { name: "School Info", href: "/school-info", icon: School, roles: ["admin", "teacher"] },

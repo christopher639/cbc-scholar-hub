@@ -71,6 +71,69 @@ export type Database = {
         }
         Relationships: []
       }
+      bulk_messages: {
+        Row: {
+          created_at: string
+          failed_count: number | null
+          grade_id: string | null
+          id: string
+          message: string
+          message_type: string
+          recipient_type: string
+          sender_id: string
+          sent_at: string | null
+          sent_count: number | null
+          status: string | null
+          stream_id: string | null
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          failed_count?: number | null
+          grade_id?: string | null
+          id?: string
+          message: string
+          message_type: string
+          recipient_type: string
+          sender_id: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          stream_id?: string | null
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          failed_count?: number | null
+          grade_id?: string | null
+          id?: string
+          message?: string
+          message_type?: string
+          recipient_type?: string
+          sender_id?: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          stream_id?: string | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulk_messages_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bulk_messages_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discount_settings: {
         Row: {
           created_at: string | null
@@ -97,6 +160,60 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      fee_balances: {
+        Row: {
+          academic_year: string
+          amount_paid: number
+          balance: number
+          created_at: string
+          grade_id: string
+          id: string
+          learner_id: string
+          term: Database["public"]["Enums"]["term"]
+          total_fees: number
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          amount_paid?: number
+          balance?: number
+          created_at?: string
+          grade_id: string
+          id?: string
+          learner_id: string
+          term: Database["public"]["Enums"]["term"]
+          total_fees?: number
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          amount_paid?: number
+          balance?: number
+          created_at?: string
+          grade_id?: string
+          id?: string
+          learner_id?: string
+          term?: Database["public"]["Enums"]["term"]
+          total_fees?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_balances_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_balances_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: false
+            referencedRelation: "learners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fee_categories: {
         Row: {
@@ -263,6 +380,7 @@ export type Database = {
           allergies: string | null
           birth_certificate_number: string | null
           blood_type: string | null
+          boarding_status: Database["public"]["Enums"]["boarding_status"]
           created_at: string
           current_grade_id: string | null
           current_stream_id: string | null
@@ -289,6 +407,7 @@ export type Database = {
           allergies?: string | null
           birth_certificate_number?: string | null
           blood_type?: string | null
+          boarding_status?: Database["public"]["Enums"]["boarding_status"]
           created_at?: string
           current_grade_id?: string | null
           current_stream_id?: string | null
@@ -315,6 +434,7 @@ export type Database = {
           allergies?: string | null
           birth_certificate_number?: string | null
           blood_type?: string | null
+          boarding_status?: Database["public"]["Enums"]["boarding_status"]
           created_at?: string
           current_grade_id?: string | null
           current_stream_id?: string | null
@@ -934,6 +1054,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "teacher" | "parent" | "student"
+      boarding_status: "day_scholar" | "boarder"
       gender: "male" | "female" | "other"
       grade_level:
         | "grade_1"
@@ -1078,6 +1199,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "teacher", "parent", "student"],
+      boarding_status: ["day_scholar", "boarder"],
       gender: ["male", "female", "other"],
       grade_level: [
         "grade_1",
