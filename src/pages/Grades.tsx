@@ -39,8 +39,8 @@ const Grades = () => {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Grades & Streams</h1>
-            <p className="text-muted-foreground">Manage grade levels, streams, and learner distribution</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Grades & Streams</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Manage grade levels, streams, and learner distribution</p>
           </div>
           <Button className="gap-2" onClick={() => setAddStreamDialogOpen(true)}>
             <Plus className="h-4 w-4" />
