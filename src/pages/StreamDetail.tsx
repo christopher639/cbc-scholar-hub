@@ -3,13 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Download, ArrowUp } from "lucide-react";
+import { ArrowLeft, Download, ArrowUp, FileDown, Calendar } from "lucide-react";
 import { useStreamDetail } from "@/hooks/useStreamDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PromoteLearnerDialog } from "@/components/PromoteLearnerDialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { downloadFeeBalanceReport } from "@/utils/feeReportGenerator";
+import { useToast } from "@/hooks/use-toast";
+import type { Database } from "@/integrations/supabase/types";
+
+type Term = Database["public"]["Enums"]["term"];
 
 const StreamDetail = () => {
   const { grade, stream } = useParams();
@@ -17,6 +24,9 @@ const StreamDetail = () => {
   const [streamId, setStreamId] = useState("");
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedLearners, setSelectedLearners] = useState<string[]>([]);
+  const [academicYear, setAcademicYear] = useState("2024-2025");
+  const [term, setTerm] = useState<Term>("term_3");
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchIds = async () => {
@@ -49,7 +59,12 @@ const StreamDetail = () => {
     }
   }, [grade, stream]);
 
-  const { streamData, learners, stats, loading, refetch } = useStreamDetail(gradeId, streamId);
+  const { streamData, learners, stats, loading, refetch } = useStreamDetail(
+    gradeId,
+    streamId,
+    academicYear,
+    term
+  );
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -65,6 +80,30 @@ const StreamDetail = () => {
     } else {
       setSelectedLearners(selectedLearners.filter(id => id !== learnerId));
     }
+  };
+
+  const handleDownloadFeeBalances = () => {
+    if (learners.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No learners found to generate report",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    downloadFeeBalanceReport(
+      learners,
+      grade || "",
+      stream || "",
+      academicYear,
+      term
+    );
+
+    toast({
+      title: "Success",
+      description: "Fee balance report downloaded successfully",
+    });
   };
 
   if (loading || !gradeId || !streamId) {
@@ -104,12 +143,52 @@ const StreamDetail = () => {
               <ArrowUp className="h-4 w-4" />
               Promote Selected ({selectedLearners.length})
             </Button>
+            <Button variant="outline" className="gap-2" onClick={handleDownloadFeeBalances}>
+              <FileDown className="h-4 w-4" />
+              Download Fee Balances
+            </Button>
             <Button variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
               Export List
             </Button>
           </div>
         </div>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <div className="flex gap-4 flex-1">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Academic Year</Label>
+                  <Select value={academicYear} onValueChange={setAcademicYear}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2024-2025">2024/2025</SelectItem>
+                      <SelectItem value="2023-2024">2023/2024</SelectItem>
+                      <SelectItem value="2022-2023">2022/2023</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Term</Label>
+                  <Select value={term} onValueChange={(value) => setTerm(value as Term)}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="term_1">Term 1</SelectItem>
+                      <SelectItem value="term_2">Term 2</SelectItem>
+                      <SelectItem value="term_3">Term 3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
