@@ -294,39 +294,64 @@ const FeeManagement = () => {
           <TabsContent value="structure" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Fee Structure - Term 1, 2025</CardTitle>
+                <CardTitle>Fee Structure</CardTitle>
                 <CardDescription>Current fee breakdown by grade</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"].map((grade) => (
-                    <div key={grade} className="border border-border rounded-lg p-4">
-                      <h3 className="font-semibold text-foreground mb-3">{grade}</h3>
-                      <div className="grid gap-2 md:grid-cols-2">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Tuition Fee:</span>
-                          <span className="font-semibold">KES 25,000</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Activity Fee:</span>
-                          <span className="font-semibold">KES 5,000</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Library Fee:</span>
-                          <span className="font-semibold">KES 2,000</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Sports Fee:</span>
-                          <span className="font-semibold">KES 3,000</span>
-                        </div>
-                        <div className="flex justify-between font-bold text-lg col-span-2 pt-2 border-t border-border">
-                          <span>Total:</span>
-                          <span className="text-primary">KES 35,000</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {structuresLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-32 w-full" />
+                    ))}
+                  </div>
+                ) : structures.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">No fee structures set yet</p>
+                    <Button onClick={() => setSetStructureDialogOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Set Fee Structure
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {(() => {
+                      // Group structures by grade
+                      const gradeGroups: { [key: string]: any[] } = {};
+                      structures.forEach((structure) => {
+                        const gradeName = structure.grade?.name || 'Unknown Grade';
+                        if (!gradeGroups[gradeName]) {
+                          gradeGroups[gradeName] = [];
+                        }
+                        gradeGroups[gradeName].push(structure);
+                      });
+
+                      return Object.entries(gradeGroups).map(([gradeName, gradeStructures]) => {
+                        const total = gradeStructures.reduce((sum, s) => sum + Number(s.amount), 0);
+                        return (
+                          <div key={gradeName} className="border border-border rounded-lg p-4">
+                            <h3 className="font-semibold text-foreground mb-3">{gradeName}</h3>
+                            <div className="grid gap-2 md:grid-cols-2">
+                              {gradeStructures.map((structure) => (
+                                <div key={structure.id} className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    {structure.category?.name || structure.description || 'Fee'}:
+                                  </span>
+                                  <span className="font-semibold">
+                                    KES {Number(structure.amount).toLocaleString()}
+                                  </span>
+                                </div>
+                              ))}
+                              <div className="flex justify-between font-bold text-lg col-span-2 pt-2 border-t border-border">
+                                <span>Total:</span>
+                                <span className="text-primary">KES {total.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
