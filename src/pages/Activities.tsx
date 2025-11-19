@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +15,11 @@ import {
   Edit,
   Trash2,
   FileText,
-  Users
+  Users,
+  TrendingUp,
+  LogIn
 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 const Activities = () => {
   const [activities, setActivities] = useState<any[]>([]);
@@ -114,6 +117,34 @@ const Activities = () => {
   const entityTypes = Array.from(new Set(activities.map(a => a.entity_type))).filter(Boolean);
   const actions = Array.from(new Set(activities.map(a => a.action))).filter(Boolean);
 
+  // Prepare chart data
+  const chartData = useMemo(() => {
+    const dailyStats: { [key: string]: { logins: number; actions: number } } = {};
+    
+    activities.forEach(activity => {
+      const date = new Date(activity.created_at).toLocaleDateString();
+      
+      if (!dailyStats[date]) {
+        dailyStats[date] = { logins: 0, actions: 0 };
+      }
+      
+      dailyStats[date].actions += 1;
+      
+      if (activity.action.toLowerCase() === "login") {
+        dailyStats[date].logins += 1;
+      }
+    });
+    
+    return Object.entries(dailyStats)
+      .map(([date, stats]) => ({
+        date,
+        logins: stats.logins,
+        actions: stats.actions,
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-30); // Last 30 days
+  }, [activities]);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -121,6 +152,101 @@ const Activities = () => {
         <div>
           <h1 className="text-3xl font-bold text-foreground">System Activities</h1>
           <p className="text-muted-foreground">Track all actions performed in the system</p>
+        </div>
+
+        {/* Trend Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <LogIn className="h-5 w-5 text-primary" />
+                <CardTitle>Login Trends</CardTitle>
+              </div>
+              <CardDescription>Daily login activity over the last 30 days</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-[300px] w-full" />
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="date" 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '0.5rem'
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="logins" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                      name="Logins"
+                      dot={{ fill: 'hsl(var(--primary))' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-success" />
+                <CardTitle>Activity Trends</CardTitle>
+              </div>
+              <CardDescription>All system actions over the last 30 days</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-[300px] w-full" />
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="date" 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '0.5rem'
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="actions" 
+                      stroke="hsl(var(--success))" 
+                      strokeWidth={2}
+                      name="Total Actions"
+                      dot={{ fill: 'hsl(var(--success))' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filters */}
