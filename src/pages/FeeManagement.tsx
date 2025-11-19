@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Calendar } from "lucide-react";
 import { useFeePayments } from "@/hooks/useFeePayments";
 import { useFeeStats } from "@/hooks/useFeeStats";
@@ -12,11 +14,16 @@ import { useFeeStructures } from "@/hooks/useFeeStructures";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 import { SetFeeStructureDialog } from "@/components/SetFeeStructureDialog";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const FeeManagement = () => {
   const navigate = useNavigate();
+  const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
   const { payments, loading: paymentsLoading, fetchPayments } = useFeePayments();
-  const { stats, loading: statsLoading, fetchStats } = useFeeStats();
+  const { stats, trendData, loading: statsLoading, fetchStats } = useFeeStats(dateRange.start, dateRange.end);
   const { structures, loading: structuresLoading } = useFeeStructures();
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [setStructureDialogOpen, setSetStructureDialogOpen] = useState(false);
@@ -53,14 +60,55 @@ const FeeManagement = () => {
             <h1 className="text-3xl font-bold text-foreground">Fee Management</h1>
             <p className="text-muted-foreground">Manage school fees, payments, and balances</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Calendar className="h-4 w-4" />
+                  {dateRange.start && dateRange.end
+                    ? `${format(dateRange.start, "PP")} - ${format(dateRange.end, "PP")}`
+                    : "Filter by Date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <div className="p-3 space-y-2">
+                  <div>
+                    <p className="text-sm font-medium mb-2">Start Date</p>
+                    <CalendarComponent
+                      mode="single"
+                      selected={dateRange.start}
+                      onSelect={(date) => setDateRange({ ...dateRange, start: date })}
+                      className="pointer-events-auto"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium mb-2">End Date</p>
+                    <CalendarComponent
+                      mode="single"
+                      selected={dateRange.end}
+                      onSelect={(date) => setDateRange({ ...dateRange, end: date })}
+                      disabled={(date) => dateRange.start ? date < dateRange.start : false}
+                      className="pointer-events-auto"
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setDateRange({})}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button variant="outline" className="gap-2" onClick={() => navigate("/academic-years")}>
               <Calendar className="h-4 w-4" />
-              Manage Academic Years
+              Academic Years
             </Button>
             <Button variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
-              Export Report
+              Export
             </Button>
             <Button className="gap-2" onClick={() => setSetStructureDialogOpen(true)}>
               <Plus className="h-4 w-4" />
@@ -87,6 +135,65 @@ const FeeManagement = () => {
             </Card>
           ))}
         </div>
+
+        {/* Fee Payment Trend Graph */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Fee Payment Trend</CardTitle>
+            <CardDescription>
+              Daily fee payments {dateRange.start && dateRange.end ? `from ${format(dateRange.start, "PP")} to ${format(dateRange.end, "PP")}` : "over time"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {statsLoading ? (
+              <Skeleton className="h-[300px] w-full" />
+            ) : trendData.length === 0 ? (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No payment data available for the selected period
+              </div>
+            ) : (
+              <ChartContainer
+                config={{
+                  amount: {
+                    label: "Amount",
+                    color: "hsl(var(--success))",
+                  },
+                }}
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(value) => format(new Date(value), "MMM dd")}
+                      className="text-xs"
+                    />
+                    <YAxis
+                      tickFormatter={(value) => `KES ${(value / 1000).toFixed(0)}K`}
+                      className="text-xs"
+                    />
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          labelFormatter={(value) => format(new Date(value), "PPP")}
+                          formatter={(value) => `KES ${Number(value).toLocaleString()}`}
+                        />
+                      }
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="amount"
+                      stroke="hsl(var(--success))"
+                      strokeWidth={2}
+                      dot={{ fill: "hsl(var(--success))" }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Main Content */}
         <Tabs defaultValue="payments" className="space-y-4">
