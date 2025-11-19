@@ -43,6 +43,7 @@ import {
   User,
   PanelLeftClose,
   PanelLeft,
+  Menu,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -95,8 +96,8 @@ function AppSidebar() {
   );
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border bg-sidebar">
-      <div className="flex h-16 items-center justify-between border-b border-border px-4 bg-sidebar">
+    <Sidebar collapsible="icon" className="border-r border-border bg-card">
+      <div className="flex h-16 items-center justify-between border-b border-border px-4">
         {!collapsed && (
           <div className="flex items-center gap-2">
             {schoolInfo?.logo_url ? (
@@ -109,7 +110,7 @@ function AppSidebar() {
             </span>
           </div>
         )}
-        <SidebarTrigger className="ml-auto">
+        <SidebarTrigger className="ml-auto hidden lg:flex">
           {collapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
         </SidebarTrigger>
       </div>
@@ -236,6 +237,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         
         <main className="flex-1 flex flex-col">
           <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card px-6">
+            <SidebarTrigger className="lg:hidden">
+              <Menu className="h-6 w-6" />
+            </SidebarTrigger>
             <div className="ml-auto flex items-center gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
