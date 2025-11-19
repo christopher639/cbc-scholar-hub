@@ -103,8 +103,12 @@ const LearnerProfile = () => {
                   <Badge variant="secondary" className="text-base">
                     {learner.current_grade?.name} {learner.current_stream?.name}
                   </Badge>
-                  <Badge className="text-base">Active</Badge>
-                  {learner.parent?.occupation === "Teacher" && (
+                  {learner.status === "alumni" ? (
+                    <Badge variant="default" className="text-base bg-purple-600">Alumni</Badge>
+                  ) : (
+                    <Badge className="text-base">Active</Badge>
+                  )}
+                  {learner.is_staff_child && (
                     <Badge variant="outline" className="text-base">Staff Child</Badge>
                   )}
                 </div>
@@ -139,11 +143,14 @@ const LearnerProfile = () => {
 
         {/* Tabbed Content */}
         <Tabs defaultValue="personal" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto">
             <TabsTrigger value="personal">Personal Info</TabsTrigger>
             <TabsTrigger value="academic">Academic</TabsTrigger>
             <TabsTrigger value="fees">Fees</TabsTrigger>
             <TabsTrigger value="parent">Parent/Guardian</TabsTrigger>
+            {learner.status === "alumni" && (
+              <TabsTrigger value="alumni">Alumni Info</TabsTrigger>
+            )}
           </TabsList>
 
           {/* Personal Info Tab */}
@@ -371,6 +378,55 @@ const LearnerProfile = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Alumni Info Tab */}
+          {learner.status === "alumni" && learner.alumni && learner.alumni.length > 0 && (
+            <TabsContent value="alumni" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Alumni Information</CardTitle>
+                  <CardDescription>Graduation details and records</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Graduation Year</p>
+                      <p className="text-2xl font-bold text-purple-600">{learner.alumni[0].graduation_year}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Graduation Date</p>
+                      <p className="text-base font-medium">{new Date(learner.alumni[0].graduation_date).toLocaleDateString()}</p>
+                    </div>
+                    {learner.alumni[0].final_grade && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Final Grade</p>
+                        <Badge variant="secondary" className="text-base">
+                          {learner.alumni[0].final_grade.name}
+                        </Badge>
+                      </div>
+                    )}
+                    {learner.alumni[0].final_stream && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Final Stream</p>
+                        <Badge variant="outline" className="text-base">
+                          {learner.alumni[0].final_stream.name}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                  {learner.alumni[0].notes && (
+                    <>
+                      <Separator />
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Notes</p>
+                        <p className="text-base">{learner.alumni[0].notes}</p>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
 
         <PromotionHistoryDialog
