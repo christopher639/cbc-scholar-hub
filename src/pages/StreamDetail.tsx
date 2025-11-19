@@ -3,12 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Download, ArrowUp, FileDown, Calendar } from "lucide-react";
+import { ArrowLeft, Download, ArrowUp, FileDown, Calendar, Pencil } from "lucide-react";
 import { useStreamDetail } from "@/hooks/useStreamDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PromoteLearnerDialog } from "@/components/PromoteLearnerDialog";
+import { EditStreamDialog } from "@/components/EditStreamDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ const StreamDetail = () => {
   const [gradeId, setGradeId] = useState("");
   const [streamId, setStreamId] = useState("");
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
+  const [editStreamDialogOpen, setEditStreamDialogOpen] = useState(false);
   const [selectedLearners, setSelectedLearners] = useState<string[]>([]);
   const [academicYear, setAcademicYear] = useState("2024-2025");
   const [term, setTerm] = useState<Term>("term_3");
@@ -129,9 +131,18 @@ const StreamDetail = () => {
             </Button>
           </Link>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-foreground">
-              {streamData?.grade?.name || grade} - {stream} Stream
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-bold text-foreground">
+                {streamData?.grade?.name || grade} - {stream} Stream
+              </h1>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setEditStreamDialogOpen(true)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </div>
             <p className="text-muted-foreground">{stats.total} learners in this stream</p>
           </div>
           <div className="flex gap-2">
@@ -279,6 +290,30 @@ const StreamDetail = () => {
             )}
           </CardContent>
         </Card>
+
+        <PromoteLearnerDialog
+          open={promoteDialogOpen}
+          onOpenChange={setPromoteDialogOpen}
+          selectedLearners={selectedLearners}
+          currentGrade={grade || ""}
+          onSuccess={() => {
+            setSelectedLearners([]);
+            refetch();
+          }}
+        />
+
+        {streamData && (
+          <EditStreamDialog
+            open={editStreamDialogOpen}
+            onOpenChange={setEditStreamDialogOpen}
+            stream={{
+              id: streamId,
+              name: streamData.name,
+              capacity: streamData.capacity,
+            }}
+            onSuccess={refetch}
+          />
+        )}
       </div>
     </DashboardLayout>
   );

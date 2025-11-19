@@ -23,7 +23,7 @@ const Dashboard = () => {
   const statsDisplay = [
     {
       title: "Total Learners",
-      value: loading ? "..." : stats.totalLearners.toString(),
+      value: loading ? "..." : `${stats.totalLearners} Active • ${stats.totalAlumni} Alumni`,
       icon: Users,
       colorClass: "text-primary",
     },

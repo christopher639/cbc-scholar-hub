@@ -9,6 +9,25 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   LayoutDashboard,
   Users,
   GraduationCap,
@@ -16,14 +35,14 @@ import {
   UserCheck,
   Settings,
   FileText,
-  Menu,
-  X,
   LogOut,
   School,
   UserCog,
   ShieldCheck,
   MessageSquare,
   User,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -45,6 +64,7 @@ const navigation = [
   { name: "Fee Management", href: "/fees", icon: DollarSign, roles: ["admin"] },
   { name: "Communication", href: "/communication", icon: MessageSquare, roles: ["admin"] },
   { name: "Admissions", href: "/admissions", icon: UserCheck, roles: ["admin"] },
+  { name: "Alumni", href: "/alumni", icon: GraduationCap, roles: ["admin", "teacher"] },
   { name: "Reports", href: "/reports", icon: FileText, roles: ["admin", "teacher"] },
   { name: "School Info", href: "/school-info", icon: School, roles: ["admin", "teacher"] },
   { name: "Users & Roles", href: "/users", icon: ShieldCheck, roles: ["admin"] },
@@ -52,14 +72,118 @@ const navigation = [
   { name: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useUnifiedAuth();
   const { toast } = useToast();
   const { schoolInfo } = useSchoolInfo();
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
+
+  const handleLogout = async () => {
+    await logout();
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    navigate("/auth");
+  };
+
+  const filteredNav = navigation.filter(
+    (item) => !item.roles || item.roles.includes(user?.role || "")
+  );
+
+  return (
+    <Sidebar collapsible="icon" className="border-r border-border">
+      <div className="flex h-16 items-center justify-between border-b border-border px-4">
+        {!collapsed && (
+          <div className="flex items-center gap-2">
+            {schoolInfo?.logo_url ? (
+              <img src={schoolInfo.logo_url} alt="School Logo" className="h-10 w-10 object-contain rounded-full" />
+            ) : (
+              <GraduationCap className="h-10 w-10 text-primary" />
+            )}
+            <span className="font-semibold text-sm">
+              {schoolInfo?.school_name || "School"}
+            </span>
+          </div>
+        )}
+        <SidebarTrigger className="ml-auto">
+          {collapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+        </SidebarTrigger>
+      </div>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {filteredNav.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive}
+                            className={cn(
+                              "cursor-pointer",
+                              isActive && "bg-primary text-primary-foreground"
+                            )}
+                          >
+                            <Link to={item.href}>
+                              <item.icon className="h-5 w-5" />
+                              <span>{item.name}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            {item.name}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <div className="mt-auto border-t border-border p-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-5 w-5" />
+                  {!collapsed && <span>Logout</span>}
+                </Button>
+              </TooltipTrigger>
+              {collapsed && (
+                <TooltipContent side="right">
+                  Logout
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </SidebarContent>
+    </Sidebar>
+  );
+}
+
+export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [profile, setProfile] = useState<any>(null);
+  const navigate = useNavigate();
+  const { user } = useUnifiedAuth();
 
   useEffect(() => {
     if (user && !profile) {
@@ -105,132 +229,43 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       .slice(0, 2);
   };
 
-  const handleLogout = async () => {
-    await logout();
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
-    navigate("/auth");
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <SidebarProvider defaultOpen>
+      <div className="min-h-screen w-full flex bg-background">
+        <AppSidebar />
+        
+        <main className="flex-1 flex flex-col">
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card px-6">
+            <div className="ml-auto flex items-center gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8 cursor-pointer">
+                      <AvatarImage src={profile?.avatar_url} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden md:block text-sm font-medium text-foreground">
+                      {profile?.full_name || getInitials()}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
 
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform bg-card border-r border-border transition-transform duration-200 ease-in-out lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-          {schoolInfo?.logo_url ? (
-            <img src={schoolInfo.logo_url} alt="School Logo" className="h-16 w-16 object-contain rounded-full" />
-          ) : (
-            <GraduationCap className="h-16 w-16 text-primary" />
-          )}
-          <div className="flex flex-col">
-            <span className="font-semibold text-base">
-              {schoolInfo?.school_name || "School"}
-            </span>
-          
+          <div className="flex-1 p-6">
+            {children}
           </div>
-        </div>
-
-        <ScrollArea className="h-[calc(100vh-4rem)]">
-          <nav className="flex flex-col gap-1 p-4">
-            {navigation
-              .filter((item) => !item.roles || item.roles.includes(user?.role || ""))
-              .map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-          </nav>
-
-          <div className="mt-auto border-t border-border p-4">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-5 w-5" />
-              Logout
-            </Button>
-          </div>
-        </ScrollArea>
-      </aside>
-
-      {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card px-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-
-          <div className="ml-auto flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="flex items-center gap-2"
-                >
-                  <Avatar className="h-8 w-8 cursor-pointer">
-                    <AvatarImage src={profile?.avatar_url} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden md:block text-sm font-medium text-foreground">
-                    {getInitials()}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        {/* Page content */}
-        <main className="p-6">{children}</main>
+        </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
