@@ -12,10 +12,11 @@ import { Loader2 } from "lucide-react";
 interface RecordPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  invoice?: any;
   onSuccess?: () => void;
 }
 
-export function RecordPaymentDialog({ open, onOpenChange, onSuccess }: RecordPaymentDialogProps) {
+export function RecordPaymentDialog({ open, onOpenChange, invoice, onSuccess }: RecordPaymentDialogProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);

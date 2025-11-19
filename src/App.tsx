@@ -19,6 +19,8 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Teachers from "./pages/Teachers";
 import TeacherProfile from "./pages/TeacherProfile";
+import Invoices from "./pages/Invoices";
+import FeeStructures from "./pages/FeeStructures";
 import Activities from "./pages/Activities";
 import SchoolInfo from "./pages/SchoolInfo";
 import LearnerProfile from "./pages/LearnerProfile";
@@ -57,6 +59,8 @@ const App = () => (
             <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
             <Route path="/admissions" element={<ProtectedRoute><Admissions /></ProtectedRoute>} />
             <Route path="/fees" element={<ProtectedRoute><FeeManagement /></ProtectedRoute>} />
+            <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
+            <Route path="/fee-structures" element={<ProtectedRoute><FeeStructures /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/school-info" element={<ProtectedRoute><SchoolInfo /></ProtectedRoute>} />
             <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
