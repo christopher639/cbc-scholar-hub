@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Calendar } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFeePayments } from "@/hooks/useFeePayments";
 import { useFeeStats } from "@/hooks/useFeeStats";
+import { useFeeStructures } from "@/hooks/useFeeStructures";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 import { SetFeeStructureDialog } from "@/components/SetFeeStructureDialog";
@@ -17,6 +17,7 @@ const FeeManagement = () => {
   const navigate = useNavigate();
   const { payments, loading: paymentsLoading, fetchPayments } = useFeePayments();
   const { stats, loading: statsLoading, fetchStats } = useFeeStats();
+  const { structures, loading: structuresLoading } = useFeeStructures();
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [setStructureDialogOpen, setSetStructureDialogOpen] = useState(false);
 
@@ -99,25 +100,8 @@ const FeeManagement = () => {
           <TabsContent value="payments" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Recent Payments</CardTitle>
-                    <CardDescription>Latest fee payments received</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Select>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="All Grades" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Grades</SelectItem>
-                        <SelectItem value="1">Grade 1</SelectItem>
-                        <SelectItem value="2">Grade 2</SelectItem>
-                        <SelectItem value="3">Grade 3</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                <CardTitle>Recent Payments</CardTitle>
+                <CardDescription>Latest fee payments received</CardDescription>
               </CardHeader>
               <CardContent>
                 {paymentsLoading ? (

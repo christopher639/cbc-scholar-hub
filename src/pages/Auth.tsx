@@ -6,15 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { School } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, loading, unifiedLogin } = useUnifiedAuth();
+  const { user, loading, loginAdmin, loginTeacher, loginLearner } = useUnifiedAuth();
   const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loginType, setLoginType] = useState<"admin" | "teacher" | "student">("student");
 
   useEffect(() => {
     if (user && !loading) {
@@ -29,9 +31,17 @@ export default function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const result = await unifiedLogin(username, password);
+    let result;
     
-    if (result.success && result.role) {
+    if (loginType === "admin") {
+      result = await loginAdmin(username, password);
+    } else if (loginType === "teacher") {
+      result = await loginTeacher(username, password);
+    } else {
+      result = await loginLearner(username, password);
+    }
+    
+    if (result?.success && result.role) {
       if (result.role === "learner") {
         navigate("/learner-portal", { replace: true });
       } else {
@@ -74,22 +84,43 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-3">
+              <Label>Login As</Label>
+              <RadioGroup value={loginType} onValueChange={(value) => setLoginType(value as any)}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="student" id="student" />
+                  <Label htmlFor="student" className="cursor-pointer">Student</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="teacher" id="teacher" />
+                  <Label htmlFor="teacher" className="cursor-pointer">Teacher</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="admin" id="admin" />
+                  <Label htmlFor="admin" className="cursor-pointer">Administrator</Label>
+                </div>
+              </RadioGroup>
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">
+                {loginType === "student" ? "Admission Number" : "Username/Email"}
+              </Label>
               <Input
                 id="username"
-                placeholder="Enter your username"
+                placeholder={loginType === "student" ? "Enter admission number" : "Enter username or email"}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">
+                {loginType === "student" ? "Birth Certificate Number" : "Password"}
+              </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder={loginType === "student" ? "Enter birth certificate number" : "Enter password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

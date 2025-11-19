@@ -28,6 +28,7 @@ interface FormData {
   photoFile: File | null;
   birthCertificateNumber: string;
   isStaffChild: boolean;
+  boardingStatus: string;
   
   // Parent Info
   parentFirstName: string;
@@ -67,6 +68,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
     photoFile: null,
     birthCertificateNumber: "",
     isStaffChild: false,
+    boardingStatus: "day_scholar",
     parentFirstName: "",
     parentLastName: "",
     parentPhone: "",
@@ -157,6 +159,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
       photoFile: null,
       birthCertificateNumber: "",
       isStaffChild: false,
+      boardingStatus: "day_scholar",
       parentFirstName: "",
       parentLastName: "",
       parentPhone: "",
@@ -286,6 +289,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         enrollment_date: formData.enrollmentDate,
         birth_certificate_number: formData.birthCertificateNumber || null,
         is_staff_child: formData.isStaffChild,
+        boarding_status: formData.boardingStatus,
         previous_school: formData.previousSchool || null,
         previous_grade: formData.previousGrade || null,
         reason_for_transfer: formData.reasonForTransfer || null,
@@ -417,6 +421,18 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                         value={formData.birthCertificateNumber}
                         onChange={(e) => setFormData({ ...formData, birthCertificateNumber: e.target.value })}
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="boardingStatus">Boarding Status *</Label>
+                      <Select value={formData.boardingStatus} onValueChange={(value) => setFormData({ ...formData, boardingStatus: value })} required>
+                        <SelectTrigger id="boardingStatus">
+                          <SelectValue placeholder="Select boarding status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="day_scholar">Day Scholar</SelectItem>
+                          <SelectItem value="boarder">Boarder</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   
