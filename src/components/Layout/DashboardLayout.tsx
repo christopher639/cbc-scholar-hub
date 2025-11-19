@@ -8,6 +8,7 @@ import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import {
   Sidebar,
   SidebarContent,
@@ -268,6 +269,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {children}
           </div>
         </main>
+        <OfflineIndicator />
       </div>
     </SidebarProvider>
   );
