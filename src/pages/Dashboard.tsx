@@ -1,16 +1,22 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, GraduationCap, DollarSign, UserCheck, Activity } from "lucide-react";
+import { Users, GraduationCap, DollarSign, UserCheck, Activity, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
-  const { stats, recentAdmissions, gradeDistribution, loading } = useDashboardStats();
+  const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
+  const { stats, recentAdmissions, gradeDistribution, loading } = useDashboardStats(dateRange.start, dateRange.end);
   const { user } = useUnifiedAuth();
   const isAdmin = user?.role === "admin";
 
@@ -29,7 +35,7 @@ const Dashboard = () => {
     },
     {
       title: "Fee Collection",
-      value: loading ? "..." : `KES ${(stats.feeCollection / 1000000).toFixed(1)}M`,
+      value: loading ? "..." : `KES ${stats.feeCollection.toLocaleString()}`,
       icon: DollarSign,
       colorClass: "text-success",
     },
@@ -50,14 +56,59 @@ const Dashboard = () => {
             <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
             <p className="text-muted-foreground">Welcome back! Here's your school overview.</p>
           </div>
-          {isAdmin && (
-            <Link to="/activities">
-              <Button variant="outline" className="gap-2">
-                <Activity className="h-4 w-4" />
-                Recent Activities
-              </Button>
-            </Link>
-          )}
+          <div className="flex gap-2">
+            {isAdmin && (
+              <>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {dateRange.start && dateRange.end
+                        ? `${format(dateRange.start, "PP")} - ${format(dateRange.end, "PP")}`
+                        : "Filter by Date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <div className="p-3 space-y-2">
+                      <div>
+                        <p className="text-sm font-medium mb-2">Start Date</p>
+                        <CalendarComponent
+                          mode="single"
+                          selected={dateRange.start}
+                          onSelect={(date) => setDateRange({ ...dateRange, start: date })}
+                          className="pointer-events-auto"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium mb-2">End Date</p>
+                        <CalendarComponent
+                          mode="single"
+                          selected={dateRange.end}
+                          onSelect={(date) => setDateRange({ ...dateRange, end: date })}
+                          disabled={(date) => dateRange.start ? date < dateRange.start : false}
+                          className="pointer-events-auto"
+                        />
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => setDateRange({})}
+                      >
+                        Clear Filters
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Link to="/activities">
+                  <Button variant="outline" className="gap-2">
+                    <Activity className="h-4 w-4" />
+                    Recent Activities
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -119,23 +170,24 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {gradeDistribution.map((grade) => (
-                  <div key={grade.grade} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-foreground">{grade.grade}</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{grade.streams} streams</Badge>
-                        <span className="font-semibold text-foreground">{grade.learners}</span>
-                      </div>
-                    </div>
-                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all"
-                        style={{ width: `${(grade.learners / 220) * 100}%` }}
-                      />
-                    </div>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
                   </div>
-                ))}
+                ) : gradeDistribution.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4">No learners enrolled yet</p>
+                ) : (
+                  gradeDistribution.map((grade) => (
+                    <div key={grade.grade} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                      <div>
+                        <p className="font-medium text-foreground">{grade.grade}</p>
+                      </div>
+                      <Badge variant="secondary">{grade.learners} learners</Badge>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
