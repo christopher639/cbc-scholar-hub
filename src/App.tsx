@@ -17,6 +17,8 @@ import FeeManagement from "./pages/FeeManagement";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Teachers from "./pages/Teachers";
+import TeacherProfile from "./pages/TeacherProfile";
+import Activities from "./pages/Activities";
 import SchoolInfo from "./pages/SchoolInfo";
 import LearnerProfile from "./pages/LearnerProfile";
 import Auth from "./pages/Auth";
@@ -48,6 +50,8 @@ const App = () => (
             <Route path="/grades/:grade/:stream" element={<ProtectedRoute><StreamDetail /></ProtectedRoute>} />
             <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
             <Route path="/teachers" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
+            <Route path="/teachers/:id" element={<ProtectedRoute><TeacherProfile /></ProtectedRoute>} />
+            <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
             <Route path="/admissions" element={<ProtectedRoute><Admissions /></ProtectedRoute>} />
             <Route path="/fees" element={<ProtectedRoute><FeeManagement /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
