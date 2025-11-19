@@ -1,39 +1,67 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, BookOpen, Pencil, GraduationCap } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus, Users, ArrowUp, FileDown, Settings } from "lucide-react";
 import { AddGradeStreamDialog } from "@/components/AddGradeStreamDialog";
 import { EditGradeDialog } from "@/components/EditGradeDialog";
 import { SetLastGradeDialog } from "@/components/SetLastGradeDialog";
+import { PromoteLearnerDialog } from "@/components/PromoteLearnerDialog";
 import { useGrades } from "@/hooks/useGrades";
+import { useStreams } from "@/hooks/useStreams";
+import { useLearners } from "@/hooks/useLearners";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useNavigate } from "react-router-dom";
 
 const Grades = () => {
+  const navigate = useNavigate();
   const [addStreamDialogOpen, setAddStreamDialogOpen] = useState(false);
   const [editGradeDialogOpen, setEditGradeDialogOpen] = useState(false);
   const [lastGradeDialogOpen, setLastGradeDialogOpen] = useState(false);
+  const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<any>(null);
-  const { grades, loading, fetchGrades } = useGrades();
+  const [selectedGradeId, setSelectedGradeId] = useState<string>("");
+  const [selectedStreamId, setSelectedStreamId] = useState<string>("all");
+  const [selectedLearners, setSelectedLearners] = useState<string[]>([]);
+  
+  const { grades, loading: gradesLoading, fetchGrades } = useGrades();
+  const { streams, loading: streamsLoading } = useStreams(selectedGradeId);
+  const { learners, loading: learnersLoading, fetchLearners } = useLearners(
+    selectedGradeId || undefined,
+    selectedStreamId !== "all" ? selectedStreamId : undefined
+  );
 
   const handleDialogClose = (open: boolean) => {
     setAddStreamDialogOpen(open);
     if (!open) {
       fetchGrades();
+      fetchLearners();
     }
   };
 
-  // Transform grades data with real learner and stream counts
-  const gradesData = grades.map((grade: any) => {
-    return {
-      id: grade.id,
-      grade: grade.name,
-      totalStudents: grade.learner_count || 0,
-      streamCount: grade.stream_count || 0,
-    };
-  });
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedLearners(learners.map(l => l.id));
+    } else {
+      setSelectedLearners([]);
+    }
+  };
+
+  const handleSelectLearner = (learnerId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLearners([...selectedLearners, learnerId]);
+    } else {
+      setSelectedLearners(selectedLearners.filter(id => id !== learnerId));
+    }
+  };
+
+  const currentGradeName = grades.find(g => g.id === selectedGradeId)?.name || "";
+  const loading = gradesLoading || streamsLoading || learnersLoading;
 
   return (
     <DashboardLayout>
@@ -42,89 +70,170 @@ const Grades = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Grades & Streams</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Manage grade levels, streams, and learner distribution</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Filter by grade and stream to manage learners</p>
           </div>
-          <Button className="gap-2" onClick={() => setAddStreamDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Add New Stream
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon" onClick={() => navigate("/settings")}>
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button className="gap-2" onClick={() => setAddStreamDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Add New Stream
+            </Button>
+          </div>
         </div>
 
-        {/* Grade Cards */}
-        <div className="grid gap-6">
-          {loading ? (
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-muted-foreground">Loading grades...</p>
-              </CardContent>
-            </Card>
-          ) : gradesData.length === 0 ? (
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-muted-foreground">No grades found. Click "Add New Stream" to create your first grade and stream.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            gradesData.map((gradeData) => {
-              const fullGrade = grades.find((g: any) => g.id === gradeData.id);
-              return (
-                <Card key={gradeData.id} className="hover:bg-muted/50 transition-colors">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="flex items-center gap-2">
-                          <BookOpen className="h-5 w-5 text-primary" />
-                          {gradeData.grade}
-                          {fullGrade?.is_last_grade && (
-                            <Badge variant="outline" className="ml-2">Final Grade</Badge>
-                          )}
-                        </CardTitle>
-                        <CardDescription className="mt-1">
-                          {gradeData.totalStudents} learners • {gradeData.streamCount} streams
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-base">
-                          <Users className="mr-1 h-4 w-4" />
-                          {gradeData.totalStudents}
-                        </Badge>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setSelectedGrade(fullGrade);
-                            setEditGradeDialogOpen(true);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant={fullGrade?.is_last_grade ? "default" : "ghost"}
-                          size="icon"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setSelectedGrade(fullGrade);
-                            setLastGradeDialogOpen(true);
-                          }}
-                        >
-                          <GraduationCap className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <Link to={`/grades/${gradeData.id}`}>
-                      <Button variant="outline" className="w-full">
-                        View Streams & Learners
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
-        </div>
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Filter Learners</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="grade-filter">Grade</Label>
+                <Select value={selectedGradeId} onValueChange={setSelectedGradeId}>
+                  <SelectTrigger id="grade-filter">
+                    <SelectValue placeholder="Select a grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map((grade) => (
+                      <SelectItem key={grade.id} value={grade.id}>
+                        {grade.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="stream-filter">Stream</Label>
+                <Select 
+                  value={selectedStreamId} 
+                  onValueChange={setSelectedStreamId}
+                  disabled={!selectedGradeId}
+                >
+                  <SelectTrigger id="stream-filter">
+                    <SelectValue placeholder={selectedGradeId ? "Select a stream" : "Select grade first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Streams</SelectItem>
+                    {streams.map((stream) => (
+                      <SelectItem key={stream.id} value={stream.id}>
+                        {stream.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {selectedGradeId && (
+              <div className="flex items-center gap-2 pt-2">
+                <Badge variant="secondary">
+                  <Users className="mr-1 h-3 w-3" />
+                  {learners.length} learner{learners.length !== 1 ? 's' : ''}
+                </Badge>
+                {selectedStreamId !== "all" && (
+                  <Badge variant="outline">
+                    {streams.find(s => s.id === selectedStreamId)?.name}
+                  </Badge>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Learners Table */}
+        {selectedGradeId && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Learners</CardTitle>
+                {selectedLearners.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPromoteDialogOpen(true)}
+                    >
+                      <ArrowUp className="h-4 w-4 mr-2" />
+                      Promote ({selectedLearners.length})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate("/performance")}
+                    >
+                      <FileDown className="h-4 w-4 mr-2" />
+                      View Performance
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-64 w-full" />
+              ) : learners.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  No learners found for the selected filters
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={selectedLearners.length === learners.length && learners.length > 0}
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead>Admission #</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Gender</TableHead>
+                      <TableHead>Stream</TableHead>
+                      <TableHead>Boarding Status</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {learners.map((learner) => (
+                      <TableRow 
+                        key={learner.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => navigate(`/students/${learner.id}`)}
+                      >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedLearners.includes(learner.id)}
+                            onCheckedChange={(checked) => handleSelectLearner(learner.id, checked as boolean)}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{learner.admission_number}</TableCell>
+                        <TableCell>
+                          {learner.first_name} {learner.last_name}
+                        </TableCell>
+                        <TableCell className="capitalize">{learner.gender}</TableCell>
+                        <TableCell>
+                          {learner.stream?.name || "N/A"}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          {learner.boarding_status?.replace("_", " ") || "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={learner.status === "active" ? "default" : "secondary"}>
+                            {learner.status || "active"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <AddGradeStreamDialog 
           open={addStreamDialogOpen} 
@@ -149,6 +258,17 @@ const Grades = () => {
             />
           </>
         )}
+
+        <PromoteLearnerDialog
+          open={promoteDialogOpen}
+          onOpenChange={setPromoteDialogOpen}
+          selectedLearners={selectedLearners}
+          currentGrade={currentGradeName}
+          onSuccess={() => {
+            setSelectedLearners([]);
+            fetchLearners();
+          }}
+        />
       </div>
     </DashboardLayout>
   );
