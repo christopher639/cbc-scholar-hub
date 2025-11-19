@@ -41,7 +41,14 @@ export default function Auth() {
       result = await loginLearner(username, password);
     }
     
-    // Don't navigate here - let the useEffect handle it after user state is updated
+    // Explicitly navigate based on result
+    if (result?.success) {
+      if (result.role === "learner") {
+        navigate("/learner-portal", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    }
   };
 
   if (loading || schoolLoading) {
