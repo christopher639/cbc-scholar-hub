@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { userSchema } from "@/lib/validations/user";
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -26,10 +27,14 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName || !formData.email || !formData.password) {
+    // Validate form data using Zod schema
+    const validationResult = userSchema.safeParse(formData);
+    
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
       return;

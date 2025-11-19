@@ -13,6 +13,7 @@ import { useStreams } from "@/hooks/useStreams";
 import { useLearners } from "@/hooks/useLearners";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { learnerSchema } from "@/lib/validations/learner";
 
 interface AddLearnerDialogProps {
   open: boolean;
@@ -187,34 +188,27 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation - Required fields
-    if (!formData.firstName || !formData.lastName) {
+    // Validate form data using Zod schema
+    const validationResult = learnerSchema.safeParse(formData);
+    
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
       toast({
-        title: "Missing information",
-        description: "Please enter both first and last name",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
-      setCurrentTab("basic");
-      return;
-    }
-
-    if (!formData.dateOfBirth || !formData.gender) {
-      toast({
-        title: "Missing information",
-        description: "Please enter date of birth and gender",
-        variant: "destructive",
-      });
-      setCurrentTab("basic");
-      return;
-    }
-
-    if (!formData.gradeId || !formData.streamId) {
-      toast({
-        title: "Missing information",
-        description: "Please select both grade and stream",
-        variant: "destructive",
-      });
-      setCurrentTab("academic");
+      
+      // Navigate to the appropriate tab based on the error field
+      if (firstError.path[0]?.toString().includes('parent')) {
+        setCurrentTab("parents");
+      } else if (['gradeId', 'streamId', 'enrollmentDate', 'previousSchool', 'previousGrade', 'reasonForTransfer'].includes(firstError.path[0]?.toString())) {
+        setCurrentTab("academic");
+      } else if (['medicalInfo', 'allergies', 'bloodType', 'emergencyContact', 'emergencyPhone'].includes(firstError.path[0]?.toString())) {
+        setCurrentTab("medical");
+      } else {
+        setCurrentTab("basic");
+      }
       return;
     }
 

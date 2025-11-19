@@ -8,6 +8,7 @@ import { useTeachers } from "@/hooks/useTeachers";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { teacherSchema } from "@/lib/validations/teacher";
 
 interface AddTeacherDialogProps {
   open: boolean;
@@ -34,11 +35,14 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.employee_number || !formData.id_number || !formData.first_name || 
-        !formData.last_name || !formData.email) {
+    // Validate form data using Zod schema
+    const validationResult = teacherSchema.safeParse(formData);
+    
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
       return;
