@@ -95,8 +95,8 @@ function AppSidebar() {
   );
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
-      <div className="flex h-16 items-center justify-between border-b border-border px-4">
+    <Sidebar collapsible="icon" className="border-r border-border bg-sidebar">
+      <div className="flex h-16 items-center justify-between border-b border-border px-4 bg-sidebar">
         {!collapsed && (
           <div className="flex items-center gap-2">
             {schoolInfo?.logo_url ? (
