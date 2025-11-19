@@ -23,7 +23,14 @@ import {
   UserCog,
   ShieldCheck,
   MessageSquare,
+  User,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -189,21 +196,34 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </Button>
 
           <div className="ml-auto flex items-center gap-4">
-            <Button
-              variant="ghost"
-              className="flex items-center gap-2"
-              onClick={() => navigate("/profile")}
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={profile?.avatar_url} />
-                <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden md:block text-sm font-medium text-foreground">
-                {profile?.full_name || "User"}
-              </span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2"
+                >
+                  <Avatar className="h-8 w-8 cursor-pointer">
+                    <AvatarImage src={profile?.avatar_url} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden md:block text-sm font-medium text-foreground">
+                    {getInitials()}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
