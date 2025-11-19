@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Users, ArrowUp, Calendar, History } from "lucide-react";
+import { ArrowLeft, Download, Users, ArrowUp, Calendar, History, FileDown } from "lucide-react";
 import { PromoteLearnerDialog } from "@/components/PromoteLearnerDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ViewHistoricalDataDialog } from "@/components/ViewHistoricalDataDialog";
@@ -12,6 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useGradeDetail } from "@/hooks/useGradeDetail";
 import { Skeleton } from "@/components/ui/skeleton";
+import { downloadFeeBalanceReport } from "@/utils/feeReportGenerator";
+import { useToast } from "@/hooks/use-toast";
+import type { Database } from "@/integrations/supabase/types";
+
+type Term = Database["public"]["Enums"]["term"];
 
 const GradeDetail = () => {
   const { grade } = useParams();
@@ -20,9 +25,14 @@ const GradeDetail = () => {
   const [selectedLearners, setSelectedLearners] = useState<string[]>([]);
   const [historicalDialogOpen, setHistoricalDialogOpen] = useState(false);
   const [academicYear, setAcademicYear] = useState("2024-2025");
-  const [term, setTerm] = useState("Term 3");
+  const [term, setTerm] = useState<Term>("term_3");
+  const { toast } = useToast();
 
-  const { gradeData, streams, learners, loading } = useGradeDetail(grade || "");
+  const { gradeData, streams, learners, loading } = useGradeDetail(
+    grade || "",
+    academicYear,
+    term
+  );
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -38,6 +48,30 @@ const GradeDetail = () => {
     } else {
       setSelectedLearners(selectedLearners.filter(id => id !== learnerId));
     }
+  };
+
+  const handleDownloadFeeBalances = () => {
+    if (learners.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No learners found to generate report",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    downloadFeeBalanceReport(
+      learners,
+      gradeData?.name || `Grade ${grade}`,
+      null,
+      academicYear,
+      term
+    );
+
+    toast({
+      title: "Success",
+      description: "Fee balance report downloaded successfully",
+    });
   };
 
   if (loading) {
@@ -74,6 +108,10 @@ const GradeDetail = () => {
               <History className="h-4 w-4 mr-2" />
               View History
             </Button>
+            <Button variant="outline" className="gap-2" onClick={handleDownloadFeeBalances}>
+              <FileDown className="h-4 w-4" />
+              Download Fee Balances
+            </Button>
             <Button variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
               Export List
@@ -101,14 +139,14 @@ const GradeDetail = () => {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Term</Label>
-                  <Select value={term} onValueChange={setTerm}>
+                  <Select value={term} onValueChange={(value) => setTerm(value as Term)}>
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Term 1">Term 1</SelectItem>
-                      <SelectItem value="Term 2">Term 2</SelectItem>
-                      <SelectItem value="Term 3">Term 3</SelectItem>
+                      <SelectItem value="term_1">Term 1</SelectItem>
+                      <SelectItem value="term_2">Term 2</SelectItem>
+                      <SelectItem value="term_3">Term 3</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -284,9 +322,9 @@ const GradeDetail = () => {
         <ViewHistoricalDataDialog
           open={historicalDialogOpen}
           onOpenChange={setHistoricalDialogOpen}
-          onPeriodSelect={(year, term) => {
+          onPeriodSelect={(year, termValue) => {
             setAcademicYear(year);
-            setTerm(term);
+            setTerm(termValue as Term);
           }}
         />
       </div>

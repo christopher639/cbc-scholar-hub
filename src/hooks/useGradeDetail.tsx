@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import type { Database } from "@/integrations/supabase/types";
 
-export function useGradeDetail(gradeId: string) {
+type Term = Database["public"]["Enums"]["term"];
+
+export function useGradeDetail(gradeId: string, academicYear?: string, term?: Term) {
   const [gradeData, setGradeData] = useState<any>(null);
   const [streams, setStreams] = useState<any[]>([]);
   const [learners, setLearners] = useState<any[]>([]);
@@ -43,33 +46,52 @@ export function useGradeDetail(gradeId: string) {
 
       if (learnersError) throw learnersError;
 
-      // Calculate fee balances for learners
-      const learnersWithFees = await Promise.all(
-        (learnersData || []).map(async (learner) => {
-          // Get total paid
-          const { data: payments } = await supabase
-            .from("fee_payments")
-            .select("amount_paid")
-            .eq("learner_id", learner.id);
+      // Calculate fee balances for learners (only if academic year and term provided)
+      let learnersWithFees = learnersData || [];
+      
+      if (academicYear && term) {
+        learnersWithFees = await Promise.all(
+          (learnersData || []).map(async (learner) => {
+            // Get fee structure for specific grade/term/year
+            const { data: structure } = await supabase
+              .from("fee_structures")
+              .select("id, amount")
+              .eq("grade_id", learner.current_grade_id)
+              .eq("academic_year", academicYear)
+              .eq("term", term)
+              .maybeSingle();
 
-          const totalPaid = payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+            const totalFees = structure?.amount || 0;
 
-          // Get expected fee
-          const { data: structure } = await supabase
-            .from("fee_structures")
-            .select("amount")
-            .eq("grade_id", gradeId)
-            .maybeSingle();
+            // Get payments for this specific grade/term/year
+            const { data: payments } = await supabase
+              .from("fee_payments")
+              .select(`
+                amount_paid,
+                fee_structures!inner(
+                  grade_id,
+                  academic_year,
+                  term
+                )
+              `)
+              .eq("learner_id", learner.id)
+              .eq("fee_structures.grade_id", learner.current_grade_id)
+              .eq("fee_structures.academic_year", academicYear)
+              .eq("fee_structures.term", term);
 
-          const expectedAmount = structure?.amount || 0;
-          const feeBalance = Math.max(0, expectedAmount - totalPaid);
+            const amountPaid = payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+            const feeBalance = Math.max(0, totalFees - amountPaid);
 
-          return {
-            ...learner,
-            feeBalance,
-          };
-        })
-      );
+            return {
+              ...learner,
+              totalFees,
+              amountPaid,
+              feeBalance,
+              status: feeBalance === 0 ? "paid" : amountPaid > 0 ? "partial" : "pending",
+            };
+          })
+        );
+      }
 
       setGradeData(grade);
       setStreams(streamsData || []);
@@ -89,7 +111,7 @@ export function useGradeDetail(gradeId: string) {
     if (gradeId) {
       fetchGradeData();
     }
-  }, [gradeId]);
+  }, [gradeId, academicYear, term]);
 
   return { gradeData, streams, learners, loading, refetch: fetchGradeData };
 }
