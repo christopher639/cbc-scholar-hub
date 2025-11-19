@@ -45,6 +45,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   Menu,
+  HardDrive,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -71,6 +72,7 @@ const navigation = [
   { name: "School Info", href: "/school-info", icon: School, roles: ["admin", "teacher"] },
   { name: "Users & Roles", href: "/users", icon: ShieldCheck, roles: ["admin"] },
   { name: "Activities", href: "/activities", icon: FileText, roles: ["admin"] },
+  { name: "Offline Storage", href: "/offline-storage", icon: HardDrive, roles: ["admin"] },
   { name: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
 
