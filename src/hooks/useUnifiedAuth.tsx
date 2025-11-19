@@ -147,10 +147,15 @@ export function useUnifiedAuth() {
       if (!learnerError && learnerData && learnerData.length > 0) {
         const learner = learnerData[0];
         const sessionToken = `learner_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Set session to expire in 24 hours
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
 
         const { error: sessionError } = await supabase.from("parent_sessions").insert({
           learner_id: learner.id,
           session_token: sessionToken,
+          expires_at: expiresAt.toISOString(),
         });
 
         if (!sessionError) {
@@ -176,10 +181,15 @@ export function useUnifiedAuth() {
 
       if (teacherData) {
         const sessionToken = `teacher_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Set session to expire in 24 hours
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
 
         await supabase.from("teacher_sessions").insert({
           teacher_id: teacherData.id,
           session_token: sessionToken,
+          expires_at: expiresAt.toISOString(),
         });
 
         localStorage.setItem(TEACHER_SESSION_KEY, sessionToken);
