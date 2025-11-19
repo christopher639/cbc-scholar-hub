@@ -85,20 +85,20 @@ const Grades = () => {
 
         {/* Filters */}
         <Card>
-          <CardHeader>
-            <CardTitle>Filter Learners</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Filter Learners</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="grade-filter">Grade</Label>
+          <CardContent className="space-y-3 py-3">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="grade-filter" className="text-xs">Grade</Label>
                 <Select value={selectedGradeId} onValueChange={setSelectedGradeId}>
-                  <SelectTrigger id="grade-filter">
+                  <SelectTrigger id="grade-filter" className="h-8 text-sm">
                     <SelectValue placeholder="Select a grade" />
                   </SelectTrigger>
                   <SelectContent>
                     {grades.map((grade) => (
-                      <SelectItem key={grade.id} value={grade.id}>
+                      <SelectItem key={grade.id} value={grade.id} className="text-sm">
                         {grade.name}
                       </SelectItem>
                     ))}
@@ -106,20 +106,20 @@ const Grades = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="stream-filter">Stream</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="stream-filter" className="text-xs">Stream</Label>
                 <Select 
                   value={selectedStreamId} 
                   onValueChange={setSelectedStreamId}
                   disabled={!selectedGradeId}
                 >
-                  <SelectTrigger id="stream-filter">
+                  <SelectTrigger id="stream-filter" className="h-8 text-sm">
                     <SelectValue placeholder={selectedGradeId ? "Select a stream" : "Select grade first"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Streams</SelectItem>
+                    <SelectItem value="all" className="text-sm">All Streams</SelectItem>
                     {streams.map((stream) => (
-                      <SelectItem key={stream.id} value={stream.id}>
+                      <SelectItem key={stream.id} value={stream.id} className="text-sm">
                         {stream.name}
                       </SelectItem>
                     ))}
@@ -129,13 +129,13 @@ const Grades = () => {
             </div>
 
             {selectedGradeId && (
-              <div className="flex items-center gap-2 pt-2">
-                <Badge variant="secondary">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs">
                   <Users className="mr-1 h-3 w-3" />
                   {learners.length} learner{learners.length !== 1 ? 's' : ''}
                 </Badge>
                 {selectedStreamId !== "all" && (
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="text-xs">
                     {streams.find(s => s.id === selectedStreamId)?.name}
                   </Badge>
                 )}
