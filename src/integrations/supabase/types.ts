@@ -1483,8 +1483,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bulk_generate_term_invoices: {
+        Args: {
+          p_academic_year: string
+          p_grade_id?: string
+          p_term: Database["public"]["Enums"]["term"]
+        }
+        Returns: {
+          error_message: string
+          invoice_id: string
+          learner_id: string
+          success: boolean
+        }[]
+      }
       generate_admission_number: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
+      generate_learner_invoice: {
+        Args: {
+          p_academic_year: string
+          p_grade_id: string
+          p_learner_id: string
+          p_stream_id: string
+          p_term: Database["public"]["Enums"]["term"]
+        }
+        Returns: string
+      }
       generate_transaction_number: { Args: never; Returns: string }
       has_role: {
         Args: {

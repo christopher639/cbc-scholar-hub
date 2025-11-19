@@ -46,6 +46,7 @@ import {
   PanelLeft,
   Menu,
   HardDrive,
+  Coins,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -65,6 +66,8 @@ const navigation = [
   { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher"] },
   { name: "Teachers", href: "/teachers", icon: UserCog, roles: ["admin", "teacher"] },
   { name: "Fee Management", href: "/fees", icon: DollarSign, roles: ["admin"] },
+  { name: "Invoices", href: "/invoices", icon: FileText, roles: ["admin"] },
+  { name: "Fee Structures", href: "/fee-structures", icon: Coins, roles: ["admin"] },
   { name: "Communication", href: "/communication", icon: MessageSquare, roles: ["admin"] },
   { name: "Admissions", href: "/admissions", icon: UserCheck, roles: ["admin"] },
   { name: "Alumni", href: "/alumni", icon: GraduationCap, roles: ["admin", "teacher"] },
