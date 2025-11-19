@@ -38,7 +38,7 @@ interface DashboardLayoutProps {
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin", "teacher"] },
-  { name: "Learners", href: "/students", icon: Users, roles: ["admin", "teacher"] },
+  { name: "Learners", href: "/learners", icon: Users, roles: ["admin", "teacher"] },
   { name: "Grades & Streams", href: "/grades", icon: GraduationCap, roles: ["admin", "teacher"] },
   { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher"] },
   { name: "Teachers", href: "/teachers", icon: UserCog, roles: ["admin", "teacher"] },

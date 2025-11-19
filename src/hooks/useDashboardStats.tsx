@@ -73,7 +73,7 @@ export function useDashboardStats() {
 
           return {
             grade: grade.name,
-            students: count || 0,
+            learners: count || 0,
             streams: grade.streams?.length || 0,
           };
         })

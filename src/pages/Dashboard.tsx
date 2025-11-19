@@ -111,13 +111,13 @@ const Dashboard = () => {
                       <span className="font-medium text-foreground">{grade.grade}</span>
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary">{grade.streams} streams</Badge>
-                        <span className="font-semibold text-foreground">{grade.students}</span>
+                        <span className="font-semibold text-foreground">{grade.learners}</span>
                       </div>
                     </div>
                     <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full bg-primary rounded-full transition-all"
-                        style={{ width: `${(grade.students / 220) * 100}%` }}
+                        style={{ width: `${(grade.learners / 220) * 100}%` }}
                       />
                     </div>
                   </div>

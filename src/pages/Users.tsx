@@ -64,7 +64,7 @@ const Users = () => {
           name: profile.full_name,
           email: "Loading...",
           created_at: profile.created_at,
-          role: (userRole?.role || "student") as AppRole,
+          role: (userRole?.role || "learner") as AppRole,
         };
       }) || [];
 
@@ -208,7 +208,7 @@ const Users = () => {
                               <SelectItem value="admin">Admin</SelectItem>
                               <SelectItem value="teacher">Teacher</SelectItem>
                               <SelectItem value="parent">Parent</SelectItem>
-                              <SelectItem value="student">Student</SelectItem>
+                              <SelectItem value="learner">Learner</SelectItem>
                             </SelectContent>
                           </Select>
                         </TableCell>

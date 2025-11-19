@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const Students = () => {
+const Learners = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedLearner, setSelectedLearner] = useState<any>(null);
@@ -233,4 +233,4 @@ const Students = () => {
   );
 };
 
-export default Students;
+export default Learners;
