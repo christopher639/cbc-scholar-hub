@@ -73,5 +73,55 @@ export function useTeachers() {
     }
   };
 
-  return { teachers, loading, fetchTeachers, addTeacher };
+  const updateTeacher = async (id: string, teacherData: any) => {
+    try {
+      const { error } = await supabase
+        .from("teachers")
+        .update(teacherData)
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Teacher updated successfully",
+      });
+      
+      fetchTeachers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const deleteTeacher = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("teachers")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Teacher deleted successfully",
+      });
+      
+      fetchTeachers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  return { teachers, loading, fetchTeachers, addTeacher, updateTeacher, deleteTeacher };
 }

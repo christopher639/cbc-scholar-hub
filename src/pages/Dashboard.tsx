@@ -1,14 +1,18 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, GraduationCap, DollarSign, UserCheck } from "lucide-react";
+import { Users, GraduationCap, DollarSign, UserCheck, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 
 const Dashboard = () => {
   const { stats, recentAdmissions, gradeDistribution, loading } = useDashboardStats();
+  const { user } = useUnifiedAuth();
+  const isAdmin = user?.role === "admin";
 
   const statsDisplay = [
     {
@@ -41,9 +45,19 @@ const Dashboard = () => {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's your school overview.</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back! Here's your school overview.</p>
+          </div>
+          {isAdmin && (
+            <Link to="/activities">
+              <Button variant="outline" className="gap-2">
+                <Activity className="h-4 w-4" />
+                Recent Activities
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Stats Grid */}

@@ -37,7 +37,7 @@ interface DashboardLayoutProps {
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin", "teacher"] },
+  { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin"] },
   { name: "Learners", href: "/learners", icon: Users, roles: ["admin", "teacher"] },
   { name: "Grades & Streams", href: "/grades", icon: GraduationCap, roles: ["admin", "teacher"] },
   { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher"] },
@@ -48,6 +48,7 @@ const navigation = [
   { name: "Reports", href: "/reports", icon: FileText, roles: ["admin", "teacher"] },
   { name: "School Info", href: "/school-info", icon: School, roles: ["admin", "teacher"] },
   { name: "Users & Roles", href: "/users", icon: ShieldCheck, roles: ["admin"] },
+  { name: "Activities", href: "/activities", icon: FileText, roles: ["admin"] },
   { name: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
 

@@ -156,17 +156,9 @@ const Teachers = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => window.location.href = `/teachers/${teacher.id}`}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Profile
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
-                                <UserMinus className="mr-2 h-4 w-4" />
-                                Remove Teacher
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

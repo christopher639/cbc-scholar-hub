@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useTeachers } from "@/hooks/useTeachers";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
 interface AddTeacherDialogProps {
@@ -15,6 +17,7 @@ interface AddTeacherDialogProps {
 export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) {
   const { toast } = useToast();
   const { addTeacher } = useTeachers();
+  const { user } = useUnifiedAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     employee_number: "",
@@ -43,7 +46,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
 
     setLoading(true);
     try {
-      await addTeacher({
+      const newTeacher = await addTeacher({
         employee_number: formData.employee_number,
         id_number: formData.id_number,
         first_name: formData.first_name,
@@ -54,6 +57,22 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
         hired_date: formData.hired_date || null,
         salary: formData.salary ? parseFloat(formData.salary) : null,
       });
+
+      // Log activity
+      if (newTeacher && user) {
+        await supabase.from("activity_logs").insert({
+          user_id: user.role === "admin" ? user.id : null,
+          user_role: user.role,
+          user_name: user.role === "admin" 
+            ? (user.data as any).email 
+            : `${(user.data as any).first_name} ${(user.data as any).last_name}`,
+          action: "created",
+          entity_type: "teacher",
+          entity_id: newTeacher.id,
+          entity_name: `${formData.first_name} ${formData.last_name}`,
+          details: { employee_number: formData.employee_number }
+        });
+      }
 
       setFormData({
         employee_number: "",
