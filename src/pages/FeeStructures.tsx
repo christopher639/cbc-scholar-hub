@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { useFeeStructures } from "@/hooks/useFeeStructures";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
@@ -10,6 +10,7 @@ import { useGrades } from "@/hooks/useGrades";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function FeeStructures() {
   const { structures, loading, fetchStructures } = useFeeStructures();
@@ -19,6 +20,13 @@ export default function FeeStructures() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handleDownload = () => {
+    if (printRef.current) {
+      window.print();
+    }
+  };
 
   // Filter structures by selected year and grade
   const filteredStructures = structures.filter(s => 
@@ -127,9 +135,17 @@ export default function FeeStructures() {
           </Card>
         ) : (
           <div className="space-y-6">
-            {Object.values(structuresByGrade).map((gradeStructure: any) => (
-              <Card key={gradeStructure.grade?.id} className="border-2">
-                <CardContent className="p-8">
+            <div className="flex justify-end mb-4 print:hidden">
+              <Button onClick={handleDownload} variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Download / Print
+              </Button>
+            </div>
+            
+            <div ref={printRef}>
+              {Object.values(structuresByGrade).map((gradeStructure: any) => (
+                <Card key={gradeStructure.grade?.id} className="border-2 mb-6 print:shadow-none">
+                  <CardContent className="p-8">
                   {/* Document Header */}
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
@@ -170,16 +186,41 @@ export default function FeeStructures() {
                             {term.replace("_", " ").toUpperCase()}
                           </h4>
                           {termStructure ? (
-                            <div className="space-y-2">
-                              <div className="flex justify-between py-2 border-b font-medium">
-                                <span>Total Amount:</span>
-                                <span className="text-lg">${Number(termStructure.amount).toLocaleString()}</span>
-                              </div>
-                              {termStructure.description && (
-                                <p className="text-sm text-muted-foreground mt-2">
-                                  {termStructure.description}
-                                </p>
-                              )}
+                            <div className="space-y-4">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead className="w-12">#</TableHead>
+                                    <TableHead>Fee Item</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {termStructure.fee_structure_items?.sort((a: any, b: any) => 
+                                    (a.display_order || 0) - (b.display_order || 0)
+                                  ).map((item: any, index: number) => (
+                                    <TableRow key={item.id}>
+                                      <TableCell className="font-medium">{index + 1}</TableCell>
+                                      <TableCell>{item.item_name}</TableCell>
+                                      <TableCell className="text-muted-foreground">
+                                        {item.description || "-"}
+                                      </TableCell>
+                                      <TableCell className="text-right font-medium">
+                                        ${Number(item.amount).toLocaleString()}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                  <TableRow className="bg-muted/50">
+                                    <TableCell colSpan={3} className="font-bold text-right">
+                                      Total:
+                                    </TableCell>
+                                    <TableCell className="text-right font-bold text-lg">
+                                      ${Number(termStructure.amount).toLocaleString()}
+                                    </TableCell>
+                                  </TableRow>
+                                </TableBody>
+                              </Table>
                             </div>
                           ) : (
                             <p className="text-sm text-muted-foreground">Not configured</p>
@@ -204,6 +245,7 @@ export default function FeeStructures() {
                 </CardContent>
               </Card>
             ))}
+            </div>
           </div>
         )}
 

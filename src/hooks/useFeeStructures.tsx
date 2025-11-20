@@ -15,7 +15,8 @@ export function useFeeStructures() {
         .select(`
           *,
           grade:grades(name),
-          category:fee_categories(name)
+          category:fee_categories(name),
+          fee_structure_items(*)
         `)
         .order("academic_year", { ascending: false });
 
