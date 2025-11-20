@@ -27,6 +27,7 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
   const [photoPreview, setPhotoPreview] = useState<string>("");
   
   const [formData, setFormData] = useState({
+    admission_number: "",
     first_name: "",
     last_name: "",
     date_of_birth: "",
@@ -57,6 +58,7 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
   useEffect(() => {
     if (learner && open) {
       setFormData({
+        admission_number: learner.admission_number || "",
         first_name: learner.first_name || "",
         last_name: learner.last_name || "",
         date_of_birth: learner.date_of_birth || "",
@@ -164,6 +166,7 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
       const { error: learnerError } = await supabase
         .from("learners")
         .update({
+          admission_number: formData.admission_number,
           first_name: formData.first_name,
           last_name: formData.last_name,
           date_of_birth: formData.date_of_birth,
@@ -237,6 +240,17 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="admission_number">Admission Number *</Label>
+                <Input
+                  id="admission_number"
+                  value={formData.admission_number}
+                  onChange={(e) => setFormData({ ...formData, admission_number: e.target.value })}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">You can manually edit the admission number if needed</p>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="first_name">First Name *</Label>
