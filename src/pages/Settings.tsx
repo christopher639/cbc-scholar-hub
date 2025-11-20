@@ -11,11 +11,40 @@ import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { useTheme } from "next-themes";
+import { useDiscountSettings } from "@/hooks/useDiscountSettings";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
   const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
   const [feeStructureDialogOpen, setFeeStructureDialogOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { settings, loading, updateSettings } = useDiscountSettings();
+  const { toast } = useToast();
+
+  // Get individual discount settings
+  const staffDiscount = settings.find(s => s.discount_type === 'staff_parent');
+  const siblingDiscount = settings.find(s => s.discount_type === 'sibling');
+  const earlyPaymentDiscount = settings.find(s => s.discount_type === 'early_payment');
+  const bursaryDiscount = settings.find(s => s.discount_type === 'bursary');
+
+  const handleToggleDiscount = async (discountType: string, currentEnabled: boolean) => {
+    const discountToUpdate = settings.find(s => s.discount_type === discountType);
+    if (!discountToUpdate) return;
+
+    const updates = settings.map(s => ({
+      discount_type: s.discount_type,
+      percentage: s.percentage,
+      is_enabled: s.discount_type === discountType ? !currentEnabled : s.is_enabled
+    }));
+
+    const success = await updateSettings(updates);
+    if (success) {
+      toast({
+        title: "Discount Updated",
+        description: `${discountType.replace('_', ' ')} has been ${!currentEnabled ? 'enabled' : 'disabled'}`,
+      });
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -222,29 +251,68 @@ const Settings = () => {
                 <CardDescription>Configure automatic fee discounts</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between py-2 border-b border-border">
-                    <div>
-                      <p className="font-medium">Staff Parent Discount</p>
-                      <p className="text-sm text-muted-foreground">50% discount enabled</p>
-                    </div>
-                    <Switch defaultChecked />
+                {loading ? (
+                  <p className="text-sm text-muted-foreground">Loading discount settings...</p>
+                ) : (
+                  <div className="space-y-3">
+                    {staffDiscount && (
+                      <div className="flex items-center justify-between py-2 border-b border-border">
+                        <div>
+                          <p className="font-medium">Staff Parent Discount</p>
+                          <p className="text-sm text-muted-foreground">
+                            {staffDiscount.percentage}% discount {staffDiscount.is_enabled ? 'enabled' : 'disabled'}
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={staffDiscount.is_enabled}
+                          onCheckedChange={() => handleToggleDiscount('staff_parent', staffDiscount.is_enabled)}
+                        />
+                      </div>
+                    )}
+                    {siblingDiscount && (
+                      <div className="flex items-center justify-between py-2 border-b border-border">
+                        <div>
+                          <p className="font-medium">Sibling Discount</p>
+                          <p className="text-sm text-muted-foreground">
+                            {siblingDiscount.percentage}% discount {siblingDiscount.is_enabled ? 'enabled' : 'disabled'}
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={siblingDiscount.is_enabled}
+                          onCheckedChange={() => handleToggleDiscount('sibling', siblingDiscount.is_enabled)}
+                        />
+                      </div>
+                    )}
+                    {earlyPaymentDiscount && (
+                      <div className="flex items-center justify-between py-2 border-b border-border">
+                        <div>
+                          <p className="font-medium">Early Payment Discount</p>
+                          <p className="text-sm text-muted-foreground">
+                            {earlyPaymentDiscount.percentage}% discount {earlyPaymentDiscount.is_enabled ? 'enabled' : 'disabled'}
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={earlyPaymentDiscount.is_enabled}
+                          onCheckedChange={() => handleToggleDiscount('early_payment', earlyPaymentDiscount.is_enabled)}
+                        />
+                      </div>
+                    )}
+                    {bursaryDiscount && (
+                      <div className="flex items-center justify-between py-2">
+                        <div>
+                          <p className="font-medium">Bursary</p>
+                          <p className="text-sm text-muted-foreground">
+                            Bursary program {bursaryDiscount.is_enabled ? 'enabled' : 'disabled'}
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={bursaryDiscount.is_enabled}
+                          onCheckedChange={() => handleToggleDiscount('bursary', bursaryDiscount.is_enabled)}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b border-border">
-                    <div>
-                      <p className="font-medium">Sibling Discount</p>
-                      <p className="text-sm text-muted-foreground">15% discount enabled</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium">Early Payment Discount</p>
-                      <p className="text-sm text-muted-foreground">5% discount enabled</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                </div>
+                )}
                 <Button onClick={() => setDiscountDialogOpen(true)}>
                   Configure Discounts
                 </Button>
