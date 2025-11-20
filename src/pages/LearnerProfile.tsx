@@ -259,34 +259,48 @@ const LearnerProfile = () => {
 
           {/* Fees Tab */}
           <TabsContent value="fees" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Fee Information</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Academic Year: <span className="font-medium">{learner.currentAcademicYear || "N/A"}</span> | 
+                  Current Term: <span className="font-medium">{learner.currentTerm?.replace("_", " ").toUpperCase() || "N/A"}</span>
+                </p>
+              </CardHeader>
+            </Card>
+
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardDescription>Total Fees</CardDescription>
-                  <CardTitle className="text-2xl">KES {learner.feeInfo.totalFees.toLocaleString()}</CardTitle>
+                  <CardDescription>Current Term Fees</CardDescription>
+                  <CardTitle className="text-2xl">KES {learner.feeInfo.currentTermFees?.toLocaleString() || 0}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">Annual fee structure</p>
+                  <p className="text-sm text-muted-foreground">Expected for current term</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-3">
-                  <CardDescription>Paid</CardDescription>
-                  <CardTitle className="text-2xl text-green-600">KES {learner.feeInfo.paid.toLocaleString()}</CardTitle>
+                  <CardDescription>Amount Paid</CardDescription>
+                  <CardTitle className="text-2xl text-green-600">KES {learner.feeInfo.currentTermPaid?.toLocaleString() || 0}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    {learner.feeInfo.totalFees > 0 ? Math.round((learner.feeInfo.paid / learner.feeInfo.totalFees) * 100) : 0}% paid
+                    Payments received
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-3">
-                  <CardDescription>Balance</CardDescription>
-                  <CardTitle className="text-2xl text-destructive">KES {learner.feeInfo.balance.toLocaleString()}</CardTitle>
+                  <CardDescription>Current Balance</CardDescription>
+                  <CardTitle className={`text-2xl ${learner.feeInfo.currentTermBalance < 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                    {learner.feeInfo.currentTermBalance < 0 ? '-' : ''}KES {Math.abs(learner.feeInfo.currentTermBalance || 0).toLocaleString()}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">Outstanding amount</p>
+                  <p className="text-sm text-muted-foreground">
+                    {learner.feeInfo.currentTermBalance < 0 ? 'Credit/Overpayment' : 'Amount due'}
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -295,14 +309,14 @@ const LearnerProfile = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Payment History</CardTitle>
-                <CardDescription>Recent fee payments</CardDescription>
+                <CardDescription>Recent fee transactions</CardDescription>
               </CardHeader>
               <CardContent>
-                {learner.feeInfo.payments.length === 0 ? (
+                {learner.feeInfo.transactions?.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No payment records found</p>
                 ) : (
                   <div className="space-y-4">
-                    {learner.feeInfo.payments.map((payment: any) => (
+                    {learner.feeInfo.transactions?.map((payment: any) => (
                       <div key={payment.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
                         <div className="space-y-1">
                           <p className="font-medium">KES {Number(payment.amount_paid).toLocaleString()}</p>
