@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { FileText, Search, Plus, Download, Filter, Printer, XCircle } from "lucide-react";
+import { FileText, Search, Plus, Download, Filter, Printer, XCircle, Edit } from "lucide-react";
 import { useInvoices } from "@/hooks/useInvoices";
 import { GenerateInvoicesDialog } from "@/components/GenerateInvoicesDialog";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
+import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/currency";
 import { PrintableInvoice } from "@/components/PrintableInvoice";
@@ -45,6 +46,11 @@ export default function Invoices() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [invoiceToCancel, setInvoiceToCancel] = useState<any>(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [editFeeStructureOpen, setEditFeeStructureOpen] = useState(false);
+  const [selectedFeeStructure, setSelectedFeeStructure] = useState<any>(null);
+  const [bulkCancelDialogOpen, setBulkCancelDialogOpen] = useState(false);
+  const [groupToCancel, setGroupToCancel] = useState<any>(null);
+  const [bulkCancelReason, setBulkCancelReason] = useState("");
   
   const { balances, loading: balancesLoading } = useFeeBalances({
     gradeId: selectedGradeForReport,
@@ -69,7 +75,7 @@ export default function Invoices() {
     };
   }, [invoices]);
 
-  // Group invoices by grade
+  // Group invoices by grade AND term
   const groupedInvoices = useMemo(() => {
     const filtered = invoices.filter((invoice) => {
       const matchesSearch =
@@ -86,20 +92,24 @@ export default function Invoices() {
     });
 
     const grouped = filtered.reduce((acc: any, invoice) => {
-      const gradeId = invoice.grade_id;
-      if (!acc[gradeId]) {
-        acc[gradeId] = {
+      const key = `${invoice.grade_id}-${invoice.term}-${invoice.academic_year}`;
+      if (!acc[key]) {
+        acc[key] = {
           grade: invoice.grade,
+          term: invoice.term,
+          academicYear: invoice.academic_year,
+          gradeId: invoice.grade_id,
+          feeStructureId: invoice.fee_structure_id,
           invoices: [],
           totalAmount: 0,
           totalPaid: 0,
           totalBalance: 0,
         };
       }
-      acc[gradeId].invoices.push(invoice);
-      acc[gradeId].totalAmount += Number(invoice.total_amount);
-      acc[gradeId].totalPaid += Number(invoice.amount_paid);
-      acc[gradeId].totalBalance += Number(invoice.balance_due);
+      acc[key].invoices.push(invoice);
+      acc[key].totalAmount += Number(invoice.total_amount);
+      acc[key].totalPaid += Number(invoice.amount_paid);
+      acc[key].totalBalance += Number(invoice.balance_due);
       return acc;
     }, {});
 
@@ -142,13 +152,77 @@ export default function Invoices() {
     const selectedGrade = grades.find(g => g.id === selectedGradeForReport);
     if (!selectedGrade) return;
 
-    downloadFeeBalanceReport(
+      downloadFeeBalanceReport(
       balances,
       selectedGrade.name,
       null,
       currentPeriod.academic_year,
       currentPeriod.term.replace("_", " ").toUpperCase()
     );
+  };
+
+  const handleEditFeeStructure = async (feeStructureId: string, gradeId: string, term: string, academicYear: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("fee_structures")
+        .select(`
+          *,
+          fee_structure_items(*)
+        `)
+        .eq("id", feeStructureId)
+        .single();
+
+      if (error) throw error;
+      
+      setSelectedFeeStructure({
+        ...data,
+        gradeId,
+        term,
+        academicYear,
+      });
+      setEditFeeStructureOpen(true);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to load fee structure",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBulkCancel = async () => {
+    if (!groupToCancel || !bulkCancelReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for cancellation",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const invoiceIds = groupToCancel.invoices.map((inv: any) => inv.id);
+      
+      for (const invoiceId of invoiceIds) {
+        await cancelInvoice(invoiceId, bulkCancelReason);
+      }
+
+      toast({
+        title: "Success",
+        description: `Cancelled ${invoiceIds.length} invoice(s) successfully`,
+      });
+      
+      setBulkCancelDialogOpen(false);
+      setGroupToCancel(null);
+      setBulkCancelReason("");
+      fetchInvoices();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to cancel invoices",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelInvoice = (invoice: any) => {
@@ -589,16 +663,21 @@ export default function Invoices() {
             ) : (
               <div className="space-y-6">
                 {groupedInvoices.map((group: any) => (
-                  <Card key={group.grade.id} className="overflow-hidden">
+                  <Card key={`${group.gradeId}-${group.term}-${group.academicYear}`} className="overflow-hidden">
                     <CardHeader className="bg-muted/50">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                          <CardTitle className="text-lg sm:text-xl">{group.grade.name}</CardTitle>
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <CardTitle className="text-lg sm:text-xl">{group.grade.name}</CardTitle>
+                            <Badge variant="outline" className="text-xs">
+                              {group.term.replace("term_", "Term ")} - {group.academicYear}
+                            </Badge>
+                          </div>
                           <CardDescription className="text-sm">
                             {group.invoices.length} invoice{group.invoices.length !== 1 ? 's' : ''}
                           </CardDescription>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                        <div className="flex flex-col sm:flex-row gap-3 lg:items-center">
                           <div className="text-sm space-y-1">
                             <div className="flex justify-between sm:justify-start sm:gap-4">
                               <span className="text-muted-foreground">Total:</span>
@@ -613,15 +692,38 @@ export default function Invoices() {
                               <span className="font-medium text-red-600">{formatCurrency(group.totalBalance)}</span>
                             </div>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePrintGradeInvoices(group.invoices)}
-                            className="w-full sm:w-auto"
-                          >
-                            <Printer className="mr-2 h-4 w-4" />
-                            Print All
-                          </Button>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditFeeStructure(group.feeStructureId, group.gradeId, group.term, group.academicYear)}
+                              className="flex-1 sm:flex-none"
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Fees
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePrintGradeInvoices(group.invoices)}
+                              className="flex-1 sm:flex-none"
+                            >
+                              <Printer className="mr-2 h-4 w-4" />
+                              Print All
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setGroupToCancel(group);
+                                setBulkCancelDialogOpen(true);
+                              }}
+                              className="flex-1 sm:flex-none text-destructive hover:text-destructive"
+                            >
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Cancel All
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CardHeader>
@@ -645,6 +747,49 @@ export default function Invoices() {
         invoice={selectedInvoice}
         onSuccess={fetchInvoices}
       />
+
+      <SetFeeStructureDialogEnhanced
+        open={editFeeStructureOpen}
+        onOpenChange={setEditFeeStructureOpen}
+        existingStructure={selectedFeeStructure}
+        onSuccess={() => {
+          setEditFeeStructureOpen(false);
+          fetchInvoices();
+        }}
+      />
+
+      <AlertDialog open={bulkCancelDialogOpen} onOpenChange={setBulkCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel All Invoices</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel all {groupToCancel?.invoices.length} invoices for {groupToCancel?.grade.name} - {groupToCancel?.term.replace("term_", "Term ")} ({groupToCancel?.academicYear})? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Label htmlFor="bulk-cancel-reason">Cancellation Reason</Label>
+            <Textarea
+              id="bulk-cancel-reason"
+              placeholder="Enter reason for cancellation..."
+              value={bulkCancelReason}
+              onChange={(e) => setBulkCancelReason(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setBulkCancelDialogOpen(false);
+              setGroupToCancel(null);
+              setBulkCancelReason("");
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Confirm Cancellation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <AlertDialogContent>

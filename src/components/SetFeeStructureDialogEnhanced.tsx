@@ -30,12 +30,14 @@ interface SetFeeStructureDialogEnhancedProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  existingStructure?: any;
 }
 
 export function SetFeeStructureDialogEnhanced({
   open,
   onOpenChange,
   onSuccess,
+  existingStructure,
 }: SetFeeStructureDialogEnhancedProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -54,8 +56,38 @@ export function SetFeeStructureDialogEnhanced({
     if (open) {
       fetchGrades();
       fetchAcademicYears();
+      
+      if (existingStructure) {
+        // Load existing structure for editing
+        setSelectedGrade(existingStructure.gradeId);
+        setSelectedYear(existingStructure.academicYear);
+        
+        // Load fee items for the specific term
+        if (existingStructure.fee_structure_items) {
+          const items = existingStructure.fee_structure_items.map((item: any) => ({
+            item_name: item.item_name,
+            amount: Number(item.amount),
+            description: item.description || "",
+            is_optional: item.is_optional || false,
+          }));
+          
+          setTermFees(prev => ({
+            ...prev,
+            [existingStructure.term]: items.length > 0 ? items : [{ item_name: "", amount: 0, description: "", is_optional: false }]
+          }));
+        }
+      } else {
+        // Reset for new structure
+        setSelectedGrade("");
+        setSelectedYear("");
+        setTermFees({
+          term_1: [{ item_name: "", amount: 0, description: "", is_optional: false }],
+          term_2: [{ item_name: "", amount: 0, description: "", is_optional: false }],
+          term_3: [{ item_name: "", amount: 0, description: "", is_optional: false }],
+        });
+      }
     }
-  }, [open]);
+  }, [open, existingStructure]);
 
   const fetchGrades = async () => {
     const { data } = await supabase.from("grades").select("*").order("name");
@@ -107,34 +139,45 @@ export function SetFeeStructureDialogEnhanced({
     try {
       setLoading(true);
 
-      // Create fee structures for each term
-      const terms: Term[] = ["term_1", "term_2", "term_3"];
-      
-      for (const term of terms) {
+      if (existingStructure) {
+        // Update existing fee structure
+        const term = existingStructure.term;
         const items = termFees[term].filter(item => item.item_name && item.amount > 0);
         
-        if (items.length === 0) continue;
+        if (items.length === 0) {
+          toast({
+            title: "Error",
+            description: "Please add at least one fee item",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
 
         const totalAmount = items.reduce((sum, item) => sum + Number(item.amount), 0);
 
-        // Insert fee structure
-        const { data: structure, error: structureError } = await supabase
+        // Update fee structure
+        const { error: structureError } = await supabase
           .from("fee_structures")
-          .insert({
-            grade_id: selectedGrade,
-            academic_year: selectedYear,
-            term: term,
+          .update({
             amount: totalAmount,
             description: `Fee structure for ${term.replace("_", " ").toUpperCase()}`,
           })
-          .select()
-          .single();
+          .eq("id", existingStructure.id);
 
         if (structureError) throw structureError;
 
-        // Insert fee structure items
+        // Delete old items
+        const { error: deleteError } = await supabase
+          .from("fee_structure_items")
+          .delete()
+          .eq("fee_structure_id", existingStructure.id);
+
+        if (deleteError) throw deleteError;
+
+        // Insert new items
         const itemsToInsert = items.map((item, index) => ({
-          fee_structure_id: structure.id,
+          fee_structure_id: existingStructure.id,
           item_name: item.item_name,
           amount: item.amount,
           description: item.description,
@@ -147,12 +190,59 @@ export function SetFeeStructureDialogEnhanced({
           .insert(itemsToInsert);
 
         if (itemsError) throw itemsError;
-      }
 
-      toast({
-        title: "Success",
-        description: "Fee structures created successfully",
-      });
+        toast({
+          title: "Success",
+          description: "Fee structure updated successfully",
+        });
+      } else {
+        // Create new fee structures for each term
+        const terms: Term[] = ["term_1", "term_2", "term_3"];
+        
+        for (const term of terms) {
+          const items = termFees[term].filter(item => item.item_name && item.amount > 0);
+          
+          if (items.length === 0) continue;
+
+          const totalAmount = items.reduce((sum, item) => sum + Number(item.amount), 0);
+
+          // Insert fee structure
+          const { data: structure, error: structureError } = await supabase
+            .from("fee_structures")
+            .insert({
+              grade_id: selectedGrade,
+              academic_year: selectedYear,
+              term: term,
+              amount: totalAmount,
+              description: `Fee structure for ${term.replace("_", " ").toUpperCase()}`,
+            })
+            .select()
+            .single();
+
+          if (structureError) throw structureError;
+
+          // Insert fee structure items
+          const itemsToInsert = items.map((item, index) => ({
+            fee_structure_id: structure.id,
+            item_name: item.item_name,
+            amount: item.amount,
+            description: item.description,
+            is_optional: item.is_optional,
+            display_order: index,
+          }));
+
+          const { error: itemsError } = await supabase
+            .from("fee_structure_items")
+            .insert(itemsToInsert);
+
+          if (itemsError) throw itemsError;
+        }
+
+        toast({
+          title: "Success",
+          description: "Fee structures created successfully",
+        });
+      }
 
       onSuccess?.();
       onOpenChange(false);
@@ -252,9 +342,14 @@ export function SetFeeStructureDialogEnhanced({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Set Fee Structure - PDF-Style Editor</DialogTitle>
+          <DialogTitle>
+            {existingStructure ? "Edit Fee Structure" : "Set Fee Structure - PDF-Style Editor"}
+          </DialogTitle>
           <DialogDescription>
-            Create detailed term-wise fee structures for a grade
+            {existingStructure 
+              ? `Update fee structure for ${existingStructure.term.replace("_", " ").toUpperCase()} - ${existingStructure.academicYear}`
+              : "Create detailed term-wise fee structures for a grade"
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -263,7 +358,11 @@ export function SetFeeStructureDialogEnhanced({
           <div className="grid gap-4 md:grid-cols-2 p-4 border rounded-lg bg-secondary/20">
             <div className="space-y-2">
               <Label>Grade / Class *</Label>
-              <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+              <Select 
+                value={selectedGrade} 
+                onValueChange={setSelectedGrade}
+                disabled={!!existingStructure}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
@@ -278,7 +377,11 @@ export function SetFeeStructureDialogEnhanced({
             </div>
             <div className="space-y-2">
               <Label>Academic Year *</Label>
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <Select 
+                value={selectedYear} 
+                onValueChange={setSelectedYear}
+                disabled={!!existingStructure}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
@@ -297,22 +400,32 @@ export function SetFeeStructureDialogEnhanced({
 
           {/* Term Sections */}
           <div className="space-y-6">
-            {renderTermSection("term_1", "TERM 1")}
-            {renderTermSection("term_2", "TERM 2")}
-            {renderTermSection("term_3", "TERM 3")}
+            {existingStructure ? (
+              // When editing, only show the specific term
+              renderTermSection(existingStructure.term as Term, existingStructure.term.replace("_", " ").toUpperCase())
+            ) : (
+              // When creating, show all terms
+              <>
+                {renderTermSection("term_1", "TERM 1")}
+                {renderTermSection("term_2", "TERM 2")}
+                {renderTermSection("term_3", "TERM 3")}
+              </>
+            )}
           </div>
 
-          {/* Grand Total */}
-          <Card className="border-2 border-primary">
-            <CardContent className="pt-6">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">TOTAL ANNUAL FEES</span>
-                <span className="text-3xl font-bold text-primary font-mono">
-                  ${(calculateTermTotal("term_1") + calculateTermTotal("term_2") + calculateTermTotal("term_3")).toFixed(2)}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Grand Total - Only show when creating all terms */}
+          {!existingStructure && (
+            <Card className="border-2 border-primary">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">TOTAL ANNUAL FEES</span>
+                  <span className="text-3xl font-bold text-primary font-mono">
+                    ${(calculateTermTotal("term_1") + calculateTermTotal("term_2") + calculateTermTotal("term_3")).toFixed(2)}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-4">
