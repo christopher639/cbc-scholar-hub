@@ -97,6 +97,15 @@ const LearnerProfile = () => {
                     {learner.first_name} {learner.last_name}
                   </h1>
                   <p className="text-muted-foreground">Admission No: {learner.admission_number}</p>
+                  <div className="flex gap-3 mt-2 text-sm">
+                    <span className="text-muted-foreground">
+                      Academic Year: <span className="font-semibold text-foreground">{learner.currentAcademicYear || "N/A"}</span>
+                    </span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-muted-foreground">
+                      Current Term: <span className="font-semibold text-foreground">{learner.currentTerm?.replace("_", " ").toUpperCase() || "N/A"}</span>
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">

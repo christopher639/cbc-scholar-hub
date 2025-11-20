@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, Edit, Trash2 } from "lucide-react";
 import { useFeeStructures } from "@/hooks/useFeeStructures";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
@@ -10,6 +10,18 @@ import { useGrades } from "@/hooks/useGrades";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function FeeStructures() {
   const { structures, loading, fetchStructures } = useFeeStructures();
@@ -19,9 +31,40 @@ export default function FeeStructures() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [structureToDelete, setStructureToDelete] = useState<any>(null);
+  const { toast } = useToast();
 
   const handleDownload = () => {
     window.print();
+  };
+
+  const handleDelete = async () => {
+    if (!structureToDelete) return;
+    
+    try {
+      const { error } = await supabase
+        .from("fee_structures")
+        .delete()
+        .eq("id", structureToDelete.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Fee structure deleted successfully",
+      });
+      
+      fetchStructures();
+      setDeleteDialogOpen(false);
+      setStructureToDelete(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   // Filter structures by selected year and grade
@@ -151,87 +194,106 @@ export default function FeeStructures() {
                   left: 0;
                   top: 0;
                   width: 100%;
+                  font-size: 11px;
+                }
+                #fee-structure-document .compact-table td,
+                #fee-structure-document .compact-table th {
+                  padding: 4px 8px;
                 }
               }
             `}</style>
             
             <div id="fee-structure-document">
               {Object.values(structuresByGrade).map((gradeStructure: any) => (
-                <div key={gradeStructure.grade?.id} className="mb-6 p-8 border">
+                <div key={gradeStructure.grade?.id} className="mb-4 p-4 border">
                   {/* Document Header */}
-                  <div className="flex items-start gap-4 mb-6">
+                  <div className="flex items-start gap-3 mb-3">
                     {schoolInfo?.logo_url && (
                       <img 
                         src={schoolInfo.logo_url} 
                         alt={schoolInfo.school_name}
-                        className="h-16 w-16 object-contain"
+                        className="h-12 w-12 object-contain"
                       />
                     )}
-                    <div>
-                      <h2 className="text-2xl font-bold">{schoolInfo?.school_name || "School Name"}</h2>
-                      <p className="text-sm">{schoolInfo?.address}</p>
-                      <p className="text-sm">
-                        {schoolInfo?.phone} | {schoolInfo?.email}
-                      </p>
+                    <div className="text-xs">
+                      <h2 className="text-lg font-bold">{schoolInfo?.school_name || "School Name"}</h2>
+                      <p>{schoolInfo?.address}</p>
+                      <p>{schoolInfo?.phone} | {schoolInfo?.email}</p>
                     </div>
                   </div>
 
-                  <hr className="my-4" />
+                  <hr className="my-2" />
 
                   {/* Grade and Year Info */}
-                  <div className="mb-6">
-                    <h3 className="text-xl font-semibold">Fee Structure Document</h3>
-                    <p>
-                      Grade: {gradeStructure.grade?.name} | Academic Year: {selectedYear}
-                    </p>
+                  <div className="mb-3 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-base font-semibold">Fee Structure Document</h3>
+                      <p className="text-xs">Grade: {gradeStructure.grade?.name} | Academic Year: {selectedYear}</p>
+                    </div>
+                    <div className="flex gap-2 print:hidden">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setDialogOpen(true)}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                          setStructureToDelete(gradeStructure.term_1 || gradeStructure.term_2 || gradeStructure.term_3);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
                   </div>
 
-                  {/* All Terms */}
-                  <div className="space-y-6">
+                  {/* All Terms - Horizontal Layout */}
+                  <div className="grid grid-cols-3 gap-2">
                     {["term_1", "term_2", "term_3"].map((term) => {
                       const termStructure = gradeStructure[term];
                       return (
-                        <div key={term} className="border p-4">
-                          <h4 className="text-lg font-semibold mb-3">
+                        <div key={term} className="border p-2">
+                          <h4 className="text-sm font-semibold mb-1">
                             {term.replace("_", " ").toUpperCase()}
                           </h4>
                           {termStructure ? (
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead className="w-12">#</TableHead>
-                                  <TableHead>Fee Item</TableHead>
-                                  <TableHead>Description</TableHead>
-                                  <TableHead className="text-right">Amount</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
+                            <table className="w-full text-xs compact-table">
+                              <thead>
+                                <tr className="border-b">
+                                  <th className="text-left py-1">#</th>
+                                  <th className="text-left py-1">Item</th>
+                                  <th className="text-right py-1">Amount</th>
+                                </tr>
+                              </thead>
+                              <tbody>
                                 {termStructure.fee_structure_items?.sort((a: any, b: any) => 
                                   (a.display_order || 0) - (b.display_order || 0)
                                 ).map((item: any, index: number) => (
-                                  <TableRow key={item.id}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{item.item_name}</TableCell>
-                                    <TableCell>
-                                      {item.description || "-"}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      ${Number(item.amount).toLocaleString()}
-                                    </TableCell>
-                                  </TableRow>
+                                  <tr key={item.id} className="border-b">
+                                    <td className="py-1">{index + 1}</td>
+                                    <td className="py-1">
+                                      <div className="font-medium">{item.item_name}</div>
+                                      {item.description && (
+                                        <div className="text-[10px] text-muted-foreground">{item.description}</div>
+                                      )}
+                                    </td>
+                                    <td className="text-right py-1">${Number(item.amount).toLocaleString()}</td>
+                                  </tr>
                                 ))}
-                                <TableRow>
-                                  <TableCell colSpan={3} className="text-right font-bold">
-                                    Total:
-                                  </TableCell>
-                                  <TableCell className="text-right font-bold">
-                                    ${Number(termStructure.amount).toLocaleString()}
-                                  </TableCell>
-                                </TableRow>
-                              </TableBody>
-                            </Table>
+                                <tr className="font-bold">
+                                  <td colSpan={2} className="text-right py-1">Total:</td>
+                                  <td className="text-right py-1">${Number(termStructure.amount).toLocaleString()}</td>
+                                </tr>
+                              </tbody>
+                            </table>
                           ) : (
-                            <p className="text-sm">Not configured</p>
+                            <p className="text-xs text-muted-foreground">Not configured</p>
                           )}
                         </div>
                       );
@@ -239,10 +301,10 @@ export default function FeeStructures() {
                   </div>
 
                   {/* Grand Total */}
-                  <hr className="my-4" />
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-lg font-bold">Annual Total:</span>
-                    <span className="text-2xl font-bold">
+                  <hr className="my-2" />
+                  <div className="flex justify-between items-center pt-1 text-sm">
+                    <span className="font-bold">Annual Total:</span>
+                    <span className="text-lg font-bold">
                       ${(
                         (gradeStructure.term_1?.amount || 0) +
                         (gradeStructure.term_2?.amount || 0) +
@@ -264,6 +326,23 @@ export default function FeeStructures() {
             setDialogOpen(false);
           }}
         />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Fee Structure</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this fee structure? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
