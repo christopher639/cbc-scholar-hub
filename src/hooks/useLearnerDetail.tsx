@@ -80,9 +80,24 @@ export function useLearnerDetail(learnerId: string) {
         .eq("learner_id", learnerId)
         .order("payment_date", { ascending: false });
 
+      // Also get fee_payments records (legacy payment system)
+      const { data: feePayments } = await supabase
+        .from("fee_payments")
+        .select(`
+          *,
+          fee_structure:fee_structures(academic_year, term)
+        `)
+        .eq("learner_id", learnerId)
+        .order("payment_date", { ascending: false });
+
       // Calculate cumulative totals
       const totalAccumulatedFees = allInvoices?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
-      const totalPaid = transactions?.reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
+      
+      // Calculate total paid from BOTH fee_transactions and fee_payments
+      const totalFromTransactions = transactions?.reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
+      const totalFromFeePayments = feePayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+      const totalPaid = totalFromTransactions + totalFromFeePayments;
+      
       const totalBalance = totalAccumulatedFees - totalPaid;
 
       // Get current term invoice
@@ -113,6 +128,7 @@ export function useLearnerDetail(learnerId: string) {
           // Details
           allInvoices: allInvoices || [],
           transactions: transactions || [],
+          feePayments: feePayments || [], // Include legacy payments
         },
       });
     } catch (error: any) {
