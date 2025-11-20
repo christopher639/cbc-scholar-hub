@@ -34,6 +34,7 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
     address: "",
     emergency_contact: "",
     emergency_phone: "",
+    photo_url: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,6 +65,7 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
         address: formData.address || null,
         emergency_contact: formData.emergency_contact || null,
         emergency_phone: formData.emergency_phone || null,
+        photo_url: formData.photo_url || null,
       });
 
       // Log activity
@@ -96,6 +98,7 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
         address: "",
         emergency_contact: "",
         emergency_phone: "",
+        photo_url: "",
       });
 
       onOpenChange(false);
@@ -224,6 +227,17 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
                 onChange={(e) => setFormData({...formData, salary: e.target.value})}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="photoUrl">Photo URL</Label>
+            <Input 
+              id="photoUrl" 
+              type="url" 
+              placeholder="Enter photo URL" 
+              value={formData.photo_url}
+              onChange={(e) => setFormData({...formData, photo_url: e.target.value})}
+            />
           </div>
 
           <div className="space-y-2">
