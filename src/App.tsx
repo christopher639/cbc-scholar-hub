@@ -32,6 +32,8 @@ import Profile from "./pages/Profile";
 import AcademicYears from "./pages/AcademicYears";
 import Communication from "./pages/Communication";
 import OfflineSettings from "./pages/OfflineSettings";
+import AcademicSettings from "./pages/AcademicSettings";
+import LearnerFeesPortal from "./pages/LearnerFeesPortal";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +72,8 @@ const App = () => (
             <Route path="/academic-years" element={<ProtectedRoute><AcademicYears /></ProtectedRoute>} />
             <Route path="/communication" element={<ProtectedRoute><Communication /></ProtectedRoute>} />
             <Route path="/offline-storage" element={<ProtectedRoute><OfflineSettings /></ProtectedRoute>} />
+            <Route path="/academic-settings" element={<ProtectedRoute><AcademicSettings /></ProtectedRoute>} />
+            <Route path="/learner-fees" element={<ProtectedRoute><LearnerFeesPortal /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Copy } from "lucide-react";
 import { useFeeStructures } from "@/hooks/useFeeStructures";
-import { SetFeeStructureDialog } from "@/components/SetFeeStructureDialog";
+import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { Badge } from "@/components/ui/badge";
 
 export default function FeeStructures() {
@@ -118,7 +118,7 @@ export default function FeeStructures() {
         )}
       </div>
 
-      <SetFeeStructureDialog
+      <SetFeeStructureDialogEnhanced
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSuccess={fetchStructures}
