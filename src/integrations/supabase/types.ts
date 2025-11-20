@@ -887,6 +887,72 @@ export type Database = {
           },
         ]
       }
+      non_teaching_staff: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          department: string | null
+          email: string
+          emergency_contact: string | null
+          emergency_phone: string | null
+          employee_number: string | null
+          first_name: string
+          hired_date: string | null
+          id: string
+          id_number: string | null
+          job_title: string
+          last_name: string
+          phone: string | null
+          photo_url: string | null
+          salary: number | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          department?: string | null
+          email: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
+          employee_number?: string | null
+          first_name: string
+          hired_date?: string | null
+          id?: string
+          id_number?: string | null
+          job_title: string
+          last_name: string
+          phone?: string | null
+          photo_url?: string | null
+          salary?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          department?: string | null
+          email?: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
+          employee_number?: string | null
+          first_name?: string
+          hired_date?: string | null
+          id?: string
+          id_number?: string | null
+          job_title?: string
+          last_name?: string
+          phone?: string | null
+          photo_url?: string | null
+          salary?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       parent_sessions: {
         Row: {
           created_at: string
@@ -1163,6 +1229,10 @@ export type Database = {
       school_info: {
         Row: {
           address: string | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
           created_at: string
           director_email: string | null
           director_message: string | null
@@ -1174,12 +1244,19 @@ export type Database = {
           id: string
           logo_url: string | null
           motto: string | null
+          mpesa_account_name: string | null
+          mpesa_paybill: string | null
+          payment_instructions: string | null
           phone: string | null
           school_name: string
           updated_at: string
         }
         Insert: {
           address?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
           created_at?: string
           director_email?: string | null
           director_message?: string | null
@@ -1191,12 +1268,19 @@ export type Database = {
           id?: string
           logo_url?: string | null
           motto?: string | null
+          mpesa_account_name?: string | null
+          mpesa_paybill?: string | null
+          payment_instructions?: string | null
           phone?: string | null
           school_name: string
           updated_at?: string
         }
         Update: {
           address?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
           created_at?: string
           director_email?: string | null
           director_message?: string | null
@@ -1208,6 +1292,9 @@ export type Database = {
           id?: string
           logo_url?: string | null
           motto?: string | null
+          mpesa_account_name?: string | null
+          mpesa_paybill?: string | null
+          payment_instructions?: string | null
           phone?: string | null
           school_name?: string
           updated_at?: string
@@ -1412,6 +1499,7 @@ export type Database = {
           id_number: string | null
           last_name: string
           phone: string | null
+          photo_url: string | null
           salary: number | null
           specialization: string | null
           updated_at: string
@@ -1427,6 +1515,7 @@ export type Database = {
           id_number?: string | null
           last_name: string
           phone?: string | null
+          photo_url?: string | null
           salary?: number | null
           specialization?: string | null
           updated_at?: string
@@ -1442,6 +1531,7 @@ export type Database = {
           id_number?: string | null
           last_name?: string
           phone?: string | null
+          photo_url?: string | null
           salary?: number | null
           specialization?: string | null
           updated_at?: string
@@ -1522,6 +1612,11 @@ export type Database = {
           learner_id: string
           success: boolean
         }[]
+      }
+      check_grade_has_learners: { Args: { grade_id: string }; Returns: boolean }
+      check_stream_has_learners: {
+        Args: { stream_id: string }
+        Returns: boolean
       }
       generate_admission_number: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }

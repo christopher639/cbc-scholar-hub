@@ -65,6 +65,7 @@ const navigation = [
   { name: "Grades & Streams", href: "/grades", icon: GraduationCap, roles: ["admin", "teacher"] },
   { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher"] },
   { name: "Teachers", href: "/teachers", icon: UserCog, roles: ["admin", "teacher"] },
+  { name: "Non-Teaching Staff", href: "/non-teaching-staff", icon: Users, roles: ["admin"] },
   { name: "Fee Management", href: "/fees", icon: DollarSign, roles: ["admin"] },
   { name: "Learner Fees", href: "/learner-fees", icon: DollarSign, roles: ["admin"] },
   { name: "Invoices", href: "/invoices", icon: FileText, roles: ["admin"] },
