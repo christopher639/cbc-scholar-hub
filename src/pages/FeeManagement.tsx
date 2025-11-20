@@ -13,7 +13,7 @@ import { useFeeStats } from "@/hooks/useFeeStats";
 import { useFeeStructures } from "@/hooks/useFeeStructures";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
-import { SetFeeStructureDialog } from "@/components/SetFeeStructureDialog";
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { format } from "date-fns";
@@ -26,7 +26,7 @@ const FeeManagement = () => {
   const { stats, trendData, loading: statsLoading, fetchStats } = useFeeStats(dateRange.start, dateRange.end);
   const { structures, loading: structuresLoading } = useFeeStructures();
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
-  const [setStructureDialogOpen, setSetStructureDialogOpen] = useState(false);
+  
 
   const handlePaymentSuccess = () => {
     fetchPayments();
@@ -109,10 +109,6 @@ const FeeManagement = () => {
             <Button variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
               Export
-            </Button>
-            <Button className="gap-2" onClick={() => setSetStructureDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
-              Set Fee Structure
             </Button>
             <Button className="gap-2" onClick={() => setRecordPaymentOpen(true)}>
               <Plus className="h-4 w-4" />
@@ -307,7 +303,7 @@ const FeeManagement = () => {
                 ) : structures.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground mb-4">No fee structures set yet</p>
-                    <Button onClick={() => setSetStructureDialogOpen(true)}>
+                    <Button onClick={() => navigate("/fee-structures")}>
                       <Plus className="h-4 w-4 mr-2" />
                       Set Fee Structure
                     </Button>
@@ -361,12 +357,6 @@ const FeeManagement = () => {
           open={recordPaymentOpen}
           onOpenChange={setRecordPaymentOpen}
           onSuccess={handlePaymentSuccess}
-        />
-        
-        <SetFeeStructureDialog
-          open={setStructureDialogOpen}
-          onOpenChange={setSetStructureDialogOpen}
-          onSuccess={fetchStats}
         />
       </div>
     </DashboardLayout>
