@@ -4,17 +4,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, CheckCircle } from "lucide-react";
+import { Calendar, CheckCircle, Plus } from "lucide-react";
 
 export default function AcademicSettings() {
   const { academicYears, currentYear, refetch: refetchYears } = useAcademicYears();
   const { academicPeriods, currentPeriod, refetch: refetchPeriods } = useAcademicPeriods();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [newYear, setNewYear] = useState("");
+  const [newTermYear, setNewTermYear] = useState("");
+  const [newTerm, setNewTerm] = useState<"term_1" | "term_2" | "term_3">("term_1");
+  const [newStartDate, setNewStartDate] = useState("");
+  const [newEndDate, setNewEndDate] = useState("");
+  const [yearDialogOpen, setYearDialogOpen] = useState(false);
+  const [termDialogOpen, setTermDialogOpen] = useState(false);
 
   const handleSetActiveYear = async (yearId: string) => {
     try {
@@ -86,6 +95,88 @@ export default function AcademicSettings() {
     }
   };
 
+  const handleCreateYear = async () => {
+    if (!newYear) {
+      toast({
+        title: "Error",
+        description: "Please enter an academic year",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from("academic_years")
+        .insert({ year: newYear, is_active: false });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Academic year created successfully",
+      });
+      
+      setNewYear("");
+      setYearDialogOpen(false);
+      refetchYears();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateTerm = async () => {
+    if (!newTermYear || !newStartDate || !newEndDate) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from("academic_periods")
+        .insert({
+          academic_year: newTermYear,
+          term: newTerm,
+          start_date: newStartDate,
+          end_date: newEndDate,
+          is_current: false,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Term created successfully",
+      });
+      
+      setNewTermYear("");
+      setNewStartDate("");
+      setNewEndDate("");
+      setTermDialogOpen(false);
+      refetchPeriods();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -100,13 +191,51 @@ export default function AcademicSettings() {
           {/* Active Academic Year */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Active Academic Year
-              </CardTitle>
-              <CardDescription>
-                Set the current academic year for all fee calculations
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Active Academic Year
+                  </CardTitle>
+                  <CardDescription>
+                    Set the current academic year for all fee calculations
+                  </CardDescription>
+                </div>
+                <Dialog open={yearDialogOpen} onOpenChange={setYearDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Year
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create Academic Year</DialogTitle>
+                      <DialogDescription>
+                        Add a new academic year to the system
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Academic Year</Label>
+                        <Input
+                          placeholder="e.g., 2024-2025"
+                          value={newYear}
+                          onChange={(e) => setNewYear(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setYearDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateYear} disabled={loading}>
+                        Create Year
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -143,13 +272,89 @@ export default function AcademicSettings() {
           {/* Active Term */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Active Term
-              </CardTitle>
-              <CardDescription>
-                Set the current term for fee assignments and payments
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Active Term
+                  </CardTitle>
+                  <CardDescription>
+                    Set the current term for fee assignments and payments
+                  </CardDescription>
+                </div>
+                <Dialog open={termDialogOpen} onOpenChange={setTermDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Term
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create Term</DialogTitle>
+                      <DialogDescription>
+                        Add a new term to the academic calendar
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Academic Year</Label>
+                        <Select value={newTermYear} onValueChange={setNewTermYear}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select year" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {academicYears.map((year) => (
+                              <SelectItem key={year.id} value={year.year}>
+                                {year.year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Term</Label>
+                        <Select value={newTerm} onValueChange={(val: any) => setNewTerm(val)}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="term_1">Term 1</SelectItem>
+                            <SelectItem value="term_2">Term 2</SelectItem>
+                            <SelectItem value="term_3">Term 3</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Start Date</Label>
+                          <Input
+                            type="date"
+                            value={newStartDate}
+                            onChange={(e) => setNewStartDate(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>End Date</Label>
+                          <Input
+                            type="date"
+                            value={newEndDate}
+                            onChange={(e) => setNewEndDate(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setTermDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateTerm} disabled={loading}>
+                        Create Term
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
