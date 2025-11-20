@@ -420,34 +420,37 @@ export default function Invoices() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Invoice Management</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
-              Manage learner invoices and track payments
-            </p>
+      <div className="flex flex-col h-full w-full">
+        <div className="flex-none px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b bg-background">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold">Invoice Management</h1>
+              <p className="text-muted-foreground text-sm">
+                Manage learner invoices and track payments
+              </p>
+            </div>
+            <Button onClick={() => setGenerateDialogOpen(true)} className="w-full sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" />
+              Generate Invoices
+            </Button>
           </div>
-          <Button onClick={() => setGenerateDialogOpen(true)} className="w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            Generate Invoices
-          </Button>
         </div>
+        <div className="flex-1 overflow-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Generate Balance Report by Grade</CardTitle>
-            <CardDescription>Download a printable fee balance report for all learners in a grade</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Select Grade</label>
-                <Select value={selectedGradeForReport} onValueChange={setSelectedGradeForReport}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select grade" />
-                  </SelectTrigger>
-                  <SelectContent>
+          <Card>
+            <CardHeader>
+              <CardTitle>Generate Balance Report by Grade</CardTitle>
+              <CardDescription>Download a printable fee balance report for all learners in a grade</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
+                <div className="flex-1">
+                  <label className="text-sm font-medium mb-2 block">Select Grade</label>
+                  <Select value={selectedGradeForReport} onValueChange={setSelectedGradeForReport}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select grade" />
+                    </SelectTrigger>
+                    <SelectContent>
                     {grades.map((grade) => (
                       <SelectItem key={grade.id} value={grade.id}>
                         {grade.name}
@@ -706,6 +709,7 @@ export default function Invoices() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </DashboardLayout>
   );
 }
