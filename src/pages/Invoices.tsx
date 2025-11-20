@@ -25,10 +25,10 @@ export default function Invoices() {
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedGradeForReport, setSelectedGradeForReport] = useState<string>("");
+  const [selectedGradeForReport, setSelectedGradeForReport] = useState<string | undefined>(undefined);
   
   const { balances, loading: balancesLoading } = useFeeBalances({
-    gradeId: selectedGradeForReport || undefined,
+    gradeId: selectedGradeForReport,
     academicYear: currentPeriod?.academic_year || "",
     term: currentPeriod?.term || "term_1",
   });
