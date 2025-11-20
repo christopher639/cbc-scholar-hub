@@ -192,7 +192,7 @@ export function PrintableInvoice({ invoice }: PrintableInvoiceProps) {
             </div>
             <div className="info-section">
               <div style={{ marginBottom: "8px" }}>
-                <span className="info-label">Student:</span> {invoice.learner?.first_name} {invoice.learner?.last_name}
+                <span className="info-label">Learner:</span> {invoice.learner?.first_name} {invoice.learner?.last_name}
               </div>
               <div style={{ marginBottom: "8px" }}>
                 <span className="info-label">Admission No:</span> {invoice.learner?.admission_number}
