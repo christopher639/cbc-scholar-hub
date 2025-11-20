@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 
 interface RecordPaymentDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface RecordPaymentDialogProps {
 
 export function RecordPaymentDialog({ open, onOpenChange, invoice, onSuccess }: RecordPaymentDialogProps) {
   const { toast } = useToast();
+  const { currentPeriod } = useAcademicPeriods();
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [learner, setLearner] = useState<any>(null);
@@ -38,6 +40,20 @@ export function RecordPaymentDialog({ open, onOpenChange, invoice, onSuccess }: 
       fetchFeeStructures();
     }
   }, [open]);
+
+  // Auto-fill fee structure based on current academic period when learner is verified
+  useEffect(() => {
+    if (learner && currentPeriod && feeStructures.length > 0) {
+      const matchingStructure = feeStructures.find(
+        fs => fs.grade_id === learner.current_grade?.id && 
+             fs.academic_year === currentPeriod.academic_year &&
+             fs.term === currentPeriod.term
+      );
+      if (matchingStructure) {
+        setFormData(prev => ({ ...prev, fee_structure_id: matchingStructure.id }));
+      }
+    }
+  }, [learner, currentPeriod, feeStructures]);
 
   const fetchFeeStructures = async () => {
     try {
@@ -71,13 +87,6 @@ export function RecordPaymentDialog({ open, onOpenChange, invoice, onSuccess }: 
 
       if (data) {
         setLearner(data);
-        // Auto-select fee structure for learner's grade if available
-        const gradeStructure = feeStructures.find(
-          fs => fs.grade_id === data.current_grade?.id
-        );
-        if (gradeStructure) {
-          setFormData(prev => ({ ...prev, fee_structure_id: gradeStructure.id }));
-        }
       } else {
         setLearner(null);
         toast({
