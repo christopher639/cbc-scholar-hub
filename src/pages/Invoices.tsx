@@ -52,6 +52,23 @@ export default function Invoices() {
     term: currentPeriod?.term || "term_1",
   });
 
+  // Calculate stats for recently generated invoices (last 30 days)
+  const recentInvoicesStats = useMemo(() => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentInvoices = invoices.filter(
+      (inv) => new Date(inv.created_at) >= thirtyDaysAgo
+    );
+    
+    return {
+      count: recentInvoices.length,
+      totalAmount: recentInvoices.reduce((sum, inv) => sum + Number(inv.total_amount), 0),
+      totalPaid: recentInvoices.reduce((sum, inv) => sum + Number(inv.amount_paid), 0),
+      totalBalance: recentInvoices.reduce((sum, inv) => sum + Number(inv.balance_due), 0),
+    };
+  }, [invoices]);
+
   // Group invoices by grade
   const groupedInvoices = useMemo(() => {
     const filtered = invoices.filter((invoice) => {
@@ -476,6 +493,42 @@ export default function Invoices() {
           </CardContent>
         </Card>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardDescription>Recent Invoices (30 days)</CardDescription>
+              <CardTitle className="text-2xl sm:text-3xl">{recentInvoicesStats.count}</CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardDescription>Recent Total Amount</CardDescription>
+              <CardTitle className="text-2xl sm:text-3xl">
+                {formatCurrency(recentInvoicesStats.totalAmount)}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardDescription>Recent Paid</CardDescription>
+              <CardTitle className="text-2xl sm:text-3xl text-green-600">
+                {formatCurrency(recentInvoicesStats.totalPaid)}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardDescription>Recent Outstanding</CardDescription>
+              <CardTitle className="text-2xl sm:text-3xl text-red-600">
+                {formatCurrency(recentInvoicesStats.totalBalance)}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>Invoices by Grade</CardTitle>
@@ -577,45 +630,53 @@ export default function Invoices() {
                         <table className="w-full">
                           <thead className="bg-muted/30 border-b">
                             <tr>
-                              <th className="text-left p-3 text-sm font-medium">Invoice #</th>
+                              <th className="text-left p-3 text-sm font-medium hidden xl:table-cell">Invoice #</th>
                               <th className="text-left p-3 text-sm font-medium">Learner</th>
-                              <th className="text-left p-3 text-sm font-medium hidden sm:table-cell">Stream</th>
-                              <th className="text-left p-3 text-sm font-medium hidden md:table-cell">Year/Term</th>
-                              <th className="text-right p-3 text-sm font-medium">Amount</th>
-                              <th className="text-right p-3 text-sm font-medium hidden sm:table-cell">Paid</th>
-                              <th className="text-right p-3 text-sm font-medium">Balance</th>
+                              <th className="text-left p-3 text-sm font-medium hidden xl:table-cell">Stream</th>
+                              <th className="text-left p-3 text-sm font-medium hidden xl:table-cell">Year/Term</th>
+                              <th className="text-right p-3 text-sm font-medium hidden xl:table-cell">Amount</th>
+                              <th className="text-right p-3 text-sm font-medium hidden xl:table-cell">Paid</th>
+                              <th className="text-right p-3 text-sm font-medium hidden xl:table-cell">Balance</th>
                               <th className="text-left p-3 text-sm font-medium">Status</th>
                               <th className="text-left p-3 text-sm font-medium">Actions</th>
                             </tr>
                           </thead>
-                          <tbody>
+                           <tbody>
                             {group.invoices.map((invoice: any) => (
                               <tr key={invoice.id} className="border-b hover:bg-muted/50">
-                                <td className="p-3 text-sm font-medium">{invoice.invoice_number}</td>
+                                <td className="p-3 text-sm font-medium hidden xl:table-cell">{invoice.invoice_number}</td>
                                 <td className="p-3 text-sm">
-                                  <div>
+                                  <div className="font-medium">
                                     {invoice.learner?.first_name} {invoice.learner?.last_name}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
-                                    {invoice.learner?.admission_number}
+                                    Adm: {invoice.learner?.admission_number}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground xl:hidden mt-1">
+                                    Invoice: {invoice.invoice_number}
+                                  </div>
+                                  <div className="text-xs xl:hidden mt-1">
+                                    <span className="text-muted-foreground">Amount:</span> {formatCurrency(invoice.total_amount)} | 
+                                    <span className="text-green-600"> Paid: {formatCurrency(invoice.amount_paid)}</span> | 
+                                    <span className="text-red-600"> Bal: {formatCurrency(invoice.balance_due)}</span>
                                   </div>
                                 </td>
-                                <td className="p-3 text-sm hidden sm:table-cell">
+                                <td className="p-3 text-sm hidden xl:table-cell">
                                   {invoice.stream?.name || "-"}
                                 </td>
-                                <td className="p-3 text-sm hidden md:table-cell">
+                                <td className="p-3 text-sm hidden xl:table-cell">
                                   <div>{invoice.academic_year}</div>
                                   <div className="text-xs text-muted-foreground">
                                     {invoice.term.replace("_", " ").toUpperCase()}
                                   </div>
                                 </td>
-                                <td className="p-3 text-sm text-right">
+                                <td className="p-3 text-sm text-right hidden xl:table-cell">
                                   {formatCurrency(invoice.total_amount)}
                                 </td>
-                                <td className="p-3 text-sm text-right hidden sm:table-cell">
+                                <td className="p-3 text-sm text-right text-green-600 hidden xl:table-cell">
                                   {formatCurrency(invoice.amount_paid)}
                                 </td>
-                                <td className="p-3 text-sm text-right font-medium">
+                                <td className="p-3 text-sm text-right text-red-600 font-medium hidden xl:table-cell">
                                   {formatCurrency(invoice.balance_due)}
                                 </td>
                                 <td className="p-3">
