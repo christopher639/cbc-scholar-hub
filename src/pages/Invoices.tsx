@@ -11,6 +11,7 @@ import { GenerateInvoicesDialog } from "@/components/GenerateInvoicesDialog";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/currency";
+import { PrintableInvoice } from "@/components/PrintableInvoice";
 import { useGrades } from "@/hooks/useGrades";
 import { useFeeBalances } from "@/hooks/useFeeBalances";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
@@ -245,9 +246,7 @@ export default function Invoices() {
                                 Pay
                               </Button>
                             )}
-                            <Button size="sm" variant="outline">
-                              <Download className="h-4 w-4" />
-                            </Button>
+                            <PrintableInvoice invoice={invoice} />
                           </div>
                         </TableCell>
                       </TableRow>
