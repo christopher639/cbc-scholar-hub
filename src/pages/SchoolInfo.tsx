@@ -31,6 +31,13 @@ const SchoolInfo = () => {
     director_phone: "",
     director_qualification: "",
     director_message: "",
+    bank_name: "",
+    bank_account_name: "",
+    bank_account_number: "",
+    bank_branch: "",
+    mpesa_paybill: "",
+    mpesa_account_name: "",
+    payment_instructions: "",
   });
 
   useEffect(() => {
@@ -46,6 +53,13 @@ const SchoolInfo = () => {
         director_phone: schoolInfo.director_phone || "",
         director_qualification: schoolInfo.director_qualification || "",
         director_message: schoolInfo.director_message || "",
+        bank_name: schoolInfo.bank_name || "",
+        bank_account_name: schoolInfo.bank_account_name || "",
+        bank_account_number: schoolInfo.bank_account_number || "",
+        bank_branch: schoolInfo.bank_branch || "",
+        mpesa_paybill: schoolInfo.mpesa_paybill || "",
+        mpesa_account_name: schoolInfo.mpesa_account_name || "",
+        payment_instructions: schoolInfo.payment_instructions || "",
       });
       if (schoolInfo.logo_url) {
         setLogoPreview(schoolInfo.logo_url);
@@ -194,9 +208,10 @@ const SchoolInfo = () => {
 
         <form onSubmit={handleSave}>
           <Tabs defaultValue="school" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="school">School Details</TabsTrigger>
               <TabsTrigger value="director">Director Information</TabsTrigger>
+              <TabsTrigger value="payment">Payment Methods</TabsTrigger>
             </TabsList>
 
             <TabsContent value="school" className="space-y-6">
@@ -396,6 +411,102 @@ const SchoolInfo = () => {
                       </p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="payment" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Bank Account Details</CardTitle>
+                  <CardDescription>Configure bank payment information for invoices</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="bank_name">Bank Name</Label>
+                      <Input
+                        id="bank_name"
+                        value={formData.bank_name}
+                        onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                        placeholder="e.g., Equity Bank"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="bank_branch">Bank Branch</Label>
+                      <Input
+                        id="bank_branch"
+                        value={formData.bank_branch}
+                        onChange={(e) => setFormData({ ...formData, bank_branch: e.target.value })}
+                        placeholder="e.g., Nairobi Branch"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bank_account_name">Account Name</Label>
+                    <Input
+                      id="bank_account_name"
+                      value={formData.bank_account_name}
+                      onChange={(e) => setFormData({ ...formData, bank_account_name: e.target.value })}
+                      placeholder="Enter bank account name"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bank_account_number">Account Number</Label>
+                    <Input
+                      id="bank_account_number"
+                      value={formData.bank_account_number}
+                      onChange={(e) => setFormData({ ...formData, bank_account_number: e.target.value })}
+                      placeholder="Enter bank account number"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>M-Pesa Payment Details</CardTitle>
+                  <CardDescription>Configure M-Pesa payment information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="mpesa_paybill">Paybill Number</Label>
+                    <Input
+                      id="mpesa_paybill"
+                      value={formData.mpesa_paybill}
+                      onChange={(e) => setFormData({ ...formData, mpesa_paybill: e.target.value })}
+                      placeholder="Enter M-Pesa paybill number"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="mpesa_account_name">Account Name</Label>
+                    <Input
+                      id="mpesa_account_name"
+                      value={formData.mpesa_account_name}
+                      onChange={(e) => setFormData({ ...formData, mpesa_account_name: e.target.value })}
+                      placeholder="Enter M-Pesa account name"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Payment Instructions</CardTitle>
+                  <CardDescription>Additional payment instructions to display on invoices</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    id="payment_instructions"
+                    value={formData.payment_instructions}
+                    onChange={(e) => setFormData({ ...formData, payment_instructions: e.target.value })}
+                    placeholder="Enter any additional payment instructions (e.g., payment deadlines, late fees policy)"
+                    rows={4}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>

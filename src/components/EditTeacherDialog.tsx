@@ -29,6 +29,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
     specialization: "",
     hired_date: "",
     salary: "",
+    photo_url: "",
   });
 
   useEffect(() => {
@@ -43,6 +44,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
         specialization: teacher.specialization || "",
         hired_date: teacher.hired_date || "",
         salary: teacher.salary?.toString() || "",
+        photo_url: teacher.photo_url || "",
       });
     }
   }, [teacher]);
@@ -75,6 +77,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
         phone: formData.phone || null,
         specialization: formData.specialization || null,
         hired_date: formData.hired_date || null,
+        photo_url: formData.photo_url || null,
       };
 
       // Only update salary if user is admin
@@ -221,6 +224,18 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
                 onChange={handleChange}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="photo_url">Photo URL</Label>
+            <Input
+              id="photo_url"
+              name="photo_url"
+              type="url"
+              value={formData.photo_url}
+              onChange={handleChange}
+              placeholder="Enter photo URL"
+            />
           </div>
 
           {user?.role === "admin" && (
