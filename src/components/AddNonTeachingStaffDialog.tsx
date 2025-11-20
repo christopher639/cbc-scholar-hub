@@ -36,6 +36,15 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
     emergency_phone: "",
     photo_url: "",
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +60,29 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
 
     setLoading(true);
     try {
+      let photoUrl = formData.photo_url;
+
+      // Upload photo if selected
+      if (photoFile) {
+        setUploadingPhoto(true);
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `staff/${fileName}`;
+
+        const { error: uploadError, data } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, photoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        photoUrl = publicUrl;
+        setUploadingPhoto(false);
+      }
+
       const newStaff = await addStaff({
         employee_number: formData.employee_number || null,
         id_number: formData.id_number || null,
@@ -65,7 +97,7 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
         address: formData.address || null,
         emergency_contact: formData.emergency_contact || null,
         emergency_phone: formData.emergency_phone || null,
-        photo_url: formData.photo_url || null,
+        photo_url: photoUrl || null,
       });
 
       // Log activity
@@ -100,6 +132,7 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
         emergency_phone: "",
         photo_url: "",
       });
+      setPhotoFile(null);
 
       onOpenChange(false);
     } catch (error) {
@@ -230,14 +263,15 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="photoUrl">Photo URL</Label>
+            <Label htmlFor="photo">Photo</Label>
             <Input 
-              id="photoUrl" 
-              type="url" 
-              placeholder="Enter photo URL" 
-              value={formData.photo_url}
-              onChange={(e) => setFormData({...formData, photo_url: e.target.value})}
+              id="photo" 
+              type="file" 
+              accept="image/*"
+              onChange={handlePhotoChange}
+              disabled={loading || uploadingPhoto}
             />
+            {uploadingPhoto && <p className="text-sm text-muted-foreground">Uploading photo...</p>}
           </div>
 
           <div className="space-y-2">
@@ -275,8 +309,8 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={loading || uploadingPhoto}>
+              {(loading || uploadingPhoto) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Add Staff Member
             </Button>
           </DialogFooter>

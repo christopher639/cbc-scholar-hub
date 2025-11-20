@@ -19,6 +19,8 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
   const { toast } = useToast();
   const { user } = useUnifiedAuth();
   const [loading, setLoading] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [formData, setFormData] = useState({
     employee_number: "",
     id_number: "",
@@ -53,6 +55,13 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -68,6 +77,29 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
     try {
       setLoading(true);
 
+      let photoUrl = formData.photo_url;
+
+      // Upload photo if selected
+      if (photoFile) {
+        setUploadingPhoto(true);
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `teachers/${fileName}`;
+
+        const { error: uploadError, data } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, photoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        photoUrl = publicUrl;
+        setUploadingPhoto(false);
+      }
+
       const updateData: any = {
         employee_number: formData.employee_number || null,
         id_number: formData.id_number || null,
@@ -77,7 +109,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
         phone: formData.phone || null,
         specialization: formData.specialization || null,
         hired_date: formData.hired_date || null,
-        photo_url: formData.photo_url || null,
+        photo_url: photoUrl || null,
       };
 
       // Only update salary if user is admin
@@ -227,15 +259,18 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="photo_url">Photo URL</Label>
+            <Label htmlFor="photo">Photo</Label>
             <Input
-              id="photo_url"
-              name="photo_url"
-              type="url"
-              value={formData.photo_url}
-              onChange={handleChange}
-              placeholder="Enter photo URL"
+              id="photo"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              disabled={loading || uploadingPhoto}
             />
+            {uploadingPhoto && <p className="text-sm text-muted-foreground">Uploading photo...</p>}
+            {formData.photo_url && !photoFile && (
+              <p className="text-sm text-muted-foreground">Current photo will be kept unless you select a new one</p>
+            )}
           </div>
 
           {user?.role === "admin" && (
@@ -261,8 +296,8 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={loading || uploadingPhoto}>
+              {(loading || uploadingPhoto) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
           </div>
