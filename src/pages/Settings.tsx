@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { School, Users, Bell, Shield, DollarSign, Moon, Sun } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
-import { SetFeeStructureDialog } from "@/components/SetFeeStructureDialog";
+import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { useTheme } from "next-themes";
 
 const Settings = () => {
@@ -321,7 +321,11 @@ const Settings = () => {
         </Tabs>
 
         <DiscountSettingsDialog open={discountDialogOpen} onOpenChange={setDiscountDialogOpen} />
-        <SetFeeStructureDialog open={feeStructureDialogOpen} onOpenChange={setFeeStructureDialogOpen} />
+        <SetFeeStructureDialogEnhanced 
+          open={feeStructureDialogOpen} 
+          onOpenChange={setFeeStructureDialogOpen}
+          onSuccess={() => setFeeStructureDialogOpen(false)}
+        />
       </div>
     </DashboardLayout>
   );
