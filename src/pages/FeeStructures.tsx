@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,6 @@ import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useGrades } from "@/hooks/useGrades";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function FeeStructures() {
@@ -20,12 +19,9 @@ export default function FeeStructures() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedGrade, setSelectedGrade] = useState<string>("");
-  const printRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = () => {
-    if (printRef.current) {
-      window.print();
-    }
+    window.print();
   };
 
   // Filter structures by selected year and grade
@@ -142,36 +138,50 @@ export default function FeeStructures() {
               </Button>
             </div>
             
-            <div ref={printRef}>
+            <style>{`
+              @media print {
+                body * {
+                  visibility: hidden;
+                }
+                #fee-structure-document, #fee-structure-document * {
+                  visibility: visible;
+                }
+                #fee-structure-document {
+                  position: absolute;
+                  left: 0;
+                  top: 0;
+                  width: 100%;
+                }
+              }
+            `}</style>
+            
+            <div id="fee-structure-document">
               {Object.values(structuresByGrade).map((gradeStructure: any) => (
-                <Card key={gradeStructure.grade?.id} className="border-2 mb-6 print:shadow-none">
-                  <CardContent className="p-8">
+                <div key={gradeStructure.grade?.id} className="mb-6 p-8 border">
                   {/* Document Header */}
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      {schoolInfo?.logo_url && (
-                        <img 
-                          src={schoolInfo.logo_url} 
-                          alt={schoolInfo.school_name}
-                          className="h-16 w-16 object-contain"
-                        />
-                      )}
-                      <div>
-                        <h2 className="text-2xl font-bold">{schoolInfo?.school_name || "School Name"}</h2>
-                        <p className="text-sm text-muted-foreground">{schoolInfo?.address}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {schoolInfo?.phone} | {schoolInfo?.email}
-                        </p>
-                      </div>
+                  <div className="flex items-start gap-4 mb-6">
+                    {schoolInfo?.logo_url && (
+                      <img 
+                        src={schoolInfo.logo_url} 
+                        alt={schoolInfo.school_name}
+                        className="h-16 w-16 object-contain"
+                      />
+                    )}
+                    <div>
+                      <h2 className="text-2xl font-bold">{schoolInfo?.school_name || "School Name"}</h2>
+                      <p className="text-sm">{schoolInfo?.address}</p>
+                      <p className="text-sm">
+                        {schoolInfo?.phone} | {schoolInfo?.email}
+                      </p>
                     </div>
                   </div>
 
-                  <Separator className="my-4" />
+                  <hr className="my-4" />
 
                   {/* Grade and Year Info */}
                   <div className="mb-6">
                     <h3 className="text-xl font-semibold">Fee Structure Document</h3>
-                    <p className="text-muted-foreground">
+                    <p>
                       Grade: {gradeStructure.grade?.name} | Academic Year: {selectedYear}
                     </p>
                   </div>
@@ -181,49 +191,47 @@ export default function FeeStructures() {
                     {["term_1", "term_2", "term_3"].map((term) => {
                       const termStructure = gradeStructure[term];
                       return (
-                        <div key={term} className="border rounded-lg p-4">
+                        <div key={term} className="border p-4">
                           <h4 className="text-lg font-semibold mb-3">
                             {term.replace("_", " ").toUpperCase()}
                           </h4>
                           {termStructure ? (
-                            <div className="space-y-4">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead className="w-12">#</TableHead>
-                                    <TableHead>Fee Item</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead className="text-right">Amount</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {termStructure.fee_structure_items?.sort((a: any, b: any) => 
-                                    (a.display_order || 0) - (b.display_order || 0)
-                                  ).map((item: any, index: number) => (
-                                    <TableRow key={item.id}>
-                                      <TableCell className="font-medium">{index + 1}</TableCell>
-                                      <TableCell>{item.item_name}</TableCell>
-                                      <TableCell className="text-muted-foreground">
-                                        {item.description || "-"}
-                                      </TableCell>
-                                      <TableCell className="text-right font-medium">
-                                        ${Number(item.amount).toLocaleString()}
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                  <TableRow className="bg-muted/50">
-                                    <TableCell colSpan={3} className="font-bold text-right">
-                                      Total:
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="w-12">#</TableHead>
+                                  <TableHead>Fee Item</TableHead>
+                                  <TableHead>Description</TableHead>
+                                  <TableHead className="text-right">Amount</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {termStructure.fee_structure_items?.sort((a: any, b: any) => 
+                                  (a.display_order || 0) - (b.display_order || 0)
+                                ).map((item: any, index: number) => (
+                                  <TableRow key={item.id}>
+                                    <TableCell>{index + 1}</TableCell>
+                                    <TableCell>{item.item_name}</TableCell>
+                                    <TableCell>
+                                      {item.description || "-"}
                                     </TableCell>
-                                    <TableCell className="text-right font-bold text-lg">
-                                      ${Number(termStructure.amount).toLocaleString()}
+                                    <TableCell className="text-right">
+                                      ${Number(item.amount).toLocaleString()}
                                     </TableCell>
                                   </TableRow>
-                                </TableBody>
-                              </Table>
-                            </div>
+                                ))}
+                                <TableRow>
+                                  <TableCell colSpan={3} className="text-right font-bold">
+                                    Total:
+                                  </TableCell>
+                                  <TableCell className="text-right font-bold">
+                                    ${Number(termStructure.amount).toLocaleString()}
+                                  </TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
                           ) : (
-                            <p className="text-sm text-muted-foreground">Not configured</p>
+                            <p className="text-sm">Not configured</p>
                           )}
                         </div>
                       );
@@ -231,7 +239,7 @@ export default function FeeStructures() {
                   </div>
 
                   {/* Grand Total */}
-                  <Separator className="my-4" />
+                  <hr className="my-4" />
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-lg font-bold">Annual Total:</span>
                     <span className="text-2xl font-bold">
@@ -242,9 +250,8 @@ export default function FeeStructures() {
                       ).toLocaleString()}
                     </span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              ))}
             </div>
           </div>
         )}
