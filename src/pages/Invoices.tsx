@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { FileText, Search, Plus, Download, Filter, Printer } from "lucide-react";
+import { FileText, Search, Plus, Download, Filter, Printer, XCircle } from "lucide-react";
 import { useInvoices } from "@/hooks/useInvoices";
 import { GenerateInvoicesDialog } from "@/components/GenerateInvoicesDialog";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
@@ -16,11 +16,25 @@ import { useFeeBalances } from "@/hooks/useFeeBalances";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { downloadFeeBalanceReport } from "@/utils/feeReportGenerator";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export default function Invoices() {
-  const { invoices, loading, bulkGenerateInvoices, fetchInvoices } = useInvoices();
+  const { invoices, loading, bulkGenerateInvoices, cancelInvoice, fetchInvoices } = useInvoices();
   const { grades } = useGrades();
   const { currentPeriod } = useAcademicPeriods();
+  const { toast } = useToast();
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
@@ -28,6 +42,9 @@ export default function Invoices() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [gradeFilter, setGradeFilter] = useState("all");
   const [selectedGradeForReport, setSelectedGradeForReport] = useState<string | undefined>(undefined);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [invoiceToCancel, setInvoiceToCancel] = useState<any>(null);
+  const [cancelReason, setCancelReason] = useState("");
   
   const { balances, loading: balancesLoading } = useFeeBalances({
     gradeId: selectedGradeForReport,
@@ -115,6 +132,32 @@ export default function Invoices() {
       currentPeriod.academic_year,
       currentPeriod.term.replace("_", " ").toUpperCase()
     );
+  };
+
+  const handleCancelInvoice = (invoice: any) => {
+    setInvoiceToCancel(invoice);
+    setCancelDialogOpen(true);
+  };
+
+  const confirmCancelInvoice = async () => {
+    if (!invoiceToCancel || !cancelReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for cancellation",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await cancelInvoice(invoiceToCancel.id, cancelReason);
+      setCancelDialogOpen(false);
+      setInvoiceToCancel(null);
+      setCancelReason("");
+      fetchInvoices();
+    } catch (error) {
+      console.error("Error cancelling invoice:", error);
+    }
   };
 
   const handlePrintGradeInvoices = async (gradeInvoices: any[]) => {
@@ -285,7 +328,7 @@ export default function Invoices() {
             </div>
             <div class="info-section">
               <div style="margin-bottom: 8px">
-                <span class="info-label">Student:</span> ${invoice.learner?.first_name} ${invoice.learner?.last_name}
+                <span class="info-label">Learner:</span> ${invoice.learner?.first_name} ${invoice.learner?.last_name}
               </div>
               <div style="margin-bottom: 8px">
                 <span class="info-label">Admission No:</span> ${invoice.learner?.admission_number}
@@ -580,12 +623,22 @@ export default function Invoices() {
                                 <td className="p-3">
                                   <div className="flex flex-col sm:flex-row gap-2">
                                     {invoice.status !== "paid" && invoice.status !== "cancelled" && (
-                                      <Button
-                                        size="sm"
-                                        onClick={() => handleRecordPayment(invoice)}
-                                      >
-                                        Pay
-                                      </Button>
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => handleRecordPayment(invoice)}
+                                        >
+                                          Pay
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="destructive"
+                                          onClick={() => handleCancelInvoice(invoice)}
+                                        >
+                                          <XCircle className="mr-1 h-3 w-3" />
+                                          Cancel
+                                        </Button>
+                                      </>
                                     )}
                                     <PrintableInvoice invoice={invoice} />
                                   </div>
@@ -616,6 +669,43 @@ export default function Invoices() {
         invoice={selectedInvoice}
         onSuccess={fetchInvoices}
       />
+
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Invoice</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel invoice {invoiceToCancel?.invoice_number}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="cancelReason">Reason for Cancellation *</Label>
+              <Textarea
+                id="cancelReason"
+                placeholder="Enter the reason for cancelling this invoice..."
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setCancelReason("");
+              setInvoiceToCancel(null);
+            }}>
+              Keep Invoice
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCancelInvoice}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Cancel Invoice
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
