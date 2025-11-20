@@ -11,6 +11,8 @@ import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, CheckCircle, Plus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 
 export default function AcademicSettings() {
   const { academicYears, currentYear, refetch: refetchYears } = useAcademicYears();
@@ -357,33 +359,66 @@ export default function AcademicSettings() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Select Term</Label>
-                <Select
-                  value={currentPeriod?.id}
-                  onValueChange={handleSetActivePeriod}
-                  disabled={loading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select term" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {academicPeriods
-                      .filter(p => p.academic_year === currentYear?.year)
-                      .map((period) => (
-                        <SelectItem key={period.id} value={period.id}>
-                          {period.term.replace("_", " ").toUpperCase()} - {period.academic_year}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {currentYear ? (
+                <div className="space-y-3">
+                  <Label className="text-sm text-muted-foreground">
+                    Terms for {currentYear.year}
+                  </Label>
+                  {academicPeriods
+                    .filter(p => p.academic_year === currentYear?.year)
+                    .sort((a, b) => a.term.localeCompare(b.term))
+                    .map((period) => (
+                      <div
+                        key={period.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">
+                                {period.term.replace("_", " ").toUpperCase()}
+                              </p>
+                              {period.is_current && (
+                                <Badge variant="default" className="text-xs">
+                                  Active
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(period.start_date).toLocaleDateString()} - {new Date(period.end_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor={`term-${period.id}`} className="text-sm text-muted-foreground">
+                            Set as Current
+                          </Label>
+                          <Switch
+                            id={`term-${period.id}`}
+                            checked={period.is_current}
+                            onCheckedChange={() => handleSetActivePeriod(period.id)}
+                            disabled={loading}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  {academicPeriods.filter(p => p.academic_year === currentYear?.year).length === 0 && (
+                    <div className="text-center py-6 text-muted-foreground">
+                      No terms created for this academic year. Click "New Term" to add one.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  Please set an active academic year first
+                </div>
+              )}
               
               {currentPeriod && (
-                <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-md">
+                <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-md mt-4">
                   <CheckCircle className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">
-                    Current Term: {currentPeriod.term.replace("_", " ").toUpperCase()}
+                    Current Active Term: {currentPeriod.term.replace("_", " ").toUpperCase()}
                   </span>
                 </div>
               )}
