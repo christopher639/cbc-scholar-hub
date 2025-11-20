@@ -37,12 +37,19 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
     photo_url: "",
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setPhotoFile(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -133,6 +140,7 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
         photo_url: "",
       });
       setPhotoFile(null);
+      setPhotoPreview(null);
 
       onOpenChange(false);
     } catch (error) {
@@ -272,6 +280,15 @@ export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeaching
               disabled={loading || uploadingPhoto}
             />
             {uploadingPhoto && <p className="text-sm text-muted-foreground">Uploading photo...</p>}
+            {photoPreview && (
+              <div className="mt-2">
+                <img 
+                  src={photoPreview} 
+                  alt="Preview" 
+                  className="w-32 h-32 object-cover rounded-lg border"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

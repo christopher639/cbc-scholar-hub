@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
@@ -23,6 +24,7 @@ export function GenerateInvoicesDialog({
   const [term, setTerm] = useState("");
   const [gradeId, setGradeId] = useState<string | undefined>(undefined);
   const [streamId, setStreamId] = useState<string | undefined>(undefined);
+  const [includePreviousBalances, setIncludePreviousBalances] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { academicYears } = useAcademicYears();
@@ -127,6 +129,20 @@ export function GenerateInvoicesDialog({
               </Select>
             </div>
           )}
+
+          <div className="flex items-center space-x-2 p-4 bg-muted/50 rounded-lg">
+            <Checkbox 
+              id="previous-balances" 
+              checked={includePreviousBalances}
+              onCheckedChange={(checked) => setIncludePreviousBalances(checked as boolean)}
+            />
+            <Label 
+              htmlFor="previous-balances"
+              className="text-sm font-normal cursor-pointer"
+            >
+              Include previous term balances in new invoices
+            </Label>
+          </div>
 
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
