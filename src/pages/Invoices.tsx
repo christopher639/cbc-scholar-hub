@@ -15,6 +15,7 @@ import { useGrades } from "@/hooks/useGrades";
 import { useFeeBalances } from "@/hooks/useFeeBalances";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { downloadFeeBalanceReport } from "@/utils/feeReportGenerator";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Invoices() {
   const { invoices, loading, bulkGenerateInvoices, fetchInvoices } = useInvoices();
@@ -116,20 +117,262 @@ export default function Invoices() {
     );
   };
 
-  const handlePrintGradeInvoices = (gradeInvoices: any[]) => {
-    gradeInvoices.forEach((invoice, index) => {
-      setTimeout(() => {
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) return;
+  const handlePrintGradeInvoices = async (gradeInvoices: any[]) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
 
-        const invoiceElement = document.getElementById(`printable-invoice-${invoice.id}`);
-        if (invoiceElement) {
-          printWindow.document.write(invoiceElement.innerHTML);
-          printWindow.document.close();
-          printWindow.print();
-        }
-      }, index * 500);
+    // Build the complete HTML document
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Grade Invoices</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 20px;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+              border-bottom: 2px solid #333;
+              padding-bottom: 20px;
+            }
+            .logo {
+              max-width: 100px;
+              margin-bottom: 10px;
+            }
+            .school-name {
+              font-size: 24px;
+              font-weight: bold;
+              margin: 10px 0;
+            }
+            .school-details {
+              font-size: 12px;
+              color: #666;
+            }
+            .invoice-info {
+              display: flex;
+              justify-content: space-between;
+              margin: 20px 0;
+            }
+            .info-section {
+              flex: 1;
+            }
+            .info-label {
+              font-weight: bold;
+              color: #333;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 20px 0;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 12px;
+              text-align: left;
+            }
+            th {
+              background-color: #f5f5f5;
+              font-weight: bold;
+            }
+            .totals {
+              margin-top: 20px;
+              text-align: right;
+            }
+            .total-row {
+              display: flex;
+              justify-content: flex-end;
+              margin: 5px 0;
+              font-size: 14px;
+            }
+            .total-label {
+              width: 150px;
+              font-weight: bold;
+            }
+            .total-value {
+              width: 150px;
+              text-align: right;
+            }
+            .grand-total {
+              font-size: 18px;
+              border-top: 2px solid #333;
+              padding-top: 10px;
+              margin-top: 10px;
+            }
+            .footer {
+              margin-top: 40px;
+              text-align: center;
+              font-size: 12px;
+              color: #666;
+            }
+            .status-badge {
+              display: inline-block;
+              padding: 4px 12px;
+              border-radius: 4px;
+              font-size: 12px;
+              font-weight: bold;
+            }
+            .status-generated { background-color: #fef3c7; color: #92400e; }
+            .status-partial { background-color: #dbeafe; color: #1e40af; }
+            .status-paid { background-color: #d1fae5; color: #065f46; }
+            .status-overdue { background-color: #fee2e2; color: #991b1b; }
+            .status-cancelled { background-color: #f3f4f6; color: #374151; }
+            .page-break {
+              page-break-after: always;
+            }
+            @media print {
+              body { padding: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+    `);
+
+    // Get school info from the first rendered component
+    const schoolInfo = await supabase.from("school_info").select("*").single();
+    const school = schoolInfo.data;
+
+    // Render each invoice
+    gradeInvoices.forEach((invoice, index) => {
+      const getStatusClass = (status: string) => {
+        const statusMap: Record<string, string> = {
+          generated: "status-generated",
+          partial: "status-partial",
+          paid: "status-paid",
+          overdue: "status-overdue",
+          cancelled: "status-cancelled",
+        };
+        return statusMap[status] || "status-generated";
+      };
+
+      printWindow.document.write(`
+        <div>
+          <div class="header">
+            ${school?.logo_url ? `<img src="${school.logo_url}" alt="School Logo" class="logo" />` : ''}
+            <div class="school-name">${school?.school_name || "School Name"}</div>
+            <div class="school-details">
+              ${school?.address ? `<div>${school.address}</div>` : ''}
+              ${school?.phone ? `<div>Tel: ${school.phone}</div>` : ''}
+              ${school?.email ? `<div>Email: ${school.email}</div>` : ''}
+              ${school?.motto ? `<div style="font-style: italic; margin-top: 5px">${school.motto}</div>` : ''}
+            </div>
+          </div>
+
+          <h2 style="text-align: center; margin: 20px 0">FEE INVOICE</h2>
+
+          <div class="invoice-info">
+            <div class="info-section">
+              <div style="margin-bottom: 8px">
+                <span class="info-label">Invoice Number:</span> ${invoice.invoice_number}
+              </div>
+              <div style="margin-bottom: 8px">
+                <span class="info-label">Issue Date:</span> ${new Date(invoice.issue_date).toLocaleDateString()}
+              </div>
+              <div style="margin-bottom: 8px">
+                <span class="info-label">Due Date:</span> ${new Date(invoice.due_date).toLocaleDateString()}
+              </div>
+              <div>
+                <span class="info-label">Status:</span>
+                <span class="status-badge ${getStatusClass(invoice.status)}">
+                  ${invoice.status.toUpperCase()}
+                </span>
+              </div>
+            </div>
+            <div class="info-section">
+              <div style="margin-bottom: 8px">
+                <span class="info-label">Student:</span> ${invoice.learner?.first_name} ${invoice.learner?.last_name}
+              </div>
+              <div style="margin-bottom: 8px">
+                <span class="info-label">Admission No:</span> ${invoice.learner?.admission_number}
+              </div>
+              <div style="margin-bottom: 8px">
+                <span class="info-label">Grade:</span> ${invoice.grade?.name}
+              </div>
+              <div style="margin-bottom: 8px">
+                <span class="info-label">Stream:</span> ${invoice.stream?.name || 'N/A'}
+              </div>
+              <div>
+                <span class="info-label">Academic Period:</span> ${invoice.academic_year} - ${invoice.term?.replace("_", " ").toUpperCase()}
+              </div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Description</th>
+                <th style="text-align: right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoice.invoice_line_items?.map((item: any) => `
+                <tr>
+                  <td>${item.item_name}</td>
+                  <td>${item.description || '-'}</td>
+                  <td style="text-align: right">${formatCurrency(item.amount)}</td>
+                </tr>
+              `).join('') || '<tr><td colspan="3">No items</td></tr>'}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div class="total-row">
+              <div class="total-label">Subtotal:</div>
+              <div class="total-value">${formatCurrency(invoice.total_amount)}</div>
+            </div>
+            ${invoice.discount_amount > 0 ? `
+              <div class="total-row">
+                <div class="total-label">Discount:</div>
+                <div class="total-value">-${formatCurrency(invoice.discount_amount)}</div>
+              </div>
+            ` : ''}
+            <div class="total-row grand-total">
+              <div class="total-label">Total Amount:</div>
+              <div class="total-value">${formatCurrency(invoice.total_amount - (invoice.discount_amount || 0))}</div>
+            </div>
+            <div class="total-row">
+              <div class="total-label">Amount Paid:</div>
+              <div class="total-value">${formatCurrency(invoice.amount_paid)}</div>
+            </div>
+            <div class="total-row grand-total">
+              <div class="total-label">Balance Due:</div>
+              <div class="total-value">${formatCurrency(invoice.balance_due)}</div>
+            </div>
+          </div>
+
+          ${invoice.notes ? `
+            <div style="margin-top: 20px; padding: 10px; background-color: #f9fafb; border-left: 3px solid #6366f1;">
+              <strong>Notes:</strong> ${invoice.notes}
+            </div>
+          ` : ''}
+
+          <div class="footer">
+            <p>Thank you for your payment.</p>
+            <p>This is a computer-generated invoice.</p>
+          </div>
+        </div>
+        ${index < gradeInvoices.length - 1 ? '<div class="page-break"></div>' : ''}
+      `);
     });
+
+    printWindow.document.write(`
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    
+    // Wait for images and content to load before printing
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 1000);
   };
 
   return (
@@ -344,11 +587,6 @@ export default function Invoices() {
                                         Pay
                                       </Button>
                                     )}
-                                    <PrintableInvoice invoice={invoice} />
-                                  </div>
-                                </td>
-                                <td className="hidden">
-                                  <div id={`printable-invoice-${invoice.id}`}>
                                     <PrintableInvoice invoice={invoice} />
                                   </div>
                                 </td>
