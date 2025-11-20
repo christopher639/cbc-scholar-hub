@@ -23,9 +23,9 @@ export function generateFeeBalanceCSV(
     "Last Name",
     "Grade",
     "Stream",
-    "Total Fees (KES)",
-    "Amount Paid (KES)",
-    "Balance (KES)",
+    "Total Fees (KSh)",
+    "Amount Paid (KSh)",
+    "Balance (KSh)",
     "Status",
   ];
 

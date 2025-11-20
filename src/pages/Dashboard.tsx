@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/currency";
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
@@ -39,7 +40,7 @@ const Dashboard = () => {
     },
     {
       title: "Fee Collection",
-      value: loading ? "..." : `KES ${stats.feeCollection.toLocaleString()}`,
+      value: loading ? "..." : formatCurrency(stats.feeCollection),
       icon: DollarSign,
       colorClass: "text-success",
     },

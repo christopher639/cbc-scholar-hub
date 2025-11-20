@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { Plus, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { formatCurrency } from "@/lib/currency";
 
 interface SetFeeStructureDialogProps {
   open: boolean;
@@ -317,7 +318,7 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Amount (KSH) *</Label>
+                        <Label>Amount (KSh) *</Label>
                         <Input
                           type="number"
                           step="0.01"
@@ -345,7 +346,7 @@ export function SetFeeStructureDialog({ open, onOpenChange, onSuccess }: SetFeeS
           <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Total Fee Amount:</span>
-              <span className="text-lg font-bold text-primary">KSH {getTotalAmount()}</span>
+              <span className="text-lg font-bold text-primary">{formatCurrency(parseFloat(getTotalAmount()))}</span>
             </div>
           </div>
 
