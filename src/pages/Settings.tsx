@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { useTheme } from "next-themes";
 import { useDiscountSettings } from "@/hooks/useDiscountSettings";
+import { useAdmissionNumberSettings } from "@/hooks/useAdmissionNumberSettings";
 import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
@@ -19,13 +20,27 @@ const Settings = () => {
   const [feeStructureDialogOpen, setFeeStructureDialogOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { settings, loading, updateSettings } = useDiscountSettings();
+  const { settings: admissionSettings, loading: admissionLoading, updateSettings: updateAdmissionSettings } = useAdmissionNumberSettings();
   const { toast } = useToast();
+  
+  const [admissionPrefix, setAdmissionPrefix] = useState("");
+  const [admissionNumber, setAdmissionNumber] = useState("");
+  const [admissionPadding, setAdmissionPadding] = useState("4");
 
   // Get individual discount settings
   const staffDiscount = settings.find(s => s.discount_type === 'staff_parent');
   const siblingDiscount = settings.find(s => s.discount_type === 'sibling');
   const earlyPaymentDiscount = settings.find(s => s.discount_type === 'early_payment');
   const bursaryDiscount = settings.find(s => s.discount_type === 'bursary');
+
+  // Update local state when admission settings load
+  useEffect(() => {
+    if (admissionSettings) {
+      setAdmissionPrefix(admissionSettings.prefix || "");
+      setAdmissionNumber(admissionSettings.current_number.toString());
+      setAdmissionPadding(admissionSettings.padding.toString());
+    }
+  }, [admissionSettings]);
 
   const handleToggleDiscount = async (discountType: string, currentEnabled: boolean) => {
     const discountToUpdate = settings.find(s => s.discount_type === discountType);
@@ -61,6 +76,10 @@ const Settings = () => {
             <TabsTrigger value="school" className="gap-2">
               <School className="h-4 w-4" />
               School
+            </TabsTrigger>
+            <TabsTrigger value="admissions" className="gap-2">
+              <Users className="h-4 w-4" />
+              Admissions
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
@@ -182,6 +201,82 @@ const Settings = () => {
                   </div>
                 </div>
                 <Button>Update Academic Settings</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Admissions Settings */}
+          <TabsContent value="admissions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Admission Number Settings</CardTitle>
+                <CardDescription>Configure automatic generation of admission numbers for learners</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {admissionLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading admission settings...</p>
+                ) : (
+                  <>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="admissionPrefix">Prefix (Optional)</Label>
+                        <Input 
+                          id="admissionPrefix" 
+                          placeholder="e.g., STU-" 
+                          value={admissionPrefix}
+                          onChange={(e) => setAdmissionPrefix(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">Letters or numbers to start each admission number</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="admissionNumber">Next Number</Label>
+                        <Input 
+                          id="admissionNumber" 
+                          type="number" 
+                          min="1"
+                          value={admissionNumber}
+                          onChange={(e) => setAdmissionNumber(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">The next admission number to be assigned</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="admissionPadding">Number Length</Label>
+                        <Input 
+                          id="admissionPadding" 
+                          type="number" 
+                          min="1"
+                          max="10"
+                          value={admissionPadding}
+                          onChange={(e) => setAdmissionPadding(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">Minimum digits (e.g., 4 = 0001)</p>
+                      </div>
+                    </div>
+                    <div className="p-4 border border-border rounded-lg bg-muted/50">
+                      <p className="text-sm font-medium mb-1">Preview:</p>
+                      <p className="text-lg font-mono">
+                        {admissionPrefix}{admissionNumber.padStart(parseInt(admissionPadding) || 4, '0')}
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={async () => {
+                        const success = await updateAdmissionSettings({
+                          prefix: admissionPrefix,
+                          current_number: parseInt(admissionNumber) || 1,
+                          padding: parseInt(admissionPadding) || 4
+                        });
+                        if (success) {
+                          toast({
+                            title: "Settings Saved",
+                            description: "Admission number settings updated successfully",
+                          });
+                        }
+                      }}
+                    >
+                      Save Admission Settings
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

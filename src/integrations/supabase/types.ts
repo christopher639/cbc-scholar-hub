@@ -110,6 +110,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admission_number_settings: {
+        Row: {
+          created_at: string | null
+          current_number: number
+          id: string
+          padding: number
+          prefix: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_number?: number
+          id?: string
+          padding?: number
+          prefix?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_number?: number
+          id?: string
+          padding?: number
+          prefix?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       alumni: {
         Row: {
           created_at: string | null
