@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { useDiscountSettings } from "@/hooks/useDiscountSettings";
 
 interface DiscountSettingsDialogProps {
   open: boolean;
@@ -13,7 +13,7 @@ interface DiscountSettingsDialogProps {
 }
 
 export function DiscountSettingsDialog({ open, onOpenChange }: DiscountSettingsDialogProps) {
-  const { toast } = useToast();
+  const { settings, loading, updateSettings } = useDiscountSettings();
   
   const [staffDiscountEnabled, setStaffDiscountEnabled] = useState(true);
   const [staffDiscountPercent, setStaffDiscountPercent] = useState("50");
@@ -27,12 +27,72 @@ export function DiscountSettingsDialog({ open, onOpenChange }: DiscountSettingsD
   
   const [bursaryEnabled, setBursaryEnabled] = useState(true);
 
-  const handleSave = () => {
-    toast({
-      title: "Discount Settings Saved",
-      description: "Fee discount policies have been updated successfully",
-    });
-    onOpenChange(false);
+  // Load existing settings
+  useEffect(() => {
+    if (settings.length > 0) {
+      const staffSetting = settings.find(s => s.discount_type === 'staff_parent');
+      if (staffSetting) {
+        setStaffDiscountEnabled(staffSetting.is_enabled);
+        setStaffDiscountPercent(staffSetting.percentage.toString());
+      }
+
+      const siblingSetting = settings.find(s => s.discount_type === 'sibling');
+      if (siblingSetting) {
+        setSiblingDiscountEnabled(siblingSetting.is_enabled);
+        setSiblingDiscountPercent(siblingSetting.percentage.toString());
+      }
+
+      const earlyPaymentSetting = settings.find(s => s.discount_type === 'early_payment');
+      if (earlyPaymentSetting) {
+        setEarlyPaymentEnabled(earlyPaymentSetting.is_enabled);
+        setEarlyPaymentPercent(earlyPaymentSetting.percentage.toString());
+      }
+
+      const earlyPaymentDaysSetting = settings.find(s => s.discount_type === 'early_payment_days');
+      if (earlyPaymentDaysSetting) {
+        setEarlyPaymentDays(earlyPaymentDaysSetting.percentage.toString());
+      }
+
+      const bursarySetting = settings.find(s => s.discount_type === 'bursary');
+      if (bursarySetting) {
+        setBursaryEnabled(bursarySetting.is_enabled);
+      }
+    }
+  }, [settings]);
+
+  const handleSave = async () => {
+    const updates = [
+      {
+        discount_type: 'staff_parent',
+        percentage: parseFloat(staffDiscountPercent),
+        is_enabled: staffDiscountEnabled,
+      },
+      {
+        discount_type: 'sibling',
+        percentage: parseFloat(siblingDiscountPercent),
+        is_enabled: siblingDiscountEnabled,
+      },
+      {
+        discount_type: 'early_payment',
+        percentage: parseFloat(earlyPaymentPercent),
+        is_enabled: earlyPaymentEnabled,
+      },
+      {
+        discount_type: 'early_payment_days',
+        percentage: parseFloat(earlyPaymentDays),
+        is_enabled: earlyPaymentEnabled,
+      },
+      {
+        discount_type: 'bursary',
+        percentage: 0,
+        is_enabled: bursaryEnabled,
+      },
+    ];
+
+    const success = await updateSettings(updates);
+    if (success) {
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -192,7 +252,9 @@ export function DiscountSettingsDialog({ open, onOpenChange }: DiscountSettingsD
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save Settings</Button>
+          <Button onClick={handleSave} disabled={loading}>
+            {loading ? "Saving..." : "Save Settings"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
