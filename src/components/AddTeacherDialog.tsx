@@ -32,6 +32,15 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
     salary: "",
     photo_url: "",
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +60,29 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
 
     setLoading(true);
     try {
+      let photoUrl = formData.photo_url;
+
+      // Upload photo if selected
+      if (photoFile) {
+        setUploadingPhoto(true);
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `teachers/${fileName}`;
+
+        const { error: uploadError, data } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, photoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        photoUrl = publicUrl;
+        setUploadingPhoto(false);
+      }
+
       const newTeacher = await addTeacher({
         employee_number: formData.employee_number,
         id_number: formData.id_number,
@@ -61,7 +93,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
         specialization: formData.specialization || null,
         hired_date: formData.hired_date || null,
         salary: formData.salary ? parseFloat(formData.salary) : null,
-        photo_url: formData.photo_url || null,
+        photo_url: photoUrl || null,
       });
 
       // Log activity
@@ -92,6 +124,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
         salary: "",
         photo_url: "",
       });
+      setPhotoFile(null);
       
       onOpenChange(false);
     } catch (error) {
@@ -212,22 +245,23 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="photoUrl">Photo URL</Label>
+            <Label htmlFor="photo">Photo</Label>
             <Input 
-              id="photoUrl" 
-              type="url" 
-              placeholder="Enter photo URL" 
-              value={formData.photo_url}
-              onChange={(e) => setFormData({...formData, photo_url: e.target.value})}
+              id="photo" 
+              type="file" 
+              accept="image/*"
+              onChange={handlePhotoChange}
+              disabled={loading || uploadingPhoto}
             />
+            {uploadingPhoto && <p className="text-sm text-muted-foreground">Uploading photo...</p>}
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={loading || uploadingPhoto}>
+              {(loading || uploadingPhoto) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Add Teacher
             </Button>
           </DialogFooter>
