@@ -25,17 +25,17 @@ export function useLearnerDetail(learnerId: string) {
 
       if (learnerError) throw learnerError;
 
-      // Get current academic year and term
-      const { data: currentYear } = await supabase
-        .from("academic_years")
-        .select("year")
-        .eq("is_active", true)
-        .maybeSingle();
-
+      // Get current academic period (priority) or fallback to active year
       const { data: currentPeriod } = await supabase
         .from("academic_periods")
         .select("term, academic_year")
         .eq("is_current", true)
+        .maybeSingle();
+
+      const { data: currentYear } = await supabase
+        .from("academic_years")
+        .select("year")
+        .eq("is_active", true)
         .maybeSingle();
 
       // Fetch promotion history
@@ -93,8 +93,8 @@ export function useLearnerDetail(learnerId: string) {
         ...learnerData,
         promotionHistory: promotionHistory || [],
         performance: performance || [],
-        currentAcademicYear: currentPeriod?.academic_year || currentYear?.year || "",
-        currentTerm: currentPeriod?.term || "",
+        currentAcademicYear: currentPeriod?.academic_year || currentYear?.year || "Not Set",
+        currentTerm: currentPeriod?.term || "Not Set",
         feeInfo: {
           currentTermFees: expectedAmount,
           currentTermPaid: currentTermPaid,

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
+import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 
 interface AddPerformanceDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
   const [learningAreas, setLearningAreas] = useState<any[]>([]);
   const [grades, setGrades] = useState<any[]>([]);
   const { academicYears, currentYear } = useAcademicYears();
+  const { currentPeriod } = useAcademicPeriods();
   
   const [formData, setFormData] = useState({
     admissionNumber: "",
@@ -33,10 +35,16 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
   });
 
   useEffect(() => {
-    if (open && currentYear) {
+    if (open && currentPeriod) {
+      setFormData(prev => ({ 
+        ...prev, 
+        academicYear: currentPeriod.academic_year,
+        term: currentPeriod.term 
+      }));
+    } else if (open && currentYear) {
       setFormData(prev => ({ ...prev, academicYear: currentYear.year }));
     }
-  }, [open, currentYear]);
+  }, [open, currentPeriod, currentYear]);
 
   useEffect(() => {
     if (open) {
