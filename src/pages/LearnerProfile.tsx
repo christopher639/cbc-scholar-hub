@@ -415,9 +415,10 @@ const LearnerProfile = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {learner.feeInfo?.transactions && learner.feeInfo.transactions.length > 0 ? (
+                {(learner.feeInfo?.transactions?.length > 0 || learner.feeInfo?.feePayments?.length > 0) ? (
                   <div className="space-y-3">
-                    {learner.feeInfo.transactions.map((transaction: any) => (
+                    {/* Fee Transactions (New System) */}
+                    {learner.feeInfo.transactions?.map((transaction: any) => (
                       <div key={transaction.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border border-border rounded-lg bg-card gap-2 hover:bg-accent/50 transition-colors">
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-2">
@@ -446,6 +447,33 @@ const LearnerProfile = () => {
                         </div>
                       </div>
                     ))}
+                    
+                    {/* Legacy Fee Payments */}
+                    {learner.feeInfo.feePayments?.map((payment: any) => (
+                      <div key={payment.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border border-border rounded-lg bg-card gap-2 hover:bg-accent/50 transition-colors">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-lg text-success">+{formatCurrency(payment.amount_paid)}</p>
+                            {payment.receipt_number && (
+                              <Badge variant="outline" className="text-xs">{payment.receipt_number}</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(payment.payment_date).toLocaleDateString()}
+                            {payment.payment_method && ` • ${payment.payment_method}`}
+                          </p>
+                          {payment.fee_structure && (
+                            <p className="text-xs text-muted-foreground">
+                              {payment.fee_structure.academic_year} - {payment.fee_structure.term?.replace("_", " ").toUpperCase()}
+                            </p>
+                          )}
+                          {payment.notes && (
+                            <p className="text-xs text-muted-foreground italic mt-1">{payment.notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
                     <div className="mt-4 p-4 bg-success/10 rounded-lg border border-success/20">
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-foreground">Total Payments Made:</span>
