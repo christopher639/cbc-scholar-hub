@@ -269,80 +269,149 @@ const LearnerProfile = () => {
 
           {/* Fees Tab */}
           <TabsContent value="fees" className="space-y-4">
-            <Card>
+            {/* Cumulative Fees Summary */}
+            <Card className="border-primary/20 bg-primary/5">
               <CardHeader>
-                <CardTitle>Fee Information</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Academic Year: <span className="font-medium">{learner.currentAcademicYear || "N/A"}</span> | 
-                  Current Term: <span className="font-medium">{learner.currentTerm?.replace("_", " ").toUpperCase() || "N/A"}</span>
-                </p>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Total Fees Summary
+                </CardTitle>
+                <CardDescription>
+                  Cumulative fees across all terms
+                </CardDescription>
               </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg bg-background/50 border border-border">
+                    <p className="text-sm text-muted-foreground mb-1">Total Accumulated Fees</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {formatCurrency(learner.feeInfo?.totalAccumulatedFees || 0)}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-background/50 border border-border">
+                    <p className="text-sm text-muted-foreground mb-1">Total Amount Paid</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {formatCurrency(learner.feeInfo?.totalPaid || 0)}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-background/50 border border-border">
+                    <p className="text-sm text-muted-foreground mb-1">Outstanding Balance</p>
+                    <p className={`text-2xl font-bold ${(learner.feeInfo?.totalBalance || 0) > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                      {formatCurrency(learner.feeInfo?.totalBalance || 0)}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardDescription>Current Term Fees</CardDescription>
-                  <CardTitle className="text-2xl">{formatCurrency(learner.feeInfo.currentTermFees || 0)}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">Expected for current term</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardDescription>Amount Paid</CardDescription>
-                  <CardTitle className="text-2xl text-green-600">{formatCurrency(learner.feeInfo.currentTermPaid || 0)}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Payments received
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardDescription>Current Balance</CardDescription>
-                  <CardTitle className={`text-2xl ${learner.feeInfo.currentTermBalance < 0 ? 'text-green-600' : 'text-orange-600'}`}>
-                    {learner.feeInfo.currentTermBalance < 0 ? '-' : ''}{formatCurrency(Math.abs(learner.feeInfo.currentTermBalance || 0))}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {learner.feeInfo.currentTermBalance < 0 ? 'Credit/Overpayment' : 'Amount due'}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Current Term Fees */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Term Fees</CardTitle>
+                <CardDescription>
+                  {learner.currentAcademicYear} - {learner.currentTerm?.replace("_", " ").toUpperCase()}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Term Fees</p>
+                    <p className="text-xl font-bold text-foreground">
+                      {formatCurrency(learner.feeInfo?.currentTermFees || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Amount Paid</p>
+                    <p className="text-xl font-bold text-primary">
+                      {formatCurrency(learner.feeInfo?.currentTermPaid || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Balance</p>
+                    <p className="text-xl font-bold text-destructive">
+                      {formatCurrency(learner.feeInfo?.currentTermBalance || 0)}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* All Invoices History */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Invoice History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {learner.feeInfo?.allInvoices && learner.feeInfo.allInvoices.length > 0 ? (
+                  <div className="space-y-3">
+                    {learner.feeInfo.allInvoices.map((invoice: any, idx: number) => (
+                      <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border border-border rounded-lg bg-card gap-2">
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {invoice.academic_year} - {invoice.term?.replace("_", " ").toUpperCase()}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Total: {formatCurrency(invoice.total_amount)}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge variant={invoice.status === "paid" ? "default" : invoice.status === "partial" ? "secondary" : "outline"}>
+                            {invoice.status}
+                          </Badge>
+                          <p className="text-xs text-muted-foreground">
+                            Balance: {formatCurrency(invoice.balance_due)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No invoices generated yet</p>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Payment History */}
             <Card>
               <CardHeader>
-                <CardTitle>Payment History</CardTitle>
-                <CardDescription>Recent fee transactions</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5" />
+                  Payment History
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                {learner.feeInfo.transactions?.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No payment records found</p>
-                ) : (
-                  <div className="space-y-4">
-                    {learner.feeInfo.transactions?.map((payment: any) => (
-                      <div key={payment.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                        <div className="space-y-1">
-                          <p className="font-medium">{formatCurrency(Number(payment.amount_paid))}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(payment.payment_date).toLocaleDateString()}
+                {learner.feeInfo?.transactions && learner.feeInfo.transactions.length > 0 ? (
+                  <div className="space-y-3">
+                    {learner.feeInfo.transactions.map((transaction: any) => (
+                      <div key={transaction.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border border-border rounded-lg bg-card gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-foreground">{formatCurrency(transaction.amount_paid)}</p>
+                            <Badge variant="outline" className="text-xs">{transaction.transaction_number}</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {new Date(transaction.payment_date).toLocaleDateString()} • {transaction.payment_method}
                           </p>
-                          {payment.receipt_number && (
-                            <p className="text-xs text-muted-foreground">Receipt: {payment.receipt_number}</p>
+                          {transaction.invoice && (
+                            <p className="text-xs text-muted-foreground">
+                              {transaction.invoice.academic_year} - {transaction.invoice.term?.replace("_", " ").toUpperCase()}
+                            </p>
+                          )}
+                          {transaction.reference_number && (
+                            <p className="text-xs text-muted-foreground">Ref: {transaction.reference_number}</p>
+                          )}
+                          {transaction.notes && (
+                            <p className="text-xs text-muted-foreground italic mt-1">{transaction.notes}</p>
                           )}
                         </div>
-                        <Badge variant={payment.status === 'paid' ? 'default' : 'secondary'}>
-                          {payment.status}
-                        </Badge>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No payment history available</p>
                 )}
               </CardContent>
             </Card>

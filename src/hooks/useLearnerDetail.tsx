@@ -62,32 +62,38 @@ export function useLearnerDetail(learnerId: string) {
         .eq("learner_id", learnerId)
         .order("created_at", { ascending: false });
 
-      // Get fee structure for current grade, year, and term
-      const { data: feeStructure } = await supabase
-        .from("fee_structures")
-        .select("amount, term")
-        .eq("grade_id", learnerData.current_grade_id)
-        .eq("academic_year", currentPeriod?.academic_year || currentYear?.year || "")
-        .eq("term", currentPeriod?.term || "term_1")
-        .maybeSingle();
+      // Get ALL invoices for this learner (cumulative across all terms)
+      const { data: allInvoices } = await supabase
+        .from("student_invoices")
+        .select("total_amount, amount_paid, balance_due, status, academic_year, term")
+        .eq("learner_id", learnerId)
+        .neq("status", "cancelled")
+        .order("created_at", { ascending: true });
 
       // Get all fee transactions for this learner
       const { data: transactions } = await supabase
         .from("fee_transactions")
-        .select("*")
+        .select(`
+          *,
+          invoice:student_invoices(invoice_number, academic_year, term)
+        `)
         .eq("learner_id", learnerId)
         .order("payment_date", { ascending: false });
 
-      // Calculate total paid for current term
-      const currentTermPaid = transactions
-        ?.filter((t: any) => {
-          // Match transactions for current academic year and term
-          return true; // For now, sum all payments - you may want to filter by invoice term
-        })
-        .reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
+      // Calculate cumulative totals
+      const totalAccumulatedFees = allInvoices?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+      const totalPaid = transactions?.reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
+      const totalBalance = totalAccumulatedFees - totalPaid;
 
-      const expectedAmount = feeStructure?.amount || 0;
-      const balance = expectedAmount - currentTermPaid; // Can be negative (overpayment)
+      // Get current term invoice
+      const currentTermInvoice = allInvoices?.find(
+        inv => inv.academic_year === (currentPeriod?.academic_year || currentYear?.year) && 
+               inv.term === (currentPeriod?.term || "term_1")
+      );
+
+      const currentTermFees = currentTermInvoice?.total_amount || 0;
+      const currentTermPaid = currentTermInvoice?.amount_paid || 0;
+      const currentTermBalance = currentTermInvoice?.balance_due || 0;
 
       setLearner({
         ...learnerData,
@@ -96,9 +102,16 @@ export function useLearnerDetail(learnerId: string) {
         currentAcademicYear: currentPeriod?.academic_year || currentYear?.year || "Not Set",
         currentTerm: currentPeriod?.term || "Not Set",
         feeInfo: {
-          currentTermFees: expectedAmount,
-          currentTermPaid: currentTermPaid,
-          currentTermBalance: balance,
+          // Cumulative totals
+          totalAccumulatedFees,
+          totalPaid,
+          totalBalance,
+          // Current term
+          currentTermFees,
+          currentTermPaid,
+          currentTermBalance,
+          // Details
+          allInvoices: allInvoices || [],
           transactions: transactions || [],
         },
       });
