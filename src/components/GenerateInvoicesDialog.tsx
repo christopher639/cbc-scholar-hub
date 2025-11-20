@@ -20,7 +20,7 @@ export function GenerateInvoicesDialog({
 }: GenerateInvoicesDialogProps) {
   const [academicYear, setAcademicYear] = useState("");
   const [term, setTerm] = useState("");
-  const [gradeId, setGradeId] = useState<string>("");
+  const [gradeId, setGradeId] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
 
   const { academicYears } = useAcademicYears();
@@ -31,11 +31,11 @@ export function GenerateInvoicesDialog({
 
     setLoading(true);
     try {
-      await onGenerate(academicYear, term as "term_1" | "term_2" | "term_3", gradeId || undefined);
+      await onGenerate(academicYear, term as "term_1" | "term_2" | "term_3", gradeId);
       onOpenChange(false);
       setAcademicYear("");
       setTerm("");
-      setGradeId("");
+      setGradeId(undefined);
     } finally {
       setLoading(false);
     }
@@ -80,12 +80,12 @@ export function GenerateInvoicesDialog({
 
           <div className="space-y-2">
             <Label>Grade (Optional - Leave empty for all grades)</Label>
-            <Select value={gradeId} onValueChange={setGradeId}>
+            <Select value={gradeId} onValueChange={(value) => setGradeId(value === "all" ? undefined : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="All grades" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All grades</SelectItem>
+                <SelectItem value="all">All grades</SelectItem>
                 {grades.map((grade) => (
                   <SelectItem key={grade.id} value={grade.id}>
                     {grade.name}
