@@ -54,14 +54,14 @@ const Learners = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Learners</h1>
-            <p className="text-muted-foreground">Manage and track all learner records</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Learners</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Manage and track all learner records</p>
           </div>
-          <Button className="gap-2" onClick={() => setIsAddDialogOpen(true)}>
+          <Button className="gap-2 w-full sm:w-auto" onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add New Learner
           </Button>
