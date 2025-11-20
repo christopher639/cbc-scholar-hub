@@ -274,30 +274,39 @@ const LearnerProfile = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  Total Fees Summary
+                  Fee Summary - Admission #{learner.admission_number}
                 </CardTitle>
                 <CardDescription>
-                  Cumulative fees across all terms
+                  Fees accumulate as new invoices are generated each term
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 rounded-lg bg-background/50 border border-border">
                     <p className="text-sm text-muted-foreground mb-1">Total Accumulated Fees</p>
                     <p className="text-2xl font-bold text-foreground">
                       {formatCurrency(learner.feeInfo?.totalAccumulatedFees || 0)}
                     </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      From {learner.feeInfo?.allInvoices?.length || 0} invoices
+                    </p>
                   </div>
                   <div className="p-4 rounded-lg bg-background/50 border border-border">
                     <p className="text-sm text-muted-foreground mb-1">Total Amount Paid</p>
-                    <p className="text-2xl font-bold text-primary">
+                    <p className="text-2xl font-bold text-success">
                       {formatCurrency(learner.feeInfo?.totalPaid || 0)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {learner.feeInfo?.transactions?.length || 0} payments recorded
                     </p>
                   </div>
                   <div className="p-4 rounded-lg bg-background/50 border border-border">
                     <p className="text-sm text-muted-foreground mb-1">Outstanding Balance</p>
                     <p className={`text-2xl font-bold ${(learner.feeInfo?.totalBalance || 0) > 0 ? 'text-destructive' : 'text-green-600'}`}>
                       {formatCurrency(learner.feeInfo?.totalBalance || 0)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Accumulated - Paid
                     </p>
                   </div>
                 </div>
@@ -343,30 +352,50 @@ const LearnerProfile = () => {
                   <FileText className="h-5 w-5" />
                   Invoice History
                 </CardTitle>
+                <CardDescription>
+                  As learner progresses through terms and grades, invoices accumulate for admission #{learner.admission_number}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {learner.feeInfo?.allInvoices && learner.feeInfo.allInvoices.length > 0 ? (
                   <div className="space-y-3">
                     {learner.feeInfo.allInvoices.map((invoice: any, idx: number) => (
-                      <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border border-border rounded-lg bg-card gap-2">
-                        <div>
+                      <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border border-border rounded-lg bg-card gap-2 hover:bg-accent/50 transition-colors">
+                        <div className="space-y-1">
                           <p className="font-medium text-foreground">
                             {invoice.academic_year} - {invoice.term?.replace("_", " ").toUpperCase()}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Total: {formatCurrency(invoice.total_amount)}
+                            Invoice: {invoice.invoice_number}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Issued: {new Date(invoice.issue_date || invoice.created_at).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-1">
+                          <p className="font-semibold text-lg text-foreground">
+                            {formatCurrency(invoice.total_amount)}
+                          </p>
+                          <p className="text-sm text-success">
+                            Paid: {formatCurrency(invoice.amount_paid)}
+                          </p>
+                          <p className="text-sm text-destructive">
+                            Balance: {formatCurrency(invoice.balance_due)}
+                          </p>
                           <Badge variant={invoice.status === "paid" ? "default" : invoice.status === "partial" ? "secondary" : "outline"}>
                             {invoice.status}
                           </Badge>
-                          <p className="text-xs text-muted-foreground">
-                            Balance: {formatCurrency(invoice.balance_due)}
-                          </p>
                         </div>
                       </div>
                     ))}
+                    <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-foreground">Total from all invoices:</span>
+                        <span className="text-xl font-bold text-foreground">
+                          {formatCurrency(learner.feeInfo?.totalAccumulatedFees || 0)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-center text-muted-foreground py-4">No invoices generated yet</p>
@@ -381,27 +410,35 @@ const LearnerProfile = () => {
                   <History className="h-5 w-5" />
                   Payment History
                 </CardTitle>
+                <CardDescription>
+                  All payments recorded for admission #{learner.admission_number}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {learner.feeInfo?.transactions && learner.feeInfo.transactions.length > 0 ? (
                   <div className="space-y-3">
                     {learner.feeInfo.transactions.map((transaction: any) => (
-                      <div key={transaction.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border border-border rounded-lg bg-card gap-2">
-                        <div className="flex-1">
+                      <div key={transaction.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border border-border rounded-lg bg-card gap-2 hover:bg-accent/50 transition-colors">
+                        <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-foreground">{formatCurrency(transaction.amount_paid)}</p>
+                            <p className="font-semibold text-lg text-success">+{formatCurrency(transaction.amount_paid)}</p>
                             <Badge variant="outline" className="text-xs">{transaction.transaction_number}</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-sm text-muted-foreground">
                             {new Date(transaction.payment_date).toLocaleDateString()} • {transaction.payment_method}
                           </p>
                           {transaction.invoice && (
                             <p className="text-xs text-muted-foreground">
-                              {transaction.invoice.academic_year} - {transaction.invoice.term?.replace("_", " ").toUpperCase()}
+                              Invoice: {transaction.invoice.invoice_number} ({transaction.invoice.academic_year} - {transaction.invoice.term?.replace("_", " ").toUpperCase()})
                             </p>
                           )}
                           {transaction.reference_number && (
                             <p className="text-xs text-muted-foreground">Ref: {transaction.reference_number}</p>
+                          )}
+                          {transaction.receipt_number && (
+                            <Badge variant="secondary" className="text-xs mt-1">
+                              Receipt: {transaction.receipt_number}
+                            </Badge>
                           )}
                           {transaction.notes && (
                             <p className="text-xs text-muted-foreground italic mt-1">{transaction.notes}</p>
@@ -409,6 +446,14 @@ const LearnerProfile = () => {
                         </div>
                       </div>
                     ))}
+                    <div className="mt-4 p-4 bg-success/10 rounded-lg border border-success/20">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-foreground">Total Payments Made:</span>
+                        <span className="text-xl font-bold text-success">
+                          {formatCurrency(learner.feeInfo?.totalPaid || 0)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-center text-muted-foreground py-4">No payment history available</p>
