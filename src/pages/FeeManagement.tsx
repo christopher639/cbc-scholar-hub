@@ -18,6 +18,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/currency";
 
 const FeeManagement = () => {
   const navigate = useNavigate();
@@ -36,12 +37,12 @@ const FeeManagement = () => {
   const feeStats = [
     { 
       label: "Total Collected", 
-      value: statsLoading ? "..." : `KES ${(stats.totalCollected / 1000).toFixed(1)}K`,
+      value: statsLoading ? "..." : formatCurrency(stats.totalCollected),
       icon: DollarSign 
     },
     { 
       label: "Outstanding", 
-      value: statsLoading ? "..." : `KES ${(stats.outstanding / 1000).toFixed(1)}K`,
+      value: statsLoading ? "..." : formatCurrency(stats.outstanding),
       icon: AlertCircle 
     },
     { 
@@ -166,14 +167,14 @@ const FeeManagement = () => {
                       className="text-xs"
                     />
                     <YAxis
-                      tickFormatter={(value) => `KES ${(value / 1000).toFixed(0)}K`}
+                      tickFormatter={(value) => formatCurrency(value).replace('.00', '')}
                       className="text-xs"
                     />
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
                           labelFormatter={(value) => format(new Date(value), "PPP")}
-                          formatter={(value) => `KES ${Number(value).toLocaleString()}`}
+                          formatter={(value) => formatCurrency(Number(value))}
                         />
                       }
                     />
@@ -249,7 +250,7 @@ const FeeManagement = () => {
                               {payment.learner?.current_grade?.name || 'N/A'}
                             </td>
                             <td className="py-4 pr-4 font-semibold text-success">
-                              KES {Number(payment.amount_paid).toLocaleString()}
+                              {formatCurrency(Number(payment.amount_paid))}
                             </td>
                             <td className="py-4 pr-4 text-muted-foreground">
                               {new Date(payment.payment_date).toLocaleDateString()}

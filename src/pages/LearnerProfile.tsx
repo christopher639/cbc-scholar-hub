@@ -13,6 +13,7 @@ import { EditLearnerDialog } from "@/components/EditLearnerDialog";
 import { TransferLearnerDialog } from "@/components/TransferLearnerDialog";
 import { useLearnerDetail } from "@/hooks/useLearnerDetail";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/currency";
 
 const LearnerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -282,7 +283,7 @@ const LearnerProfile = () => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardDescription>Current Term Fees</CardDescription>
-                  <CardTitle className="text-2xl">KES {learner.feeInfo.currentTermFees?.toLocaleString() || 0}</CardTitle>
+                  <CardTitle className="text-2xl">{formatCurrency(learner.feeInfo.currentTermFees || 0)}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">Expected for current term</p>
@@ -291,7 +292,7 @@ const LearnerProfile = () => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardDescription>Amount Paid</CardDescription>
-                  <CardTitle className="text-2xl text-green-600">KES {learner.feeInfo.currentTermPaid?.toLocaleString() || 0}</CardTitle>
+                  <CardTitle className="text-2xl text-green-600">{formatCurrency(learner.feeInfo.currentTermPaid || 0)}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
@@ -303,7 +304,7 @@ const LearnerProfile = () => {
                 <CardHeader className="pb-3">
                   <CardDescription>Current Balance</CardDescription>
                   <CardTitle className={`text-2xl ${learner.feeInfo.currentTermBalance < 0 ? 'text-green-600' : 'text-orange-600'}`}>
-                    {learner.feeInfo.currentTermBalance < 0 ? '-' : ''}KES {Math.abs(learner.feeInfo.currentTermBalance || 0).toLocaleString()}
+                    {learner.feeInfo.currentTermBalance < 0 ? '-' : ''}{formatCurrency(Math.abs(learner.feeInfo.currentTermBalance || 0))}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -328,7 +329,7 @@ const LearnerProfile = () => {
                     {learner.feeInfo.transactions?.map((payment: any) => (
                       <div key={payment.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
                         <div className="space-y-1">
-                          <p className="font-medium">KES {Number(payment.amount_paid).toLocaleString()}</p>
+                          <p className="font-medium">{formatCurrency(Number(payment.amount_paid))}</p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(payment.payment_date).toLocaleDateString()}
                           </p>

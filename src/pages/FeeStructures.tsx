@@ -22,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { formatCurrency } from "@/lib/currency";
 
 export default function FeeStructures() {
   const { structures, loading, fetchStructures } = useFeeStructures();
@@ -283,12 +284,12 @@ export default function FeeStructures() {
                                         <div className="text-[10px] text-muted-foreground">{item.description}</div>
                                       )}
                                     </td>
-                                    <td className="text-right py-1">${Number(item.amount).toLocaleString()}</td>
+                                    <td className="text-right py-1">{formatCurrency(Number(item.amount))}</td>
                                   </tr>
                                 ))}
                                 <tr className="font-bold">
                                   <td colSpan={2} className="text-right py-1">Total:</td>
-                                  <td className="text-right py-1">${Number(termStructure.amount).toLocaleString()}</td>
+                                  <td className="text-right py-1">{formatCurrency(Number(termStructure.amount))}</td>
                                 </tr>
                               </tbody>
                             </table>
@@ -304,12 +305,11 @@ export default function FeeStructures() {
                   <hr className="my-2" />
                   <div className="flex justify-between items-center pt-1 text-sm">
                     <span className="font-bold">Annual Total:</span>
-                    <span className="text-lg font-bold">
-                      ${(
+                    <span className="text-lg font-bold">{formatCurrency(
                         (gradeStructure.term_1?.amount || 0) +
                         (gradeStructure.term_2?.amount || 0) +
                         (gradeStructure.term_3?.amount || 0)
-                      ).toLocaleString()}
+                      )}
                     </span>
                   </div>
                 </div>

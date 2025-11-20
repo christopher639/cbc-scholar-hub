@@ -10,14 +10,28 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { GenerateInvoicesDialog } from "@/components/GenerateInvoicesDialog";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatCurrency } from "@/lib/currency";
+import { useGrades } from "@/hooks/useGrades";
+import { useFeeBalances } from "@/hooks/useFeeBalances";
+import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
+import { downloadFeeBalanceReport } from "@/utils/feeReportGenerator";
 
 export default function Invoices() {
   const { invoices, loading, bulkGenerateInvoices, fetchInvoices } = useInvoices();
+  const { grades } = useGrades();
+  const { currentPeriod } = useAcademicPeriods();
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedGradeForReport, setSelectedGradeForReport] = useState<string>("");
+  
+  const { balances, loading: balancesLoading } = useFeeBalances({
+    gradeId: selectedGradeForReport || undefined,
+    academicYear: currentPeriod?.academic_year || "",
+    term: currentPeriod?.term || "term_1",
+  });
 
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch =
@@ -51,6 +65,30 @@ export default function Invoices() {
     setPaymentDialogOpen(true);
   };
 
+  const handleGenerateInvoices = async (
+    academicYear: string,
+    term: "term_1" | "term_2" | "term_3",
+    gradeId?: string
+  ) => {
+    await bulkGenerateInvoices(academicYear, term, gradeId);
+    setGenerateDialogOpen(false);
+  };
+
+  const handleDownloadBalanceReport = () => {
+    if (!currentPeriod || !selectedGradeForReport) return;
+    
+    const selectedGrade = grades.find(g => g.id === selectedGradeForReport);
+    if (!selectedGrade) return;
+
+    downloadFeeBalanceReport(
+      balances,
+      selectedGrade.name,
+      null,
+      currentPeriod.academic_year,
+      currentPeriod.term.replace("_", " ").toUpperCase()
+    );
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -66,6 +104,44 @@ export default function Invoices() {
             Generate Invoices
           </Button>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Generate Balance Report by Grade</CardTitle>
+            <CardDescription>Download a printable fee balance report for all learners in a grade</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block">Select Grade</label>
+                <Select value={selectedGradeForReport} onValueChange={setSelectedGradeForReport}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map((grade) => (
+                      <SelectItem key={grade.id} value={grade.id}>
+                        {grade.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button 
+                onClick={handleDownloadBalanceReport}
+                disabled={!selectedGradeForReport || balancesLoading || !currentPeriod}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download Balance Report
+              </Button>
+            </div>
+            {currentPeriod && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Report for: {currentPeriod.academic_year} - {currentPeriod.term.replace("_", " ").toUpperCase()}
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
@@ -146,13 +222,13 @@ export default function Invoices() {
                           {invoice.term.replace("_", " ").toUpperCase()}
                         </TableCell>
                         <TableCell className="text-right">
-                          KES {invoice.total_amount.toLocaleString()}
+                          {formatCurrency(invoice.total_amount)}
                         </TableCell>
                         <TableCell className="text-right">
-                          KES {invoice.amount_paid.toLocaleString()}
+                          {formatCurrency(invoice.amount_paid)}
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          KES {invoice.balance_due.toLocaleString()}
+                          {formatCurrency(invoice.balance_due)}
                         </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(invoice.status)}>
