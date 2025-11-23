@@ -73,55 +73,93 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
       const balanceByGradeData: any[] = [];
       
       if (currentPeriodData) {
-        // Get all active learners
+        // Get all active learners with their grades
         const { data: activeLearnersData } = await supabase
           .from("learners")
-          .select("id")
+          .select(`
+            id,
+            current_grade_id,
+            grade:grades(id, name)
+          `)
           .eq("status", "active");
 
-        const activeLearnerIds = activeLearnersData?.map(l => l.id) || [];
-
-        if (activeLearnerIds.length > 0) {
-          // Get all invoices for active learners in current period with grade info
-          const { data: invoicesData } = await supabase
-            .from("student_invoices")
-            .select(`
-              balance_due,
-              grade:grades(id, name)
-            `)
+        if (activeLearnersData && activeLearnersData.length > 0) {
+          // Get fee structures for current period
+          const { data: feeStructuresData } = await supabase
+            .from("fee_structures")
+            .select("id, grade_id, amount")
             .eq("academic_year", currentPeriodData.academic_year)
-            .eq("term", currentPeriodData.term)
-            .neq("status", "cancelled")
-            .in("learner_id", activeLearnerIds);
+            .eq("term", currentPeriodData.term);
 
-          uncollectedBalance = invoicesData?.reduce(
-            (sum, invoice) => sum + Number(invoice.balance_due),
-            0
-          ) || 0;
+          // Create map of grade_id to fee structure
+          const feeStructureMap = new Map();
+          feeStructuresData?.forEach(fs => {
+            feeStructureMap.set(fs.grade_id, fs);
+          });
 
-          // Group balance by grade
-          const gradeBalanceMap = new Map<string, { name: string; balance: number }>();
+          // Get all payments for active learners
+          const learnerIds = activeLearnersData.map(l => l.id);
           
-          invoicesData?.forEach((invoice: any) => {
-            const gradeId = invoice.grade?.id;
-            const gradeName = invoice.grade?.name || "Unknown";
-            const balance = Number(invoice.balance_due);
+          const { data: paymentsData } = await supabase
+            .from("fee_transactions")
+            .select("learner_id, amount_paid")
+            .in("learner_id", learnerIds);
+
+          const { data: feePaymentsData } = await supabase
+            .from("fee_payments")
+            .select("learner_id, amount_paid, fee_structure_id")
+            .in("learner_id", learnerIds);
+
+          // Create map of learner payments
+          const paymentsByLearner = new Map();
+          paymentsData?.forEach(p => {
+            const current = paymentsByLearner.get(p.learner_id) || 0;
+            paymentsByLearner.set(p.learner_id, current + Number(p.amount_paid));
+          });
+          
+          feePaymentsData?.forEach(p => {
+            const current = paymentsByLearner.get(p.learner_id) || 0;
+            paymentsByLearner.set(p.learner_id, current + Number(p.amount_paid));
+          });
+
+          // Calculate by grade
+          const gradeBalanceMap = new Map<string, { name: string; expected: number; paid: number }>();
+          
+          activeLearnersData.forEach((learner: any) => {
+            const gradeId = learner.current_grade_id;
+            const gradeName = learner.grade?.name || "Unknown";
+            const feeStructure = feeStructureMap.get(gradeId);
             
-            if (gradeId) {
+            if (feeStructure) {
+              const expectedAmount = Number(feeStructure.amount);
+              const paidAmount = paymentsByLearner.get(learner.id) || 0;
+              
               const existing = gradeBalanceMap.get(gradeId);
               if (existing) {
-                existing.balance += balance;
+                existing.expected += expectedAmount;
+                existing.paid += paidAmount;
               } else {
-                gradeBalanceMap.set(gradeId, { name: gradeName, balance });
+                gradeBalanceMap.set(gradeId, {
+                  name: gradeName,
+                  expected: expectedAmount,
+                  paid: paidAmount
+                });
               }
             }
           });
 
-          // Convert to array and sort by balance
-          balanceByGradeData.push(
-            ...Array.from(gradeBalanceMap.values())
-              .sort((a, b) => b.balance - a.balance)
-          );
+          // Calculate balances and total
+          gradeBalanceMap.forEach((gradeData) => {
+            const balance = gradeData.expected - gradeData.paid;
+            uncollectedBalance += balance;
+            balanceByGradeData.push({
+              name: gradeData.name,
+              balance: balance > 0 ? balance : 0
+            });
+          });
+
+          // Sort by balance descending
+          balanceByGradeData.sort((a, b) => b.balance - a.balance);
         }
       }
 
