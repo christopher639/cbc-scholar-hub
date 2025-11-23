@@ -224,12 +224,12 @@ const ManageLearningAreasDialog = ({ open, onOpenChange }: ManageLearningAreasDi
                         </div>
                         <div className="space-y-2">
                           <Label>Teacher</Label>
-                          <Select value={editTeacherId} onValueChange={setEditTeacherId}>
+                          <Select value={editTeacherId || "none"} onValueChange={(val) => setEditTeacherId(val === "none" ? "" : val)}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select teacher" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">No teacher</SelectItem>
+                              <SelectItem value="none">No teacher</SelectItem>
                               {teachers.map((teacher) => (
                                 <SelectItem key={teacher.id} value={teacher.id}>
                                   {teacher.first_name} {teacher.last_name}
