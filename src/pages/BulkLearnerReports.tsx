@@ -12,13 +12,14 @@ import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
 import { useReactToPrint } from "react-to-print";
+import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 
 const BulkLearnerReports = () => {
   const { grades, loading: gradesLoading } = useGrades();
   const { academicYears, loading: yearsLoading } = useAcademicYears();
   const { academicPeriods, loading: periodsLoading } = useAcademicPeriods();
+  const { schoolInfo } = useSchoolInfo();
   const { toast } = useToast();
   
   const [selectedGrade, setSelectedGrade] = useState<string>("");
@@ -316,16 +317,153 @@ const BulkLearnerReports = () => {
         )}
 
         {/* Hidden print area */}
-        <div className="hidden">
+        <div style={{ display: 'none' }}>
           <div ref={printRef}>
             {reportData.map(({ learner, performanceRecords }, index) => (
-              <div key={learner.id} className={index > 0 ? "page-break-before" : ""}>
-                <PrintablePerformanceReport
-                  learner={learner}
-                  performance={performanceRecords}
-                  academicYear={selectedYear}
-                  term={selectedTerm}
-                />
+              <div key={learner.id} style={{ pageBreakAfter: 'always' }}>
+                <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
+                  {/* Header */}
+                  <div style={{ textAlign: 'center', marginBottom: '30px', borderBottom: '2px solid #333', paddingBottom: '20px' }}>
+                    {schoolInfo?.logo_url && (
+                      <img src={schoolInfo.logo_url} alt="School Logo" style={{ maxWidth: '100px', marginBottom: '10px' }} />
+                    )}
+                    <div style={{ fontSize: '24px', fontWeight: 'bold', margin: '10px 0' }}>
+                      {schoolInfo?.school_name || "School Name"}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
+                      {schoolInfo?.address && <div>{schoolInfo.address}</div>}
+                      {schoolInfo?.phone && <div>Tel: {schoolInfo.phone}</div>}
+                      {schoolInfo?.email && <div>Email: {schoolInfo.email}</div>}
+                    </div>
+                  </div>
+
+                  {/* Report Title */}
+                  <div style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', margin: '20px 0', textTransform: 'uppercase' }}>
+                    Academic Performance Report
+                  </div>
+
+                  {/* Student Info */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', margin: '20px 0', padding: '15px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
+                    <div>
+                      <div style={{ display: 'flex', margin: '5px 0' }}>
+                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Name:</span>
+                        <span style={{ color: '#666' }}>{learner.first_name} {learner.last_name}</span>
+                      </div>
+                      <div style={{ display: 'flex', margin: '5px 0' }}>
+                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Admission No:</span>
+                        <span style={{ color: '#666' }}>{learner.admission_number}</span>
+                      </div>
+                      <div style={{ display: 'flex', margin: '5px 0' }}>
+                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Grade:</span>
+                        <span style={{ color: '#666' }}>{learner.current_grade?.name}</span>
+                      </div>
+                      {learner.current_stream && (
+                        <div style={{ display: 'flex', margin: '5px 0' }}>
+                          <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Stream:</span>
+                          <span style={{ color: '#666' }}>{learner.current_stream.name}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', margin: '5px 0' }}>
+                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Academic Year:</span>
+                        <span style={{ color: '#666' }}>{selectedYear}</span>
+                      </div>
+                      <div style={{ display: 'flex', margin: '5px 0' }}>
+                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Term:</span>
+                        <span style={{ color: '#666' }}>{selectedTerm.replace("term_", "Term ")}</span>
+                      </div>
+                      <div style={{ display: 'flex', margin: '5px 0' }}>
+                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Report Date:</span>
+                        <span style={{ color: '#666' }}>{new Date().toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Performance Table */}
+                  <table style={{ width: '100%', borderCollapse: 'collapse', margin: '20px 0' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '50px' }}>#</th>
+                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Learning Area</th>
+                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '100px' }}>Exam Type</th>
+                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '100px' }}>Marks</th>
+                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '80px' }}>Grade</th>
+                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {performanceRecords && performanceRecords.length > 0 ? (
+                        performanceRecords.map((record: any, idx: number) => (
+                          <tr key={record.id}>
+                            <td style={{ border: '1px solid #ddd', padding: '10px' }}>{idx + 1}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '10px' }}>{record.learning_area?.name || "N/A"}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center' }}>{record.exam_type || "N/A"}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>{record.marks}/100</td>
+                            <td style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center' }}>
+                              <strong>{record.grade_letter || "N/A"}</strong>
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '10px', fontSize: '12px' }}>{record.remarks || "-"}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', color: '#999' }}>
+                            No performance records available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+
+                  {/* Summary */}
+                  {performanceRecords && performanceRecords.length > 0 && (
+                    <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>
+                        Performance Summary
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginTop: '15px' }}>
+                        <div style={{ textAlign: 'center', padding: '15px', backgroundColor: 'white', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>Total Subjects</div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>{performanceRecords.length}</div>
+                        </div>
+                        <div style={{ textAlign: 'center', padding: '15px', backgroundColor: 'white', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>Average Score</div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>
+                            {(performanceRecords.reduce((sum: number, p: any) => sum + Number(p.marks), 0) / performanceRecords.length).toFixed(1)}%
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'center', padding: '15px', backgroundColor: 'white', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>Total Marks</div>
+                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>
+                            {performanceRecords.reduce((sum: number, p: any) => sum + Number(p.marks), 0)}/{performanceRecords.length * 100}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Footer with Signatures */}
+                  <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ borderTop: '1px solid #333', width: '200px', margin: '30px auto 5px' }}></div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Class Teacher</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ borderTop: '1px solid #333', width: '200px', margin: '30px auto 5px' }}></div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Principal</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ borderTop: '1px solid #333', width: '200px', margin: '30px auto 5px' }}></div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Parent/Guardian</div>
+                    </div>
+                  </div>
+
+                  {/* Generation Info */}
+                  <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '10px', color: '#999' }}>
+                    Generated on {new Date().toLocaleString()} | This is a computer-generated report
+                  </div>
+                </div>
               </div>
             ))}
           </div>
