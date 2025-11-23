@@ -7,8 +7,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, DollarSign, FileText, MessageSquare } from "lucide-react";
+import { BookOpen, DollarSign, FileText, MessageSquare, Wallet, TrendingUp, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/currency";
 
 export default function LearnerPortal() {
   const location = useLocation();
@@ -203,7 +204,48 @@ export default function LearnerPortal() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="fees">
+        <TabsContent value="fees" className="space-y-6">
+          {/* Fees Summary */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Fees</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(feeInfo?.totalExpected || 0)}</div>
+                <p className="text-xs text-muted-foreground">Accumulated fees</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Amount Paid</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  {formatCurrency(feeInfo?.totalPaid || 0)}
+                </div>
+                <p className="text-xs text-muted-foreground">Total payments made</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${(feeInfo?.balance || 0) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                  {formatCurrency(feeInfo?.balance || 0)}
+                </div>
+                <p className="text-xs text-muted-foreground">Amount remaining</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Payment History */}
           <Card>
             <CardHeader>
               <CardTitle>Payment History</CardTitle>
@@ -215,7 +257,7 @@ export default function LearnerPortal() {
                   {feeInfo.payments.map((payment: any) => (
                     <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
-                        <div className="font-semibold">KES {Number(payment.amount_paid).toLocaleString()}</div>
+                        <div className="font-semibold">{formatCurrency(Number(payment.amount_paid))}</div>
                         <div className="text-sm text-muted-foreground">
                           {format(new Date(payment.payment_date), "MMM dd, yyyy")}
                         </div>
@@ -223,8 +265,8 @@ export default function LearnerPortal() {
                           <div className="text-xs text-muted-foreground">Receipt: {payment.receipt_number}</div>
                         )}
                       </div>
-                      <Badge variant={payment.status === "paid" ? "default" : payment.status === "partial" ? "secondary" : "destructive"}>
-                        {payment.status}
+                      <Badge variant="outline">
+                        {payment.payment_method || 'Payment'}
                       </Badge>
                     </div>
                   ))}
