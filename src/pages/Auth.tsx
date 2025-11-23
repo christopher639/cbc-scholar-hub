@@ -70,7 +70,9 @@ export default function Auth() {
               Welcome to {schoolInfo?.school_name || "School Management System"}
             </CardTitle>
             <CardDescription>
-              Sign in with your credentials
+              Teachers: Use employment number & ID number<br />
+              Learners: Use admission number & birth certificate<br />
+              Staff: Use email & password
             </CardDescription>
           </div>
         </CardHeader>
@@ -80,10 +82,11 @@ export default function Auth() {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                placeholder="Enter your admission number, employee number, or email"
+                placeholder="Admission number, employment number, or email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                autoComplete="username"
               />
             </div>
             <div className="space-y-2">
@@ -91,10 +94,11 @@ export default function Auth() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your birth certificate, ID number, or password"
+                placeholder="Birth certificate, ID number, or password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>

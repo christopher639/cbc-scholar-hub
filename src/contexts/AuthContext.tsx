@@ -212,11 +212,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginTeacher = async (employeeNumber: string, idNumber: string, silent = false) => {
     try {
+      // Try case-insensitive search using ilike
       const { data: teacherData } = await supabase
         .from("teachers")
         .select("*")
-        .eq("employee_number", employeeNumber.trim().toUpperCase())
-        .eq("id_number", idNumber.trim().toUpperCase())
+        .ilike("employee_number", employeeNumber.trim())
+        .ilike("id_number", idNumber.trim())
         .maybeSingle();
 
       if (teacherData) {
@@ -225,32 +226,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 24);
 
-        await supabase.from("teacher_sessions").insert({
+        const { error: sessionError } = await supabase.from("teacher_sessions").insert({
           teacher_id: teacherData.id,
           session_token: sessionToken,
           expires_at: expiresAt.toISOString(),
         });
 
-        localStorage.setItem(TEACHER_SESSION_KEY, sessionToken);
-        setUser({ id: teacherData.id, role: "teacher", data: teacherData });
+        if (!sessionError) {
+          localStorage.setItem(TEACHER_SESSION_KEY, sessionToken);
+          setUser({ id: teacherData.id, role: "teacher", data: teacherData });
 
-        await supabase.from("activity_logs").insert({
-          action: "login",
-          entity_type: "authentication",
-          entity_name: `${teacherData.first_name} ${teacherData.last_name}`,
-          entity_id: teacherData.id,
-          user_name: `${teacherData.first_name} ${teacherData.last_name}`,
-          user_role: "teacher",
-        });
-
-        if (!silent) {
-          toast({
-            title: "Welcome!",
-            description: `Welcome back, ${teacherData.first_name}`,
+          await supabase.from("activity_logs").insert({
+            action: "login",
+            entity_type: "authentication",
+            entity_name: `${teacherData.first_name} ${teacherData.last_name}`,
+            entity_id: teacherData.id,
+            user_name: `${teacherData.first_name} ${teacherData.last_name}`,
+            user_role: "teacher",
           });
-        }
 
-        return { success: true, role: "teacher" as UserRole };
+          if (!silent) {
+            toast({
+              title: "Welcome!",
+              description: `Welcome back, ${teacherData.first_name}`,
+            });
+          }
+
+          return { success: true, role: "teacher" as UserRole };
+        }
       }
 
       return { success: false, role: null };
