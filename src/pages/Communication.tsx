@@ -10,13 +10,16 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
+import { useRecentMessages } from "@/hooks/useRecentMessages";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Mail, MessageSquare } from "lucide-react";
+import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { format } from "date-fns";
 
 export default function Communication() {
   const { toast } = useToast();
   const { grades } = useGrades();
   const { streams } = useStreams();
+  const { data: recentMessages, isLoading: messagesLoading } = useRecentMessages();
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -69,9 +72,24 @@ export default function Communication() {
 
       if (error) throw error;
 
+      // Call edge function to send emails
+      const { data: messageData } = await supabase
+        .from("bulk_messages")
+        .select("id")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (messageData && (formData.messageType === "email" || formData.messageType === "both")) {
+        // Trigger email sending in background
+        supabase.functions.invoke("send-bulk-emails", {
+          body: { messageId: messageData.id },
+        }).catch(err => console.error("Error triggering email send:", err));
+      }
+
       toast({
         title: "Success",
-        description: "Message queued for sending. Recipients will be notified shortly.",
+        description: "Message is being sent to recipients.",
       });
 
       // Reset form
@@ -94,15 +112,30 @@ export default function Communication() {
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "sent":
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case "pending":
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case "failed":
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Communication</h1>
-          <p className="text-muted-foreground">Send bulk messages and emails to parents</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Communication</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Send bulk messages and emails to parents</p>
         </div>
 
-        <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="lg:col-span-2">
+            <Card>
           <CardHeader>
             <CardTitle>Send Bulk Message</CardTitle>
             <CardDescription>
@@ -248,6 +281,71 @@ export default function Communication() {
             </form>
           </CardContent>
         </Card>
+          </div>
+
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg sm:text-xl">Recent Messages</CardTitle>
+                <CardDescription>Recently sent communications</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {messagesLoading ? (
+                  <div className="text-sm text-muted-foreground">Loading...</div>
+                ) : !recentMessages || recentMessages.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">No messages sent yet</div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentMessages.map((msg: any) => (
+                      <div
+                        key={msg.id}
+                        className="p-3 border border-border rounded-lg space-y-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">
+                              {msg.subject || "No Subject"}
+                            </p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {msg.message}
+                            </p>
+                          </div>
+                          {getStatusIcon(msg.status)}
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            {msg.message_type === "email" || msg.message_type === "both" ? (
+                              <Mail className="h-3 w-3" />
+                            ) : (
+                              <MessageSquare className="h-3 w-3" />
+                            )}
+                            {msg.message_type}
+                          </span>
+                          {msg.grades && (
+                            <span>• {msg.grades.name}</span>
+                          )}
+                          {msg.streams && (
+                            <span>• {msg.streams.name}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">
+                            {format(new Date(msg.created_at), "MMM d, h:mm a")}
+                          </span>
+                          {msg.sent_count !== null && (
+                            <span className="text-green-600">
+                              Sent: {msg.sent_count}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
