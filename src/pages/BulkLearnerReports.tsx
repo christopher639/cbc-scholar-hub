@@ -381,62 +381,133 @@ const BulkLearnerReports = () => {
                   </div>
 
                   {/* Performance Table */}
-                  <table style={{ width: '100%', borderCollapse: 'collapse', margin: '20px 0' }}>
-                    <thead>
-                      <tr>
-                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '50px' }}>#</th>
-                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Learning Area</th>
-                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '100px' }}>Exam Type</th>
-                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '100px' }}>Marks</th>
-                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '80px' }}>Grade</th>
-                        <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Remarks</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {performanceRecords && performanceRecords.length > 0 ? (
-                        performanceRecords.map((record: any, idx: number) => (
-                          <tr key={record.id}>
-                            <td style={{ border: '1px solid #ddd', padding: '10px' }}>{idx + 1}</td>
-                            <td style={{ border: '1px solid #ddd', padding: '10px' }}>{record.learning_area?.name || "N/A"}</td>
-                            <td style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center' }}>{record.exam_type || "N/A"}</td>
-                            <td style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>{record.marks}/100</td>
-                            <td style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center' }}>
-                              <strong>{record.grade_letter || "N/A"}</strong>
-                            </td>
-                            <td style={{ border: '1px solid #ddd', padding: '10px', fontSize: '12px' }}>{record.remarks || "-"}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={6} style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', color: '#999' }}>
-                            No performance records available
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                  {(() => {
+                    // Group records by learning area
+                    const groupedRecords = performanceRecords.reduce((acc: any, record: any) => {
+                      const areaName = record.learning_area?.name || "N/A";
+                      if (!acc[areaName]) acc[areaName] = [];
+                      acc[areaName].push(record);
+                      return acc;
+                    }, {});
 
-                  {/* Summary */}
+                    const getRemarkFromMarks = (marks: number) => {
+                      if (marks >= 76) return "E.E";
+                      if (marks >= 51) return "M.E";
+                      if (marks >= 26) return "B.E";
+                      return "D.E";
+                    };
+
+                    return (
+                      <table style={{ width: '100%', borderCollapse: 'collapse', margin: '15px 0', fontSize: '11px' }}>
+                        <thead>
+                          <tr>
+                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '30px' }}>#</th>
+                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Learning Area</th>
+                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Opening</th>
+                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Mid-Term</th>
+                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Final</th>
+                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Average</th>
+                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '50px' }}>Remark</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {performanceRecords && performanceRecords.length > 0 ? (
+                            Object.entries(groupedRecords).map(([areaName, records]: [string, any], idx: number) => {
+                              const opening = records.find((r: any) => r.exam_type?.toLowerCase().includes('opening'));
+                              const midterm = records.find((r: any) => r.exam_type?.toLowerCase().includes('mid'));
+                              const final = records.find((r: any) => r.exam_type?.toLowerCase().includes('final'));
+                              
+                              const marks = [opening?.marks, midterm?.marks, final?.marks].filter(m => m != null);
+                              const average = marks.length > 0 ? (marks.reduce((a, b) => a + b, 0) / marks.length) : 0;
+                              const remark = getRemarkFromMarks(average);
+
+                              return (
+                                <tr key={idx}>
+                                  <td style={{ border: '1px solid #ddd', padding: '6px' }}>{idx + 1}</td>
+                                  <td style={{ border: '1px solid #ddd', padding: '6px' }}>{areaName}</td>
+                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center' }}>{opening?.marks || '-'}</td>
+                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center' }}>{midterm?.marks || '-'}</td>
+                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center' }}>{final?.marks || '-'}</td>
+                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', fontWeight: 'bold' }}>{average.toFixed(1)}</td>
+                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', fontWeight: 'bold' }}>{remark}</td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan={7} style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', color: '#999' }}>
+                                No performance records available
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    );
+                  })()}
+
+                  {/* Performance Graph & Summary */}
                   {performanceRecords && performanceRecords.length > 0 && (
-                    <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
-                      <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>
-                        Performance Summary
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginTop: '15px' }}>
-                        <div style={{ textAlign: 'center', padding: '15px', backgroundColor: 'white', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
-                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>Total Subjects</div>
-                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>{performanceRecords.length}</div>
+                    <div style={{ marginTop: '15px', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                      {/* Performance Graph */}
+                      <div style={{ padding: '12px', backgroundColor: '#f9fafb', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Performance Trend</div>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', height: '120px', gap: '4px' }}>
+                          {(() => {
+                            const groupedRecords = performanceRecords.reduce((acc: any, record: any) => {
+                              const areaName = record.learning_area?.name || "N/A";
+                              if (!acc[areaName]) acc[areaName] = [];
+                              acc[areaName].push(record);
+                              return acc;
+                            }, {});
+
+                            return Object.entries(groupedRecords).map(([areaName, records]: [string, any], idx: number) => {
+                              const marks = (records as any[]).map((r: any) => r.marks).filter(m => m != null);
+                              const average = marks.length > 0 ? (marks.reduce((a, b) => a + b, 0) / marks.length) : 0;
+                              const height = (average / 100) * 100;
+
+                              return (
+                                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <div style={{ 
+                                    width: '100%', 
+                                    height: `${height}%`, 
+                                    backgroundColor: average >= 76 ? '#10b981' : average >= 51 ? '#3b82f6' : average >= 26 ? '#f59e0b' : '#ef4444',
+                                    borderRadius: '2px 2px 0 0',
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    justifyContent: 'center',
+                                    paddingTop: '2px'
+                                  }}>
+                                    <span style={{ fontSize: '8px', color: 'white', fontWeight: 'bold' }}>{average.toFixed(0)}</span>
+                                  </div>
+                                  <div style={{ fontSize: '7px', marginTop: '4px', textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {areaName.substring(0, 8)}
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
-                        <div style={{ textAlign: 'center', padding: '15px', backgroundColor: 'white', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
-                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>Average Score</div>
-                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>
+                      </div>
+
+                      {/* Summary Stats */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ padding: '10px', backgroundColor: '#f9fafb', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                          <div style={{ fontSize: '10px', color: '#666', marginBottom: '3px' }}>Total Subjects</div>
+                          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
+                            {Object.keys(performanceRecords.reduce((acc: any, r: any) => ({ ...acc, [r.learning_area?.name]: 1 }), {})).length}
+                          </div>
+                        </div>
+                        <div style={{ padding: '10px', backgroundColor: '#f9fafb', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                          <div style={{ fontSize: '10px', color: '#666', marginBottom: '3px' }}>Overall Average</div>
+                          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
                             {(performanceRecords.reduce((sum: number, p: any) => sum + Number(p.marks), 0) / performanceRecords.length).toFixed(1)}%
                           </div>
                         </div>
-                        <div style={{ textAlign: 'center', padding: '15px', backgroundColor: 'white', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
-                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>Total Marks</div>
-                          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>
-                            {performanceRecords.reduce((sum: number, p: any) => sum + Number(p.marks), 0)}/{performanceRecords.length * 100}
+                        <div style={{ padding: '10px', backgroundColor: '#f9fafb', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                          <div style={{ fontSize: '10px', color: '#666', marginBottom: '3px' }}>Grade Legend</div>
+                          <div style={{ fontSize: '8px', lineHeight: '1.4' }}>
+                            E.E: 76-100 | M.E: 51-75<br/>
+                            B.E: 26-50 | D.E: 0-25
                           </div>
                         </div>
                       </div>
@@ -444,23 +515,23 @@ const BulkLearnerReports = () => {
                   )}
 
                   {/* Footer with Signatures */}
-                  <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ borderTop: '1px solid #333', width: '200px', margin: '30px auto 5px' }}></div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>Class Teacher</div>
+                      <div style={{ borderTop: '1px solid #333', width: '150px', margin: '20px auto 5px' }}></div>
+                      <div style={{ fontSize: '10px', color: '#666' }}>Class Teacher</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ borderTop: '1px solid #333', width: '200px', margin: '30px auto 5px' }}></div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>Principal</div>
+                      <div style={{ borderTop: '1px solid #333', width: '150px', margin: '20px auto 5px' }}></div>
+                      <div style={{ fontSize: '10px', color: '#666' }}>Principal</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ borderTop: '1px solid #333', width: '200px', margin: '30px auto 5px' }}></div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>Parent/Guardian</div>
+                      <div style={{ borderTop: '1px solid #333', width: '150px', margin: '20px auto 5px' }}></div>
+                      <div style={{ fontSize: '10px', color: '#666' }}>Parent/Guardian</div>
                     </div>
                   </div>
 
                   {/* Generation Info */}
-                  <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '10px', color: '#999' }}>
+                  <div style={{ marginTop: '15px', textAlign: 'center', fontSize: '9px', color: '#999' }}>
                     Generated on {new Date().toLocaleString()} | This is a computer-generated report
                   </div>
                 </div>
