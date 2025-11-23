@@ -262,51 +262,52 @@ const GradeDetail = () => {
             {learners.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No learners found in this grade</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="border-b border-border">
-                    <tr className="text-left text-sm font-medium text-muted-foreground">
-                      <th className="pb-3 pr-4">
-                        <Checkbox
-                          checked={selectedLearners.length === learners.length && learners.length > 0}
-                          onCheckedChange={handleSelectAll}
-                        />
-                      </th>
-                      <th className="pb-3 pr-4">Admission No.</th>
-                      <th className="pb-3 pr-4">Learner Name</th>
-                      <th className="pb-3 pr-4">Stream</th>
-                      <th className="pb-3 pr-4">Gender</th>
-                      <th className="pb-3">Fee Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {learners.map((learner) => (
-                      <tr key={learner.id} className="text-sm hover:bg-muted/50 transition-colors">
-                        <td className="py-3 pr-4">
+              <div className="overflow-x-auto -mx-6 sm:mx-0">
+                <div className="inline-block min-w-full align-middle">
+                  <table className="min-w-full">
+                    <thead className="border-b border-border">
+                      <tr className="text-left text-sm font-medium text-muted-foreground">
+                        <th className="pb-3 pr-4 pl-6 sm:pl-0 hidden sm:table-cell">
                           <Checkbox
-                            checked={selectedLearners.includes(learner.id)}
-                            onCheckedChange={(checked) => handleSelectLearner(learner.id, checked as boolean)}
+                            checked={selectedLearners.length === learners.length && learners.length > 0}
+                            onCheckedChange={handleSelectAll}
                           />
-                        </td>
-                        <td className="py-3 pr-4">
-                          <Link to={`/learners/${learner.id}`} className="text-primary hover:underline">
-                            {learner.admission_number}
-                          </Link>
-                        </td>
-                        <td className="py-3 pr-4 font-medium">{learner.first_name} {learner.last_name}</td>
-                        <td className="py-3 pr-4">
-                          <Badge variant="outline">{learner.current_stream?.name || "N/A"}</Badge>
-                        </td>
-                        <td className="py-3 pr-4 capitalize">{learner.gender}</td>
-                        <td className="py-3">
-                          <Badge variant={learner.feeBalance > 0 ? "destructive" : "default"}>
-                            KES {learner.feeBalance.toLocaleString()}
-                          </Badge>
-                        </td>
+                        </th>
+                        <th className="pb-3 pr-4 pl-6 sm:pl-0 sm:hidden">Select</th>
+                        <th className="pb-3 pr-4">Admission</th>
+                        <th className="pb-3 pr-4">Name</th>
+                        <th className="pb-3 pr-6 sm:pr-0 hidden md:table-cell">Stream</th>
+                        <th className="pb-3 pr-6 sm:pr-0">Balance</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {learners.map((learner) => (
+                        <tr key={learner.id} className="text-sm hover:bg-muted/50 transition-colors">
+                          <td className="py-3 pr-4 pl-6 sm:pl-0">
+                            <Checkbox
+                              checked={selectedLearners.includes(learner.id)}
+                              onCheckedChange={(checked) => handleSelectLearner(learner.id, checked as boolean)}
+                            />
+                          </td>
+                          <td className="py-3 pr-4">
+                            <Link to={`/learners/${learner.id}`} className="text-primary hover:underline font-mono text-xs">
+                              {learner.admission_number}
+                            </Link>
+                          </td>
+                          <td className="py-3 pr-4 font-medium">{learner.first_name} {learner.last_name}</td>
+                          <td className="py-3 pr-4 hidden md:table-cell">
+                            <Badge variant="outline">{learner.current_stream?.name || "N/A"}</Badge>
+                          </td>
+                          <td className="py-3 pr-6 sm:pr-0">
+                            <Badge variant={learner.feeBalance > 0 ? "destructive" : "default"}>
+                              {learner.feeBalance.toLocaleString()}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </CardContent>
