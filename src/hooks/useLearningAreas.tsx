@@ -1,22 +1,32 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function useLearningAreas() {
   const [learningAreas, setLearningAreas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchLearningAreas = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Check if user is a teacher
+      let query = supabase
         .from("learning_areas")
         .select(`
           *,
           teacher:teachers(first_name, last_name)
-        `)
-        .order("name", { ascending: true });
+        `);
+
+      // If user is a teacher, only get their assigned learning areas
+      if (user?.role === 'teacher' && user?.data?.id) {
+        query = query.eq('teacher_id', user.data.id);
+      }
+      
+      const { data, error } = await query.order("name", { ascending: true });
 
       if (error) throw error;
       setLearningAreas(data || []);
