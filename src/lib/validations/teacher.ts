@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 export const teacherSchema = z.object({
+  tsc_number: z.string()
+    .trim()
+    .min(1, "TSC number is required")
+    .max(50, "TSC number must be less than 50 characters")
+    .regex(/^[A-Z0-9-/]+$/i, "TSC number can only contain letters, numbers, hyphens, and slashes"),
+  
   employee_number: z.string()
     .trim()
     .min(1, "Employee number is required")

@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean;
   login: (username: string, password: string) => Promise<{ success: boolean; role: string | null }>;
   loginAdmin: (email: string, password: string) => Promise<{ success: boolean; role: string | null }>;
-  loginTeacher: (employeeNumber: string, idNumber: string) => Promise<{ success: boolean; role: string | null }>;
+  loginTeacher: (tscNumber: string, idNumber: string) => Promise<{ success: boolean; role: string | null }>;
   loginLearner: (admissionNumber: string, birthCertificate: string) => Promise<{ success: boolean; role: string | null }>;
   logout: () => Promise<void>;
 }
@@ -210,13 +210,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginTeacher = async (employeeNumber: string, idNumber: string, silent = false) => {
+  const loginTeacher = async (tscNumber: string, idNumber: string, silent = false) => {
     try {
-      // Try case-insensitive search using ilike
+      // Try case-insensitive search using ilike for TSC number and ID number
       const { data: teacherData } = await supabase
         .from("teachers")
         .select("*")
-        .ilike("employee_number", employeeNumber.trim())
+        .ilike("tsc_number", tscNumber.trim())
         .ilike("id_number", idNumber.trim())
         .maybeSingle();
 
