@@ -275,14 +275,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
             
-            {/* Admin Search Bar - Only visible for admins on large screens */}
+            {/* Admin Search Bar - Centered between sidebar and notifications */}
             {user?.role === "admin" && (
-              <div className="hidden lg:flex flex-1 max-w-xl mx-4">
-                <AdminSearchBar />
+              <div className="hidden lg:flex flex-1 justify-center px-8">
+                <div className="w-full max-w-2xl">
+                  <AdminSearchBar />
+                </div>
               </div>
             )}
 
-            <div className="ml-auto flex items-center gap-4">
+            <div className="flex items-center gap-4">
               <NotificationsDropdown />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
