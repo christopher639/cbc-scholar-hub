@@ -186,24 +186,27 @@ export default function LearnerPortal() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Tabs value={getActiveTab()} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="performance">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Performance
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <Tabs value={getActiveTab()} className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
+          <TabsTrigger value="performance" className="flex items-center justify-center gap-1 md:gap-2">
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden sm:inline">Performance</span>
+            <span className="sm:hidden">Perf.</span>
           </TabsTrigger>
-          <TabsTrigger value="fees">
-            <DollarSign className="h-4 w-4 mr-2" />
-            Fees
+          <TabsTrigger value="fees" className="flex items-center justify-center gap-1 md:gap-2">
+            <DollarSign className="h-4 w-4" />
+            <span>Fees</span>
           </TabsTrigger>
-          <TabsTrigger value="assignments">
-            <FileText className="h-4 w-4 mr-2" />
-            Assignments
+          <TabsTrigger value="assignments" className="flex items-center justify-center gap-1 md:gap-2">
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">Assignments</span>
+            <span className="sm:hidden">Tasks</span>
           </TabsTrigger>
-          <TabsTrigger value="messages">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Messages
+          <TabsTrigger value="messages" className="flex items-center justify-center gap-1 md:gap-2">
+            <MessageSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">Messages</span>
+            <span className="sm:hidden">Msgs</span>
           </TabsTrigger>
         </TabsList>
 
@@ -244,7 +247,7 @@ export default function LearnerPortal() {
 
         <TabsContent value="fees" className="space-y-6">
           {/* Fees Summary */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Fees</CardTitle>
