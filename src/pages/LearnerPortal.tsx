@@ -9,10 +9,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, User, BookOpen, DollarSign, GraduationCap, Settings, MessageSquare, Calendar } from "lucide-react";
+import { LogOut, User, BookOpen, DollarSign, GraduationCap, Settings, MessageSquare, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { LearnerChangePasswordDialog } from "@/components/LearnerChangePasswordDialog";
 import { LearnerEditProfileDialog } from "@/components/LearnerEditProfileDialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function LearnerPortal() {
   const navigate = useNavigate();
@@ -22,7 +23,8 @@ export default function LearnerPortal() {
   const [feeInfo, setFeeInfo] = useState<any>(null);
   const [learnerDetails, setLearnerDetails] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
-  const [attendance, setAttendance] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [schoolInfo, setSchoolInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -125,15 +127,24 @@ export default function LearnerPortal() {
 
       setMessages(messagesData || []);
 
-      // Fetch attendance
-      const { data: attendanceData } = await supabase
-        .from("attendance")
+      // Fetch school info
+      const { data: schoolData } = await supabase
+        .from("school_info")
+        .select("*")
+        .single();
+
+      setSchoolInfo(schoolData);
+
+      // Fetch assignments (using messages with assignment type)
+      const { data: assignmentsData } = await supabase
+        .from("messages")
         .select("*")
         .eq("learner_id", learner.id)
-        .order("date", { ascending: false })
-        .limit(30);
+        .eq("sender_type", "assignment")
+        .order("created_at", { ascending: false })
+        .limit(20);
 
-      setAttendance(attendanceData || []);
+      setAssignments(assignmentsData || []);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -187,34 +198,56 @@ export default function LearnerPortal() {
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={learnerDetails.photo_url} />
-                <AvatarFallback>
-                  {learnerDetails.first_name[0]}{learnerDetails.last_name[0]}
-                </AvatarFallback>
-              </Avatar>
+            {/* School Logo */}
+            <div className="flex items-center gap-3">
+              {schoolInfo?.logo_url ? (
+                <img src={schoolInfo.logo_url} alt="School Logo" className="h-12 w-12 object-contain" />
+              ) : (
+                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <GraduationCap className="h-6 w-6 text-primary" />
+                </div>
+              )}
               <div>
-                <h1 className="text-xl font-bold">
-                  {learnerDetails.first_name} {learnerDetails.last_name}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Admission: {learnerDetails.admission_number}
-                </p>
+                <h1 className="text-lg font-bold">{schoolInfo?.school_name || "School Portal"}</h1>
+                <p className="text-xs text-muted-foreground">{schoolInfo?.motto || "Learner Portal"}</p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={() => setShowEditDialog(true)}>
-                <User className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => setShowPasswordDialog(true)}>
-                <Settings className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" onClick={handleLogout} className="gap-2">
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
-            </div>
+
+            {/* Learner Profile Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-12 w-12 rounded-full">
+                  <Avatar className="h-12 w-12 cursor-pointer ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
+                    <AvatarImage src={learnerDetails.photo_url} />
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                      {learnerDetails.first_name[0]}{learnerDetails.last_name[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{learnerDetails.first_name} {learnerDetails.last_name}</p>
+                    <p className="text-xs text-muted-foreground">Adm: {learnerDetails.admission_number}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                  <User className="mr-2 h-4 w-4" />
+                  Edit Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowPasswordDialog(true)}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Change Password
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -316,9 +349,9 @@ export default function LearnerPortal() {
               <DollarSign className="h-4 w-4" />
               Fee Payments
             </TabsTrigger>
-            <TabsTrigger value="attendance" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              Attendance
+            <TabsTrigger value="assignments" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Assignments
             </TabsTrigger>
             <TabsTrigger value="messages" className="gap-2">
               <MessageSquare className="h-4 w-4" />
@@ -420,51 +453,50 @@ export default function LearnerPortal() {
             </Card>
           </TabsContent>
 
-          {/* Attendance Tab */}
-          <TabsContent value="attendance">
+          {/* Holiday Assignments Tab */}
+          <TabsContent value="assignments">
             <Card>
               <CardHeader>
-                <CardTitle>Attendance Record</CardTitle>
-                <CardDescription>Your attendance history</CardDescription>
+                <CardTitle>Holiday Assignments</CardTitle>
+                <CardDescription>Assignments to complete during school breaks</CardDescription>
               </CardHeader>
               <CardContent>
-                {attendance.length > 0 ? (
-                  <div className="space-y-3">
-                    {attendance.map((record) => (
+                {assignments.length > 0 ? (
+                  <div className="space-y-4">
+                    {assignments.map((assignment) => (
                       <div
-                        key={record.id}
-                        className="flex items-center justify-between p-4 border rounded-lg"
+                        key={assignment.id}
+                        className="p-4 border rounded-lg hover:border-primary/50 transition-colors"
                       >
-                        <div>
-                          <div className="font-semibold">
-                            {format(new Date(record.date), "EEEE, MMM dd, yyyy")}
-                          </div>
-                          {record.notes && (
-                            <div className="text-sm text-muted-foreground mt-1">
-                              {record.notes}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <FileText className="h-5 w-5 text-primary" />
                             </div>
-                          )}
+                            <div>
+                              <h3 className="font-semibold">Holiday Assignment</h3>
+                              <p className="text-xs text-muted-foreground">
+                                Posted: {format(new Date(assignment.created_at), "MMM dd, yyyy")}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant={assignment.is_read ? "secondary" : "default"}>
+                            {assignment.is_read ? "Viewed" : "New"}
+                          </Badge>
                         </div>
-                        <Badge
-                          variant={
-                            record.status === "present"
-                              ? "default"
-                              : record.status === "late"
-                              ? "secondary"
-                              : record.status === "excused"
-                              ? "outline"
-                              : "destructive"
-                          }
-                          className="capitalize"
-                        >
-                          {record.status}
-                        </Badge>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{assignment.message}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No attendance records available yet
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                      <FileText className="h-8 w-8 text-primary" />
+                    </div>
+                    <p className="text-muted-foreground">No holiday assignments yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Check back during school breaks for assignments
+                    </p>
                   </div>
                 )}
               </CardContent>
