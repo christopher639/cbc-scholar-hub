@@ -3,22 +3,25 @@ import { useOutletContext } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, DollarSign, TrendingUp, FileText, Calendar } from "lucide-react";
+import { User, DollarSign, TrendingUp, FileText, Calendar, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/currency";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LearnerDashboard() {
   const { learnerDetails } = useOutletContext<any>();
   const { user } = useAuth();
   const learner = user?.data;
   const { currentPeriod } = useAcademicPeriods();
+  const { toast } = useToast();
   
   const [stats, setStats] = useState({
     totalSubjects: 0,
@@ -187,6 +190,23 @@ export default function LearnerDashboard() {
     return "bg-red-100 text-red-800";
   };
 
+  const handleDownloadReportCard = () => {
+    if (filteredPerformance.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No performance records available to generate report",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Trigger the PrintablePerformanceReport download
+    const printButton = document.querySelector('[data-print-report]') as HTMLButtonElement;
+    if (printButton) {
+      printButton.click();
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header Section */}
@@ -285,11 +305,17 @@ export default function LearnerDashboard() {
 
       {/* Tabbed Content */}
       <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="fees">Fees</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between items-center">
+          <TabsList className="grid grid-cols-3 lg:w-auto">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="fees">Fees</TabsTrigger>
+          </TabsList>
+          <Button onClick={handleDownloadReportCard} variant="outline" className="gap-2">
+            <Download className="h-4 w-4" />
+            Download Report Card
+          </Button>
+        </div>
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-4">
@@ -411,13 +437,15 @@ export default function LearnerDashboard() {
                   </SelectContent>
                 </Select>
 
-                <PrintablePerformanceReport
-                  learner={learnerDetails}
-                  performance={filteredPerformance}
-                  academicYear={selectedYear}
-                  term={selectedTerm}
-                  examType={selectedExamType !== "all" ? selectedExamType : undefined}
-                />
+                <div data-print-report>
+                  <PrintablePerformanceReport
+                    learner={learnerDetails}
+                    performance={filteredPerformance}
+                    academicYear={selectedYear}
+                    term={selectedTerm}
+                    examType={selectedExamType !== "all" ? selectedExamType : undefined}
+                  />
+                </div>
               </div>
 
               {filteredPerformance.length === 0 ? (
