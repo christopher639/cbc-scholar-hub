@@ -30,6 +30,9 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Users from "./pages/Users";
 import LearnerPortal from "./pages/LearnerPortal";
+import LearnerPortalLayout from "./components/LearnerPortalLayout";
+import LearnerDashboard from "./pages/LearnerDashboard";
+import LearnerFeeStructures from "./pages/LearnerFeeStructures";
 import Profile from "./pages/Profile";
 import AcademicYears from "./pages/AcademicYears";
 import Communication from "./pages/Communication";
@@ -49,7 +52,14 @@ const App = () => (
           <BrowserRouter>
             <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/learner-portal" element={<ProtectedRoute><LearnerPortal /></ProtectedRoute>} />
+            <Route path="/learner-portal" element={<ProtectedRoute><LearnerPortalLayout /></ProtectedRoute>}>
+              <Route index element={<LearnerDashboard />} />
+              <Route path="performance" element={<LearnerPortal />} />
+              <Route path="fees" element={<LearnerPortal />} />
+              <Route path="fee-structures" element={<LearnerFeeStructures />} />
+              <Route path="assignments" element={<LearnerPortal />} />
+              <Route path="messages" element={<LearnerPortal />} />
+            </Route>
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/learners" element={<ProtectedRoute><Learners /></ProtectedRoute>} />
