@@ -41,6 +41,7 @@ import Communication from "./pages/Communication";
 import OfflineSettings from "./pages/OfflineSettings";
 import AcademicSettings from "./pages/AcademicSettings";
 import LearnerFeesPortal from "./pages/LearnerFeesPortal";
+import Signout from "./pages/Signout";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/signout" element={<Signout />} />
             <Route path="/learner-portal" element={<ProtectedRoute><LearnerPortalLayout /></ProtectedRoute>}>
               <Route index element={<LearnerDashboard />} />
               <Route path="performance" element={<LearnerPortal />} />

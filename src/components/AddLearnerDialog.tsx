@@ -29,6 +29,7 @@ interface FormData {
   photoFile: File | null;
   birthCertificateNumber: string;
   isStaffChild: boolean;
+  staffEmployeeNumber: string;
   boardingStatus: string;
   
   // Parent Info
@@ -69,6 +70,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
     photoFile: null,
     birthCertificateNumber: "",
     isStaffChild: false,
+    staffEmployeeNumber: "",
     boardingStatus: "day_scholar",
     parentFirstName: "",
     parentLastName: "",
@@ -160,6 +162,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
       photoFile: null,
       birthCertificateNumber: "",
       isStaffChild: false,
+      staffEmployeeNumber: "",
       boardingStatus: "day_scholar",
       parentFirstName: "",
       parentLastName: "",
@@ -187,6 +190,42 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate staff employee number if staff child is checked
+    if (formData.isStaffChild) {
+      if (!formData.staffEmployeeNumber.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "Please provide staff employee number",
+          variant: "destructive",
+        });
+        setCurrentTab("basic");
+        return;
+      }
+
+      // Check if employee number exists in teachers or non_teaching_staff
+      const { data: teacher } = await supabase
+        .from("teachers")
+        .select("id")
+        .eq("employee_number", formData.staffEmployeeNumber)
+        .maybeSingle();
+
+      const { data: nonTeachingStaff } = await supabase
+        .from("non_teaching_staff")
+        .select("id")
+        .eq("employee_number", formData.staffEmployeeNumber)
+        .maybeSingle();
+
+      if (!teacher && !nonTeachingStaff) {
+        toast({
+          title: "Invalid Employee Number",
+          description: "The provided employee number does not exist in our staff records",
+          variant: "destructive",
+        });
+        setCurrentTab("basic");
+        return;
+      }
+    }
     
     // Validate form data using Zod schema
     const validationResult = learnerSchema.safeParse(formData);
@@ -430,17 +469,34 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2 p-4 bg-muted rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="isStaffChild"
-                      checked={formData.isStaffChild}
-                      onChange={(e) => setFormData({ ...formData, isStaffChild: e.target.checked })}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <Label htmlFor="isStaffChild" className="cursor-pointer">
-                      This learner is a child of a staff member (discount applies)
-                    </Label>
+                  <div className="space-y-4 p-4 bg-muted rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="isStaffChild"
+                        checked={formData.isStaffChild}
+                        onChange={(e) => setFormData({ ...formData, isStaffChild: e.target.checked })}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <Label htmlFor="isStaffChild" className="cursor-pointer">
+                        This learner is a child of a staff member (discount applies)
+                      </Label>
+                    </div>
+                    
+                    {formData.isStaffChild && (
+                      <div className="space-y-2 mt-3">
+                        <Label htmlFor="staffEmployeeNumber">Staff Employee Number *</Label>
+                        <Input
+                          id="staffEmployeeNumber"
+                          value={formData.staffEmployeeNumber}
+                          onChange={(e) => setFormData({ ...formData, staffEmployeeNumber: e.target.value })}
+                          required={formData.isStaffChild}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Enter the employee number of the teacher or non-teaching staff
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
