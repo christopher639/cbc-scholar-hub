@@ -10,6 +10,7 @@ import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
+import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, Search } from "lucide-react";
 
@@ -22,11 +23,14 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
   const { toast } = useToast();
   const { grades } = useGrades();
   const { currentPeriod } = useAcademicPeriods();
+  const { academicYears, currentYear } = useAcademicYears();
   const { learningAreas } = useLearningAreas();
   
   const [selectedGradeId, setSelectedGradeId] = useState<string>("");
   const [selectedStreamId, setSelectedStreamId] = useState<string>("");
   const [selectedLearningAreaId, setSelectedLearningAreaId] = useState<string>("");
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
+  const [selectedTerm, setSelectedTerm] = useState<string>("");
   const [selectedExamType, setSelectedExamType] = useState<string>("");
   const [learners, setLearners] = useState<any[]>([]);
   const [scores, setScores] = useState<{ [key: string]: string }>({});
@@ -35,6 +39,16 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
   const [submitting, setSubmitting] = useState(false);
   
   const { streams } = useStreams(selectedGradeId);
+
+  // Set default academic year and term when dialog opens
+  useEffect(() => {
+    if (open && currentPeriod) {
+      setSelectedAcademicYear(currentPeriod.academic_year);
+      setSelectedTerm(currentPeriod.term);
+    } else if (open && currentYear) {
+      setSelectedAcademicYear(currentYear.year);
+    }
+  }, [open, currentPeriod, currentYear]);
 
   useEffect(() => {
     if (selectedGradeId && selectedStreamId) {
@@ -83,10 +97,10 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
   };
 
   const handleSubmit = async () => {
-    if (!selectedLearningAreaId || !selectedExamType) {
+    if (!selectedLearningAreaId || !selectedExamType || !selectedAcademicYear) {
       toast({
         title: "Error",
-        description: "Please select learning area and exam type",
+        description: "Please select learning area, academic year, and exam type",
         variant: "destructive",
       });
       return;
@@ -117,8 +131,8 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
           marks: numericMarks,
           grade_letter: calculateGradeLetter(numericMarks),
           exam_type: selectedExamType,
-          academic_year: currentPeriod?.academic_year,
-          term: currentPeriod?.term,
+          academic_year: selectedAcademicYear,
+          term: (selectedTerm as any) || null,
           academic_period_id: currentPeriod?.id,
           teacher_id: user.data.user?.id,
         };
@@ -164,7 +178,37 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
           {/* Filters */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Grade</Label>
+              <Label>Academic Year *</Label>
+              <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Academic Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {academicYears.map((year) => (
+                    <SelectItem key={year.id} value={year.year}>
+                      {year.year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Term</Label>
+              <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Term" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="term_1">Term 1</SelectItem>
+                  <SelectItem value="term_2">Term 2</SelectItem>
+                  <SelectItem value="term_3">Term 3</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Grade *</Label>
               <Select value={selectedGradeId} onValueChange={setSelectedGradeId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Grade" />
@@ -180,7 +224,7 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
             </div>
 
             <div>
-              <Label>Stream</Label>
+              <Label>Stream *</Label>
               <Select 
                 value={selectedStreamId} 
                 onValueChange={setSelectedStreamId}
@@ -200,7 +244,7 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
             </div>
 
             <div>
-              <Label>Learning Area</Label>
+              <Label>Learning Area *</Label>
               <Select value={selectedLearningAreaId} onValueChange={setSelectedLearningAreaId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Learning Area" />
@@ -216,7 +260,7 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
             </div>
 
             <div>
-              <Label>Exam Type</Label>
+              <Label>Exam Type *</Label>
               <Select value={selectedExamType} onValueChange={setSelectedExamType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Exam Type" />
