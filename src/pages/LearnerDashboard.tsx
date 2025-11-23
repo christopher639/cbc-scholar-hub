@@ -26,26 +26,39 @@ export default function LearnerDashboard() {
   const fetchStats = async () => {
     if (!learner) return;
 
+    // Fetch all performance records
     const { data: performance } = await supabase
       .from("performance_records")
       .select("marks")
       .eq("learner_id", learner.id);
 
-    const { data: feeData } = await supabase
-      .from("fee_balances")
-      .select("balance")
-      .eq("learner_id", learner.id);
+    // Fetch all invoices
+    const { data: invoices } = await supabase
+      .from("student_invoices")
+      .select("balance_due")
+      .eq("learner_id", learner.id)
+      .neq("status", "cancelled");
 
     const avgScore = performance?.length
       ? performance.reduce((sum, p) => sum + Number(p.marks), 0) / performance.length
       : 0;
 
-    const balance = feeData?.[0]?.balance || 0;
+    const totalBalance = invoices?.reduce((sum, inv) => sum + Number(inv.balance_due), 0) || 0;
+
+    // Count unique learning areas for subjects count
+    const { data: uniqueSubjects } = await supabase
+      .from("performance_records")
+      .select("learning_area_id")
+      .eq("learner_id", learner.id);
+
+    const subjectCount = uniqueSubjects 
+      ? new Set(uniqueSubjects.map(s => s.learning_area_id)).size 
+      : 0;
 
     setStats({
-      totalSubjects: performance?.length || 0,
+      totalSubjects: subjectCount,
       averageScore: Math.round(avgScore),
-      feeBalance: Number(balance),
+      feeBalance: totalBalance,
       attendanceRate: 95, // Mock data
     });
   };

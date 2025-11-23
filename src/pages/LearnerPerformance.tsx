@@ -26,6 +26,8 @@ export default function LearnerPerformance() {
 
     try {
       setLoading(true);
+      
+      // Fetch using learner_id
       const { data, error } = await supabase
         .from("performance_records")
         .select(`
