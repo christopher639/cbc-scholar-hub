@@ -17,6 +17,7 @@ import Performance from "./pages/Performance";
 import Admissions from "./pages/Admissions";
 import FeeManagement from "./pages/FeeManagement";
 import Reports from "./pages/Reports";
+import BulkLearnerReports from "./pages/BulkLearnerReports";
 import Settings from "./pages/Settings";
 import Teachers from "./pages/Teachers";
 import TeacherProfile from "./pages/TeacherProfile";
@@ -78,6 +79,7 @@ const App = () => (
             <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
             <Route path="/fee-structures" element={<ProtectedRoute><FeeStructures /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/bulk-learner-reports" element={<ProtectedRoute><BulkLearnerReports /></ProtectedRoute>} />
             <Route path="/school-info" element={<ProtectedRoute><SchoolInfo /></ProtectedRoute>} />
             <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
