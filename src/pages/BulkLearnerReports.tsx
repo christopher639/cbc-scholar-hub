@@ -322,18 +322,53 @@ const BulkLearnerReports = () => {
             {reportData.map(({ learner, performanceRecords }, index) => (
               <div key={learner.id} style={{ pageBreakAfter: 'always' }}>
                 <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
-                  {/* Header */}
-                  <div style={{ textAlign: 'center', marginBottom: '30px', borderBottom: '2px solid #333', paddingBottom: '20px' }}>
-                    {schoolInfo?.logo_url && (
-                      <img src={schoolInfo.logo_url} alt="School Logo" style={{ maxWidth: '100px', marginBottom: '10px' }} />
-                    )}
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', margin: '10px 0' }}>
-                      {schoolInfo?.school_name || "School Name"}
+                  {/* Header with School Info and Learner Photo */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '2px solid #333', paddingBottom: '15px' }}>
+                    {/* School Information - Center */}
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      {schoolInfo?.logo_url && (
+                        <img src={schoolInfo.logo_url} alt="School Logo" style={{ maxWidth: '80px', marginBottom: '8px' }} />
+                      )}
+                      <div style={{ fontSize: '20px', fontWeight: 'bold', margin: '8px 0' }}>
+                        {schoolInfo?.school_name || "School Name"}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#666' }}>
+                        {schoolInfo?.address && <div>{schoolInfo.address}</div>}
+                        {schoolInfo?.phone && <div>Tel: {schoolInfo.phone}</div>}
+                        {schoolInfo?.email && <div>Email: {schoolInfo.email}</div>}
+                      </div>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>
-                      {schoolInfo?.address && <div>{schoolInfo.address}</div>}
-                      {schoolInfo?.phone && <div>Tel: {schoolInfo.phone}</div>}
-                      {schoolInfo?.email && <div>Email: {schoolInfo.email}</div>}
+                    
+                    {/* Learner Photo - Top Right */}
+                    <div style={{ width: '100px', flexShrink: 0, marginLeft: '15px' }}>
+                      {learner.photo_url ? (
+                        <img 
+                          src={learner.photo_url} 
+                          alt="Learner" 
+                          style={{ 
+                            width: '100px', 
+                            height: '100px', 
+                            objectFit: 'cover', 
+                            border: '2px solid #333',
+                            borderRadius: '4px'
+                          }} 
+                        />
+                      ) : (
+                        <div style={{ 
+                          width: '100px', 
+                          height: '100px', 
+                          backgroundColor: '#f0f0f0', 
+                          border: '2px solid #333',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '12px',
+                          color: '#999'
+                        }}>
+                          No Photo
+                        </div>
+                      )}
                     </div>
                   </div>
 
