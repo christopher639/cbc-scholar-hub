@@ -253,39 +253,39 @@ const StreamDetail = () => {
             {learners.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No learners found in this stream</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="border-b border-border">
-                    <tr className="text-left text-sm font-medium text-muted-foreground">
-                      <th className="pb-3 pr-4">Admission No.</th>
-                      <th className="pb-3 pr-4">Learner Name</th>
-                      <th className="pb-3 pr-4">Gender</th>
-                      <th className="pb-3 pr-4">Date of Birth</th>
-                      <th className="pb-3">Fee Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {learners.map((learner) => (
-                      <tr key={learner.id} className="text-sm hover:bg-muted/50 transition-colors">
-                        <td className="py-3 pr-4">
-                          <Link to={`/learners/${learner.id}`} className="text-primary hover:underline">
-                            {learner.admission_number}
-                          </Link>
-                        </td>
-                        <td className="py-3 pr-4 font-medium">
-                          {learner.first_name} {learner.last_name}
-                        </td>
-                        <td className="py-3 pr-4 capitalize">{learner.gender}</td>
-                        <td className="py-3 pr-4">{new Date(learner.date_of_birth).toLocaleDateString()}</td>
-                        <td className="py-3">
-                          <Badge variant={learner.feeBalance > 0 ? "destructive" : "default"}>
-                            KES {learner.feeBalance.toLocaleString()}
-                          </Badge>
-                        </td>
+              <div className="overflow-x-auto -mx-6 sm:mx-0">
+                <div className="inline-block min-w-full align-middle">
+                  <table className="min-w-full">
+                    <thead className="border-b border-border">
+                      <tr className="text-left text-sm font-medium text-muted-foreground">
+                        <th className="pb-3 pr-4 pl-6 sm:pl-0">Admission</th>
+                        <th className="pb-3 pr-4">Name</th>
+                        <th className="pb-3 pr-4 hidden md:table-cell">Gender</th>
+                        <th className="pb-3 pr-6 sm:pr-0">Fee Balance</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {learners.map((learner) => (
+                        <tr key={learner.id} className="text-sm hover:bg-muted/50 transition-colors">
+                          <td className="py-3 pr-4 pl-6 sm:pl-0">
+                            <Link to={`/learners/${learner.id}`} className="text-primary hover:underline text-xs font-mono">
+                              {learner.admission_number}
+                            </Link>
+                          </td>
+                          <td className="py-3 pr-4 font-medium">
+                            {learner.first_name} {learner.last_name}
+                          </td>
+                          <td className="py-3 pr-4 capitalize hidden md:table-cell">{learner.gender}</td>
+                          <td className="py-3 pr-6 sm:pr-0">
+                            <Badge variant={learner.feeBalance > 0 ? "destructive" : "default"}>
+                              {learner.feeBalance.toLocaleString()}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </CardContent>

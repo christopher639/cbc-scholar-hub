@@ -212,17 +212,18 @@ export default function Communication() {
               )}
 
               {/* Subject (for email) */}
-              {(formData.messageType === "email" || formData.messageType === "both") && (
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Email Subject</Label>
-                  <Input
-                    id="subject"
-                    placeholder="Enter email subject"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  />
-                </div>
-              )}
+            {(formData.messageType === "email" || formData.messageType === "both") && (
+              <div className="space-y-2">
+                <Label htmlFor="subject">Email Subject</Label>
+                <Input
+                  id="subject"
+                  placeholder="e.g., School Fee Reminder, Important Notice"
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  required
+                />
+              </div>
+            )}
 
               {/* Message */}
               <div className="space-y-2">

@@ -223,45 +223,39 @@ const FeeManagement = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="border-b border-border">
-                        <tr className="text-left text-sm font-medium text-muted-foreground">
-                          <th className="pb-3 pr-4">Admission No.</th>
-                          <th className="pb-3 pr-4">Learner Name</th>
-                          <th className="pb-3 pr-4">Grade</th>
-                          <th className="pb-3 pr-4">Amount Paid</th>
-                          <th className="pb-3 pr-4">Date</th>
-                          <th className="pb-3">Method</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {payments.slice(0, 10).map((payment: any) => (
-                          <tr key={payment.id} className="text-sm">
-                            <td className="py-4 pr-4">
-                              <span className="font-mono font-medium text-foreground">
-                                {payment.learner?.admission_number || 'N/A'}
-                              </span>
-                            </td>
-                            <td className="py-4 pr-4 font-medium text-foreground">
-                              {payment.learner?.first_name} {payment.learner?.last_name}
-                            </td>
-                            <td className="py-4 pr-4 text-foreground">
-                              {payment.learner?.current_grade?.name || 'N/A'}
-                            </td>
-                            <td className="py-4 pr-4 font-semibold text-success">
-                              {formatCurrency(Number(payment.amount_paid))}
-                            </td>
-                            <td className="py-4 pr-4 text-muted-foreground">
-                              {new Date(payment.payment_date).toLocaleDateString()}
-                            </td>
-                            <td className="py-4">
-                              <Badge variant="secondary">{payment.payment_method || 'Cash'}</Badge>
-                            </td>
+                  <div className="overflow-x-auto -mx-6 sm:mx-0">
+                    <div className="inline-block min-w-full align-middle">
+                      <table className="min-w-full">
+                        <thead className="border-b border-border">
+                          <tr className="text-left text-sm font-medium text-muted-foreground">
+                            <th className="pb-3 pr-4 pl-6 sm:pl-0">Admission</th>
+                            <th className="pb-3 pr-4">Name</th>
+                            <th className="pb-3 pr-4 hidden md:table-cell">Grade</th>
+                            <th className="pb-3 pr-6 sm:pr-0">Amount</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {payments.slice(0, 10).map((payment: any) => (
+                            <tr key={payment.id} className="text-sm">
+                              <td className="py-4 pr-4 pl-6 sm:pl-0">
+                                <span className="font-mono font-medium text-foreground text-xs">
+                                  {payment.learner?.admission_number || 'N/A'}
+                                </span>
+                              </td>
+                              <td className="py-4 pr-4 font-medium text-foreground">
+                                {payment.learner?.first_name} {payment.learner?.last_name}
+                              </td>
+                              <td className="py-4 pr-4 text-foreground hidden md:table-cell">
+                                {payment.learner?.current_grade?.name || 'N/A'}
+                              </td>
+                              <td className="py-4 pr-6 sm:pr-0 font-semibold text-success">
+                                {formatCurrency(Number(payment.amount_paid))}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </CardContent>
