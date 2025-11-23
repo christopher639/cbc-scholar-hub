@@ -51,12 +51,41 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
   }, [open, currentPeriod, currentYear]);
 
   useEffect(() => {
-    if (selectedGradeId && selectedStreamId) {
+    if (selectedGradeId && selectedStreamId && selectedLearningAreaId && selectedAcademicYear && selectedTerm && selectedExamType) {
       fetchLearners();
+    } else if (selectedGradeId && selectedStreamId) {
+      // Fetch learners without existing marks if all filters not set
+      fetchLearnersOnly();
     } else {
       setLearners([]);
+      setScores({});
     }
-  }, [selectedGradeId, selectedStreamId]);
+  }, [selectedGradeId, selectedStreamId, selectedLearningAreaId, selectedAcademicYear, selectedTerm, selectedExamType]);
+
+  const fetchLearnersOnly = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("learners")
+        .select("id, admission_number, first_name, last_name")
+        .eq("current_grade_id", selectedGradeId)
+        .eq("current_stream_id", selectedStreamId)
+        .eq("status", "active")
+        .order("admission_number", { ascending: true });
+
+      if (error) throw error;
+      setLearners(data || []);
+      setScores({});
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchLearners = async () => {
     setLoading(true);
@@ -71,6 +100,30 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
 
       if (error) throw error;
       setLearners(data || []);
+
+      // Fetch existing performance records for these learners
+      if (data && data.length > 0) {
+        const learnerIds = data.map(l => l.id);
+        const { data: existingRecords } = await supabase
+          .from("performance_records")
+          .select("learner_id, marks")
+          .in("learner_id", learnerIds)
+          .eq("learning_area_id", selectedLearningAreaId)
+          .eq("academic_year", selectedAcademicYear)
+          .eq("term", selectedTerm as "term_1" | "term_2" | "term_3")
+          .eq("exam_type", selectedExamType);
+
+        // Pre-populate scores with existing marks
+        if (existingRecords && existingRecords.length > 0) {
+          const existingScores: Record<string, string> = {};
+          existingRecords.forEach(record => {
+            existingScores[record.learner_id] = record.marks.toString();
+          });
+          setScores(existingScores);
+        } else {
+          setScores({});
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -134,13 +187,16 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
           academic_year: selectedAcademicYear,
           term: (selectedTerm as any) || null,
           academic_period_id: currentPeriod?.id,
-          teacher_id: user.data.user?.id,
         };
       });
 
+      // Use upsert to update existing records or insert new ones
       const { error } = await supabase
         .from("performance_records")
-        .insert(performanceRecords);
+        .upsert(performanceRecords, {
+          onConflict: "learner_id,learning_area_id,academic_year,term,exam_type",
+          ignoreDuplicates: false
+        });
 
       if (error) throw error;
 
