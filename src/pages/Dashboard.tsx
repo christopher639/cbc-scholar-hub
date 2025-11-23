@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, GraduationCap, DollarSign, UserCheck, Activity, Calendar } from "lucide-react";
+import { Users, GraduationCap, DollarSign, UserCheck, Activity, Calendar, TrendingDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -54,6 +54,12 @@ const Dashboard = () => {
       value: loading ? "..." : formatCurrency(stats.feeCollection),
       icon: DollarSign,
       colorClass: "text-success",
+    },
+    {
+      title: "Uncollected Balance",
+      value: loading ? "..." : formatCurrency(stats.uncollectedBalance),
+      icon: TrendingDown,
+      colorClass: "text-destructive",
     },
     {
       title: "Pending Admissions",
@@ -130,7 +136,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
           {statsDisplay.map((stat) => (
             <StatCard key={stat.title} {...stat} />
           ))}

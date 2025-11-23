@@ -9,6 +9,7 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
     activeStreams: 0,
     feeCollection: 0,
     pendingAdmissions: 0,
+    uncollectedBalance: 0,
   });
   const [recentAdmissions, setRecentAdmissions] = useState<any[]>([]);
   const [gradeDistribution, setGradeDistribution] = useState<any[]>([]);
@@ -58,6 +59,41 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
         (sum, payment) => sum + Number(payment.amount_paid),
         0
       ) || 0;
+
+      // Get current academic period
+      const { data: currentPeriodData } = await supabase
+        .from("academic_periods")
+        .select("*")
+        .eq("is_current", true)
+        .maybeSingle();
+
+      // Calculate uncollected balance based on current period
+      let uncollectedBalance = 0;
+      if (currentPeriodData) {
+        // Get all active learners
+        const { data: activeLearnersData } = await supabase
+          .from("learners")
+          .select("id")
+          .eq("status", "active");
+
+        const activeLearnerIds = activeLearnersData?.map(l => l.id) || [];
+
+        if (activeLearnerIds.length > 0) {
+          // Get all invoices for active learners in current period
+          const { data: invoicesData } = await supabase
+            .from("student_invoices")
+            .select("balance_due")
+            .eq("academic_year", currentPeriodData.academic_year)
+            .eq("term", currentPeriodData.term)
+            .neq("status", "cancelled")
+            .in("learner_id", activeLearnerIds);
+
+          uncollectedBalance = invoicesData?.reduce(
+            (sum, invoice) => sum + Number(invoice.balance_due),
+            0
+          ) || 0;
+        }
+      }
 
       // Get recent admissions
       const { data: admissionsData } = await supabase
@@ -114,6 +150,7 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
         activeStreams: streamsCount || 0,
         feeCollection: totalCollection,
         pendingAdmissions: 0, // Can be calculated based on status field if added
+        uncollectedBalance,
       });
 
       setRecentAdmissions(admissionsData || []);
