@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/currency";
+import { formatCurrencyCompact } from "@/lib/currency";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
@@ -52,13 +52,13 @@ const Dashboard = () => {
     },
     {
       title: "Fee Collection",
-      value: loading ? "..." : formatCurrency(stats.feeCollection),
+      value: loading ? "..." : formatCurrencyCompact(stats.feeCollection),
       icon: DollarSign,
       colorClass: "text-success",
     },
     {
       title: "Uncollected Balance",
-      value: loading ? "..." : formatCurrency(stats.uncollectedBalance),
+      value: loading ? "..." : formatCurrencyCompact(stats.uncollectedBalance),
       icon: TrendingDown,
       colorClass: "text-destructive",
     },
@@ -167,10 +167,10 @@ const Dashboard = () => {
                     <YAxis 
                       className="text-xs"
                       tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      tickFormatter={(value) => `${formatCurrency(value)}`}
+                      tickFormatter={(value) => `${formatCurrencyCompact(value)}`}
                     />
                     <Tooltip 
-                      formatter={(value: any) => formatCurrency(value)}
+                      formatter={(value: any) => formatCurrencyCompact(value)}
                       contentStyle={{
                         backgroundColor: 'hsl(var(--popover))',
                         border: '1px solid hsl(var(--border))',
@@ -298,7 +298,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-success">{formatCurrency(payment.amount_paid)}</p>
+                      <p className="font-semibold text-success">{formatCurrencyCompact(payment.amount_paid)}</p>
                       <p className="text-xs text-muted-foreground">{new Date(payment.payment_date).toLocaleDateString()}</p>
                     </div>
                   </div>
