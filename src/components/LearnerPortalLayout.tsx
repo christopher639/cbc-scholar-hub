@@ -113,59 +113,59 @@ export default function LearnerPortalLayout() {
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <SidebarTrigger />
+          <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex h-14 md:h-16 items-center justify-between px-4">
+              <div className="flex items-center gap-2 md:gap-4">
+                <SidebarTrigger />
+                <div className="flex items-center gap-2 md:gap-3">
                   {schoolInfo?.logo_url ? (
-                    <img src={schoolInfo.logo_url} alt="School Logo" className="h-12 w-12 object-contain" />
+                    <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 md:h-10 md:w-10 rounded-full object-cover" />
                   ) : (
-                    <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <GraduationCap className="h-6 w-6 text-primary" />
+                    <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                     </div>
                   )}
-                  <div>
-                    <h1 className="text-lg font-bold">{schoolInfo?.school_name || "School Portal"}</h1>
-                    <p className="text-xs text-muted-foreground">{schoolInfo?.motto || "Learner Portal"}</p>
+                  <div className="hidden sm:block">
+                    <h1 className="text-sm md:text-lg font-bold">{schoolInfo?.school_name || "School Portal"}</h1>
+                    <p className="text-xs text-muted-foreground hidden md:block">{schoolInfo?.motto || "Learner Portal"}</p>
                   </div>
                 </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-12 w-12 rounded-full">
-                      <Avatar className="h-12 w-12 cursor-pointer ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
-                        <AvatarImage src={learnerDetails.photo_url} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                          {learnerDetails.first_name[0]}{learnerDetails.last_name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{learnerDetails.first_name} {learnerDetails.last_name}</p>
-                        <p className="text-xs text-muted-foreground">Adm: {learnerDetails.admission_number}</p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate("/learner-portal")}>
-                      <User className="mr-2 h-4 w-4" />
-                      View Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowPasswordDialog(true)}>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Change Password
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full p-0">
+                    <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
+                      <AvatarImage src={learnerDetails.photo_url} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs md:text-sm">
+                        {learnerDetails.first_name[0]}{learnerDetails.last_name[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">{learnerDetails.first_name} {learnerDetails.last_name}</p>
+                      <p className="text-xs text-muted-foreground">Adm: {learnerDetails.admission_number}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/learner-portal")}>
+                    <User className="mr-2 h-4 w-4" />
+                    View Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowPasswordDialog(true)}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Change Password
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 

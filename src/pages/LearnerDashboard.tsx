@@ -242,43 +242,43 @@ export default function LearnerDashboard() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
       {/* Header Section */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            <Avatar className="h-32 w-32">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+            <Avatar className="h-24 w-24 md:h-32 md:w-32 mx-auto md:mx-0">
               <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} />
-              <AvatarFallback className="text-3xl">
+              <AvatarFallback className="text-2xl md:text-3xl">
                 {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-3 md:space-y-4 text-center md:text-left">
               <div>
-                <h1 className="text-3xl font-bold">
+                <h1 className="text-2xl md:text-3xl font-bold">
                   {learnerDetails?.first_name} {learnerDetails?.last_name}
                 </h1>
-                <p className="text-muted-foreground">Admission No: {learnerDetails?.admission_number}</p>
+                <p className="text-sm md:text-base text-muted-foreground">Admission No: {learnerDetails?.admission_number}</p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary" className="text-base">
+              <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                <Badge variant="secondary" className="text-sm md:text-base">
                   {learnerDetails?.current_grade?.name} {learnerDetails?.current_stream?.name}
                 </Badge>
-                <Badge className="text-base">Active</Badge>
+                <Badge className="text-sm md:text-base">Active</Badge>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 text-xs md:text-sm">
+                <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>Born: {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"} ({learnerDetails?.date_of_birth ? calculateAge(learnerDetails.date_of_birth) : 0} years)</span>
+                  <span>Born: {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"} ({learnerDetails?.date_of_birth ? calculateAge(learnerDetails.date_of_birth) : 0} yrs)</span>
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
                   <User className="h-4 w-4" />
                   <span className="capitalize">{learnerDetails?.gender}</span>
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span>Enrolled: {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}</span>
                 </div>
@@ -289,7 +289,7 @@ export default function LearnerDashboard() {
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Average Score</CardTitle>
@@ -339,15 +339,16 @@ export default function LearnerDashboard() {
 
       {/* Tabbed Content */}
       <Tabs defaultValue="profile" className="space-y-4">
-        <div className="flex justify-between items-center">
-          <TabsList className="grid grid-cols-3 lg:w-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <TabsList className="grid grid-cols-3 w-full sm:w-auto">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="fees">Fees</TabsTrigger>
           </TabsList>
-          <Button onClick={handleDownloadReportCard} variant="outline" className="gap-2">
+          <Button onClick={handleDownloadReportCard} variant="outline" className="gap-2 w-full sm:w-auto">
             <Download className="h-4 w-4" />
-            Download Report Card
+            <span className="hidden sm:inline">Download Report Card</span>
+            <span className="sm:hidden">Download Report</span>
           </Button>
         </div>
 
@@ -430,7 +431,7 @@ export default function LearnerDashboard() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Select value={selectedYear} onValueChange={setSelectedYear}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Year" />
