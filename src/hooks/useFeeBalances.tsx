@@ -67,8 +67,8 @@ export function useFeeBalances({ gradeId, streamId, academicYear, term }: FeeBal
 
           const totalFees = structure?.amount || 0;
 
-          // Get payments for this specific grade/term/year
-          const { data: payments } = await supabase
+          // Get payments from both fee_payments and fee_transactions for this specific grade/term/year
+          const { data: feePayments } = await supabase
             .from("fee_payments")
             .select(`
               amount_paid,
@@ -85,7 +85,26 @@ export function useFeeBalances({ gradeId, streamId, academicYear, term }: FeeBal
             .eq("fee_structures.academic_year", academicYear)
             .eq("fee_structures.term", term);
 
-          const amountPaid = payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+          const { data: feeTransactions } = await supabase
+            .from("fee_transactions")
+            .select("amount_paid, payment_date, invoice_id")
+            .eq("learner_id", learner.id);
+
+          // Filter transactions that belong to the current term/year by checking their invoices
+          const { data: relevantInvoices } = await supabase
+            .from("student_invoices")
+            .select("id")
+            .eq("learner_id", learner.id)
+            .eq("grade_id", learner.current_grade_id)
+            .eq("academic_year", academicYear)
+            .eq("term", term);
+
+          const relevantInvoiceIds = new Set(relevantInvoices?.map(inv => inv.id) || []);
+          const filteredTransactions = feeTransactions?.filter(t => relevantInvoiceIds.has(t.invoice_id)) || [];
+
+          const amountFromPayments = feePayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+          const amountFromTransactions = filteredTransactions?.reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
+          const amountPaid = amountFromPayments + amountFromTransactions;
           const balance = Math.max(0, totalFees - amountPaid);
 
           return {
