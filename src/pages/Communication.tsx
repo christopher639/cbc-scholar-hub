@@ -89,7 +89,9 @@ export default function Communication() {
 
       toast({
         title: "Success",
-        description: "Message is being sent to recipients.",
+        description: formData.messageType === "email" || formData.messageType === "both" 
+          ? "Emails are being sent to parent recipients. Check recent messages for status." 
+          : "Message sent successfully.",
       });
 
       // Reset form
