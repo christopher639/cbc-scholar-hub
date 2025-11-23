@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { useTeachers } from "@/hooks/useTeachers";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Teachers = () => {
+  const navigate = useNavigate();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { teachers, loading } = useTeachers();
@@ -156,7 +158,7 @@ const Teachers = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => window.location.href = `/teachers/${teacher.id}`}>
+                              <DropdownMenuItem onClick={() => navigate(`/teachers/${teacher.id}`)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Profile
                               </DropdownMenuItem>
