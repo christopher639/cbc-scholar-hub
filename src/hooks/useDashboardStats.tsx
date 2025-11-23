@@ -14,6 +14,7 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
   const [recentAdmissions, setRecentAdmissions] = useState<any[]>([]);
   const [gradeDistribution, setGradeDistribution] = useState<any[]>([]);
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
+  const [balanceByGrade, setBalanceByGrade] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -69,6 +70,8 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
 
       // Calculate uncollected balance based on current period
       let uncollectedBalance = 0;
+      const balanceByGradeData: any[] = [];
+      
       if (currentPeriodData) {
         // Get all active learners
         const { data: activeLearnersData } = await supabase
@@ -79,10 +82,13 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
         const activeLearnerIds = activeLearnersData?.map(l => l.id) || [];
 
         if (activeLearnerIds.length > 0) {
-          // Get all invoices for active learners in current period
+          // Get all invoices for active learners in current period with grade info
           const { data: invoicesData } = await supabase
             .from("student_invoices")
-            .select("balance_due")
+            .select(`
+              balance_due,
+              grade:grades(id, name)
+            `)
             .eq("academic_year", currentPeriodData.academic_year)
             .eq("term", currentPeriodData.term)
             .neq("status", "cancelled")
@@ -92,6 +98,30 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
             (sum, invoice) => sum + Number(invoice.balance_due),
             0
           ) || 0;
+
+          // Group balance by grade
+          const gradeBalanceMap = new Map<string, { name: string; balance: number }>();
+          
+          invoicesData?.forEach((invoice: any) => {
+            const gradeId = invoice.grade?.id;
+            const gradeName = invoice.grade?.name || "Unknown";
+            const balance = Number(invoice.balance_due);
+            
+            if (gradeId) {
+              const existing = gradeBalanceMap.get(gradeId);
+              if (existing) {
+                existing.balance += balance;
+              } else {
+                gradeBalanceMap.set(gradeId, { name: gradeName, balance });
+              }
+            }
+          });
+
+          // Convert to array and sort by balance
+          balanceByGradeData.push(
+            ...Array.from(gradeBalanceMap.values())
+              .sort((a, b) => b.balance - a.balance)
+          );
         }
       }
 
@@ -156,6 +186,7 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
       setRecentAdmissions(admissionsData || []);
       setGradeDistribution(distribution);
       setRecentPayments(paymentsHistoryData || []);
+      setBalanceByGrade(balanceByGradeData);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -167,5 +198,5 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
     }
   };
 
-  return { stats, recentAdmissions, gradeDistribution, recentPayments, loading, fetchStats };
+  return { stats, recentAdmissions, gradeDistribution, recentPayments, balanceByGrade, loading, fetchStats };
 }

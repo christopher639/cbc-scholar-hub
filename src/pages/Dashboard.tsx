@@ -15,10 +15,11 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
-  const { stats, recentAdmissions, gradeDistribution, recentPayments, loading } = useDashboardStats(dateRange.start, dateRange.end);
+  const { stats, recentAdmissions, gradeDistribution, recentPayments, balanceByGrade, loading } = useDashboardStats(dateRange.start, dateRange.end);
   const { user } = useAuth();
   const { schoolInfo } = useSchoolInfo();
   const isAdmin = user?.role === "admin";
@@ -143,6 +144,51 @@ const Dashboard = () => {
         </div>
 
         <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+          {/* Uncollected Balance by Grade */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Uncollected Balance by Grade</CardTitle>
+              <CardDescription>Outstanding fees breakdown by grade level</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-[300px] w-full" />
+              ) : balanceByGrade.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No outstanding balances</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={balanceByGrade}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="name" 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      tickFormatter={(value) => `${formatCurrency(value)}`}
+                    />
+                    <Tooltip 
+                      formatter={(value: any) => formatCurrency(value)}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Bar dataKey="balance" radius={[8, 8, 0, 0]}>
+                      {balanceByGrade.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill="hsl(var(--destructive))" />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Recent Admissions */}
           <Card>
             <CardHeader>
