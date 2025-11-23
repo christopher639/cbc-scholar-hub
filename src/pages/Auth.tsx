@@ -70,7 +70,7 @@ export default function Auth() {
               Welcome to {schoolInfo?.school_name || "School Management System"}
             </CardTitle>
             <CardDescription>
-              Teachers: Use employment number & ID number<br />
+              Teachers: Use TSC number & ID number<br />
               Learners: Use admission number & birth certificate<br />
               Staff: Use email & password
             </CardDescription>
@@ -82,7 +82,7 @@ export default function Auth() {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                placeholder="Admission number, employment number, or email"
+                placeholder="TSC number, admission number, or email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required

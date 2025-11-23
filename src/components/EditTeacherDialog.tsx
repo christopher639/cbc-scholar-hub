@@ -22,6 +22,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [formData, setFormData] = useState({
+    tsc_number: "",
     employee_number: "",
     id_number: "",
     first_name: "",
@@ -37,6 +38,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
   useEffect(() => {
     if (teacher) {
       setFormData({
+        tsc_number: teacher.tsc_number || "",
         employee_number: teacher.employee_number || "",
         id_number: teacher.id_number || "",
         first_name: teacher.first_name || "",
@@ -101,6 +103,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
       }
 
       const updateData: any = {
+        tsc_number: formData.tsc_number || null,
         employee_number: formData.employee_number || null,
         id_number: formData.id_number || null,
         first_name: formData.first_name,
@@ -167,17 +170,17 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="employee_number">Employee Number</Label>
+              <Label htmlFor="tsc_number">TSC Number (Username)</Label>
               <Input
-                id="employee_number"
-                name="employee_number"
-                value={formData.employee_number}
+                id="tsc_number"
+                name="tsc_number"
+                value={formData.tsc_number}
                 onChange={handleChange}
-                placeholder="EMP001"
+                placeholder="TSC123456"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="id_number">ID Number</Label>
+              <Label htmlFor="id_number">ID Number (Password)</Label>
               <Input
                 id="id_number"
                 name="id_number"
@@ -186,6 +189,17 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
                 placeholder="12345678"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="employee_number">Employment Number</Label>
+            <Input
+              id="employee_number"
+              name="employee_number"
+              value={formData.employee_number}
+              onChange={handleChange}
+              placeholder="EMP001"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

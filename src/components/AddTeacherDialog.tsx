@@ -21,6 +21,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    tsc_number: "",
     employee_number: "",
     id_number: "",
     first_name: "",
@@ -91,6 +92,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
       }
 
       const newTeacher = await addTeacher({
+        tsc_number: formData.tsc_number,
         employee_number: formData.employee_number,
         id_number: formData.id_number,
         first_name: formData.first_name,
@@ -120,6 +122,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
       }
 
       setFormData({
+        tsc_number: "",
         employee_number: "",
         id_number: "",
         first_name: "",
@@ -153,17 +156,17 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="employeeNumber">Employee Number (TSC) *</Label>
+              <Label htmlFor="tscNumber">TSC Number (Username) *</Label>
               <Input 
-                id="employeeNumber" 
-                placeholder="Enter employee number" 
-                value={formData.employee_number}
-                onChange={(e) => setFormData({...formData, employee_number: e.target.value})}
+                id="tscNumber" 
+                placeholder="Enter TSC number" 
+                value={formData.tsc_number}
+                onChange={(e) => setFormData({...formData, tsc_number: e.target.value})}
                 required 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="idNumber">ID Number *</Label>
+              <Label htmlFor="idNumber">ID Number (Password) *</Label>
               <Input 
                 id="idNumber" 
                 placeholder="Enter ID number" 
@@ -172,6 +175,17 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
                 required 
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="employeeNumber">Employment Number *</Label>
+            <Input 
+              id="employeeNumber" 
+              placeholder="Enter employment number" 
+              value={formData.employee_number}
+              onChange={(e) => setFormData({...formData, employee_number: e.target.value})}
+              required 
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

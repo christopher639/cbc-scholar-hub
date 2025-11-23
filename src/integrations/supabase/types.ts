@@ -1578,6 +1578,7 @@ export type Database = {
           photo_url: string | null
           salary: number | null
           specialization: string | null
+          tsc_number: string | null
           updated_at: string
           user_id: string | null
         }
@@ -1594,6 +1595,7 @@ export type Database = {
           photo_url?: string | null
           salary?: number | null
           specialization?: string | null
+          tsc_number?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -1610,6 +1612,7 @@ export type Database = {
           photo_url?: string | null
           salary?: number | null
           specialization?: string | null
+          tsc_number?: string | null
           updated_at?: string
           user_id?: string | null
         }
