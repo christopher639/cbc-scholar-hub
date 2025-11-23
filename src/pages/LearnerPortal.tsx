@@ -39,7 +39,7 @@ export default function LearnerPortal() {
       setLoading(true);
 
       // Fetch learner details with grade and stream info
-      const { data: learnerData } = await supabase
+      const { data: learnerData, error: learnerError } = await supabase
         .from("learners")
         .select(`
           *,
@@ -47,7 +47,26 @@ export default function LearnerPortal() {
           current_stream:streams(name)
         `)
         .eq("id", learner.id)
-        .single();
+        .maybeSingle();
+
+      if (learnerError) {
+        console.error("Error fetching learner details:", learnerError);
+        toast({
+          title: "Error",
+          description: "Could not load learner details. Please try logging in again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!learnerData) {
+        toast({
+          title: "Error",
+          description: "Learner profile not found. Please contact administration.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       setLearnerDetails(learnerData);
 
