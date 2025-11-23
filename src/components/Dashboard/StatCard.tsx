@@ -21,7 +21,7 @@ export function StatCard({ title, value, icon: Icon, trend, colorClass = "text-p
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <h3 className="mt-2 text-xl font-bold text-foreground">{value}</h3>
+            <h3 className="mt-2 text-lg font-bold text-foreground">{value}</h3>
             {trend && (
               <p className={cn("mt-2 text-sm font-medium", trend.positive ? "text-success" : "text-destructive")}>
                 {trend.positive ? "+" : "-"}{trend.value}
