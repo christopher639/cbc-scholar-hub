@@ -153,6 +153,13 @@ const TeacherProfile = () => {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
+            {teacher.photo_url && isAdmin && (
+              <img 
+                src={teacher.photo_url} 
+                alt={`${teacher.first_name} ${teacher.last_name}`}
+                className="h-16 w-16 rounded-full object-cover border-2 border-border"
+              />
+            )}
             <div>
               <h1 className="text-3xl font-bold text-foreground">
                 {teacher.first_name} {teacher.last_name}
