@@ -13,6 +13,7 @@ interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  login: (username: string, password: string) => Promise<{ success: boolean; role: string | null }>;
   loginAdmin: (email: string, password: string) => Promise<{ success: boolean; role: string | null }>;
   loginTeacher: (employeeNumber: string, idNumber: string) => Promise<{ success: boolean; role: string | null }>;
   loginLearner: (admissionNumber: string, birthCertificate: string) => Promise<{ success: boolean; role: string | null }>;
@@ -289,6 +290,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const login = async (username: string, password: string) => {
+    try {
+      setLoading(true);
+
+      // Try learner login first (admission number + birth certificate)
+      const learnerResult = await loginLearner(username, password);
+      if (learnerResult.success) {
+        return learnerResult;
+      }
+
+      // Try teacher login (employee number + id number)
+      const teacherResult = await loginTeacher(username, password);
+      if (teacherResult.success) {
+        return teacherResult;
+      }
+
+      // Try admin/staff login (email + password via Supabase auth)
+      const adminResult = await loginAdmin(username, password);
+      if (adminResult.success) {
+        return adminResult;
+      }
+
+      toast({
+        title: "Login Failed",
+        description: "Invalid credentials. Please check your username and password.",
+        variant: "destructive",
+      });
+      return { success: false, role: null };
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      return { success: false, role: null };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       const learnerToken = localStorage.getItem(LEARNER_SESSION_KEY);
@@ -323,7 +364,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginAdmin, loginTeacher, loginLearner, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginAdmin, loginTeacher, loginLearner, logout }}>
       {children}
     </AuthContext.Provider>
   );

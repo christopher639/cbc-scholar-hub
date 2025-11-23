@@ -6,17 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import { School } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, loading, loginAdmin, loginTeacher, loginLearner } = useAuth();
+  const { user, loading, login } = useAuth();
   const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loginType, setLoginType] = useState<"admin" | "teacher" | "learner">("learner");
 
   useEffect(() => {
     if (user && !loading) {
@@ -31,15 +30,7 @@ export default function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    let result;
-    
-    if (loginType === "admin") {
-      result = await loginAdmin(username, password);
-    } else if (loginType === "teacher") {
-      result = await loginTeacher(username, password);
-    } else {
-      result = await loginLearner(username, password);
-    }
+    const result = await login(username, password);
     
     // Explicitly navigate based on result
     if (result?.success) {
@@ -85,43 +76,22 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-3">
-              <Label>Login As</Label>
-              <RadioGroup value={loginType} onValueChange={(value) => setLoginType(value as any)} className="flex flex-row gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="learner" id="learner" />
-                  <Label htmlFor="learner" className="cursor-pointer">Learner</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="teacher" id="teacher" />
-                  <Label htmlFor="teacher" className="cursor-pointer">Teacher</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="admin" id="admin" />
-                  <Label htmlFor="admin" className="cursor-pointer">Admin</Label>
-                </div>
-              </RadioGroup>
-            </div>
             <div className="space-y-2">
-              <Label htmlFor="username">
-                {loginType === "learner" ? "Admission Number" : "Username/Email"}
-              </Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                placeholder={loginType === "learner" ? "Enter admission number" : "Enter username or email"}
+                placeholder="Enter your admission number, employee number, or email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">
-                {loginType === "learner" ? "Birth Certificate Number" : "Password"}
-              </Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder={loginType === "learner" ? "Enter birth certificate number" : "Enter password"}
+                placeholder="Enter your birth certificate, ID number, or password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
