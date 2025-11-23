@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
@@ -8,6 +8,7 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -19,6 +20,20 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Handle role-based redirects
+  const isLearnerRoute = location.pathname.startsWith("/learner-portal");
+  const isLearner = user.role === "learner";
+
+  // If learner trying to access non-learner routes, redirect to learner portal
+  if (isLearner && !isLearnerRoute && location.pathname !== "/auth") {
+    return <Navigate to="/learner-portal" replace />;
+  }
+
+  // If non-learner trying to access learner routes, redirect to dashboard
+  if (!isLearner && isLearnerRoute) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
