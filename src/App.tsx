@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import Dashboard from "./pages/Dashboard";
 import Learners from "./pages/Students";
 import Alumni from "./pages/Alumni";
@@ -74,10 +75,10 @@ const App = () => (
             <Route path="/teachers/:id" element={<ProtectedRoute><TeacherProfile /></ProtectedRoute>} />
             <Route path="/non-teaching-staff" element={<ProtectedRoute><NonTeachingStaff /></ProtectedRoute>} />
             <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
-            <Route path="/admissions" element={<ProtectedRoute><Admissions /></ProtectedRoute>} />
-            <Route path="/fees" element={<ProtectedRoute><FeeManagement /></ProtectedRoute>} />
-            <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
-            <Route path="/fee-structures" element={<ProtectedRoute><FeeStructures /></ProtectedRoute>} />
+            <Route path="/admissions" element={<ProtectedRoute><AdminRoute><Admissions /></AdminRoute></ProtectedRoute>} />
+            <Route path="/fees" element={<ProtectedRoute><AdminRoute><FeeManagement /></AdminRoute></ProtectedRoute>} />
+            <Route path="/invoices" element={<ProtectedRoute><AdminRoute><Invoices /></AdminRoute></ProtectedRoute>} />
+            <Route path="/fee-structures" element={<ProtectedRoute><AdminRoute><FeeStructures /></AdminRoute></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/bulk-learner-reports" element={<ProtectedRoute><BulkLearnerReports /></ProtectedRoute>} />
             <Route path="/school-info" element={<ProtectedRoute><SchoolInfo /></ProtectedRoute>} />
@@ -89,7 +90,7 @@ const App = () => (
             <Route path="/communication" element={<ProtectedRoute><Communication /></ProtectedRoute>} />
             <Route path="/offline-storage" element={<ProtectedRoute><OfflineSettings /></ProtectedRoute>} />
             <Route path="/academic-settings" element={<ProtectedRoute><AcademicSettings /></ProtectedRoute>} />
-            <Route path="/learner-fees" element={<ProtectedRoute><LearnerFeesPortal /></ProtectedRoute>} />
+            <Route path="/learner-fees" element={<ProtectedRoute><AdminRoute><LearnerFeesPortal /></AdminRoute></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
