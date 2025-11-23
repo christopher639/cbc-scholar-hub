@@ -26,13 +26,22 @@ export default function Profile() {
   }, [user]);
 
   const loadProfile = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "User session not found. Please log in again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from("profiles")
         .select("full_name, phone_number, avatar_url")
-        .eq("id", user?.id)
-        .single();
+        .eq("id", user.id)
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -42,9 +51,10 @@ export default function Profile() {
         setAvatarUrl(data.avatar_url || "");
       }
     } catch (error: any) {
+      console.error("Profile load error:", error);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error loading profile",
+        description: error.message || "Failed to load profile data",
         variant: "destructive",
       });
     } finally {
@@ -53,6 +63,15 @@ export default function Profile() {
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "User session not found. Please log in again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setUploading(true);
       const file = e.target.files?.[0];
@@ -70,7 +89,7 @@ export default function Profile() {
 
       // Upload to Supabase Storage
       const fileExt = file.name.split(".").pop();
-      const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
@@ -87,7 +106,7 @@ export default function Profile() {
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: publicUrl })
-        .eq("id", user?.id);
+        .eq("id", user.id);
 
       if (updateError) throw updateError;
 
@@ -97,9 +116,10 @@ export default function Profile() {
         description: "Profile picture updated successfully",
       });
     } catch (error: any) {
+      console.error("Avatar upload error:", error);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error uploading avatar",
+        description: error.message || "Failed to upload profile picture",
         variant: "destructive",
       });
     } finally {
@@ -109,16 +129,26 @@ export default function Profile() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "User session not found. Please log in again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
       const { error } = await supabase
         .from("profiles")
         .update({
-          full_name: fullName,
-          phone_number: phoneNumber,
+          full_name: fullName.trim(),
+          phone_number: phoneNumber.trim(),
         })
-        .eq("id", user?.id);
+        .eq("id", user.id);
 
       if (error) throw error;
 
@@ -127,9 +157,10 @@ export default function Profile() {
         description: "Profile updated successfully",
       });
     } catch (error: any) {
+      console.error("Profile update error:", error);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error updating profile",
+        description: error.message || "Failed to update profile",
         variant: "destructive",
       });
     } finally {

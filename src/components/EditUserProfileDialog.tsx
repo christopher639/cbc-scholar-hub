@@ -44,7 +44,7 @@ export function EditUserProfileDialog({
         .from("profiles")
         .select("full_name, phone_number")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -55,9 +55,10 @@ export function EditUserProfileDialog({
         });
       }
     } catch (error: any) {
+      console.error("Profile load error:", error);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error loading profile",
+        description: error.message || "Failed to load user profile",
         variant: "destructive",
       });
     } finally {
@@ -91,9 +92,10 @@ export function EditUserProfileDialog({
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
+      console.error("Profile update error:", error);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error updating profile",
+        description: error.message || "Failed to update user profile",
         variant: "destructive",
       });
     } finally {
