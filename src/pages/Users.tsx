@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, ShieldCheck, Users as UsersIcon, Plus } from "lucide-react";
+import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 import { CreateUserDialog } from "@/components/CreateUserDialog";
+import { EditUserProfileDialog } from "@/components/EditUserProfileDialog";
 import {
   Select,
   SelectContent,
@@ -38,6 +39,8 @@ const Users = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
   const { toast } = useToast();
 
   const fetchUsers = async () => {
@@ -177,7 +180,8 @@ const Users = () => {
                       <TableHead>Name</TableHead>
                       <TableHead>Current Role</TableHead>
                       <TableHead>Joined Date</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>Change Role</TableHead>
+                      <TableHead>Edit Profile</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -212,6 +216,19 @@ const Users = () => {
                             </SelectContent>
                           </Select>
                         </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser({ id: user.id, name: user.name });
+                              setEditDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -225,6 +242,14 @@ const Users = () => {
       <CreateUserDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
+        onSuccess={fetchUsers}
+      />
+      
+      <EditUserProfileDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        userId={selectedUser?.id || null}
+        userName={selectedUser?.name || ""}
         onSuccess={fetchUsers}
       />
     </DashboardLayout>
