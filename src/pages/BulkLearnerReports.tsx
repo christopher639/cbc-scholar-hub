@@ -403,7 +403,7 @@ const BulkLearnerReports = () => {
                           <tr>
                             <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '30px' }}>#</th>
                             <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Learning Area</th>
-                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Opening</th>
+                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Opener</th>
                             <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Mid-Term</th>
                             <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Final</th>
                             <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Average</th>
@@ -413,7 +413,7 @@ const BulkLearnerReports = () => {
                         <tbody>
                           {performanceRecords && performanceRecords.length > 0 ? (
                             Object.entries(groupedRecords).map(([areaName, records]: [string, any], idx: number) => {
-                              const opening = records.find((r: any) => r.exam_type?.toLowerCase().includes('opening'));
+                              const opening = records.find((r: any) => r.exam_type?.toLowerCase().includes('opener'));
                               const midterm = records.find((r: any) => r.exam_type?.toLowerCase().includes('mid'));
                               const final = records.find((r: any) => r.exam_type?.toLowerCase().includes('final'));
                               
@@ -470,14 +470,14 @@ const BulkLearnerReports = () => {
                                   <div style={{ 
                                     width: '100%', 
                                     height: `${height}%`, 
-                                    backgroundColor: average >= 76 ? '#10b981' : average >= 51 ? '#3b82f6' : average >= 26 ? '#f59e0b' : '#ef4444',
+                                    backgroundColor: '#666',
                                     borderRadius: '2px 2px 0 0',
                                     display: 'flex',
                                     alignItems: 'flex-start',
                                     justifyContent: 'center',
                                     paddingTop: '2px'
                                   }}>
-                                    <span style={{ fontSize: '8px', color: 'white', fontWeight: 'bold' }}>{average.toFixed(0)}</span>
+                                    <span style={{ fontSize: '8px', color: '#000', fontWeight: 'bold' }}>{average.toFixed(0)}</span>
                                   </div>
                                   <div style={{ fontSize: '7px', marginTop: '4px', textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {areaName.substring(0, 8)}
