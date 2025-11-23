@@ -42,24 +42,45 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
         .from("streams")
         .select("*", { count: "exact", head: true });
 
-      // Get fee collection with date filters
-      let paymentsQuery = supabase
+      // Get fee collection with date filters - combine both fee_payments and fee_transactions
+      let feePaymentsQuery = supabase
         .from("fee_payments")
         .select("amount_paid");
 
       if (startDate) {
-        paymentsQuery = paymentsQuery.gte("payment_date", startDate.toISOString().split('T')[0]);
+        feePaymentsQuery = feePaymentsQuery.gte("payment_date", startDate.toISOString().split('T')[0]);
       }
       if (endDate) {
-        paymentsQuery = paymentsQuery.lte("payment_date", endDate.toISOString().split('T')[0]);
+        feePaymentsQuery = feePaymentsQuery.lte("payment_date", endDate.toISOString().split('T')[0]);
       }
 
-      const { data: paymentsData } = await paymentsQuery;
+      const { data: feePaymentsData } = await feePaymentsQuery;
 
-      const totalCollection = paymentsData?.reduce(
+      let feeTransactionsQuery = supabase
+        .from("fee_transactions")
+        .select("amount_paid");
+
+      if (startDate) {
+        feeTransactionsQuery = feeTransactionsQuery.gte("payment_date", startDate.toISOString().split('T')[0]);
+      }
+      if (endDate) {
+        feeTransactionsQuery = feeTransactionsQuery.lte("payment_date", endDate.toISOString().split('T')[0]);
+      }
+
+      const { data: feeTransactionsData } = await feeTransactionsQuery;
+
+      // Combine both payment sources
+      const totalFromPayments = feePaymentsData?.reduce(
         (sum, payment) => sum + Number(payment.amount_paid),
         0
       ) || 0;
+
+      const totalFromTransactions = feeTransactionsData?.reduce(
+        (sum, transaction) => sum + Number(transaction.amount_paid),
+        0
+      ) || 0;
+
+      const totalCollection = totalFromPayments + totalFromTransactions;
 
       // Get current academic period
       const { data: currentPeriodData } = await supabase
@@ -177,20 +198,32 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
         .order("enrollment_date", { ascending: false })
         .limit(5);
 
-      // Get grade distribution with actual learner counts
+      // Get grade distribution with actual learner counts using RPC or manual aggregation
       const { data: gradesData } = await supabase
         .from("grades")
-        .select(`
-          id,
-          name,
-          learners:learners(count)
-        `);
+        .select("id, name");
+
+      // Get learner counts per grade
+      const { data: learnerCounts } = await supabase
+        .from("learners")
+        .select("current_grade_id")
+        .eq("status", "active");
+
+      // Create a map of grade counts
+      const countMap = new Map<string, number>();
+      learnerCounts?.forEach(learner => {
+        if (learner.current_grade_id) {
+          countMap.set(
+            learner.current_grade_id,
+            (countMap.get(learner.current_grade_id) || 0) + 1
+          );
+        }
+      });
 
       const distribution = (gradesData || []).map((grade: any) => {
-        const learnerCount = grade.learners?.[0]?.count || 0;
         return {
           grade: grade.name,
-          learners: learnerCount,
+          learners: countMap.get(grade.id) || 0,
         };
       }).filter(g => g.learners > 0);
 

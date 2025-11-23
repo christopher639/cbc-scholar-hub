@@ -20,46 +20,100 @@ export function useFeeStats(startDate?: Date, endDate?: Date) {
     try {
       setLoading(true);
 
-      // Build query with date filters
-      let paymentsQuery = supabase
+      // Build query with date filters - Get fee_payments
+      let feePaymentsQuery = supabase
         .from("fee_payments")
         .select("amount_paid, payment_date");
 
       if (startDate) {
-        paymentsQuery = paymentsQuery.gte("payment_date", startDate.toISOString().split('T')[0]);
+        feePaymentsQuery = feePaymentsQuery.gte("payment_date", startDate.toISOString().split('T')[0]);
       }
       if (endDate) {
-        paymentsQuery = paymentsQuery.lte("payment_date", endDate.toISOString().split('T')[0]);
+        feePaymentsQuery = feePaymentsQuery.lte("payment_date", endDate.toISOString().split('T')[0]);
       }
 
-      const { data: payments } = await paymentsQuery;
+      const { data: feePayments } = await feePaymentsQuery;
 
-      const totalCollected = payments?.reduce(
+      // Get fee_transactions
+      let feeTransactionsQuery = supabase
+        .from("fee_transactions")
+        .select("amount_paid, payment_date");
+
+      if (startDate) {
+        feeTransactionsQuery = feeTransactionsQuery.gte("payment_date", startDate.toISOString().split('T')[0]);
+      }
+      if (endDate) {
+        feeTransactionsQuery = feeTransactionsQuery.lte("payment_date", endDate.toISOString().split('T')[0]);
+      }
+
+      const { data: feeTransactions } = await feeTransactionsQuery;
+
+      // Combine both payment sources
+      const totalFromPayments = feePayments?.reduce(
         (sum, payment) => sum + Number(payment.amount_paid),
         0
       ) || 0;
 
-      // Calculate trend data grouped by date
+      const totalFromTransactions = feeTransactions?.reduce(
+        (sum, transaction) => sum + Number(transaction.amount_paid),
+        0
+      ) || 0;
+
+      const totalCollected = totalFromPayments + totalFromTransactions;
+
+      // Calculate trend data grouped by date - combine both sources
       const trendMap = new Map<string, number>();
-      payments?.forEach(payment => {
+      feePayments?.forEach(payment => {
         const date = payment.payment_date;
         trendMap.set(date, (trendMap.get(date) || 0) + Number(payment.amount_paid));
+      });
+      feeTransactions?.forEach(transaction => {
+        const date = transaction.payment_date;
+        trendMap.set(date, (trendMap.get(date) || 0) + Number(transaction.amount_paid));
       });
 
       const trend = Array.from(trendMap.entries())
         .map(([date, amount]) => ({ date, amount }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
-      // Get fee structures and calculate expected vs collected
-      const { data: structures } = await supabase
-        .from("fee_structures")
-        .select("amount");
+      // Get current academic period for accurate calculation
+      const { data: currentPeriodData } = await supabase
+        .from("academic_periods")
+        .select("*")
+        .eq("is_current", true)
+        .maybeSingle();
 
-      const { data: learners } = await supabase
-        .from("learners")
-        .select("id");
+      let totalExpected = 0;
+      
+      if (currentPeriodData) {
+        // Get all active learners with their grades
+        const { data: activeLearnersData } = await supabase
+          .from("learners")
+          .select("id, current_grade_id")
+          .eq("status", "active");
 
-      const totalExpected = (structures?.[0]?.amount || 0) * (learners?.length || 0);
+        if (activeLearnersData && activeLearnersData.length > 0) {
+          // Get fee structures for current period
+          const { data: feeStructuresData } = await supabase
+            .from("fee_structures")
+            .select("grade_id, amount")
+            .eq("academic_year", currentPeriodData.academic_year)
+            .eq("term", currentPeriodData.term);
+
+          // Create map of grade_id to fee amount
+          const feeStructureMap = new Map();
+          feeStructuresData?.forEach(fs => {
+            feeStructureMap.set(fs.grade_id, Number(fs.amount));
+          });
+
+          // Calculate expected fees based on each learner's grade
+          activeLearnersData.forEach((learner: any) => {
+            const expectedAmount = feeStructureMap.get(learner.current_grade_id) || 0;
+            totalExpected += expectedAmount;
+          });
+        }
+      }
+
       const outstanding = totalExpected - totalCollected;
       const collectionRate = totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0;
 
