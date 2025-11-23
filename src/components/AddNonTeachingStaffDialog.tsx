@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useNonTeachingStaff } from "@/hooks/useNonTeachingStaff";
-import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
@@ -18,7 +18,7 @@ interface AddNonTeachingStaffDialogProps {
 export function AddNonTeachingStaffDialog({ open, onOpenChange }: AddNonTeachingStaffDialogProps) {
   const { toast } = useToast();
   const { addStaff } = useNonTeachingStaff();
-  const { user } = useUnifiedAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     employee_number: "",

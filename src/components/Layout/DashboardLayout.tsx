@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
@@ -85,7 +85,7 @@ const navigation = [
 function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useUnifiedAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const { schoolInfo } = useSchoolInfo();
   const { state } = useSidebar();
@@ -192,7 +192,7 @@ function AppSidebar() {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
-  const { user } = useUnifiedAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (user && !profile) {

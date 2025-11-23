@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useUnifiedAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (

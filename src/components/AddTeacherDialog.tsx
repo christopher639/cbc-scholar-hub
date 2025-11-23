@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useTeachers } from "@/hooks/useTeachers";
-import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { teacherSchema } from "@/lib/validations/teacher";
@@ -18,7 +18,7 @@ interface AddTeacherDialogProps {
 export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) {
   const { toast } = useToast();
   const { addTeacher } = useTeachers();
-  const { user } = useUnifiedAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     employee_number: "",

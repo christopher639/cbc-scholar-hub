@@ -10,7 +10,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
-import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
@@ -18,7 +18,7 @@ import { formatCurrency } from "@/lib/currency";
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
   const { stats, recentAdmissions, gradeDistribution, loading } = useDashboardStats(dateRange.start, dateRange.end);
-  const { user } = useUnifiedAuth();
+  const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
   const statsDisplay = [
