@@ -75,6 +75,7 @@ const navigation = [
   { name: "Admissions", href: "/admissions", icon: UserCheck, roles: ["admin"] },
   { name: "Alumni", href: "/alumni", icon: GraduationCap, roles: ["admin", "teacher"] },
   { name: "Reports", href: "/reports", icon: FileText, roles: ["admin", "teacher"] },
+  { name: "Learner Reports", href: "/bulk-learner-reports", icon: FileText, roles: ["admin"] },
   { name: "School Info", href: "/school-info", icon: School, roles: ["admin", "teacher"] },
   { name: "Users & Roles", href: "/users", icon: ShieldCheck, roles: ["admin"] },
   { name: "Activities", href: "/activities", icon: FileText, roles: ["admin"] },
