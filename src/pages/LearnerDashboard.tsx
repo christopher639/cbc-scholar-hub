@@ -5,15 +5,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, DollarSign, TrendingUp, FileText, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/currency";
+import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
+import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 export default function LearnerDashboard() {
   const { learnerDetails } = useOutletContext<any>();
   const { user } = useAuth();
   const learner = user?.data;
+  const { currentPeriod } = useAcademicPeriods();
+  
   const [stats, setStats] = useState({
     totalSubjects: 0,
     averageScore: 0,
@@ -31,11 +37,24 @@ export default function LearnerDashboard() {
     currentTermBalance: 0,
   });
 
+  // Filters
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedTerm, setSelectedTerm] = useState<string>("");
+  const [selectedExamType, setSelectedExamType] = useState<string>("all");
+
   useEffect(() => {
     if (learner) {
       fetchStats();
     }
   }, [learner]);
+
+  // Set default filters when current period loads
+  useEffect(() => {
+    if (currentPeriod && !selectedYear) {
+      setSelectedYear(currentPeriod.academic_year);
+      setSelectedTerm(currentPeriod.term);
+    }
+  }, [currentPeriod]);
 
   const fetchStats = async () => {
     if (!learner) return;
@@ -121,6 +140,35 @@ export default function LearnerDashboard() {
     });
   };
 
+  // Filter performance data
+  const filteredPerformance = performance.filter(record => {
+    if (selectedYear && record.academic_year !== selectedYear) return false;
+    if (selectedTerm && record.term !== selectedTerm) return false;
+    if (selectedExamType !== "all" && record.exam_type !== selectedExamType) return false;
+    return true;
+  });
+
+  // Prepare chart data
+  const chartData = filteredPerformance.reduce((acc: any[], record) => {
+    const areaName = record.learning_area?.name || "Unknown";
+    const existing = acc.find(item => item.area === areaName);
+    
+    if (existing) {
+      existing.marks = Math.max(existing.marks, record.marks);
+    } else {
+      acc.push({
+        area: areaName,
+        marks: record.marks
+      });
+    }
+    return acc;
+  }, []);
+
+  // Get unique values for filters
+  const uniqueYears = [...new Set(performance.map(p => p.academic_year))].filter(Boolean);
+  const uniqueTerms = [...new Set(performance.map(p => p.term))].filter(Boolean);
+  const uniqueExamTypes = [...new Set(performance.map(p => p.exam_type))].filter(Boolean);
+
   const calculateAge = (dob: string) => {
     const birthDate = new Date(dob);
     const today = new Date();
@@ -203,12 +251,12 @@ export default function LearnerDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Fees</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Fees Accumulated</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(feeInfo.totalAccumulatedFees)}</div>
-            <p className="text-xs text-muted-foreground mt-2">Accumulated fees</p>
+            <p className="text-xs text-muted-foreground mt-2">Total fees</p>
           </CardContent>
         </Card>
 
@@ -225,7 +273,7 @@ export default function LearnerDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Balance Due</CardTitle>
+            <CardTitle className="text-sm font-medium">Fee Balance</CardTitle>
             <DollarSign className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
@@ -318,39 +366,126 @@ export default function LearnerDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Academic Performance</CardTitle>
-              <CardDescription>Your assessment results across all subjects</CardDescription>
+              <CardDescription>Filter and view your assessment results</CardDescription>
             </CardHeader>
-            <CardContent>
-              {performance.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No performance records found</p>
+            <CardContent className="space-y-6">
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueYears.map((year) => (
+                      <SelectItem key={year} value={year}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Term" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueTerms.map((term) => (
+                      <SelectItem key={term} value={term}>
+                        {term.replace("term_", "Term ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedExamType} onValueChange={setSelectedExamType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Exam Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Exams</SelectItem>
+                    {uniqueExamTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <PrintablePerformanceReport
+                  learner={learnerDetails}
+                  performance={filteredPerformance}
+                  academicYear={selectedYear}
+                  term={selectedTerm}
+                  examType={selectedExamType !== "all" ? selectedExamType : undefined}
+                />
+              </div>
+
+              {filteredPerformance.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No performance records for selected filters</p>
               ) : (
-                <div className="space-y-3">
-                  {performance.map((record) => (
-                    <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                      <div className="space-y-1 flex-1">
-                        <p className="font-medium">{record.learning_area?.name}</p>
-                        <div className="flex gap-2 text-sm text-muted-foreground">
-                          <span>{record.academic_period?.academic_year}</span>
-                          {record.academic_period?.term && (
-                            <span>• {record.academic_period.term.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
+                <>
+                  {/* Performance Chart */}
+                  {chartData.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Performance Overview</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="area" 
+                              angle={-45}
+                              textAnchor="end"
+                              height={100}
+                              style={{ fontSize: '12px' }}
+                            />
+                            <YAxis domain={[0, 100]} />
+                            <Tooltip />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="marks" 
+                              stroke="hsl(var(--primary))" 
+                              strokeWidth={2}
+                              name="Marks"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Performance Records */}
+                  <div className="space-y-3">
+                    {filteredPerformance.map((record) => (
+                      <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                        <div className="space-y-1 flex-1">
+                          <p className="font-medium">{record.learning_area?.name}</p>
+                          <div className="flex gap-2 text-sm text-muted-foreground">
+                            <span>{record.academic_period?.academic_year || record.academic_year}</span>
+                            {(record.academic_period?.term || record.term) && (
+                              <span>• {(record.academic_period?.term || record.term).replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
+                            )}
+                            {record.exam_type && <span>• {record.exam_type}</span>}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-2">
+                            <Badge className={`text-base ${getGradeColor(record.marks)}`}>
+                              {record.grade_letter || 'N/A'}
+                            </Badge>
+                            <span className="text-2xl font-bold">{record.marks}%</span>
+                          </div>
+                          {record.remarks && (
+                            <p className="text-xs text-muted-foreground mt-1">{record.remarks}</p>
                           )}
-                          {record.exam_type && <span>• {record.exam_type}</span>}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-2">
-                          <Badge className={`text-base ${getGradeColor(record.marks)}`}>
-                            {record.grade_letter || 'N/A'}
-                          </Badge>
-                          <span className="text-2xl font-bold">{record.marks}%</span>
-                        </div>
-                        {record.remarks && (
-                          <p className="text-xs text-muted-foreground mt-1">{record.remarks}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -403,23 +538,22 @@ export default function LearnerDashboard() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Paid</p>
-                  <p className="text-xl font-bold text-primary">{formatCurrency(feeInfo.currentTermPaid)}</p>
+                  <p className="text-xl font-bold text-success">{formatCurrency(feeInfo.currentTermPaid)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Balance</p>
-                  <p className="text-xl font-bold text-destructive">{formatCurrency(feeInfo.currentTermBalance)}</p>
+                  <p className={`text-xl font-bold ${feeInfo.currentTermBalance > 0 ? 'text-destructive' : 'text-success'}`}>
+                    {formatCurrency(feeInfo.currentTermBalance)}
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Invoices */}
+          {/* Invoice History */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Invoice History
-              </CardTitle>
+              <CardTitle>Invoice History</CardTitle>
             </CardHeader>
             <CardContent>
               {invoices.length === 0 ? (
@@ -427,19 +561,21 @@ export default function LearnerDashboard() {
               ) : (
                 <div className="space-y-3">
                   {invoices.map((invoice) => (
-                    <div key={invoice.id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                    <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="space-y-1">
-                        <p className="font-medium">
-                          {invoice.academic_year} - {invoice.term?.replace("_", " ").toUpperCase()}
-                        </p>
-                        <p className="text-sm text-muted-foreground">Invoice: {invoice.invoice_number}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Issued: {new Date(invoice.issue_date || invoice.created_at).toLocaleDateString()}
-                        </p>
+                        <p className="font-medium">{invoice.invoice_number}</p>
+                        <div className="text-sm text-muted-foreground">
+                          <span>{invoice.academic_year}</span>
+                          <span> • {invoice.term.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold">{formatCurrency(invoice.total_amount)}</p>
-                        <Badge variant={invoice.status === "paid" ? "default" : "secondary"}>
+                      <div className="text-right space-y-1">
+                        <p className="font-bold">{formatCurrency(invoice.balance_due)}</p>
+                        <Badge variant={
+                          invoice.status === 'paid' ? 'default' :
+                          invoice.status === 'partial' ? 'secondary' :
+                          invoice.status === 'overdue' ? 'destructive' : 'outline'
+                        }>
                           {invoice.status}
                         </Badge>
                       </div>
@@ -461,17 +597,19 @@ export default function LearnerDashboard() {
               ) : (
                 <div className="space-y-3">
                   {transactions.map((transaction) => (
-                    <div key={transaction.id} className="flex justify-between items-center p-4 border rounded-lg">
+                    <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="space-y-1">
-                        <p className="font-medium">{formatCurrency(transaction.amount_paid)}</p>
+                        <p className="font-medium">{transaction.transaction_number}</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(transaction.payment_date).toLocaleDateString()}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {transaction.payment_method} • {transaction.transaction_number}
+                          {new Date(transaction.payment_date).toLocaleDateString()} • {transaction.payment_method}
                         </p>
                       </div>
-                      <Badge variant="outline">Paid</Badge>
+                      <div className="text-right">
+                        <p className="font-bold text-success">{formatCurrency(transaction.amount_paid)}</p>
+                        {transaction.reference_number && (
+                          <p className="text-xs text-muted-foreground">Ref: {transaction.reference_number}</p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
