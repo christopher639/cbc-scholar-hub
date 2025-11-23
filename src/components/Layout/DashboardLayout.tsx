@@ -284,7 +284,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             )}
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 ml-auto">
               <NotificationsDropdown />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

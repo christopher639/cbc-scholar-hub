@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical, User } from "lucide-react";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
@@ -70,8 +71,8 @@ const Learners = () => {
         {/* Filters */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <div className="relative flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row gap-3">
+              <div className="relative sm:col-span-2 lg:flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input 
                   placeholder="Search learner by name, admission number..." 
@@ -81,7 +82,7 @@ const Learners = () => {
                 />
               </div>
               <Select value={selectedGrade || undefined} onValueChange={(value) => setSelectedGrade(value || "")}>
-                <SelectTrigger className="w-full sm:w-40">
+                <SelectTrigger className="w-full lg:w-40">
                   <SelectValue placeholder="All Grades" />
                 </SelectTrigger>
                 <SelectContent>
@@ -93,7 +94,7 @@ const Learners = () => {
                 </SelectContent>
               </Select>
               <Select value={selectedStream || undefined} onValueChange={(value) => setSelectedStream(value || "")}>
-                <SelectTrigger className="w-full sm:w-40">
+                <SelectTrigger className="w-full lg:w-40">
                   <SelectValue placeholder="All Streams" />
                 </SelectTrigger>
                 <SelectContent>
@@ -106,11 +107,11 @@ const Learners = () => {
               </Select>
               <Button variant="outline" className="gap-2">
                 <Filter className="h-4 w-4" />
-                More Filters
+                <span className="hidden sm:inline">More Filters</span>
               </Button>
               <Button variant="outline" className="gap-2">
                 <Download className="h-4 w-4" />
-                Export
+                <span className="hidden sm:inline">Export</span>
               </Button>
             </div>
           </CardContent>
@@ -123,31 +124,32 @@ const Learners = () => {
             <CardDescription>Complete list of enrolled learners</CardDescription>
           </CardHeader>
           <CardContent>
-              <div className="overflow-x-auto">
-                {loading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-16 w-full" />
-                    ))}
-                  </div>
-                ) : filteredLearners.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No learners found</p>
-                    <Button onClick={() => setIsAddDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add First Learner
-                    </Button>
-                  </div>
-                ) : (
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : filteredLearners.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">No learners found</p>
+                <Button onClick={() => setIsAddDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Learner
+                </Button>
+              </div>
+            ) : (
+              <ScrollArea className="w-full">
+                <div className="min-w-full">
                   <table className="w-full">
                     <thead className="border-b border-border">
                       <tr className="text-left text-sm font-medium text-muted-foreground">
-                        <th className="pb-3 pr-4">Photo</th>
-                        <th className="pb-3 pr-4">Admission No.</th>
-                        <th className="pb-3 pr-4">Learner Name</th>
-                        <th className="pb-3 pr-4">Grade</th>
-                        <th className="pb-3 pr-4">Stream</th>
-                        <th className="pb-3">Actions</th>
+                        <th className="pb-3 pr-4 sticky left-0 bg-card z-10">Photo</th>
+                        <th className="pb-3 pr-4 sticky left-[60px] sm:left-[80px] bg-card z-10">Admission No.</th>
+                        <th className="pb-3 pr-4 sticky left-[140px] sm:left-[200px] bg-card z-10">Learner Name</th>
+                        <th className="pb-3 pr-4 hidden lg:table-cell">Grade</th>
+                        <th className="pb-3 pr-4 hidden lg:table-cell">Stream</th>
+                        <th className="pb-3 sticky right-0 bg-card z-10">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -157,7 +159,7 @@ const Learners = () => {
                           className="text-sm hover:bg-muted/50 transition-colors cursor-pointer"
                           onClick={() => navigate(`/learner/${learner.id}`)}
                         >
-                          <td className="py-4 pr-4">
+                          <td className="py-4 pr-4 sticky left-0 bg-card z-10">
                             {learner.photo_url ? (
                               <img 
                                 src={learner.photo_url} 
@@ -170,23 +172,23 @@ const Learners = () => {
                               </div>
                             )}
                           </td>
-                          <td className="py-4 pr-4">
-                            <span className="font-medium text-primary">
+                          <td className="py-4 pr-4 sticky left-[60px] sm:left-[80px] bg-card z-10">
+                            <span className="font-medium text-primary text-xs sm:text-sm">
                               {learner.admission_number}
                             </span>
                           </td>
-                          <td className="py-4 pr-4">
-                            <span className="font-medium text-foreground">
+                          <td className="py-4 pr-4 sticky left-[140px] sm:left-[200px] bg-card z-10 min-w-[120px]">
+                            <span className="font-medium text-foreground text-xs sm:text-sm">
                               {learner.first_name} {learner.last_name}
                             </span>
                           </td>
-                          <td className="py-4 pr-4">
+                          <td className="py-4 pr-4 hidden lg:table-cell">
                             <Badge variant="outline">{learner.current_grade?.name || 'N/A'}</Badge>
                           </td>
-                          <td className="py-4 pr-4">
+                          <td className="py-4 pr-4 hidden lg:table-cell">
                             <Badge variant="secondary">{learner.current_stream?.name || 'N/A'}</Badge>
                           </td>
-                          <td className="py-4">
+                          <td className="py-4 sticky right-0 bg-card z-10">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                 <Button variant="ghost" size="icon">
@@ -201,14 +203,14 @@ const Learners = () => {
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details
                                 </DropdownMenuItem>
-                                 <DropdownMenuItem onClick={(e) => {
-                                   e.stopPropagation();
-                                   setSelectedLearner(learner);
-                                   setIsEditDialogOpen(true);
-                                 }}>
-                                   <Edit className="mr-2 h-4 w-4" />
-                                   Edit Learner
-                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedLearner(learner);
+                                  setIsEditDialogOpen(true);
+                                }}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit Learner
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </td>
@@ -216,8 +218,9 @@ const Learners = () => {
                       ))}
                     </tbody>
                   </table>
-                )}
-              </div>
+                </div>
+              </ScrollArea>
+            )}
           </CardContent>
         </Card>
       </div>
