@@ -106,9 +106,23 @@ export function useLearnerDetail(learnerId: string) {
                inv.term === (currentPeriod?.term || "term_1")
       );
 
+      // Calculate current term paid from actual transactions and payments
+      const currentTermTransactions = transactions?.filter(
+        t => t.invoice?.academic_year === (currentPeriod?.academic_year || currentYear?.year) &&
+             t.invoice?.term === (currentPeriod?.term || "term_1")
+      ) || [];
+
+      const currentTermFeePayments = feePayments?.filter(
+        p => p.fee_structure?.academic_year === (currentPeriod?.academic_year || currentYear?.year) &&
+             p.fee_structure?.term === (currentPeriod?.term || "term_1")
+      ) || [];
+
+      const currentTermPaidFromTransactions = currentTermTransactions.reduce((sum, t) => sum + Number(t.amount_paid), 0);
+      const currentTermPaidFromFeePayments = currentTermFeePayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
+      const currentTermPaid = currentTermPaidFromTransactions + currentTermPaidFromFeePayments;
+
       const currentTermFees = currentTermInvoice?.total_amount || 0;
-      const currentTermPaid = currentTermInvoice?.amount_paid || 0;
-      const currentTermBalance = currentTermInvoice?.balance_due || 0;
+      const currentTermBalance = currentTermFees - currentTermPaid;
 
       setLearner({
         ...learnerData,

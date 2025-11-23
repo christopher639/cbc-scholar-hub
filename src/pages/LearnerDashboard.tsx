@@ -88,11 +88,24 @@ export default function LearnerDashboard() {
     // Fetch transactions
     const { data: transactionsData } = await supabase
       .from("fee_transactions")
-      .select("*")
+      .select(`
+        *,
+        invoice:student_invoices(invoice_number, academic_year, term)
+      `)
       .eq("learner_id", learner.id)
       .order("payment_date", { ascending: false });
 
     setTransactions(transactionsData || []);
+
+    // Fetch fee_payments (legacy payment system)
+    const { data: feePaymentsData } = await supabase
+      .from("fee_payments")
+      .select(`
+        *,
+        fee_structure:fee_structures(academic_year, term)
+      `)
+      .eq("learner_id", learner.id)
+      .order("payment_date", { ascending: false });
 
     // Calculate stats
     const avgScore = performanceData?.length
@@ -100,8 +113,13 @@ export default function LearnerDashboard() {
       : 0;
 
     const totalAccumulated = invoicesData?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
-    const totalPaid = transactionsData?.reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
-    const totalBalance = invoicesData?.reduce((sum, inv) => sum + Number(inv.balance_due), 0) || 0;
+    
+    // Calculate total paid from BOTH fee_transactions and fee_payments
+    const totalPaidFromTransactions = transactionsData?.reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
+    const totalPaidFromFeePayments = feePaymentsData?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+    const totalPaid = totalPaidFromTransactions + totalPaidFromFeePayments;
+    
+    const totalBalance = totalAccumulated - totalPaid;
 
     // Get current academic period
     const { data: currentPeriod } = await supabase
@@ -112,13 +130,29 @@ export default function LearnerDashboard() {
 
     let currentTermFees = 0;
     let currentTermPaid = 0;
+    
     if (currentPeriod && invoicesData) {
       const currentInvoice = invoicesData.find(
         inv => inv.academic_year === currentPeriod.academic_year && inv.term === currentPeriod.term
       );
+      
       if (currentInvoice) {
         currentTermFees = Number(currentInvoice.total_amount);
-        currentTermPaid = Number(currentInvoice.amount_paid);
+        
+        // Calculate current term paid from actual transactions for this term
+        const currentTermTransactions = transactionsData?.filter(
+          t => t.invoice?.academic_year === currentPeriod.academic_year &&
+               t.invoice?.term === currentPeriod.term
+        ) || [];
+        
+        const currentTermFeePayments = feePaymentsData?.filter(
+          p => p.fee_structure?.academic_year === currentPeriod.academic_year &&
+               p.fee_structure?.term === currentPeriod.term
+        ) || [];
+        
+        currentTermPaid = 
+          currentTermTransactions.reduce((sum, t) => sum + Number(t.amount_paid), 0) +
+          currentTermFeePayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
       }
     }
 
