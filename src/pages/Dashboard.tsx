@@ -18,7 +18,7 @@ import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
-  const { stats, recentAdmissions, gradeDistribution, loading } = useDashboardStats(dateRange.start, dateRange.end);
+  const { stats, recentAdmissions, gradeDistribution, recentPayments, loading } = useDashboardStats(dateRange.start, dateRange.end);
   const { user } = useAuth();
   const { schoolInfo } = useSchoolInfo();
   const isAdmin = user?.role === "admin";
@@ -212,6 +212,49 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Recent Payments */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Payments</CardTitle>
+            <CardDescription>Latest fee transactions recorded in the system</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : recentPayments.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">No recent payments</p>
+              ) : (
+                recentPayments.map((payment) => (
+                  <div key={payment.id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
+                        <DollarSign className="h-5 w-5 text-success" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {payment.learner?.first_name} {payment.learner?.last_name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {payment.payment_method} • {payment.transaction_number}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-success">{formatCurrency(payment.amount_paid)}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(payment.payment_date).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Actions */}
         <Card>

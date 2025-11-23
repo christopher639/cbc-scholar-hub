@@ -12,6 +12,7 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
   });
   const [recentAdmissions, setRecentAdmissions] = useState<any[]>([]);
   const [gradeDistribution, setGradeDistribution] = useState<any[]>([]);
+  const [recentPayments, setRecentPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -89,6 +90,24 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
         };
       }).filter(g => g.learners > 0);
 
+      // Get recent payments
+      const { data: paymentsHistoryData } = await supabase
+        .from("fee_transactions")
+        .select(`
+          id,
+          transaction_number,
+          amount_paid,
+          payment_date,
+          payment_method,
+          learner:learners(
+            admission_number,
+            first_name,
+            last_name
+          )
+        `)
+        .order("payment_date", { ascending: false })
+        .limit(5);
+
       setStats({
         totalLearners: learnersCount || 0,
         totalAlumni: alumniCount || 0,
@@ -99,6 +118,7 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
 
       setRecentAdmissions(admissionsData || []);
       setGradeDistribution(distribution);
+      setRecentPayments(paymentsHistoryData || []);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -110,5 +130,5 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
     }
   };
 
-  return { stats, recentAdmissions, gradeDistribution, loading, fetchStats };
+  return { stats, recentAdmissions, gradeDistribution, recentPayments, loading, fetchStats };
 }
