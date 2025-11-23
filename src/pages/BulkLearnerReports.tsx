@@ -195,23 +195,34 @@ const BulkLearnerReports = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="stream">Stream (Optional)</Label>
-                <Select 
-                  value={selectedStream} 
-                  onValueChange={setSelectedStream}
-                  disabled={!selectedGrade}
-                >
-                  <SelectTrigger id="stream">
-                    <SelectValue placeholder="All streams" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Streams</SelectItem>
-                    {streams.map((stream) => (
-                      <SelectItem key={stream.id} value={stream.id}>
-                        {stream.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select 
+                    value={selectedStream} 
+                    onValueChange={setSelectedStream}
+                    disabled={!selectedGrade}
+                  >
+                    <SelectTrigger id="stream">
+                      <SelectValue placeholder="All streams" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {streams.map((stream) => (
+                        <SelectItem key={stream.id} value={stream.id}>
+                          {stream.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedStream && (
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setSelectedStream("")}
+                      type="button"
+                    >
+                      ×
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
