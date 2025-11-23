@@ -702,6 +702,41 @@ export type Database = {
           },
         ]
       }
+      learner_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          last_accessed: string
+          learner_id: string
+          session_token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_accessed?: string
+          learner_id: string
+          session_token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_accessed?: string
+          learner_id?: string
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learner_sessions_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: false
+            referencedRelation: "learners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learners: {
         Row: {
           admission_number: string

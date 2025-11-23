@@ -50,11 +50,11 @@ export function useUnifiedAuth() {
       const learnerToken = localStorage.getItem(LEARNER_SESSION_KEY);
       if (learnerToken) {
         const { data: learnerSession } = await supabase
-          .from("parent_sessions")
+          .from("learner_sessions")
           .select("*, learner:learners(*)")
           .eq("session_token", learnerToken)
           .gt("expires_at", new Date().toISOString())
-          .single();
+          .maybeSingle();
 
         if (learnerSession && learnerSession.learner) {
           setUser({
@@ -162,7 +162,7 @@ export function useUnifiedAuth() {
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 24);
 
-        const { error: sessionError } = await supabase.from("parent_sessions").insert({
+        const { error: sessionError } = await supabase.from("learner_sessions").insert({
           learner_id: learner.id,
           session_token: sessionToken,
           expires_at: expiresAt.toISOString(),
@@ -272,7 +272,7 @@ export function useUnifiedAuth() {
 
       if (learnerToken) {
         await supabase
-          .from("parent_sessions")
+          .from("learner_sessions")
           .delete()
           .eq("session_token", learnerToken);
         localStorage.removeItem(LEARNER_SESSION_KEY);
