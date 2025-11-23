@@ -43,12 +43,30 @@ export default function Profile() {
         .eq("id", user.id)
         .maybeSingle();
 
-      if (error) throw error;
-
-      if (data) {
+      if (error) {
+        console.error("Profile load error:", error);
+        // Create profile if it doesn't exist
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            full_name: user.email || "",
+            phone_number: "",
+            avatar_url: null,
+          });
+        
+        if (!insertError) {
+          setFullName(user.email || "");
+          setPhoneNumber("");
+          setAvatarUrl("");
+        }
+      } else if (data) {
         setFullName(data.full_name || "");
         setPhoneNumber(data.phone_number || "");
         setAvatarUrl(data.avatar_url || "");
+      } else {
+        // Profile doesn't exist, use email as fallback
+        setFullName(user.email || "");
       }
     } catch (error: any) {
       console.error("Profile load error:", error);
@@ -169,7 +187,13 @@ export default function Profile() {
   };
 
   const getInitials = () => {
-    if (!fullName) return "U";
+    if (!fullName) {
+      // Try to use email first letter
+      if (user?.email) {
+        return user.email[0].toUpperCase();
+      }
+      return "U";
+    }
     return fullName
       .split(" ")
       .map((n) => n[0])
