@@ -42,6 +42,7 @@ import OfflineSettings from "./pages/OfflineSettings";
 import AcademicSettings from "./pages/AcademicSettings";
 import LearnerFeesPortal from "./pages/LearnerFeesPortal";
 import Signout from "./pages/Signout";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ const App = () => (
             <Route path="/offline-storage" element={<ProtectedRoute><OfflineSettings /></ProtectedRoute>} />
             <Route path="/academic-settings" element={<ProtectedRoute><AcademicSettings /></ProtectedRoute>} />
             <Route path="/learner-fees" element={<ProtectedRoute><AdminRoute><LearnerFeesPortal /></AdminRoute></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
