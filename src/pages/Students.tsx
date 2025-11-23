@@ -59,12 +59,12 @@ const Learners = () => {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Learners</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Manage and track all learner records</p>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">Learners</h1>
+            <p className="hidden sm:block text-sm sm:text-base text-muted-foreground">Manage and track all learner records</p>
           </div>
-          <Button className="gap-2 w-full sm:w-auto" onClick={() => setIsAddDialogOpen(true)}>
+          <Button className="gap-2 w-auto sm:w-auto" size="sm" onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="h-4 w-4" />
-            Add New Learner
+            <span className="hidden sm:inline">Add New Learner</span>
           </Button>
         </div>
 
@@ -105,11 +105,11 @@ const Learners = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2">
                 <Filter className="h-4 w-4" />
-                <span className="hidden sm:inline">More Filters</span>
+                <span className="hidden sm:inline">Filters</span>
               </Button>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2">
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
