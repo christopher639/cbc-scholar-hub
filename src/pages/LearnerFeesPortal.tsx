@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,11 +10,13 @@ import { useLearners } from "@/hooks/useLearners";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
+import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, TrendingDown, TrendingUp, FileText, Receipt } from "lucide-react";
 import { format } from "date-fns";
 
 export default function LearnerFeesPortal() {
   const [selectedLearnerId, setSelectedLearnerId] = useState<string>("");
+  const [feePayments, setFeePayments] = useState<any[]>([]);
   const { learners, loading: learnersLoading } = useLearners();
   const { invoices, loading: invoicesLoading } = useInvoices(selectedLearnerId);
   const { transactions, loading: transactionsLoading } = useTransactions(undefined, selectedLearnerId);
@@ -22,19 +24,59 @@ export default function LearnerFeesPortal() {
 
   const selectedLearner = learners.find(l => l.id === selectedLearnerId);
 
-  // Calculate current term balance
+  // Fetch fee_payments for selected learner
+  useEffect(() => {
+    const fetchFeePayments = async () => {
+      if (!selectedLearnerId) {
+        setFeePayments([]);
+        return;
+      }
+      
+      const { data } = await supabase
+        .from("fee_payments")
+        .select(`
+          *,
+          fee_structure:fee_structures(academic_year, term)
+        `)
+        .eq("learner_id", selectedLearnerId)
+        .order("payment_date", { ascending: false });
+      
+      setFeePayments(data || []);
+    };
+    
+    fetchFeePayments();
+  }, [selectedLearnerId]);
+
+  // Calculate current term invoice and balance
   const currentTermInvoice = invoices.find(
     inv => inv.academic_year === currentPeriod?.academic_year && inv.term === currentPeriod?.term
   );
 
-  const currentTermBalance = currentTermInvoice 
-    ? currentTermInvoice.balance_due 
-    : 0;
+  // Calculate current term paid from actual transactions
+  const currentTermTransactions = transactions.filter(
+    t => t.invoice?.academic_year === currentPeriod?.academic_year &&
+         t.invoice?.term === currentPeriod?.term
+  );
+  
+  const currentTermFeePayments = feePayments.filter(
+    p => p.fee_structure?.academic_year === currentPeriod?.academic_year &&
+         p.fee_structure?.term === currentPeriod?.term
+  );
+  
+  const currentTermPaid = 
+    currentTermTransactions.reduce((sum, t) => sum + Number(t.amount_paid), 0) +
+    currentTermFeePayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
+  
+  const currentTermFees = currentTermInvoice ? Number(currentTermInvoice.total_amount) : 0;
+  const currentTermBalance = currentTermFees - currentTermPaid;
 
-  // Calculate overall balance (all invoices)
-  const overallBalance = invoices.reduce((sum, inv) => sum + Number(inv.balance_due), 0);
-  const totalPaid = invoices.reduce((sum, inv) => sum + Number(inv.amount_paid), 0);
+  // Calculate overall totals from actual transactions
+  const totalPaidFromTransactions = transactions.reduce((sum, t) => sum + Number(t.amount_paid), 0);
+  const totalPaidFromFeePayments = feePayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
+  const totalPaid = totalPaidFromTransactions + totalPaidFromFeePayments;
+  
   const totalDue = invoices.reduce((sum, inv) => sum + Number(inv.total_amount), 0);
+  const overallBalance = totalDue - totalPaid;
 
   return (
     <DashboardLayout>
