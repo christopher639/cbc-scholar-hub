@@ -1,11 +1,12 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, User, Users } from "lucide-react";
+import { Plus, BookOpen, User, Users, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import AddPerformanceDialog from "@/components/AddPerformanceDialog";
 import { ManageLearningAreasDialog } from "@/components/ManageLearningAreasDialog";
 import { BulkPerformanceEntry } from "@/components/BulkPerformanceEntry";
+import { PerformanceAnalyticsDialog } from "@/components/PerformanceAnalyticsDialog";
 import { Badge } from "@/components/ui/badge";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +15,7 @@ const Performance = () => {
   const [isAddPerformanceOpen, setIsAddPerformanceOpen] = useState(false);
   const [isManageLearningAreasOpen, setIsManageLearningAreasOpen] = useState(false);
   const [isBulkEntryOpen, setIsBulkEntryOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const { learningAreas, loading } = useLearningAreas();
 
   return (
@@ -24,7 +26,11 @@ const Performance = () => {
             <h1 className="text-3xl font-bold text-foreground">Performance Tracking</h1>
             <p className="text-muted-foreground">Record and manage learner performance across learning areas</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => setIsAnalyticsOpen(true)}>
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Performance Analytics
+            </Button>
             <Button variant="outline" onClick={() => setIsManageLearningAreasOpen(true)}>
               <BookOpen className="h-4 w-4 mr-2" />
               Manage Learning Areas
@@ -138,6 +144,7 @@ const Performance = () => {
       <AddPerformanceDialog open={isAddPerformanceOpen} onOpenChange={setIsAddPerformanceOpen} />
       <ManageLearningAreasDialog open={isManageLearningAreasOpen} onOpenChange={setIsManageLearningAreasOpen} />
       <BulkPerformanceEntry open={isBulkEntryOpen} onOpenChange={setIsBulkEntryOpen} />
+      <PerformanceAnalyticsDialog open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen} />
     </DashboardLayout>
   );
 };
