@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { School } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, loading, loginAdmin, loginTeacher, loginLearner } = useUnifiedAuth();
+  const { user, loading, loginAdmin, loginTeacher, loginLearner } = useAuth();
   const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   
   const [username, setUsername] = useState("");

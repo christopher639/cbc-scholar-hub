@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +14,7 @@ import { format } from "date-fns";
 
 export default function LearnerPortal() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, logout } = useUnifiedAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const { toast } = useToast();
   const [performance, setPerformance] = useState<any[]>([]);
   const [feeInfo, setFeeInfo] = useState<any>(null);
