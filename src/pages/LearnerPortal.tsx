@@ -41,6 +41,7 @@ export default function LearnerPortal() {
     try {
       setLoading(true);
 
+      // Fetch performance records using learner_id
       const { data: perfData } = await supabase
         .from("performance_records")
         .select(`
@@ -54,27 +55,38 @@ export default function LearnerPortal() {
 
       setPerformance(perfData || []);
 
+      // Fetch fee information
       if (learner.current_grade_id) {
-        const { data: feeStructures } = await supabase
-          .from("fee_structures")
+        // Get current academic period
+        const { data: currentPeriod } = await supabase
+          .from("academic_periods")
           .select("*")
-          .eq("grade_id", learner.current_grade_id);
+          .eq("is_current", true)
+          .single();
 
-        const { data: payments } = await supabase
-          .from("fee_payments")
+        // Fetch invoices for the learner
+        const { data: invoices } = await supabase
+          .from("student_invoices")
+          .select("*")
+          .eq("learner_id", learner.id)
+          .order("created_at", { ascending: false });
+
+        // Fetch transactions for the learner
+        const { data: transactions } = await supabase
+          .from("fee_transactions")
           .select("*")
           .eq("learner_id", learner.id)
           .order("payment_date", { ascending: false });
 
-        const totalExpected = feeStructures?.reduce((sum, f) => sum + Number(f.amount), 0) || 0;
-        const totalPaid = payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+        const totalExpected = invoices?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+        const totalPaid = transactions?.reduce((sum, txn) => sum + Number(txn.amount_paid), 0) || 0;
         const balance = Math.max(0, totalExpected - totalPaid);
 
         setFeeInfo({
           totalExpected,
           totalPaid,
           balance,
-          payments: payments || [],
+          payments: transactions || [],
         });
       }
 
