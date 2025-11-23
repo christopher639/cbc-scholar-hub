@@ -63,31 +63,69 @@ export default function LearnerPortal() {
           .from("academic_periods")
           .select("*")
           .eq("is_current", true)
-          .single();
+          .maybeSingle();
 
-        // Fetch invoices for the learner
+        // Fetch all invoices for the learner
         const { data: invoices } = await supabase
           .from("student_invoices")
           .select("*")
           .eq("learner_id", learner.id)
+          .neq("status", "cancelled")
           .order("created_at", { ascending: false });
 
-        // Fetch transactions for the learner
+        // Fetch all fee transactions
         const { data: transactions } = await supabase
           .from("fee_transactions")
           .select("*")
           .eq("learner_id", learner.id)
           .order("payment_date", { ascending: false });
 
-        const totalExpected = invoices?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
-        const totalPaid = transactions?.reduce((sum, txn) => sum + Number(txn.amount_paid), 0) || 0;
-        const balance = Math.max(0, totalExpected - totalPaid);
+        // Fetch all legacy fee payments
+        const { data: legacyPayments } = await supabase
+          .from("fee_payments")
+          .select("*")
+          .eq("learner_id", learner.id)
+          .order("payment_date", { ascending: false });
+
+        // Calculate total fees (considering discounts)
+        const totalFees = invoices?.reduce((sum, inv) => {
+          const invoiceAmount = Number(inv.total_amount) - Number(inv.discount_amount || 0);
+          return sum + invoiceAmount;
+        }, 0) || 0;
+
+        // Calculate total paid from both transaction sources
+        const transactionsPaid = transactions?.reduce((sum, txn) => sum + Number(txn.amount_paid), 0) || 0;
+        const legacyPaid = legacyPayments?.reduce((sum, pmt) => sum + Number(pmt.amount_paid), 0) || 0;
+        const totalPaid = transactionsPaid + legacyPaid;
+
+        // Calculate balance
+        const balance = Math.max(0, totalFees - totalPaid);
+
+        // Combine all payments for display
+        const allPayments = [
+          ...(transactions || []).map(txn => ({
+            id: txn.id,
+            amount_paid: txn.amount_paid,
+            payment_date: txn.payment_date,
+            payment_method: txn.payment_method,
+            receipt_number: txn.receipt_number || txn.transaction_number,
+            type: 'transaction'
+          })),
+          ...(legacyPayments || []).map(pmt => ({
+            id: pmt.id,
+            amount_paid: pmt.amount_paid,
+            payment_date: pmt.payment_date,
+            payment_method: pmt.payment_method || 'Payment',
+            receipt_number: pmt.receipt_number,
+            type: 'legacy'
+          }))
+        ].sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime());
 
         setFeeInfo({
-          totalExpected,
+          totalExpected: totalFees,
           totalPaid,
           balance,
-          payments: transactions || [],
+          payments: allPayments,
         });
       }
 
