@@ -14,12 +14,23 @@ import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
+import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
   const { stats, recentAdmissions, gradeDistribution, loading } = useDashboardStats(dateRange.start, dateRange.end);
   const { user } = useAuth();
+  const { schoolInfo } = useSchoolInfo();
   const isAdmin = user?.role === "admin";
+
+  // Get first name based on user role
+  const getFirstName = () => {
+    if (!user) return "Admin";
+    if (user.role === "admin") {
+      return user.data?.user_metadata?.full_name?.split(' ')[0] || user.data?.email?.split('@')[0] || "Admin";
+    }
+    return user.data?.first_name || "User";
+  };
 
   const statsDisplay = [
     {
@@ -59,7 +70,9 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Welcome back! Here's your school overview.</p>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Welcome back {getFirstName()}! Here is your {schoolInfo?.school_name || 'school'} overview.
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {isAdmin && (
@@ -161,9 +174,11 @@ const Dashboard = () => {
                   ))
                 )}
               </div>
-              <Button variant="outline" className="w-full mt-4">
-                View All Admissions
-              </Button>
+              <Link to="/admissions" className="w-full mt-4 block">
+                <Button variant="outline" className="w-full">
+                  View All Admissions
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -205,26 +220,34 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Button className="h-auto flex-col items-start gap-2 p-4">
-                <UserCheck className="h-5 w-5" />
-                <span className="font-semibold">New Admission</span>
-                <span className="text-xs text-primary-foreground/80">Register a new learner</span>
-              </Button>
-              <Button variant="secondary" className="h-auto flex-col items-start gap-2 p-4">
-                <DollarSign className="h-5 w-5" />
-                <span className="font-semibold">Process Payment</span>
-                <span className="text-xs text-secondary-foreground/80">Record fee payment</span>
-              </Button>
-              <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4">
-                <GraduationCap className="h-5 w-5" />
-                <span className="font-semibold">Promote Learners</span>
-                <span className="text-xs text-muted-foreground">Grade progression</span>
-              </Button>
-              <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4">
-                <Users className="h-5 w-5" />
-                <span className="font-semibold">View Reports</span>
-                <span className="text-xs text-muted-foreground">Analytics & insights</span>
-              </Button>
+              <Link to="/admissions">
+                <Button className="h-auto flex-col items-start gap-2 p-4 w-full">
+                  <UserCheck className="h-5 w-5" />
+                  <span className="font-semibold">New Admission</span>
+                  <span className="text-xs text-primary-foreground/80">Register a new learner</span>
+                </Button>
+              </Link>
+              <Link to="/fees">
+                <Button variant="secondary" className="h-auto flex-col items-start gap-2 p-4 w-full">
+                  <DollarSign className="h-5 w-5" />
+                  <span className="font-semibold">Process Payment</span>
+                  <span className="text-xs text-secondary-foreground/80">Record fee payment</span>
+                </Button>
+              </Link>
+              <Link to="/students">
+                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full">
+                  <GraduationCap className="h-5 w-5" />
+                  <span className="font-semibold">Promote Learners</span>
+                  <span className="text-xs text-muted-foreground">Grade progression</span>
+                </Button>
+              </Link>
+              <Link to="/reports">
+                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full">
+                  <Users className="h-5 w-5" />
+                  <span className="font-semibold">View Reports</span>
+                  <span className="text-xs text-muted-foreground">Analytics & insights</span>
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
