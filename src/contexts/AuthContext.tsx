@@ -110,9 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginAdmin = async (email: string, password: string) => {
+  const loginAdmin = async (email: string, password: string, silent = false) => {
     try {
-      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password: password.trim(),
@@ -141,36 +140,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             user_role: roleData.role,
           });
 
-          toast({
-            title: "Welcome!",
-            description: "Successfully logged in",
-          });
+          if (!silent) {
+            toast({
+              title: "Welcome!",
+              description: "Successfully logged in",
+            });
+          }
 
           return { success: true, role: roleData.role };
         }
       }
 
-      toast({
-        title: "Login Failed",
-        description: "Invalid email or password",
-        variant: "destructive",
-      });
       return { success: false, role: null };
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Admin login error:", error);
       return { success: false, role: null };
-    } finally {
-      setLoading(false);
     }
   };
 
-  const loginLearner = async (admissionNumber: string, birthCertificate: string) => {
+  const loginLearner = async (admissionNumber: string, birthCertificate: string, silent = false) => {
     try {
-      setLoading(true);
       const { data: learnerData, error: learnerError } = await supabase
         .rpc("validate_learner_credentials", {
           _admission: admissionNumber.trim(),
@@ -203,41 +192,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             user_role: "learner",
           });
 
-          toast({
-            title: "Welcome!",
-            description: `Welcome back, ${learner.first_name}`,
-          });
+          if (!silent) {
+            toast({
+              title: "Welcome!",
+              description: `Welcome back, ${learner.first_name}`,
+            });
+          }
 
           return { success: true, role: "learner" as UserRole };
         }
       }
 
-      toast({
-        title: "Login Failed",
-        description: "Invalid admission number or birth certificate",
-        variant: "destructive",
-      });
       return { success: false, role: null };
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Learner login error:", error);
       return { success: false, role: null };
-    } finally {
-      setLoading(false);
     }
   };
 
-  const loginTeacher = async (employeeNumber: string, idNumber: string) => {
+  const loginTeacher = async (employeeNumber: string, idNumber: string, silent = false) => {
     try {
-      setLoading(true);
       const { data: teacherData } = await supabase
         .from("teachers")
         .select("*")
-        .eq("employee_number", employeeNumber.trim())
-        .eq("id_number", idNumber.trim())
+        .eq("employee_number", employeeNumber.trim().toUpperCase())
+        .eq("id_number", idNumber.trim().toUpperCase())
         .maybeSingle();
 
       if (teacherData) {
@@ -264,29 +243,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user_role: "teacher",
         });
 
-        toast({
-          title: "Welcome!",
-          description: `Welcome back, ${teacherData.first_name}`,
-        });
+        if (!silent) {
+          toast({
+            title: "Welcome!",
+            description: `Welcome back, ${teacherData.first_name}`,
+          });
+        }
 
         return { success: true, role: "teacher" as UserRole };
       }
 
-      toast({
-        title: "Login Failed",
-        description: "Invalid employee number or ID number",
-        variant: "destructive",
-      });
       return { success: false, role: null };
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Teacher login error:", error);
       return { success: false, role: null };
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -294,27 +264,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
 
-      // Try learner login first (admission number + birth certificate)
-      const learnerResult = await loginLearner(username, password);
-      if (learnerResult.success) {
-        return learnerResult;
-      }
-
-      // Try teacher login (employee number + id number)
-      const teacherResult = await loginTeacher(username, password);
+      // Try teacher login first (TSC/employee number + ID number)
+      const teacherResult = await loginTeacher(username, password, true);
       if (teacherResult.success) {
+        toast({
+          title: "Welcome!",
+          description: "Successfully logged in as Teacher",
+        });
         return teacherResult;
       }
 
+      // Try learner login (admission number + birth certificate)
+      const learnerResult = await loginLearner(username, password, true);
+      if (learnerResult.success) {
+        toast({
+          title: "Welcome!",
+          description: "Successfully logged in as Learner",
+        });
+        return learnerResult;
+      }
+
       // Try admin/staff login (email + password via Supabase auth)
-      const adminResult = await loginAdmin(username, password);
+      const adminResult = await loginAdmin(username, password, true);
       if (adminResult.success) {
+        toast({
+          title: "Welcome!",
+          description: "Successfully logged in",
+        });
         return adminResult;
       }
 
+      // Only show error after trying all authentication methods
       toast({
         title: "Login Failed",
-        description: "Invalid credentials. Please check your username and password.",
+        description: "Invalid credentials. Please verify your username and password.",
         variant: "destructive",
       });
       return { success: false, role: null };
