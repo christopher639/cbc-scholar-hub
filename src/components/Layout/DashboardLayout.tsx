@@ -196,22 +196,32 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user && !profile) {
+    if (user) {
       loadProfile();
     }
-  }, [user, profile]);
+  }, [user]);
 
   const loadProfile = async () => {
     try {
       if (user?.role === "admin") {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("profiles")
           .select("full_name, avatar_url")
           .eq("id", user?.id)
-          .single();
+          .maybeSingle();
         
-        if (data) {
-          setProfile(data);
+        if (!error) {
+          // Use profile data or fallback to user email
+          setProfile({
+            full_name: data?.full_name || user?.data?.email || "Admin User",
+            avatar_url: data?.avatar_url || null,
+          });
+        } else {
+          // Fallback if profile doesn't exist
+          setProfile({
+            full_name: user?.data?.email || "Admin User",
+            avatar_url: null,
+          });
         }
       } else if (user?.role === "teacher") {
         setProfile({
@@ -226,11 +236,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       }
     } catch (error) {
       console.error("Error loading profile:", error);
+      // Set fallback profile on error
+      setProfile({
+        full_name: user?.data?.email || "User",
+        avatar_url: null,
+      });
     }
   };
 
   const getInitials = () => {
-    if (!profile?.full_name) return "U";
+    if (!profile?.full_name) {
+      // Try to get initials from email if no full name
+      if (user?.data?.email) {
+        return user.data.email[0].toUpperCase();
+      }
+      return "U";
+    }
     return profile.full_name
       .split(" ")
       .map((n: string) => n[0])
