@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { NotificationsDropdown } from "@/components/NotificationsDropdown";
+import { AdminSearchBar } from "@/components/AdminSearchBar";
 import {
   Sidebar,
   SidebarContent,
@@ -273,6 +274,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <SidebarTrigger className="lg:hidden">
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
+            
+            {/* Admin Search Bar - Only visible for admins on large screens */}
+            {user?.role === "admin" && (
+              <div className="hidden lg:flex flex-1 max-w-xl mx-4">
+                <AdminSearchBar />
+              </div>
+            )}
+
             <div className="ml-auto flex items-center gap-4">
               <NotificationsDropdown />
               <DropdownMenu>
