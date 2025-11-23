@@ -9,8 +9,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, User, BookOpen, DollarSign, GraduationCap } from "lucide-react";
+import { LogOut, User, BookOpen, DollarSign, GraduationCap, Settings, MessageSquare, Calendar } from "lucide-react";
 import { format } from "date-fns";
+import { LearnerChangePasswordDialog } from "@/components/LearnerChangePasswordDialog";
+import { LearnerEditProfileDialog } from "@/components/LearnerEditProfileDialog";
 
 export default function LearnerPortal() {
   const navigate = useNavigate();
@@ -19,7 +21,11 @@ export default function LearnerPortal() {
   const [performance, setPerformance] = useState<any[]>([]);
   const [feeInfo, setFeeInfo] = useState<any>(null);
   const [learnerDetails, setLearnerDetails] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [attendance, setAttendance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const isLearner = user?.role === "learner";
   const learner = isLearner ? user.data : null;
@@ -108,6 +114,26 @@ export default function LearnerPortal() {
           payments: payments || [],
         });
       }
+
+      // Fetch messages
+      const { data: messagesData } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("learner_id", learner.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      setMessages(messagesData || []);
+
+      // Fetch attendance
+      const { data: attendanceData } = await supabase
+        .from("attendance")
+        .select("*")
+        .eq("learner_id", learner.id)
+        .order("date", { ascending: false })
+        .limit(30);
+
+      setAttendance(attendanceData || []);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -177,10 +203,18 @@ export default function LearnerPortal() {
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={handleLogout} className="gap-2">
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" onClick={() => setShowEditDialog(true)}>
+                <User className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => setShowPasswordDialog(true)}>
+                <Settings className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" onClick={handleLogout} className="gap-2">
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -273,7 +307,7 @@ export default function LearnerPortal() {
 
         {/* Tabs */}
         <Tabs defaultValue="performance" className="space-y-4">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="performance" className="gap-2">
               <BookOpen className="h-4 w-4" />
               Performance
@@ -281,6 +315,14 @@ export default function LearnerPortal() {
             <TabsTrigger value="fees" className="gap-2">
               <DollarSign className="h-4 w-4" />
               Fee Payments
+            </TabsTrigger>
+            <TabsTrigger value="attendance" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              Attendance
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Messages
             </TabsTrigger>
           </TabsList>
 
@@ -377,8 +419,117 @@ export default function LearnerPortal() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Attendance Tab */}
+          <TabsContent value="attendance">
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance Record</CardTitle>
+                <CardDescription>Your attendance history</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {attendance.length > 0 ? (
+                  <div className="space-y-3">
+                    {attendance.map((record) => (
+                      <div
+                        key={record.id}
+                        className="flex items-center justify-between p-4 border rounded-lg"
+                      >
+                        <div>
+                          <div className="font-semibold">
+                            {format(new Date(record.date), "EEEE, MMM dd, yyyy")}
+                          </div>
+                          {record.notes && (
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {record.notes}
+                            </div>
+                          )}
+                        </div>
+                        <Badge
+                          variant={
+                            record.status === "present"
+                              ? "default"
+                              : record.status === "late"
+                              ? "secondary"
+                              : record.status === "excused"
+                              ? "outline"
+                              : "destructive"
+                          }
+                          className="capitalize"
+                        >
+                          {record.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No attendance records available yet
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Messages Tab */}
+          <TabsContent value="messages">
+            <Card>
+              <CardHeader>
+                <CardTitle>Messages & Announcements</CardTitle>
+                <CardDescription>Communications from teachers and administration</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {messages.length > 0 ? (
+                  <div className="space-y-3">
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`p-4 border rounded-lg ${
+                          !message.is_read ? "bg-primary/5 border-primary/20" : ""
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="capitalize">
+                              {message.sender_type}
+                            </Badge>
+                            {!message.is_read && (
+                              <Badge variant="default" className="text-xs">
+                                New
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {format(new Date(message.created_at), "MMM dd, yyyy")}
+                          </div>
+                        </div>
+                        <p className="text-sm">{message.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No messages yet
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialogs */}
+      <LearnerChangePasswordDialog
+        open={showPasswordDialog}
+        onOpenChange={setShowPasswordDialog}
+        learnerId={learner?.id || ""}
+      />
+      <LearnerEditProfileDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        learner={learnerDetails}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }
