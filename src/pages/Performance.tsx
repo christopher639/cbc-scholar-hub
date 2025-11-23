@@ -1,10 +1,11 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, User } from "lucide-react";
+import { Plus, BookOpen, User, Users } from "lucide-react";
 import { useState } from "react";
 import AddPerformanceDialog from "@/components/AddPerformanceDialog";
 import { ManageLearningAreasDialog } from "@/components/ManageLearningAreasDialog";
+import { BulkPerformanceEntry } from "@/components/BulkPerformanceEntry";
 import { Badge } from "@/components/ui/badge";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const Performance = () => {
   const [isAddPerformanceOpen, setIsAddPerformanceOpen] = useState(false);
   const [isManageLearningAreasOpen, setIsManageLearningAreasOpen] = useState(false);
+  const [isBulkEntryOpen, setIsBulkEntryOpen] = useState(false);
   const { learningAreas, loading } = useLearningAreas();
 
   return (
@@ -27,9 +29,13 @@ const Performance = () => {
               <BookOpen className="h-4 w-4 mr-2" />
               Manage Learning Areas
             </Button>
+            <Button variant="outline" onClick={() => setIsBulkEntryOpen(true)}>
+              <Users className="h-4 w-4 mr-2" />
+              Bulk Entry by Stream
+            </Button>
             <Button onClick={() => setIsAddPerformanceOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Record Performance
+              Single Entry
             </Button>
           </div>
         </div>
@@ -131,6 +137,7 @@ const Performance = () => {
 
       <AddPerformanceDialog open={isAddPerformanceOpen} onOpenChange={setIsAddPerformanceOpen} />
       <ManageLearningAreasDialog open={isManageLearningAreasOpen} onOpenChange={setIsManageLearningAreasOpen} />
+      <BulkPerformanceEntry open={isBulkEntryOpen} onOpenChange={setIsBulkEntryOpen} />
     </DashboardLayout>
   );
 };
