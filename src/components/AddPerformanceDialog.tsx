@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
+import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { z } from "zod";
 
 const performanceSchema = z.object({
@@ -31,7 +32,7 @@ interface AddPerformanceDialogProps {
 const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [learningAreas, setLearningAreas] = useState<any[]>([]);
+  const { learningAreas } = useLearningAreas();
   const [grades, setGrades] = useState<any[]>([]);
   const [existingRecordId, setExistingRecordId] = useState<string | null>(null);
   const [checkingExisting, setCheckingExisting] = useState(false);
@@ -63,23 +64,9 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
 
   useEffect(() => {
     if (open) {
-      fetchLearningAreas();
       fetchGrades();
     }
   }, [open]);
-
-  const fetchLearningAreas = async () => {
-    const { data, error } = await supabase
-      .from("learning_areas")
-      .select("*")
-      .order("name", { ascending: true });
-    
-    if (!error && data) {
-      setLearningAreas(data);
-    }
-  };
-
-
   const fetchGrades = async () => {
     const { data, error } = await supabase
       .from("grades")
