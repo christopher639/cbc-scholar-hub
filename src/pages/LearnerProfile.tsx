@@ -84,29 +84,33 @@ const LearnerProfile = () => {
         {/* Header Section */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              <Avatar className="h-32 w-32">
-                <AvatarImage src={learner.photo_url} alt={`${learner.first_name} ${learner.last_name}`} />
-                <AvatarFallback className="text-3xl">
-                  {learner.first_name[0]}{learner.last_name[0]}
-                </AvatarFallback>
-              </Avatar>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Column 1: Large Square Profile Image */}
+              <div className="flex justify-center lg:justify-start">
+                <div className="relative w-48 h-48 lg:w-56 lg:h-56">
+                  {learner.photo_url ? (
+                    <img 
+                      src={learner.photo_url} 
+                      alt={`${learner.first_name} ${learner.last_name}`}
+                      className="w-full h-full object-cover rounded-lg border-4 border-border shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-lg border-4 border-border shadow-lg bg-primary/10 flex items-center justify-center">
+                      <span className="text-6xl font-bold text-primary">
+                        {learner.first_name[0]}{learner.last_name[0]}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-              <div className="flex-1 space-y-4">
+              {/* Column 2: Primary Information */}
+              <div className="space-y-4">
                 <div>
                   <h1 className="text-3xl font-bold text-foreground">
                     {learner.first_name} {learner.last_name}
                   </h1>
                   <p className="text-muted-foreground">Admission No: {learner.admission_number}</p>
-                  <div className="flex gap-3 mt-2 text-sm">
-                    <span className="text-muted-foreground">
-                      Academic Year: <span className="font-semibold text-foreground">{learner.currentAcademicYear || "N/A"}</span>
-                    </span>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-muted-foreground">
-                      Current Term: <span className="font-semibold text-foreground">{learner.currentTerm?.replace("_", " ").toUpperCase() || "N/A"}</span>
-                    </span>
-                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -123,7 +127,7 @@ const LearnerProfile = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="space-y-2">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
                     <span>Born: {new Date(learner.date_of_birth).toLocaleDateString()} ({calculateAge(learner.date_of_birth)} years)</span>
@@ -137,15 +141,33 @@ const LearnerProfile = () => {
                     <span>Enrolled: {new Date(learner.enrollment_date).toLocaleDateString()}</span>
                   </div>
                 </div>
+              </div>
 
-                <Button onClick={() => setPromotionHistoryOpen(true)} variant="outline" className="gap-2">
-                  <History className="h-4 w-4" />
-                  View Promotion History
-                </Button>
-                <Button onClick={() => setEditDialogOpen(true)} className="gap-2">
-                  <Edit className="h-4 w-4" />
-                  Edit Information
-                </Button>
+              {/* Column 3: Academic & Action Buttons */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Academic Year</p>
+                    <p className="text-base font-semibold text-foreground">{learner.currentAcademicYear || "N/A"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Current Term</p>
+                    <p className="text-base font-semibold text-foreground">{learner.currentTerm?.replace("_", " ").toUpperCase() || "N/A"}</p>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <Button onClick={() => setPromotionHistoryOpen(true)} variant="outline" className="w-full gap-2">
+                    <History className="h-4 w-4" />
+                    View Promotion History
+                  </Button>
+                  <Button onClick={() => setEditDialogOpen(true)} className="w-full gap-2">
+                    <Edit className="h-4 w-4" />
+                    Edit Information
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
