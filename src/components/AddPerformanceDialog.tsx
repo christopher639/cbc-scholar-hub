@@ -5,10 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
+import { z } from "zod";
+
+const performanceSchema = z.object({
+  admissionNumber: z.string().trim().min(1, "Admission number is required"),
+  learningAreaCode: z.string().trim().min(1, "Learning area is required"),
+  marks: z.string().trim().min(1, "Marks are required"),
+  gradeId: z.string().min(1, "Grade is required"),
+  academicYear: z.string().min(1, "Academic year is required"),
+  term: z.string().optional(),
+  examType: z.string().optional(),
+  remarks: z.string().max(500, "Remarks must be less than 500 characters").optional(),
+});
 
 interface AddPerformanceDialogProps {
   open: boolean;
@@ -20,6 +33,8 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
   const [loading, setLoading] = useState(false);
   const [learningAreas, setLearningAreas] = useState<any[]>([]);
   const [grades, setGrades] = useState<any[]>([]);
+  const [existingRecordId, setExistingRecordId] = useState<string | null>(null);
+  const [checkingExisting, setCheckingExisting] = useState(false);
   const { academicYears, currentYear } = useAcademicYears();
   const { currentPeriod } = useAcademicPeriods();
   
@@ -76,15 +91,128 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
     }
   };
 
+  // Check for existing performance record when filters change
+  useEffect(() => {
+    const checkExistingPerformance = async () => {
+      if (!formData.admissionNumber || !formData.learningAreaCode || 
+          !formData.academicYear || !formData.gradeId) {
+        setExistingRecordId(null);
+        return;
+      }
+
+      try {
+        setCheckingExisting(true);
+
+        // Find learner
+        const { data: learner, error: learnerError } = await supabase
+          .from("learners")
+          .select("id")
+          .eq("admission_number", formData.admissionNumber)
+          .maybeSingle();
+
+        if (learnerError || !learner) {
+          setExistingRecordId(null);
+          return;
+        }
+
+        // Find learning area
+        const { data: learningArea, error: areaError } = await supabase
+          .from("learning_areas")
+          .select("id")
+          .eq("code", formData.learningAreaCode.toUpperCase())
+          .maybeSingle();
+
+        if (areaError || !learningArea) {
+          setExistingRecordId(null);
+          return;
+        }
+
+        // Check for existing record
+        let query = supabase
+          .from("performance_records")
+          .select("*")
+          .eq("learner_id", learner.id)
+          .eq("learning_area_id", learningArea.id)
+          .eq("academic_year", formData.academicYear)
+          .eq("grade_id", formData.gradeId);
+
+        if (formData.term) {
+          query = query.eq("term", formData.term as any);
+        }
+        if (formData.examType) {
+          query = query.eq("exam_type", formData.examType);
+        }
+
+        const { data: existingRecord, error: recordError } = await query.maybeSingle();
+
+        if (!recordError && existingRecord) {
+          // Pre-populate form with existing data
+          setFormData(prev => ({
+            ...prev,
+            marks: existingRecord.marks.toString(),
+            remarks: existingRecord.remarks || "",
+            term: existingRecord.term || "",
+            examType: existingRecord.exam_type || "",
+          }));
+          setExistingRecordId(existingRecord.id);
+          
+          toast({
+            title: "Existing Record Found",
+            description: "This learner already has a performance record for these criteria. You can update it.",
+          });
+        } else {
+          setExistingRecordId(null);
+        }
+      } catch (error) {
+        console.error("Error checking existing performance:", error);
+      } finally {
+        setCheckingExisting(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(checkExistingPerformance, 500);
+    return () => clearTimeout(debounceTimer);
+  }, [
+    formData.admissionNumber,
+    formData.learningAreaCode,
+    formData.academicYear,
+    formData.term,
+    formData.examType,
+    formData.gradeId,
+  ]);
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
+
+      // Validate input
+      const validation = performanceSchema.safeParse(formData);
+      if (!validation.success) {
+        const errorMessage = validation.error.errors[0]?.message || "Invalid input";
+        toast({
+          title: "Validation Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate marks range
+      const marksValue = parseFloat(formData.marks);
+      if (marksValue < 0 || marksValue > 100) {
+        toast({
+          title: "Invalid Marks",
+          description: "Marks must be between 0 and 100",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Find learner by admission number
       const { data: learner, error: learnerError } = await supabase
         .from("learners")
         .select("id")
-        .eq("admission_number", formData.admissionNumber)
+        .eq("admission_number", formData.admissionNumber.trim())
         .maybeSingle();
 
       if (learnerError || !learner) {
@@ -112,35 +240,43 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
         return;
       }
 
-      if (!formData.academicYear) {
+      const performanceData = {
+        learner_id: learner.id,
+        learning_area_id: learningArea.id,
+        academic_year: formData.academicYear,
+        term: formData.term as any || null,
+        exam_type: formData.examType || null,
+        grade_id: formData.gradeId,
+        marks: marksValue,
+        remarks: formData.remarks?.trim() || null,
+      };
+
+      if (existingRecordId) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from("performance_records")
+          .update(performanceData)
+          .eq("id", existingRecordId);
+
+        if (updateError) throw updateError;
+
         toast({
-          title: "Error",
-          description: "Please select an academic year",
-          variant: "destructive",
+          title: "Success",
+          description: "Performance record updated successfully",
         });
-        return;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from("performance_records")
+          .insert([performanceData]);
+
+        if (insertError) throw insertError;
+
+        toast({
+          title: "Success",
+          description: "Performance record added successfully",
+        });
       }
-
-      // Insert performance record
-      const { error: insertError } = await supabase
-        .from("performance_records")
-        .insert([{
-          learner_id: learner.id,
-          learning_area_id: learningArea.id,
-          academic_year: formData.academicYear,
-          term: formData.term as any || null,
-          exam_type: formData.examType || null,
-          grade_id: formData.gradeId,
-          marks: parseFloat(formData.marks),
-          remarks: formData.remarks || null,
-        }]);
-
-      if (insertError) throw insertError;
-
-      toast({
-        title: "Success",
-        description: "Performance record added successfully",
-      });
 
       // Reset form
       setFormData({
@@ -153,6 +289,7 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
         examType: "",
         remarks: "",
       });
+      setExistingRecordId(null);
       
       onOpenChange(false);
     } catch (error: any) {
@@ -170,7 +307,15 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Record Learner Performance</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Record Learner Performance
+            {existingRecordId && (
+              <Badge variant="secondary">Updating Existing Record</Badge>
+            )}
+            {checkingExisting && (
+              <Badge variant="outline">Checking...</Badge>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -328,8 +473,8 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? "Saving..." : "Save Performance"}
+          <Button onClick={handleSubmit} disabled={loading || checkingExisting}>
+            {loading ? "Saving..." : existingRecordId ? "Update Performance" : "Save Performance"}
           </Button>
         </DialogFooter>
       </DialogContent>
