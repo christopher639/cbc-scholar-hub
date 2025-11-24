@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer } from "lucide-react";
+import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/currency";
@@ -91,6 +91,7 @@ export default function LearnerDashboard() {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedTerm, setSelectedTerm] = useState<string>("");
   const [selectedExamType, setSelectedExamType] = useState<string>("all");
+  const [showComparison, setShowComparison] = useState(false);
 
   useEffect(() => {
     if (learner) {
@@ -241,6 +242,37 @@ export default function LearnerDashboard() {
     marks: area.average || 0
   }));
 
+  // Prepare comparison data (all years)
+  const comparisonChartData = (() => {
+    const yearsByArea: any = {};
+    
+    performance.forEach(record => {
+      const areaName = record.learning_area?.name || "Unknown";
+      const year = record.academic_year;
+      
+      if (!yearsByArea[areaName]) {
+        yearsByArea[areaName] = { area: areaName };
+      }
+      
+      if (!yearsByArea[areaName][year]) {
+        yearsByArea[areaName][year] = { total: 0, count: 0 };
+      }
+      
+      yearsByArea[areaName][year].total += Number(record.marks) || 0;
+      yearsByArea[areaName][year].count += 1;
+    });
+    
+    return Object.values(yearsByArea).map((area: any) => {
+      const result: any = { area: area.area };
+      uniqueYears.forEach(year => {
+        if (area[year]) {
+          result[year] = Math.round(area[year].total / area[year].count);
+        }
+      });
+      return result;
+    });
+  })();
+
   // Get unique values for filters
   const uniqueYears = [...new Set(performance.map(p => p.academic_year))].filter(Boolean);
   const uniqueTerms = [...new Set(performance.map(p => p.term))].filter(Boolean);
@@ -346,77 +378,125 @@ export default function LearnerDashboard() {
                 Academic Performance
               </CardTitle>
               <CardDescription className="text-xs mt-1">
-                {selectedYear && selectedTerm 
-                  ? `${selectedYear} - ${selectedTerm.replace("term_", "Term ")}`
-                  : "Filter to view performance"}
+                {showComparison 
+                  ? "Year-over-Year Comparison"
+                  : selectedYear && selectedTerm 
+                    ? `${selectedYear} - ${selectedTerm.replace("term_", "Term ")}`
+                    : "Filter to view performance"}
               </CardDescription>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button onClick={handleDownloadReportCard} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none hover:bg-muted/50 transition-colors">
-                <Printer className="h-4 w-4" />
-                <span className="hidden sm:inline">Print</span>
+              <Button
+                variant={showComparison ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowComparison(!showComparison)}
+                className="gap-2"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span className="text-xs">{showComparison ? "Single View" : "Compare"}</span>
               </Button>
-              <Button onClick={handleDownloadReportCard} variant="default" size="sm" className="gap-2 flex-1 sm:flex-none">
-                <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Download</span>
-              </Button>
+              {!showComparison && (
+                <>
+                  <Button onClick={handleDownloadReportCard} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none hover:bg-muted/50 transition-colors">
+                    <Printer className="h-4 w-4" />
+                    <span className="hidden sm:inline">Print</span>
+                  </Button>
+                  <Button onClick={handleDownloadReportCard} variant="default" size="sm" className="gap-2 flex-1 sm:flex-none">
+                    <Download className="h-4 w-4" />
+                    <span className="hidden sm:inline">Download</span>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4 p-4">
-          {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {uniqueYears.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Filters - Only show in single view mode */}
+          {!showComparison && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueYears.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Term" />
-              </SelectTrigger>
-              <SelectContent>
-                {uniqueTerms.map((term) => (
-                  <SelectItem key={term} value={term}>
-                    {term.replace("term_", "Term ")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Term" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueTerms.map((term) => (
+                    <SelectItem key={term} value={term}>
+                      {term.replace("term_", "Term ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <div data-print-report className="hidden">
-              <PrintablePerformanceReport
-                learner={learnerDetails}
-                performance={filteredPerformance}
-                academicYear={selectedYear}
-                term={selectedTerm}
-                examType={selectedExamType !== "all" ? selectedExamType : undefined}
-              />
+              <div data-print-report className="hidden">
+                <PrintablePerformanceReport
+                  learner={learnerDetails}
+                  performance={filteredPerformance}
+                  academicYear={selectedYear}
+                  term={selectedTerm}
+                  examType={selectedExamType !== "all" ? selectedExamType : undefined}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {filteredPerformance.length === 0 ? (
+          {!showComparison && filteredPerformance.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No performance records for selected filters</p>
+          ) : showComparison && performance.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8 text-sm">No performance records available</p>
           ) : (
             <>
               {/* Performance Overview Graph */}
-              {chartData.length > 0 && (
-                <div className="rounded-lg border border-border/50 overflow-hidden bg-card">
-                  <div className="p-3 border-b bg-muted/30">
-                    <h3 className="text-base font-semibold">Performance Overview</h3>
-                  </div>
-                  <div className="p-3">
-                    <div className="w-full overflow-x-auto">
-                      <div style={{ minWidth: `${Math.max(400, chartData.length * 35)}px` }}>
-                        <ResponsiveContainer width="100%" height={250}>
+              <div className="rounded-lg border border-border/50 overflow-hidden bg-card">
+                <div className="p-3 border-b bg-muted/30">
+                  <h3 className="text-base font-semibold">
+                    {showComparison ? "Year-over-Year Progress" : "Performance Overview"}
+                  </h3>
+                </div>
+                <div className="p-3">
+                  <div className="w-full overflow-x-auto">
+                    <div style={{ minWidth: `${Math.max(400, (showComparison ? comparisonChartData : chartData).length * 60)}px` }}>
+                      <ResponsiveContainer width="100%" height={250}>
+                        {showComparison ? (
+                          <LineChart data={comparisonChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                            <XAxis 
+                              dataKey="area" 
+                              angle={-45}
+                              textAnchor="end"
+                              height={80}
+                              tick={{ fontSize: 9 }}
+                              stroke="hsl(var(--muted-foreground))"
+                              interval={0}
+                            />
+                            <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 9 }} width={30} />
+                            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }} />
+                            {uniqueYears.sort().map((year, idx) => (
+                              <Line 
+                                key={year}
+                                type="linear" 
+                                dataKey={year} 
+                                stroke={`hsl(${(idx * 60) % 360}, 70%, 50%)`}
+                                strokeWidth={2}
+                                name={year}
+                                dot={{ r: 3 }}
+                                activeDot={{ r: 5 }}
+                              />
+                            ))}
+                          </LineChart>
+                        ) : (
                           <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                             <defs>
                               <linearGradient id="colorMarks" x1="0" y1="0" x2="0" y2="1">
@@ -447,15 +527,16 @@ export default function LearnerDashboard() {
                               activeDot={{ r: 5 }}
                             />
                           </LineChart>
-                        </ResponsiveContainer>
-                      </div>
+                        )}
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Performance Table */}
-              <div className="w-full overflow-x-auto rounded-lg border border-border/50">
+              {/* Performance Table - Only show in single view mode */}
+              {!showComparison && (
+                <div className="w-full overflow-x-auto rounded-lg border border-border/50">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50 h-8">
@@ -526,6 +607,7 @@ export default function LearnerDashboard() {
                   </TableBody>
                 </Table>
               </div>
+              )}
             </>
           )}
         </CardContent>
