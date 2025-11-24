@@ -9,6 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
+const getGradeCategory = (marks: number) => {
+  if (marks >= 80) return { label: "E.E", description: "Exceeding Expectation", color: "text-green-600" };
+  if (marks >= 50) return { label: "M.E", description: "Meeting Expectation", color: "text-blue-600" };
+  if (marks >= 30) return { label: "A.E", description: "Approaching Expectation", color: "text-yellow-600" };
+  return { label: "B.E", description: "Below Expectation", color: "text-red-600" };
+};
+
 export default function LearnerDashboard() {
   const { learnerDetails } = useOutletContext<any>();
   const { user } = useAuth();
@@ -205,9 +212,13 @@ export default function LearnerDashboard() {
       ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length 
       : null;
     
+    const avgRounded = average !== null ? Math.round(average * 10) / 10 : null;
+    const grade = avgRounded !== null ? getGradeCategory(avgRounded) : null;
+    
     return {
       ...area,
-      average: average !== null ? Math.round(average * 10) / 10 : null,
+      average: avgRounded,
+      grade: grade,
     };
   });
 
@@ -389,15 +400,25 @@ export default function LearnerDashboard() {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="code" />
+                <XAxis 
+                  dataKey="code" 
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  tick={{ fontSize: 10 }}
+                />
                 <YAxis domain={[0, 100]} />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
+                      const grade = getGradeCategory(payload[0].value as number);
                       return (
                         <div className="bg-background border rounded-lg p-2 shadow-lg">
                           <p className="font-semibold">{payload[0].payload.area}</p>
-                          <p className="text-sm">Average: {payload[0].value}</p>
+                          <p className="text-sm">Average: {payload[0].value}%</p>
+                          <p className="text-sm font-medium">
+                            <span className={grade.color}>{grade.label}</span> - {grade.description}
+                          </p>
                         </div>
                       );
                     }
@@ -430,6 +451,7 @@ export default function LearnerDashboard() {
                     <TableHead className="text-center">Mid-Term</TableHead>
                     <TableHead className="text-center">Final</TableHead>
                     <TableHead className="text-center">Average</TableHead>
+                    <TableHead className="text-center">Grade</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -440,7 +462,14 @@ export default function LearnerDashboard() {
                       <TableCell className="text-center">{area.midterm ?? "-"}</TableCell>
                       <TableCell className="text-center">{area.final ?? "-"}</TableCell>
                       <TableCell className="text-center font-semibold">
-                        {area.average ?? "-"}
+                        {area.average ? `${area.average}%` : "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {area.grade ? (
+                          <span className={`font-semibold ${area.grade.color}`} title={area.grade.description}>
+                            {area.grade.label}
+                          </span>
+                        ) : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
