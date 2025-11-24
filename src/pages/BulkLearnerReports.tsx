@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileText, Loader2, Filter } from "lucide-react";
+import { Download, FileText, Loader2, Filter, TrendingUp } from "lucide-react";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useReactToPrint } from "react-to-print";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import { LearnerJourneyDialog } from "@/components/LearnerJourneyDialog";
 
 const BulkLearnerReports = () => {
   const { grades, loading: gradesLoading } = useGrades();
@@ -32,6 +33,8 @@ const BulkLearnerReports = () => {
   const [learners, setLearners] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState<any[]>([]);
+  const [selectedLearnerId, setSelectedLearnerId] = useState<string>("");
+  const [journeyDialogOpen, setJourneyDialogOpen] = useState(false);
   
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -308,13 +311,60 @@ const BulkLearnerReports = () => {
                 {selectedStream && ` - ${streams.find(s => s.id === selectedStream)?.name}`}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="text-sm text-muted-foreground">
                 Click "Download/Print All" to generate a combined PDF document with all learner reports.
+              </div>
+              
+              {/* Learner List with Journey Button */}
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="text-left p-3 text-sm font-medium">Admission No.</th>
+                      <th className="text-left p-3 text-sm font-medium">Name</th>
+                      <th className="text-left p-3 text-sm font-medium">Grade</th>
+                      <th className="text-left p-3 text-sm font-medium">Stream</th>
+                      <th className="text-center p-3 text-sm font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {learners.map((learner) => (
+                      <tr key={learner.id} className="border-t hover:bg-muted/50">
+                        <td className="p-3 text-sm">{learner.admission_number}</td>
+                        <td className="p-3 text-sm">
+                          {learner.first_name} {learner.last_name}
+                        </td>
+                        <td className="p-3 text-sm">{learner.current_grade?.name}</td>
+                        <td className="p-3 text-sm">{learner.current_stream?.name}</td>
+                        <td className="p-3 text-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedLearnerId(learner.id);
+                              setJourneyDialogOpen(true);
+                            }}
+                          >
+                            <TrendingUp className="h-4 w-4 mr-1" />
+                            View Journey
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
         )}
+
+        {/* Journey Dialog */}
+        <LearnerJourneyDialog
+          open={journeyDialogOpen}
+          onOpenChange={setJourneyDialogOpen}
+          learnerId={selectedLearnerId}
+        />
 
         {/* Hidden print area */}
         <div style={{ display: 'none' }}>
