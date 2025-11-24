@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer, Download } from "lucide-react";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import { useReactToPrint } from "react-to-print";
 
 interface PrintablePerformanceReportProps {
   learner: any;
