@@ -84,15 +84,42 @@ export default function LearnerPortal() {
         .eq("term", selectedTerm as "term_1" | "term_2" | "term_3")
         .order("learning_area_id");
 
-      // Map to table format - each record as a separate row
-      const tableData = perfRecords?.map((record: any) => ({
-        learning_area: record.learning_area?.name || "Unknown",
-        academic_year: record.academic_year,
-        term: record.term,
-        exam_type: record.exam_type || "N/A",
-        grade_letter: record.grade_letter || "N/A",
-        marks: record.marks,
-      })) || [];
+      // Group by learning area with opener, midterm, final in same row
+      const grouped = perfRecords?.reduce((acc: any, record: any) => {
+        const areaName = record.learning_area?.name || "Unknown";
+        if (!acc[areaName]) {
+          acc[areaName] = {
+            learning_area: areaName,
+            opener: null,
+            midterm: null,
+            final: null,
+            remarks: null,
+          };
+        }
+        
+        if (record.exam_type === "opener") {
+          acc[areaName].opener = record.marks;
+          if (record.remarks) acc[areaName].remarks = record.remarks;
+        }
+        if (record.exam_type === "midterm") {
+          acc[areaName].midterm = record.marks;
+          if (record.remarks) acc[areaName].remarks = record.remarks;
+        }
+        if (record.exam_type === "final") {
+          acc[areaName].final = record.marks;
+          if (record.remarks) acc[areaName].remarks = record.remarks;
+        }
+        
+        return acc;
+      }, {});
+
+      const tableData = Object.values(grouped || {}).map((row: any) => {
+        const scores = [row.opener, row.midterm, row.final].filter(s => s !== null);
+        const average = scores.length > 0 
+          ? Math.round((scores.reduce((sum: number, s: number) => sum + s, 0) / scores.length) * 10) / 10
+          : 0;
+        return { ...row, average };
+      });
 
       setPerformanceData(tableData);
 
@@ -396,7 +423,7 @@ export default function LearnerPortal() {
                   </Badge>
                 )}
               </CardTitle>
-              <CardDescription>Individual performance records filtered by selected criteria</CardDescription>
+              <CardDescription>Academic performance by learning area</CardDescription>
             </CardHeader>
             <CardContent>
               {performanceData.length > 0 ? (
@@ -405,27 +432,45 @@ export default function LearnerPortal() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Learning Area</TableHead>
-                        <TableHead className="hidden md:table-cell">Academic Year</TableHead>
-                        <TableHead className="hidden sm:table-cell">Term</TableHead>
-                        <TableHead>Exam Type</TableHead>
-                        <TableHead className="text-center">Grade</TableHead>
-                        <TableHead className="text-center">Marks</TableHead>
+                        <TableHead className="text-center">Opener</TableHead>
+                        <TableHead className="text-center">Midterm</TableHead>
+                        <TableHead className="text-center">Final</TableHead>
+                        <TableHead className="text-center font-semibold">Average</TableHead>
+                        <TableHead className="hidden md:table-cell">Remarks</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {performanceData.map((row, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{row.learning_area}</TableCell>
-                          <TableCell className="hidden md:table-cell">{row.academic_year}</TableCell>
-                          <TableCell className="hidden sm:table-cell">{getTermLabel(row.term)}</TableCell>
-                          <TableCell className="capitalize">
-                            <Badge variant="outline">{row.exam_type}</Badge>
+                          <TableCell className="text-center">
+                            {row.opener !== null ? (
+                              <Badge className={getGradeColor(row.opener)}>{row.opener}%</Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge variant="secondary">{row.grade_letter}</Badge>
+                            {row.midterm !== null ? (
+                              <Badge className={getGradeColor(row.midterm)}>{row.midterm}%</Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge className={getGradeColor(row.marks)}>{row.marks}%</Badge>
+                            {row.final !== null ? (
+                              <Badge className={getGradeColor(row.final)}>{row.final}%</Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="default" className={getGradeColor(row.average)}>
+                              {row.average.toFixed(1)}%
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                            {row.remarks || "-"}
                           </TableCell>
                         </TableRow>
                       ))}

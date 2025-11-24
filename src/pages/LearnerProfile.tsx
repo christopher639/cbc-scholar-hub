@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History, ArrowLeft, Edit, UserX } from "lucide-react";
 import { PromotionHistoryDialog } from "@/components/PromotionHistoryDialog";
 import { EditLearnerDialog } from "@/components/EditLearnerDialog";
@@ -21,6 +22,65 @@ const LearnerProfile = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const { learner, loading, refetch } = useLearnerDetail(id || "");
+
+  // Group performance records by learning area
+  const groupPerformanceByArea = (records: any[]) => {
+    const grouped = records.reduce((acc: any, record: any) => {
+      const areaName = record.learning_area?.name || "Unknown";
+      const key = `${areaName}-${record.academic_year}-${record.term}`;
+      
+      if (!acc[key]) {
+        acc[key] = {
+          learning_area: areaName,
+          academic_year: record.academic_year,
+          term: record.term,
+          opener: null,
+          midterm: null,
+          final: null,
+          remarks: null,
+        };
+      }
+      
+      if (record.exam_type === "opener") {
+        acc[key].opener = record.marks;
+        if (record.remarks) acc[key].remarks = record.remarks;
+      }
+      if (record.exam_type === "midterm") {
+        acc[key].midterm = record.marks;
+        if (record.remarks) acc[key].remarks = record.remarks;
+      }
+      if (record.exam_type === "final") {
+        acc[key].final = record.marks;
+        if (record.remarks) acc[key].remarks = record.remarks;
+      }
+      
+      return acc;
+    }, {});
+
+    return Object.values(grouped).map((row: any) => {
+      const scores = [row.opener, row.midterm, row.final].filter((s: any) => s !== null);
+      const average = scores.length > 0 
+        ? Math.round((scores.reduce((sum: number, s: number) => sum + s, 0) / scores.length) * 10) / 10
+        : 0;
+      return { ...row, average };
+    });
+  };
+
+  const getGradeColor = (marks: number) => {
+    if (marks >= 80) return "bg-green-500/10 text-green-700 dark:text-green-400";
+    if (marks >= 60) return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+    if (marks >= 50) return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+    return "bg-red-500/10 text-red-700 dark:text-red-400";
+  };
+
+  const getTermLabel = (term: string) => {
+    const termMap: Record<string, string> = {
+      term_1: "Term 1",
+      term_2: "Term 2",
+      term_3: "Term 3",
+    };
+    return termMap[term] || term;
+  };
 
   if (loading) {
     return (
@@ -255,34 +315,65 @@ const LearnerProfile = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Performance Records</CardTitle>
-                <CardDescription>Recent assessment results</CardDescription>
+                <CardDescription>Academic performance by learning area</CardDescription>
               </CardHeader>
               <CardContent>
                 {learner.performance.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No performance records found</p>
                 ) : (
-                  <div className="space-y-4">
-                    {learner.performance.map((record: any) => (
-                      <div key={record.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                        <div className="space-y-1 flex-1">
-                          <p className="font-medium">{record.learning_area?.name}</p>
-                          <div className="flex gap-2 text-sm text-muted-foreground">
-                            <span>{record.academic_year}</span>
-                            {record.term && <span>• {record.term.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>}
-                            {record.exam_type && <span>• {record.exam_type}</span>}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-2">
-                            <Badge className="text-base">{record.grade_letter || 'N/A'}</Badge>
-                            <span className="text-2xl font-bold">{record.marks}%</span>
-                          </div>
-                          {record.remarks && (
-                            <p className="text-xs text-muted-foreground mt-1">{record.remarks}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Learning Area</TableHead>
+                          <TableHead className="hidden md:table-cell">Year/Term</TableHead>
+                          <TableHead className="text-center">Opener</TableHead>
+                          <TableHead className="text-center">Midterm</TableHead>
+                          <TableHead className="text-center">Final</TableHead>
+                          <TableHead className="text-center font-semibold">Average</TableHead>
+                          <TableHead className="hidden lg:table-cell">Remarks</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {groupPerformanceByArea(learner.performance).map((row: any, index: number) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">{row.learning_area}</TableCell>
+                            <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                              {row.academic_year} / {getTermLabel(row.term)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {row.opener !== null ? (
+                                <Badge className={getGradeColor(row.opener)}>{row.opener}%</Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {row.midterm !== null ? (
+                                <Badge className={getGradeColor(row.midterm)}>{row.midterm}%</Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {row.final !== null ? (
+                                <Badge className={getGradeColor(row.final)}>{row.final}%</Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge variant="default" className={getGradeColor(row.average)}>
+                                {row.average.toFixed(1)}%
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                              {row.remarks || "-"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </CardContent>
