@@ -31,10 +31,13 @@ import LearnerProfile from "./pages/LearnerProfile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Users from "./pages/Users";
-import LearnerPortal from "./pages/LearnerPortal";
+import LearnerPerformance from "./pages/LearnerPerformance";
 import LearnerPortalLayout from "./components/LearnerPortalLayout";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import LearnerFeeStructures from "./pages/LearnerFeeStructures";
+import LearnerFeesPage from "./pages/LearnerFeesPage";
+import LearnerAssignments from "./pages/LearnerAssignments";
+import LearnerMessages from "./pages/LearnerMessages";
 import Profile from "./pages/Profile";
 import AcademicYears from "./pages/AcademicYears";
 import Communication from "./pages/Communication";
@@ -59,11 +62,11 @@ const App = () => (
             <Route path="/signout" element={<Signout />} />
             <Route path="/learner-portal" element={<ProtectedRoute><LearnerPortalLayout /></ProtectedRoute>}>
               <Route index element={<LearnerDashboard />} />
-              <Route path="performance" element={<LearnerPortal />} />
-              <Route path="fees" element={<LearnerPortal />} />
+              <Route path="performance" element={<LearnerPerformance />} />
+              <Route path="fees" element={<LearnerFeesPage />} />
               <Route path="fee-structures" element={<LearnerFeeStructures />} />
-              <Route path="assignments" element={<LearnerPortal />} />
-              <Route path="messages" element={<LearnerPortal />} />
+              <Route path="assignments" element={<LearnerAssignments />} />
+              <Route path="messages" element={<LearnerMessages />} />
             </Route>
             <Route path="/dashboard" element={<ProtectedRoute><AdminRoute><Dashboard /></AdminRoute></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><AdminRoute><Dashboard /></AdminRoute></ProtectedRoute>} />

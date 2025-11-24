@@ -8,10 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3, ArrowUp, ArrowDown, BookOpen, Lightbulb, Target, Award, Users, Minus, TrendingDown } from "lucide-react";
+import { User, TrendingUp, Calendar, Download, Printer, BarChart3, ArrowUp, ArrowDown, BookOpen, Lightbulb, Target, Award, Users, Minus, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatCurrency } from "@/lib/currency";
+
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
@@ -111,19 +111,8 @@ export default function LearnerDashboard() {
   const [stats, setStats] = useState({
     totalSubjects: 0,
     averageScore: 0,
-    feeBalance: 0,
   });
   const [performance, setPerformance] = useState<any[]>([]);
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [feeInfo, setFeeInfo] = useState({
-    totalAccumulatedFees: 0,
-    totalPaid: 0,
-    totalBalance: 0,
-    currentTermFees: 0,
-    currentTermPaid: 0,
-    currentTermBalance: 0,
-  });
 
   // Filters
   const [selectedYear, setSelectedYear] = useState<string>("");
@@ -210,86 +199,10 @@ export default function LearnerDashboard() {
       }
     }
 
-    // Fetch invoices with details
-    const { data: invoicesData } = await supabase
-      .from("student_invoices")
-      .select("*")
-      .eq("learner_id", learner.id)
-      .neq("status", "cancelled")
-      .order("created_at", { ascending: false });
-
-    setInvoices(invoicesData || []);
-
-    // Fetch transactions
-    const { data: transactionsData } = await supabase
-      .from("fee_transactions")
-      .select(`
-        *,
-        invoice:student_invoices(invoice_number, academic_year, term)
-      `)
-      .eq("learner_id", learner.id)
-      .order("payment_date", { ascending: false });
-
-    setTransactions(transactionsData || []);
-
-    // Fetch fee_payments (legacy payment system)
-    const { data: feePaymentsData } = await supabase
-      .from("fee_payments")
-      .select(`
-        *,
-        fee_structure:fee_structures(academic_year, term)
-      `)
-      .eq("learner_id", learner.id)
-      .order("payment_date", { ascending: false });
-
     // Calculate stats
     const avgScore = performanceData?.length
       ? performanceData.reduce((sum, p) => sum + Number(p.marks), 0) / performanceData.length
       : 0;
-
-    const totalAccumulated = invoicesData?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
-    
-    // Calculate total paid from BOTH fee_transactions and fee_payments
-    const totalPaidFromTransactions = transactionsData?.reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
-    const totalPaidFromFeePayments = feePaymentsData?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
-    const totalPaid = totalPaidFromTransactions + totalPaidFromFeePayments;
-    
-    const totalBalance = totalAccumulated - totalPaid;
-
-    // Get current academic period
-    const { data: currentPeriod } = await supabase
-      .from("academic_periods")
-      .select("*")
-      .eq("is_current", true)
-      .maybeSingle();
-
-    let currentTermFees = 0;
-    let currentTermPaid = 0;
-    
-    if (currentPeriod && invoicesData) {
-      const currentInvoice = invoicesData.find(
-        inv => inv.academic_year === currentPeriod.academic_year && inv.term === currentPeriod.term
-      );
-      
-      if (currentInvoice) {
-        currentTermFees = Number(currentInvoice.total_amount);
-        
-        // Calculate current term paid from actual transactions for this term
-        const currentTermTransactions = transactionsData?.filter(
-          t => t.invoice?.academic_year === currentPeriod.academic_year &&
-               t.invoice?.term === currentPeriod.term
-        ) || [];
-        
-        const currentTermFeePayments = feePaymentsData?.filter(
-          p => p.fee_structure?.academic_year === currentPeriod.academic_year &&
-               p.fee_structure?.term === currentPeriod.term
-        ) || [];
-        
-        currentTermPaid = 
-          currentTermTransactions.reduce((sum, t) => sum + Number(t.amount_paid), 0) +
-          currentTermFeePayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
-      }
-    }
 
     // Count unique learning areas
     const subjectCount = performanceData 
@@ -299,16 +212,6 @@ export default function LearnerDashboard() {
     setStats({
       totalSubjects: subjectCount,
       averageScore: Math.round(avgScore),
-      feeBalance: totalBalance,
-    });
-
-    setFeeInfo({
-      totalAccumulatedFees: totalAccumulated,
-      totalPaid,
-      totalBalance,
-      currentTermFees,
-      currentTermPaid,
-      currentTermBalance: currentTermFees - currentTermPaid,
     });
   };
 
