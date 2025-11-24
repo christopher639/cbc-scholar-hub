@@ -73,11 +73,6 @@ export default function Auth() {
             <CardTitle className="text-2xl">
               Welcome to {schoolInfo?.school_name || "School Management System"}
             </CardTitle>
-            <CardDescription>
-              Teachers: Use TSC number & ID number<br />
-              Learners: Use admission number & birth certificate<br />
-              Staff: Use email & password
-            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
