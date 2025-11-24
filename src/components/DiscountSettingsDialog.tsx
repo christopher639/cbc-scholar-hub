@@ -15,17 +15,17 @@ interface DiscountSettingsDialogProps {
 export function DiscountSettingsDialog({ open, onOpenChange }: DiscountSettingsDialogProps) {
   const { settings, loading, updateSettings } = useDiscountSettings();
   
-  const [staffDiscountEnabled, setStaffDiscountEnabled] = useState(true);
-  const [staffDiscountPercent, setStaffDiscountPercent] = useState("50");
+  const [staffDiscountEnabled, setStaffDiscountEnabled] = useState(false);
+  const [staffDiscountPercent, setStaffDiscountPercent] = useState("0");
   
-  const [siblingDiscountEnabled, setSiblingDiscountEnabled] = useState(true);
-  const [siblingDiscountPercent, setSiblingDiscountPercent] = useState("15");
+  const [siblingDiscountEnabled, setSiblingDiscountEnabled] = useState(false);
+  const [siblingDiscountPercent, setSiblingDiscountPercent] = useState("0");
   
-  const [earlyPaymentEnabled, setEarlyPaymentEnabled] = useState(true);
-  const [earlyPaymentPercent, setEarlyPaymentPercent] = useState("5");
+  const [earlyPaymentEnabled, setEarlyPaymentEnabled] = useState(false);
+  const [earlyPaymentPercent, setEarlyPaymentPercent] = useState("0");
   const [earlyPaymentDays, setEarlyPaymentDays] = useState("14");
   
-  const [bursaryEnabled, setBursaryEnabled] = useState(true);
+  const [bursaryEnabled, setBursaryEnabled] = useState(false);
 
   // Load existing settings
   useEffect(() => {
