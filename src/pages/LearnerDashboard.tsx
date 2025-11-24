@@ -233,6 +233,11 @@ export default function LearnerDashboard() {
     return true;
   });
 
+  // Get unique values for filters (moved before chart calculations to avoid reference errors)
+  const uniqueYears = [...new Set(performance.map(p => p.academic_year))].filter(Boolean);
+  const uniqueTerms = [...new Set(performance.map(p => p.term))].filter(Boolean);
+  const uniqueExamTypes = [...new Set(performance.map(p => p.exam_type))].filter(Boolean);
+
   // Group performance by learning area
   const groupedPerformance = groupPerformanceByArea(filteredPerformance);
 
@@ -272,11 +277,6 @@ export default function LearnerDashboard() {
       return result;
     });
   })();
-
-  // Get unique values for filters
-  const uniqueYears = [...new Set(performance.map(p => p.academic_year))].filter(Boolean);
-  const uniqueTerms = [...new Set(performance.map(p => p.term))].filter(Boolean);
-  const uniqueExamTypes = [...new Set(performance.map(p => p.exam_type))].filter(Boolean);
 
   const calculateAge = (dob: string) => {
     const birthDate = new Date(dob);
