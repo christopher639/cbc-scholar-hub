@@ -8,7 +8,7 @@ import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { DownloadAppButton } from "@/components/DownloadAppButton";
+
 
 const getGradeCategory = (marks: number) => {
   if (marks >= 80) return { label: "E.E", description: "Exceeding Expectation", color: "text-green-600" };
@@ -569,9 +569,6 @@ export default function LearnerDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Download App Prompt */}
-      <DownloadAppButton />
     </div>
   );
 }
