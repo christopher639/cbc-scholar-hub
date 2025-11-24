@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useOutletContext } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+import { useReactToPrint } from "react-to-print";
 
 // Helper function to group performance by learning area
 const groupPerformanceByArea = (records: any[]) => {
@@ -69,6 +70,7 @@ export default function LearnerDashboard() {
   const learner = user?.data;
   const { currentPeriod } = useAcademicPeriods();
   const { toast } = useToast();
+  const reportRef = useRef<HTMLDivElement>(null);
   
   const [stats, setStats] = useState({
     totalSubjects: 0,
@@ -296,6 +298,12 @@ export default function LearnerDashboard() {
     return "bg-red-100 text-red-800";
   };
 
+  // Setup print functionality
+  const handlePrint = useReactToPrint({
+    contentRef: reportRef,
+    documentTitle: `Performance_Report_${learnerDetails?.first_name}_${learnerDetails?.last_name}_${selectedYear}_${selectedTerm}`,
+  });
+
   const handleDownloadReportCard = () => {
     if (filteredPerformance.length === 0) {
       toast({
@@ -306,11 +314,7 @@ export default function LearnerDashboard() {
       return;
     }
     
-    // Trigger the PrintablePerformanceReport download
-    const printButton = document.querySelector('[data-print-report]') as HTMLButtonElement;
-    if (printButton) {
-      printButton.click();
-    }
+    handlePrint();
   };
 
   return (
@@ -439,18 +443,21 @@ export default function LearnerDashboard() {
                   ))}
                 </SelectContent>
               </Select>
-
-              <div data-print-report className="hidden">
-                <PrintablePerformanceReport
-                  learner={learnerDetails}
-                  performance={filteredPerformance}
-                  academicYear={selectedYear}
-                  term={selectedTerm}
-                  examType={selectedExamType !== "all" ? selectedExamType : undefined}
-                />
-              </div>
             </div>
           )}
+
+          {/* Hidden printable report */}
+          <div style={{ display: 'none' }}>
+            <div ref={reportRef}>
+              <PrintablePerformanceReport
+                learner={learnerDetails}
+                performance={filteredPerformance}
+                academicYear={selectedYear}
+                term={selectedTerm}
+                examType={selectedExamType !== "all" ? selectedExamType : undefined}
+              />
+            </div>
+          </div>
 
           {!showComparison && filteredPerformance.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No performance records for selected filters</p>
