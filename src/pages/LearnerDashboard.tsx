@@ -282,12 +282,20 @@ export default function LearnerDashboard() {
   };
 
   return (
-    <div className="w-full min-h-screen px-3 md:px-6 pb-4 md:pb-6 space-y-4">
+    <div className="w-full min-h-screen px-3 md:px-6 pt-2 pb-4 md:pb-6 space-y-3">
+      {/* Welcome Message */}
+      <div className="mb-2">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
+          Welcome back, {learnerDetails?.first_name}!
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">Here's your academic overview</p>
+      </div>
+
       {/* Profile Header */}
       <Card className="border-border/50 overflow-hidden">
         <CardContent className="pt-4 pb-4">
-          <div className="grid grid-cols-[auto_1fr] gap-4 items-start">
-            <Avatar className="h-20 w-20 md:h-24 md:w-24 rounded-lg border-2 border-primary/20">
+          <div className="grid grid-cols-[auto_1fr] gap-4 items-center">
+            <Avatar className="h-24 w-24 sm:h-28 sm:w-28 rounded-lg border-2 border-primary/20">
               <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} className="object-cover" />
               <AvatarFallback className="text-2xl md:text-3xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold rounded-lg">
                 {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
@@ -344,7 +352,7 @@ export default function LearnerDashboard() {
               </CardDescription>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none hover:bg-muted/50 transition-colors">
+              <Button onClick={handleDownloadReportCard} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none hover:bg-muted/50 transition-colors">
                 <Printer className="h-4 w-4" />
                 <span className="hidden sm:inline">Print</span>
               </Button>

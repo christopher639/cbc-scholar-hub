@@ -126,10 +126,10 @@ export default function LearnerPortalLayout() {
   return (
     <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-border/50 bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90 shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
         <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6">
           {/* Left - School Logo */}
-          <div className="flex items-center gap-3 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             {schoolInfo?.logo_url ? (
               <img src={schoolInfo.logo_url} alt="School Logo" className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover ring-2 ring-primary/20" />
             ) : (
@@ -137,8 +137,8 @@ export default function LearnerPortalLayout() {
                 <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
               </div>
             )}
-            <div className="hidden sm:block">
-              <h1 className="text-sm md:text-base font-bold leading-tight text-foreground">{schoolInfo?.school_name || "School Portal"}</h1>
+            <div>
+              <h1 className="text-xs sm:text-sm md:text-base font-bold leading-tight text-foreground">{schoolInfo?.school_name || "School Portal"}</h1>
               <p className="text-xs text-muted-foreground hidden md:block">{schoolInfo?.motto || "Learner Portal"}</p>
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function LearnerPortalLayout() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/50 bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
         <div className="flex items-center justify-around h-16 px-2">
           {navigationItems.map((item) => (
             <Button
