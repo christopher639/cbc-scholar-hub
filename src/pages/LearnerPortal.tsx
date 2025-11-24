@@ -7,9 +7,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, DollarSign, FileText, MessageSquare, Wallet, TrendingUp, AlertCircle } from "lucide-react";
+import { BookOpen, DollarSign, FileText, MessageSquare, Wallet, TrendingUp, AlertCircle, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export default function LearnerPortal() {
   const location = useLocation();
@@ -21,6 +24,14 @@ export default function LearnerPortal() {
   const [messages, setMessages] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Performance filters
+  const [academicYears, setAcademicYears] = useState<any[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedTerm, setSelectedTerm] = useState<string>("");
+  const [performanceData, setPerformanceData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [classPosition, setClassPosition] = useState<number | null>(null);
 
   const getActiveTab = () => {
     if (location.pathname.includes("/performance")) return "performance";
@@ -33,8 +44,120 @@ export default function LearnerPortal() {
   useEffect(() => {
     if (learner) {
       fetchData();
+      fetchAcademicYears();
     }
   }, [learner]);
+
+  useEffect(() => {
+    if (learner && selectedYear && selectedTerm) {
+      fetchPerformanceByFilter();
+    }
+  }, [learner, selectedYear, selectedTerm]);
+
+  const fetchAcademicYears = async () => {
+    const { data } = await supabase
+      .from("academic_years")
+      .select("*")
+      .order("year", { ascending: false });
+    
+    if (data && data.length > 0) {
+      setAcademicYears(data);
+      const activeYear = data.find(y => y.is_active) || data[0];
+      setSelectedYear(activeYear.year);
+      setSelectedTerm("term_1" as const);
+    }
+  };
+
+  const fetchPerformanceByFilter = async () => {
+    if (!learner || !selectedYear || !selectedTerm) return;
+
+    try {
+      // Fetch performance records for selected year and term
+      const { data: perfRecords } = await supabase
+        .from("performance_records")
+        .select(`
+          *,
+          learning_area:learning_areas(name, code)
+        `)
+        .eq("learner_id", learner.id)
+        .eq("academic_year", selectedYear)
+        .eq("term", selectedTerm as "term_1" | "term_2" | "term_3")
+        .order("learning_area_id");
+
+      // Group by learning area and exam type
+      const grouped = perfRecords?.reduce((acc: any, record: any) => {
+        const areaName = record.learning_area?.name || "Unknown";
+        if (!acc[areaName]) {
+          acc[areaName] = {
+            learning_area: areaName,
+            opener: null,
+            midterm: null,
+            final: null,
+          };
+        }
+        
+        if (record.exam_type === "opener") acc[areaName].opener = record.marks;
+        if (record.exam_type === "midterm") acc[areaName].midterm = record.marks;
+        if (record.exam_type === "final") acc[areaName].final = record.marks;
+        
+        return acc;
+      }, {});
+
+      const tableData = Object.values(grouped || {}).map((row: any) => {
+        const scores = [row.opener, row.midterm, row.final].filter(s => s !== null);
+        const average = scores.length > 0 
+          ? scores.reduce((sum: number, s: number) => sum + s, 0) / scores.length 
+          : 0;
+        return { ...row, average: Math.round(average * 10) / 10 };
+      });
+
+      setPerformanceData(tableData);
+
+      // Calculate class position
+      if (learner.current_grade_id && learner.current_stream_id) {
+        const { data: allLearners } = await supabase
+          .from("learners")
+          .select("id")
+          .eq("current_grade_id", learner.current_grade_id)
+          .eq("current_stream_id", learner.current_stream_id)
+          .eq("status", "active");
+
+        if (allLearners) {
+          const averages = await Promise.all(
+            allLearners.map(async (l) => {
+              const { data: records } = await supabase
+                .from("performance_records")
+                .select("marks")
+                .eq("learner_id", l.id)
+                .eq("academic_year", selectedYear)
+                .eq("term", selectedTerm as "term_1" | "term_2" | "term_3");
+
+              const avg = records && records.length > 0
+                ? records.reduce((sum, r) => sum + Number(r.marks), 0) / records.length
+                : 0;
+
+              return { learnerId: l.id, average: avg };
+            })
+          );
+
+          averages.sort((a, b) => b.average - a.average);
+          const position = averages.findIndex(a => a.learnerId === learner.id) + 1;
+          setClassPosition(position > 0 ? position : null);
+        }
+      }
+
+      // Prepare chart data
+      const chartDataPoints = perfRecords?.map((record: any) => ({
+        subject: record.learning_area?.code || record.learning_area?.name?.substring(0, 10) || "Unknown",
+        marks: record.marks,
+        examType: record.exam_type || "N/A"
+      })) || [];
+
+      setChartData(chartDataPoints);
+    } catch (error: any) {
+      console.error("Error fetching performance:", error);
+    }
+  };
 
   const fetchData = async () => {
     if (!learner) return;
@@ -210,36 +333,152 @@ export default function LearnerPortal() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="performance">
+        <TabsContent value="performance" className="space-y-6">
+          {/* Filters */}
           <Card>
             <CardHeader>
-              <CardTitle>Academic Performance</CardTitle>
-              <CardDescription>Your recent exam results</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Performance Filters
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {performance.length > 0 ? (
-                <div className="space-y-4">
-                  {performance.map((record) => (
-                    <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="font-semibold">{record.learning_area?.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {record.academic_period?.academic_year} - {getTermLabel(record.academic_period?.term)}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="text-2xl font-bold">{record.marks}</div>
-                          {record.grade_letter && (
-                            <Badge className={getGradeColor(record.marks)}>{record.grade_letter}</Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Academic Year</label>
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {academicYears.map((year) => (
+                        <SelectItem key={year.id} value={year.year}>
+                          {year.year} {year.is_active && "(Current)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Term</label>
+                  <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select term" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="term_1">Term 1</SelectItem>
+                      <SelectItem value="term_2">Term 2</SelectItem>
+                      <SelectItem value="term_3">Term 3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Overview Graph */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance Overview</CardTitle>
+              <CardDescription>Visual representation of your marks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="subject" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="marks" stroke="hsl(var(--primary))" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No performance data for selected period
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Performance Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {selectedYear} - {getTermLabel(selectedTerm)}
+                {classPosition && (
+                  <Badge className="ml-2" variant="secondary">
+                    Class Position: {classPosition}
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>Detailed performance breakdown by exam type</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {performanceData.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Learning Area</TableHead>
+                        <TableHead className="text-center">Opener</TableHead>
+                        <TableHead className="text-center">Midterm</TableHead>
+                        <TableHead className="text-center">Final</TableHead>
+                        <TableHead className="text-center font-bold">Average</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {performanceData.map((row, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{row.learning_area}</TableCell>
+                          <TableCell className="text-center">
+                            {row.opener !== null ? (
+                              <Badge className={getGradeColor(row.opener)}>{row.opener}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {row.midterm !== null ? (
+                              <Badge className={getGradeColor(row.midterm)}>{row.midterm}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {row.final !== null ? (
+                              <Badge className={getGradeColor(row.final)}>{row.final}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={getGradeColor(row.average)} variant="default">
+                              {row.average.toFixed(1)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/50 font-bold">
+                        <TableCell>Overall Average</TableCell>
+                        <TableCell colSpan={3}></TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="default" className="text-base">
+                            {(
+                              performanceData.reduce((sum, row) => sum + row.average, 0) /
+                              performanceData.length
+                            ).toFixed(1)}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">No performance records yet</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  No performance records for this period
+                </div>
               )}
             </CardContent>
           </Card>
