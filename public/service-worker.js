@@ -1,12 +1,18 @@
-const CACHE_NAME = 'school-management-v1';
+const CACHE_NAME = 'school-management-v2';
 const OFFLINE_URL = '/offline.html';
 
-// Assets to cache immediately
+// Assets to cache immediately for faster offline loading
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/offline.html',
   '/manifest.json',
+  '/learner-portal',
+  '/learner-portal/performance',
+  '/learner-portal/fees',
+  '/learner-portal/fee-structures',
+  '/learner-portal/settings',
+  '/learner-portal/profile',
 ];
 
 // Install event - cache essential assets

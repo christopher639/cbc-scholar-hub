@@ -1,7 +1,7 @@
 // IndexedDB wrapper for offline data storage
 
 const DB_NAME = 'SchoolManagementDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented to add SCHOOL_INFO store
 
 // Store names
 export const STORES = {
@@ -14,6 +14,7 @@ export const STORES = {
   PERFORMANCE: 'performance_records',
   ALUMNI: 'alumni',
   SYNC_QUEUE: 'sync_queue',
+  SCHOOL_INFO: 'school_info',
 } as const;
 
 class IndexedDBManager {
@@ -98,6 +99,11 @@ class IndexedDBManager {
           const syncStore = db.createObjectStore(STORES.SYNC_QUEUE, { keyPath: 'id', autoIncrement: true });
           syncStore.createIndex('timestamp', 'timestamp', { unique: false });
           syncStore.createIndex('synced', 'synced', { unique: false });
+        }
+
+        // Create school info store
+        if (!db.objectStoreNames.contains(STORES.SCHOOL_INFO)) {
+          db.createObjectStore(STORES.SCHOOL_INFO, { keyPath: 'id' });
         }
       };
     });

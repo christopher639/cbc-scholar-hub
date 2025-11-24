@@ -12,14 +12,12 @@ import { cn } from "@/lib/utils";
 import { LearnerChangePasswordDialog } from "@/components/LearnerChangePasswordDialog";
 import { Progress } from "@/components/ui/progress";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { useLearnerPortalCache } from "@/hooks/useLearnerCache";
 
 export default function LearnerPortalLayout() {
   const navigate = useNavigate();
   const { user, loading: authLoading, logout } = useAuth();
   const { toast } = useToast();
-  const [learnerDetails, setLearnerDetails] = useState<any>(null);
-  const [schoolInfo, setSchoolInfo] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -27,6 +25,24 @@ export default function LearnerPortalLayout() {
   const isLearner = user?.role === "learner";
   const learner = isLearner ? user.data : null;
   const location = useLocation();
+
+  // Use cache to load UI instantly
+  const { learnerData: cachedLearner, schoolData: cachedSchool, updateCache } = useLearnerPortalCache(learner?.id || "");
+  
+  const [learnerDetails, setLearnerDetails] = useState<any>(cachedLearner);
+  const [schoolInfo, setSchoolInfo] = useState<any>(cachedSchool);
+  const [loading, setLoading] = useState(!cachedLearner);
+
+  // Update state when cached data arrives
+  useEffect(() => {
+    if (cachedLearner) {
+      setLearnerDetails(cachedLearner);
+      setLoading(false);
+    }
+    if (cachedSchool) {
+      setSchoolInfo(cachedSchool);
+    }
+  }, [cachedLearner, cachedSchool]);
 
   useEffect(() => {
     if (!authLoading && !isLearner) {
@@ -48,7 +64,10 @@ export default function LearnerPortalLayout() {
     if (!learner) return;
 
     try {
-      setLoading(true);
+      // Don't show loading if we have cached data
+      if (!cachedLearner) {
+        setLoading(true);
+      }
 
       const { data: learnerData, error: learnerError } = await supabase
         .from("learners")
@@ -62,37 +81,44 @@ export default function LearnerPortalLayout() {
 
       if (learnerError) {
         console.error("Error fetching learner details:", learnerError);
-        toast({
-          title: "Error",
-          description: "Could not load learner details. Please try logging in again.",
-          variant: "destructive",
-        });
+        if (!cachedLearner) {
+          toast({
+            title: "Error",
+            description: "Could not load learner details. Please try logging in again.",
+            variant: "destructive",
+          });
+        }
         return;
       }
 
       if (!learnerData) {
-        toast({
-          title: "Error",
-          description: "Learner profile not found. Please contact administration.",
-          variant: "destructive",
-        });
+        if (!cachedLearner) {
+          toast({
+            title: "Error",
+            description: "Learner profile not found. Please contact administration.",
+            variant: "destructive",
+          });
+        }
         return;
       }
-
-      setLearnerDetails(learnerData);
 
       const { data: schoolData } = await supabase
         .from("school_info")
         .select("*")
         .single();
 
+      // Update state and cache
+      setLearnerDetails(learnerData);
       setSchoolInfo(schoolData);
+      await updateCache(learnerData, schoolData);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (!cachedLearner) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -103,7 +129,8 @@ export default function LearnerPortalLayout() {
     navigate("/auth", { replace: true });
   };
 
-  if (authLoading || loading) {
+  // Show loading skeleton only on first load without cache
+  if (authLoading || (loading && !cachedLearner)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="space-y-4">
@@ -114,7 +141,15 @@ export default function LearnerPortalLayout() {
     );
   }
 
-  if (!isLearner || !learnerDetails) {
+  if (!isLearner) {
+    return null;
+  }
+
+  // Use cached data if available, otherwise wait for fresh data
+  const displayLearner = learnerDetails || cachedLearner;
+  const displaySchool = schoolInfo || cachedSchool;
+
+  if (!displayLearner) {
     return null;
   }
 
@@ -154,16 +189,16 @@ export default function LearnerPortalLayout() {
         <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6 gap-4 w-full">
           {/* Left - School Logo */}
           <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-            {schoolInfo?.logo_url ? (
-              <img src={schoolInfo.logo_url} alt="School Logo" className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover ring-2 ring-primary/20" />
+            {displaySchool?.logo_url ? (
+              <img src={displaySchool.logo_url} alt="School Logo" className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover ring-2 ring-primary/20" />
             ) : (
               <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
                 <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
               </div>
             )}
             <div className="hidden md:block">
-              <h1 className="text-xs sm:text-sm md:text-base font-bold leading-tight text-foreground whitespace-nowrap">{schoolInfo?.school_name || "School Portal"}</h1>
-              <p className="text-xs text-muted-foreground">{schoolInfo?.motto || "Learner Portal"}</p>
+              <h1 className="text-xs sm:text-sm md:text-base font-bold leading-tight text-foreground whitespace-nowrap">{displaySchool?.school_name || "School Portal"}</h1>
+              <p className="text-xs text-muted-foreground">{displaySchool?.motto || "Learner Portal"}</p>
             </div>
           </div>
 
@@ -194,9 +229,9 @@ export default function LearnerPortalLayout() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full p-0 hover:bg-transparent">
                   <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
-                    <AvatarImage src={learnerDetails.photo_url} />
+                    <AvatarImage src={displayLearner.photo_url} />
                     <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-xs md:text-sm">
-                      {learnerDetails.first_name[0]}{learnerDetails.last_name[0]}
+                      {displayLearner.first_name[0]}{displayLearner.last_name[0]}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -204,8 +239,8 @@ export default function LearnerPortalLayout() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-semibold">{learnerDetails.first_name} {learnerDetails.last_name}</p>
-                    <p className="text-xs text-muted-foreground">Admission: {learnerDetails.admission_number}</p>
+                    <p className="text-sm font-semibold">{displayLearner.first_name} {displayLearner.last_name}</p>
+                    <p className="text-xs text-muted-foreground">Admission: {displayLearner.admission_number}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -231,7 +266,7 @@ export default function LearnerPortalLayout() {
       {/* Main Content - with top padding for fixed header */}
       <main className="flex-1 mt-14 md:mt-16 mb-16 md:mb-0 overflow-auto relative">
         <div className={cn("transition-opacity duration-200", isNavigating && "opacity-50 pointer-events-none")}>
-          <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
+          <Outlet context={{ learnerDetails: displayLearner, schoolInfo: displaySchool, refetch: fetchData }} />
         </div>
       </main>
 
@@ -258,11 +293,11 @@ export default function LearnerPortalLayout() {
       </nav>
 
       {/* Password Change Dialog */}
-      {learnerDetails && (
+      {displayLearner && (
         <LearnerChangePasswordDialog
           open={showPasswordDialog}
           onOpenChange={setShowPasswordDialog}
-          learnerId={learnerDetails.id}
+          learnerId={displayLearner.id}
         />
       )}
 
