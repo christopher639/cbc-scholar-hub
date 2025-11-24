@@ -8,12 +8,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3, ArrowUp, ArrowDown, BookOpen, Lightbulb, Target, Award, Users, Minus, TrendingDown } from "lucide-react";
+import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3, ArrowUp, ArrowDown, BookOpen, Lightbulb, Target, Award, Users, Minus, TrendingDown, Clock, CalendarDays } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/currency";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
+import { StudyScheduleDialog } from "@/components/StudyScheduleDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { useReactToPrint } from "react-to-print";
@@ -135,6 +136,17 @@ export default function LearnerDashboard() {
   const [aiRecommendation, setAiRecommendation] = useState<string>("");
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [classAverages, setClassAverages] = useState<any[]>([]);
+  
+  // Study Schedule Generator
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [studySchedule, setStudySchedule] = useState<string>("");
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const [schedulePreferences, setSchedulePreferences] = useState({
+    weekdayHours: 2,
+    weekendHours: 4,
+    sessionLength: 45,
+  });
+  const [assessments, setAssessments] = useState<Array<{ subject: string; date: string; type: string }>>([]);
 
   useEffect(() => {
     if (learner) {
@@ -439,6 +451,67 @@ export default function LearnerDashboard() {
       }
     } finally {
       setLoadingRecommendations(false);
+    }
+  };
+
+  // Generate study schedule
+  const generateStudySchedule = async (weakSubjects: any[]) => {
+    if (weakSubjects.length === 0) {
+      toast({
+        title: "No Weak Subjects",
+        description: "You need areas for improvement to generate a study schedule.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setLoadingSchedule(true);
+      const { data, error } = await supabase.functions.invoke('generate-study-schedule', {
+        body: {
+          weakSubjects,
+          availableHours: {
+            weekdays: schedulePreferences.weekdayHours,
+            weekends: schedulePreferences.weekendHours,
+            sessionLength: schedulePreferences.sessionLength,
+          },
+          assessments,
+          learnerName: `${learnerDetails?.first_name} ${learnerDetails?.last_name}`
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.schedule) {
+        setStudySchedule(data.schedule);
+        toast({
+          title: "Schedule Generated",
+          description: "Your personalized study schedule is ready!",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error generating study schedule:", error);
+      if (error.message?.includes("429")) {
+        toast({
+          title: "Rate Limit",
+          description: "Too many requests. Please try again later.",
+          variant: "destructive",
+        });
+      } else if (error.message?.includes("402")) {
+        toast({
+          title: "Credits Required",
+          description: "AI credits depleted. Please contact support.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to generate study schedule. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoadingSchedule(false);
     }
   };
 
@@ -1112,8 +1185,84 @@ export default function LearnerDashboard() {
                   </div>
                 </div>
               )}
+              
+              {/* Study Schedule Generator */}
+              <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <CalendarDays className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-foreground">AI Study Schedule Generator</h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Get a personalized weekly timetable based on your weak subjects and upcoming assessments
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setShowScheduleDialog(true)}
+                    size="sm"
+                    className="gap-2 bg-blue-600 hover:bg-blue-700 flex-shrink-0"
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                    Create Schedule
+                  </Button>
+                </div>
+                
+                {studySchedule && (
+                  <div className="mt-4 p-4 bg-white dark:bg-gray-900 rounded-lg border">
+                    <h5 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                      Your Personalized Study Schedule
+                    </h5>
+                    <div className="text-sm text-foreground whitespace-pre-line">
+                      {studySchedule}
+                    </div>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
+        );
+      })()}
+      
+      {/* Study Schedule Dialog */}
+      {performance.length > 0 && (() => {
+        // Get weak subjects for schedule generation
+        const areaAverages: Record<string, { total: number; count: number; area: string }> = {};
+        
+        performance.forEach(record => {
+          const areaName = record.learning_area?.name || "Unknown";
+          if (!areaAverages[areaName]) {
+            areaAverages[areaName] = { total: 0, count: 0, area: areaName };
+          }
+          areaAverages[areaName].total += Number(record.marks);
+          areaAverages[areaName].count += 1;
+        });
+        
+        const averages = Object.values(areaAverages).map(item => ({
+          area: item.area,
+          average: Math.round(item.total / item.count),
+          count: item.count
+        })).sort((a, b) => a.average - b.average);
+        
+        const weakSubjects = averages.slice(0, Math.min(5, averages.length));
+        const availableSubjects = averages.map(a => a.area);
+        
+        return (
+          <StudyScheduleDialog
+            open={showScheduleDialog}
+            onOpenChange={setShowScheduleDialog}
+            onGenerate={() => {
+              generateStudySchedule(weakSubjects);
+              setShowScheduleDialog(false);
+            }}
+            loading={loadingSchedule}
+            preferences={schedulePreferences}
+            onPreferencesChange={setSchedulePreferences}
+            assessments={assessments}
+            onAssessmentsChange={setAssessments}
+            availableSubjects={availableSubjects}
+          />
         );
       })()}
 
