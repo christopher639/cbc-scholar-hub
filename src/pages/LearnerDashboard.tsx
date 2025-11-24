@@ -481,8 +481,8 @@ export default function LearnerDashboard() {
                   Performance Overview
                 </CardTitle>
                 <CardDescription>
-                  {selectedYear && selectedTerm 
-                    ? `${selectedYear} - ${selectedTerm.replace("term_", "Term ")}`
+                  {selectedYear && selectedTerm && gradeName
+                    ? `${selectedYear} ${gradeName} ${selectedTerm.replace("term_", "Term ")}`
                     : "Filter to view performance"}
                 </CardDescription>
               </div>
