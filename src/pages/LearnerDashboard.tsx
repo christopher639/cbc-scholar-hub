@@ -245,11 +245,62 @@ export default function LearnerDashboard() {
     };
   });
 
-  const chartData = tableData.map(area => ({
-    code: area.code,
-    area: area.area,
-    average: area.average || 0
-  }));
+  // Fetch class averages for comparison
+  const [classAverages, setClassAverages] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchClassAverages = async () => {
+      if (!learner?.current_grade_id || !learner?.current_stream_id || !selectedYear || !selectedTerm) return;
+
+      const { data } = await supabase
+        .from("performance_records")
+        .select(`
+          learning_area_id,
+          marks,
+          learning_areas (code)
+        `)
+        .eq("grade_id", learner.current_grade_id)
+        .eq("stream_id", learner.current_stream_id)
+        .eq("academic_year", selectedYear)
+        .eq("term", selectedTerm as any);
+
+      if (!data) return;
+
+      // Calculate mean for each learning area
+      const areaStats: Record<string, { total: number; count: number; code: string }> = {};
+      
+      data.forEach((record: any) => {
+        const areaId = record.learning_area_id;
+        const code = record.learning_areas?.code || "";
+        
+        if (!areaStats[areaId]) {
+          areaStats[areaId] = { total: 0, count: 0, code };
+        }
+        
+        areaStats[areaId].total += Number(record.marks);
+        areaStats[areaId].count += 1;
+      });
+
+      const averages = Object.values(areaStats).map(stats => ({
+        code: stats.code,
+        mean: stats.total / stats.count
+      }));
+
+      setClassAverages(averages);
+    };
+
+    fetchClassAverages();
+  }, [learner, selectedYear, selectedTerm]);
+
+  const chartData = tableData.map(area => {
+    const classAvg = classAverages.find(ca => ca.code === area.code);
+    return {
+      code: area.code,
+      area: area.area,
+      average: area.average || 0,
+      classAverage: classAvg ? Math.round(classAvg.mean * 10) / 10 : undefined
+    };
+  });
 
   // Best and weakest subjects
   const sortedByAverage = [...tableData].filter(a => a.average !== null).sort((a, b) => (b.average || 0) - (a.average || 0));
@@ -484,21 +535,34 @@ export default function LearnerDashboard() {
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
-                        const grade = getGradeCategory(payload[0].value as number);
+                        const learnerScore = payload.find(p => p.dataKey === 'average');
+                        const classAvg = payload.find(p => p.dataKey === 'classAverage');
+                        const grade = learnerScore ? getGradeCategory(learnerScore.value as number) : null;
+                        
                         return (
                           <div className="bg-background border rounded-lg p-2 shadow-lg">
                             <p className="font-semibold">{payload[0].payload.area}</p>
-                            <p className="text-sm">Average: {payload[0].value}%</p>
-                            <p className="text-sm font-medium">
-                              <span className={grade.color}>{grade.label}</span> - {grade.description}
-                            </p>
+                            {learnerScore && (
+                              <>
+                                <p className="text-sm">Your Score: {learnerScore.value}%</p>
+                                {grade && (
+                                  <p className="text-sm font-medium">
+                                    <span className={grade.color}>{grade.label}</span> - {grade.description}
+                                  </p>
+                                )}
+                              </>
+                            )}
+                            {classAvg && classAvg.value && (
+                              <p className="text-sm text-green-600">Class Average: {classAvg.value}%</p>
+                            )}
                           </div>
                         );
                       }
                       return null;
                     }}
                   />
-                  <Line type="linear" dataKey="average" stroke="hsl(var(--primary))" strokeWidth={2} />
+                  <Line type="linear" dataKey="average" stroke="hsl(var(--primary))" strokeWidth={2} name="Your Score" />
+                  <Line type="linear" dataKey="classAverage" stroke="hsl(142 76% 36%)" strokeWidth={2} name="Class Average" />
                 </LineChart>
               </ResponsiveContainer>
             )}
