@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/currency";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 
 // Helper function to group performance by learning area
@@ -282,34 +282,34 @@ export default function LearnerDashboard() {
   };
 
   return (
-    <div className="w-full min-h-screen px-4 md:px-8 py-6 md:py-10 space-y-8">
+    <div className="w-full min-h-screen px-3 md:px-6 py-4 md:py-6 space-y-4">
       {/* Profile Header */}
-      <Card className="shadow-lg border-border/50 overflow-hidden">
-        <CardContent className="pt-8 pb-6">
-          <div className="flex flex-col md:flex-row gap-8">
-            <Avatar className="h-28 w-28 md:h-36 md:w-36 mx-auto md:mx-0 border-4 border-primary/20 shadow-xl ring-2 ring-primary/10">
+      <Card className="border-border/50 overflow-hidden">
+        <CardContent className="pt-6 pb-4">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+            <Avatar className="h-24 w-24 md:h-28 md:w-28 mx-auto md:mx-0 border-2 border-primary/20">
               <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} />
               <AvatarFallback className="text-3xl md:text-4xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold">
                 {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1 space-y-6 text-center md:text-left">
+            <div className="flex-1 space-y-4 text-center md:text-left">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                   {learnerDetails?.first_name} {learnerDetails?.last_name}
                 </h1>
-                <p className="text-base md:text-lg text-muted-foreground mt-2">Admission No: <span className="font-semibold text-primary">{learnerDetails?.admission_number}</span></p>
+                <p className="text-sm md:text-base text-muted-foreground mt-1">Admission No: <span className="font-semibold text-primary">{learnerDetails?.admission_number}</span></p>
               </div>
 
-              <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                <Badge variant="secondary" className="text-sm px-4 py-1.5 shadow-sm">
+              <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                <Badge variant="secondary" className="text-xs px-3 py-1">
                   {learnerDetails?.current_grade?.name} {learnerDetails?.current_stream?.name}
                 </Badge>
-                <Badge className="text-sm px-4 py-1.5 shadow-sm bg-success text-success-foreground">Active</Badge>
+                <Badge className="text-xs px-3 py-1 bg-success text-success-foreground">Active</Badge>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                 <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4 flex-shrink-0 text-primary" />
                   <span className="truncate">Born: {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"} ({learnerDetails?.date_of_birth ? calculateAge(learnerDetails.date_of_birth) : 0} yrs)</span>
@@ -329,37 +329,37 @@ export default function LearnerDashboard() {
       </Card>
 
       {/* Academic Performance Section */}
-      <Card className="shadow-lg border-border/50 overflow-hidden">
-        <CardHeader className="pb-6 bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <Card className="border-border/50 overflow-hidden">
+        <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div className="w-full sm:w-auto">
-              <CardTitle className="text-2xl font-semibold flex items-center gap-2">
-                <TrendingUp className="h-6 w-6 text-primary" />
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
                 Academic Performance
               </CardTitle>
-              <CardDescription className="text-sm mt-2">
+              <CardDescription className="text-xs mt-1">
                 {selectedYear && selectedTerm 
                   ? `${selectedYear} - ${selectedTerm.replace("term_", "Term ")}`
                   : "Filter to view performance"}
               </CardDescription>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none shadow-sm hover:bg-muted/50 transition-colors">
+              <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none hover:bg-muted/50 transition-colors">
                 <Printer className="h-4 w-4" />
                 <span className="hidden sm:inline">Print</span>
               </Button>
-              <Button onClick={handleDownloadReportCard} variant="default" size="sm" className="gap-2 flex-1 sm:flex-none shadow-sm">
+              <Button onClick={handleDownloadReportCard} variant="default" size="sm" className="gap-2 flex-1 sm:flex-none">
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Download</span>
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6 p-6">
+        <CardContent className="space-y-4 p-4">
           {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border border-border/50">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="shadow-sm">
+              <SelectTrigger>
                 <SelectValue placeholder="Select Year" />
               </SelectTrigger>
               <SelectContent>
@@ -372,7 +372,7 @@ export default function LearnerDashboard() {
             </Select>
 
             <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-              <SelectTrigger className="shadow-sm">
+              <SelectTrigger>
                 <SelectValue placeholder="Select Term" />
               </SelectTrigger>
               <SelectContent>
@@ -401,35 +401,42 @@ export default function LearnerDashboard() {
             <>
               {/* Performance Overview Graph */}
               {chartData.length > 0 && (
-                <div className="rounded-lg border border-border/50 overflow-hidden shadow-md bg-card">
-                  <div className="p-6 border-b bg-muted/30">
-                    <h3 className="text-lg font-semibold">Performance Overview</h3>
+                <div className="rounded-lg border border-border/50 overflow-hidden bg-card">
+                  <div className="p-3 border-b bg-muted/30">
+                    <h3 className="text-base font-semibold">Performance Overview</h3>
                   </div>
-                  <div className="p-6">
+                  <div className="p-3">
                     <div className="w-full overflow-x-auto">
-                      <div className="min-w-[500px]">
-                        <ResponsiveContainer width="100%" height={320}>
+                      <div style={{ minWidth: `${Math.max(500, chartData.length * 60)}px` }}>
+                        <ResponsiveContainer width="100%" height={250}>
                           <LineChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                            <defs>
+                              <linearGradient id="colorMarks" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.2} />
                             <XAxis 
                               dataKey="area" 
-                              angle={-45}
+                              angle={-35}
                               textAnchor="end"
-                              height={80}
-                              tick={{ fontSize: 12 }}
+                              height={100}
+                              tick={{ fontSize: 10 }}
                               stroke="hsl(var(--muted-foreground))"
+                              interval={0}
                             />
-                            <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" />
-                            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
-                            <Legend />
+                            <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10 }} width={35} />
+                            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }} />
                             <Line 
-                              type="monotone" 
+                              type="linear" 
                               dataKey="marks" 
                               stroke="hsl(var(--primary))" 
-                              strokeWidth={3}
+                              strokeWidth={2}
+                              fill="url(#colorMarks)"
                               name="Average Marks"
-                              dot={{ fill: 'hsl(var(--primary))', r: 4 }}
-                              activeDot={{ r: 6 }}
+                              dot={{ fill: 'hsl(var(--primary))', r: 3 }}
+                              activeDot={{ r: 5 }}
                             />
                           </LineChart>
                         </ResponsiveContainer>
@@ -440,16 +447,16 @@ export default function LearnerDashboard() {
               )}
 
               {/* Performance Table */}
-              <div className="w-full overflow-x-auto rounded-lg border border-border/50 shadow-md">
+              <div className="w-full overflow-x-auto rounded-lg border border-border/50">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead className="font-semibold whitespace-nowrap">Learning Area</TableHead>
-                      <TableHead className="text-center font-semibold whitespace-nowrap">Opener</TableHead>
-                      <TableHead className="text-center font-semibold whitespace-nowrap">Mid-Term</TableHead>
-                      <TableHead className="text-center font-semibold whitespace-nowrap">Final</TableHead>
-                      <TableHead className="text-center font-semibold whitespace-nowrap">Average</TableHead>
-                      <TableHead className="font-semibold whitespace-nowrap">Remarks</TableHead>
+                      <TableHead className="font-semibold whitespace-nowrap min-w-[120px]">Learning Area</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap min-w-[70px]">Opener</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap min-w-[70px]">Mid-Term</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap min-w-[70px]">Final</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap min-w-[80px]">Average</TableHead>
+                      <TableHead className="font-semibold whitespace-nowrap min-w-[150px]">Remarks</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -517,72 +524,72 @@ export default function LearnerDashboard() {
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="shadow-lg border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 bg-gradient-to-r from-blue-500/10 to-primary/10">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Average Score</CardTitle>
-            <TrendingUp className="h-5 w-5 text-primary" />
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-blue-500/10 to-primary/10">
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Average Score</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-foreground">{stats.averageScore}%</div>
-            <p className="text-xs text-muted-foreground mt-2">
+          <CardContent className="pt-3">
+            <div className="text-2xl font-bold text-foreground">{stats.averageScore}%</div>
+            <p className="text-xs text-muted-foreground mt-1">
               From {stats.totalSubjects} subjects
             </p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 bg-gradient-to-r from-purple-500/10 to-accent/10">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Fees Accumulated</CardTitle>
-            <FileText className="h-5 w-5 text-accent" />
+        <Card className="border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-purple-500/10 to-accent/10">
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fees Accumulated</CardTitle>
+            <FileText className="h-4 w-4 text-accent" />
           </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-foreground">{formatCurrency(feeInfo.totalAccumulatedFees)}</div>
-            <p className="text-xs text-muted-foreground mt-2">Total fees</p>
+          <CardContent className="pt-3">
+            <div className="text-2xl font-bold text-foreground">{formatCurrency(feeInfo.totalAccumulatedFees)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total fees</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 bg-gradient-to-r from-green-500/10 to-success/10">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Amount Paid</CardTitle>
-            <DollarSign className="h-5 w-5 text-success" />
+        <Card className="border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-500/10 to-success/10">
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Amount Paid</CardTitle>
+            <DollarSign className="h-4 w-4 text-success" />
           </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-success">{formatCurrency(feeInfo.totalPaid)}</div>
-            <p className="text-xs text-muted-foreground mt-2">{transactions.length} payments</p>
+          <CardContent className="pt-3">
+            <div className="text-2xl font-bold text-success">{formatCurrency(feeInfo.totalPaid)}</div>
+            <p className="text-xs text-muted-foreground mt-1">{transactions.length} payments</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 bg-gradient-to-r from-orange-500/10 to-destructive/10">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Fee Balance</CardTitle>
-            <DollarSign className="h-5 w-5 text-destructive" />
+        <Card className="border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-orange-500/10 to-destructive/10">
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fee Balance</CardTitle>
+            <DollarSign className="h-4 w-4 text-destructive" />
           </CardHeader>
-          <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-destructive">{formatCurrency(feeInfo.totalBalance)}</div>
-            <p className="text-xs text-muted-foreground mt-2">Outstanding</p>
+          <CardContent className="pt-3">
+            <div className="text-2xl font-bold text-destructive">{formatCurrency(feeInfo.totalBalance)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Outstanding</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabbed Content */}
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid grid-cols-2 w-full sm:w-auto h-12 bg-muted/50 p-1 rounded-lg shadow-sm">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm rounded-md transition-all">Profile</TabsTrigger>
-          <TabsTrigger value="fees" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm rounded-md transition-all">Fees</TabsTrigger>
+      <Tabs defaultValue="profile" className="space-y-4">
+        <TabsList className="grid grid-cols-2 w-full sm:w-auto h-10 bg-muted/50 p-1 rounded-lg">
+          <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md transition-all">Profile</TabsTrigger>
+          <TabsTrigger value="fees" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md transition-all">Fees</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
-        <TabsContent value="profile" className="space-y-4">
-          <Card className="shadow-lg border-border/50 overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
-              <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
+        <TabsContent value="profile" className="space-y-3">
+          <Card className="border-border/50 overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-4">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <User className="h-4 w-4 text-primary" />
                 Personal Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">Full Name</p>
                   <p className="text-base font-medium">
@@ -648,19 +655,19 @@ export default function LearnerDashboard() {
         </TabsContent>
 
         {/* Fees Tab */}
-        <TabsContent value="fees" className="space-y-6">
+        <TabsContent value="fees" className="space-y-3">
           {/* Fee Summary */}
-          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 shadow-lg overflow-hidden">
-            <CardHeader className="pb-6 border-b">
-              <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                <TrendingUp className="h-6 w-6 text-primary" />
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 overflow-hidden">
+            <CardHeader className="pb-3 border-b p-4">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <TrendingUp className="h-5 w-5 text-primary" />
                 Fee Summary
               </CardTitle>
-              <CardDescription className="text-sm">Your complete fee information</CardDescription>
+              <CardDescription className="text-xs">Your complete fee information</CardDescription>
             </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="p-6 rounded-lg bg-card border border-border/50 shadow-sm">
+            <CardContent className="pt-4 p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-4 rounded-lg bg-card border border-border/50">
                   <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide mb-2">Total Fees</p>
                   <p className="text-3xl font-bold text-foreground">{formatCurrency(feeInfo.totalAccumulatedFees)}</p>
                   <p className="text-xs text-muted-foreground mt-2">From {invoices.length} invoices</p>
@@ -682,11 +689,11 @@ export default function LearnerDashboard() {
           </Card>
 
           {/* Current Term Fees */}
-          <Card className="shadow-lg border-border/50 overflow-hidden">
-            <CardHeader className="pb-6 bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
-              <CardTitle className="text-xl font-semibold">Current Term Fees</CardTitle>
+          <Card className="border-border/50 overflow-hidden">
+            <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-4">
+              <CardTitle className="text-base font-semibold">Current Term Fees</CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 p-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide">Term Fees</p>
@@ -707,20 +714,20 @@ export default function LearnerDashboard() {
           </Card>
 
           {/* Invoice History */}
-          <Card className="shadow-lg border-border/50 overflow-hidden">
-            <CardHeader className="pb-6 bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
-              <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
+          <Card className="border-border/50 overflow-hidden">
+            <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-4">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
                 Invoice History
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 p-4">
               {invoices.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8 text-sm">No invoices found</p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {invoices.map((invoice) => (
-                    <div key={invoice.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 border border-border/50 rounded-lg gap-3 hover:bg-muted/30 transition-colors shadow-sm">
+                    <div key={invoice.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-border/50 rounded-lg gap-2 hover:bg-muted/30 transition-colors">
                       <div className="space-y-1.5 flex-1">
                         <p className="font-semibold text-base text-primary">{invoice.invoice_number}</p>
                         <div className="text-sm text-muted-foreground">
@@ -746,20 +753,20 @@ export default function LearnerDashboard() {
           </Card>
 
           {/* Payment History */}
-          <Card className="shadow-lg border-border/50 overflow-hidden">
-            <CardHeader className="pb-6 bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
-              <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-primary" />
+          <Card className="border-border/50 overflow-hidden">
+            <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-4">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-primary" />
                 Payment History
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 p-4">
               {transactions.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8 text-sm">No payments recorded</p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {transactions.map((transaction) => (
-                    <div key={transaction.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 border border-border/50 rounded-lg gap-3 hover:bg-muted/30 transition-colors shadow-sm">
+                    <div key={transaction.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-border/50 rounded-lg gap-2 hover:bg-muted/30 transition-colors">
                       <div className="space-y-1.5 flex-1">
                         <p className="font-semibold text-base text-foreground">{transaction.transaction_number}</p>
                         <p className="text-sm text-muted-foreground">
