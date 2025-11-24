@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, DollarSign, TrendingUp, FileText, Calendar, Download } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/currency";
@@ -15,6 +16,52 @@ import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+
+// Helper function to group performance by learning area
+const groupPerformanceByArea = (records: any[]) => {
+  const grouped = records.reduce((acc: any, record) => {
+    const areaName = record.learning_area?.name || "Unknown";
+    if (!acc[areaName]) {
+      acc[areaName] = {
+        area: areaName,
+        opener: null,
+        midterm: null,
+        final: null,
+        grades: { opener: null, midterm: null, final: null },
+        remarks: { opener: null, midterm: null, final: null }
+      };
+    }
+    
+    const examType = record.exam_type?.toLowerCase();
+    if (examType === "opener") {
+      acc[areaName].opener = record.marks;
+      acc[areaName].grades.opener = record.grade_letter;
+      acc[areaName].remarks.opener = record.remarks;
+    } else if (examType === "mid-term" || examType === "midterm") {
+      acc[areaName].midterm = record.marks;
+      acc[areaName].grades.midterm = record.grade_letter;
+      acc[areaName].remarks.midterm = record.remarks;
+    } else if (examType === "final") {
+      acc[areaName].final = record.marks;
+      acc[areaName].grades.final = record.grade_letter;
+      acc[areaName].remarks.final = record.remarks;
+    }
+    
+    return acc;
+  }, {});
+  
+  return Object.values(grouped).map((area: any) => {
+    const scores = [area.opener, area.midterm, area.final].filter(s => s !== null);
+    const average = scores.length > 0 
+      ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length 
+      : null;
+    
+    return {
+      ...area,
+      average: average !== null ? Math.round(average) : null
+    };
+  });
+};
 
 export default function LearnerDashboard() {
   const { learnerDetails } = useOutletContext<any>();
@@ -185,21 +232,14 @@ export default function LearnerDashboard() {
     return true;
   });
 
-  // Prepare chart data
-  const chartData = filteredPerformance.reduce((acc: any[], record) => {
-    const areaName = record.learning_area?.name || "Unknown";
-    const existing = acc.find(item => item.area === areaName);
-    
-    if (existing) {
-      existing.marks = Math.max(existing.marks, record.marks);
-    } else {
-      acc.push({
-        area: areaName,
-        marks: record.marks
-      });
-    }
-    return acc;
-  }, []);
+  // Group performance by learning area
+  const groupedPerformance = groupPerformanceByArea(filteredPerformance);
+
+  // Prepare chart data - use average scores per area
+  const chartData = groupedPerformance.map(area => ({
+    area: area.area,
+    marks: area.average || 0
+  }));
 
   // Get unique values for filters
   const uniqueYears = [...new Set(performance.map(p => p.academic_year))].filter(Boolean);
@@ -288,6 +328,193 @@ export default function LearnerDashboard() {
         </CardContent>
       </Card>
 
+      {/* Academic Performance Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle>Academic Performance</CardTitle>
+              <CardDescription>
+                {selectedYear && selectedTerm 
+                  ? `${selectedYear} - ${selectedTerm.replace("term_", "Term ")}`
+                  : "Filter to view performance"}
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2">
+                <Printer className="h-4 w-4" />
+                Print
+              </Button>
+              <Button onClick={handleDownloadReportCard} variant="outline" size="sm" className="gap-2">
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {uniqueYears.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Term" />
+              </SelectTrigger>
+              <SelectContent>
+                {uniqueTerms.map((term) => (
+                  <SelectItem key={term} value={term}>
+                    {term.replace("term_", "Term ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div data-print-report className="hidden">
+              <PrintablePerformanceReport
+                learner={learnerDetails}
+                performance={filteredPerformance}
+                academicYear={selectedYear}
+                term={selectedTerm}
+                examType={selectedExamType !== "all" ? selectedExamType : undefined}
+              />
+            </div>
+          </div>
+
+          {filteredPerformance.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No performance records for selected filters</p>
+          ) : (
+            <>
+              {/* Performance Overview Graph */}
+              {chartData.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Performance Overview</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="area" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={100}
+                          style={{ fontSize: '12px' }}
+                        />
+                        <YAxis domain={[0, 100]} />
+                        <Tooltip />
+                        <Legend />
+                        <Line 
+                          type="linear" 
+                          dataKey="marks" 
+                          stroke="hsl(var(--primary))" 
+                          strokeWidth={2}
+                          name="Average Marks"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Performance Table */}
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-semibold">Learning Area</TableHead>
+                      <TableHead className="text-center font-semibold">Opener</TableHead>
+                      <TableHead className="text-center font-semibold">Mid-Term</TableHead>
+                      <TableHead className="text-center font-semibold">Final</TableHead>
+                      <TableHead className="text-center font-semibold">Average</TableHead>
+                      <TableHead className="font-semibold">Remarks</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {groupedPerformance.map((area, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{area.area}</TableCell>
+                        <TableCell className="text-center">
+                          {area.opener !== null ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="font-semibold">{area.opener}%</span>
+                              {area.grades.opener && (
+                                <Badge variant="outline" className="text-xs">
+                                  {area.grades.opener}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {area.midterm !== null ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="font-semibold">{area.midterm}%</span>
+                              {area.grades.midterm && (
+                                <Badge variant="outline" className="text-xs">
+                                  {area.grades.midterm}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {area.final !== null ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="font-semibold">{area.final}%</span>
+                              {area.grades.final && (
+                                <Badge variant="outline" className="text-xs">
+                                  {area.grades.final}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {area.average !== null ? (
+                            <span className="font-bold text-lg">{area.average}%</span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-1">
+                            {area.remarks.opener && <p className="text-muted-foreground">Opener: {area.remarks.opener}</p>}
+                            {area.remarks.midterm && <p className="text-muted-foreground">Mid-Term: {area.remarks.midterm}</p>}
+                            {area.remarks.final && <p className="text-muted-foreground">Final: {area.remarks.final}</p>}
+                            {!area.remarks.opener && !area.remarks.midterm && !area.remarks.final && (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Stats Overview */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -339,18 +566,10 @@ export default function LearnerDashboard() {
 
       {/* Tabbed Content */}
       <Tabs defaultValue="profile" className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <TabsList className="grid grid-cols-3 w-full sm:w-auto">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="fees">Fees</TabsTrigger>
-          </TabsList>
-          <Button onClick={handleDownloadReportCard} variant="outline" className="gap-2 w-full sm:w-auto">
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Download Report Card</span>
-            <span className="sm:hidden">Download Report</span>
-          </Button>
-        </div>
+        <TabsList className="grid grid-cols-2 w-full sm:w-auto">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="fees">Fees</TabsTrigger>
+        </TabsList>
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-4">
@@ -415,138 +634,6 @@ export default function LearnerDashboard() {
                         <p className="text-base font-medium">{learnerDetails?.emergency_phone || "Not set"}</p>
                       </div>
                     </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Performance Tab */}
-        <TabsContent value="performance" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Academic Performance</CardTitle>
-              <CardDescription>Filter and view your assessment results</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Filters */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {uniqueYears.map((year) => (
-                      <SelectItem key={year} value={year}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Term" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {uniqueTerms.map((term) => (
-                      <SelectItem key={term} value={term}>
-                        {term.replace("term_", "Term ")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedExamType} onValueChange={setSelectedExamType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Exam Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Exams</SelectItem>
-                    {uniqueExamTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <div data-print-report>
-                  <PrintablePerformanceReport
-                    learner={learnerDetails}
-                    performance={filteredPerformance}
-                    academicYear={selectedYear}
-                    term={selectedTerm}
-                    examType={selectedExamType !== "all" ? selectedExamType : undefined}
-                  />
-                </div>
-              </div>
-
-              {filteredPerformance.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No performance records for selected filters</p>
-              ) : (
-                <>
-                  {/* Performance Chart */}
-                  {chartData.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Performance Overview</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <LineChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                              dataKey="area" 
-                              angle={-45}
-                              textAnchor="end"
-                              height={100}
-                              style={{ fontSize: '12px' }}
-                            />
-                            <YAxis domain={[0, 100]} />
-                            <Tooltip />
-                            <Legend />
-                            <Line 
-                              type="monotone" 
-                              dataKey="marks" 
-                              stroke="hsl(var(--primary))" 
-                              strokeWidth={2}
-                              name="Marks"
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Performance Records */}
-                  <div className="space-y-3">
-                    {filteredPerformance.map((record) => (
-                      <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                        <div className="space-y-1 flex-1">
-                          <p className="font-medium">{record.learning_area?.name}</p>
-                          <div className="flex gap-2 text-sm text-muted-foreground">
-                            <span>{record.academic_period?.academic_year || record.academic_year}</span>
-                            {(record.academic_period?.term || record.term) && (
-                              <span>• {(record.academic_period?.term || record.term).replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
-                            )}
-                            {record.exam_type && <span>• {record.exam_type}</span>}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-2">
-                            <Badge className={`text-base ${getGradeColor(record.marks)}`}>
-                              {record.grade_letter || 'N/A'}
-                            </Badge>
-                            <span className="text-2xl font-bold">{record.marks}%</span>
-                          </div>
-                          {record.remarks && (
-                            <p className="text-xs text-muted-foreground mt-1">{record.remarks}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </>
               )}
