@@ -181,24 +181,26 @@ export default function LearnerPortalLayout() {
         </div>
 
         {/* Desktop Navigation - Below Header */}
-        <nav className="hidden md:flex items-center gap-2 px-6 pb-2 overflow-x-auto border-t border-border/30">
-          {navigationItems.map((item) => (
-            <Button
-              key={item.url}
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(item.url)}
-              className={cn(
-                "flex items-center gap-2 whitespace-nowrap transition-all rounded-lg px-3 py-2",
-                isActive(item.url) 
-                  ? "bg-primary text-primary-foreground font-semibold hover:bg-primary/90" 
-                  : "hover:bg-muted/50"
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.title}
-            </Button>
-          ))}
+        <nav className="hidden md:flex items-center justify-between w-full gap-2 px-6 pb-2 overflow-x-auto border-t border-border/30">
+          <div className="flex items-center gap-2">
+            {navigationItems.map((item) => (
+              <Button
+                key={item.url}
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(item.url)}
+                className={cn(
+                  "flex items-center gap-2 whitespace-nowrap transition-all rounded-lg px-3 py-2",
+                  isActive(item.url) 
+                    ? "bg-primary text-primary-foreground font-semibold hover:bg-primary/90" 
+                    : "hover:bg-muted/50"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="hidden lg:inline">{item.title}</span>
+              </Button>
+            ))}
+          </div>
         </nav>
       </header>
 

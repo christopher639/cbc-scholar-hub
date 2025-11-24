@@ -465,85 +465,87 @@ export default function LearnerDashboard() {
             <p className="text-center text-muted-foreground py-8 text-sm">No performance records available</p>
           ) : (
             <>
-              {/* Performance Overview Graph */}
-              <div className="rounded-lg border border-border/50 overflow-hidden bg-card">
-                <div className="p-3 border-b bg-muted/30">
-                  <h3 className="text-base font-semibold">
-                    {showComparison ? "Year-over-Year Progress" : "Performance Overview"}
-                  </h3>
-                </div>
-                <div className="p-3">
-                  <div className="w-full overflow-x-auto">
-                    <div style={{ minWidth: `${Math.max(400, (showComparison ? comparisonChartData : chartData).length * 60)}px` }}>
-                      <ResponsiveContainer width="100%" height={250}>
-                        {showComparison ? (
-                          <LineChart data={comparisonChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
-                            <XAxis 
-                              dataKey="area" 
-                              angle={-45}
-                              textAnchor="end"
-                              height={80}
-                              tick={{ fontSize: 9 }}
-                              stroke="hsl(var(--muted-foreground))"
-                              interval={0}
-                            />
-                            <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 9 }} width={30} />
-                            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }} />
-                            {uniqueYears.sort().map((year, idx) => (
+              {/* Performance Overview & Table - Flex Layout on Large Screens */}
+              <div className="flex flex-col lg:flex-row gap-4">
+                {/* Performance Overview Graph */}
+                <div className="flex-1 rounded-lg border border-border/50 overflow-hidden bg-card">
+                  <div className="p-3 border-b bg-muted/30">
+                    <h3 className="text-base font-semibold">
+                      {showComparison ? "Year-over-Year Progress" : "Performance Overview"}
+                    </h3>
+                  </div>
+                  <div className="p-3">
+                    <div className="w-full overflow-x-auto">
+                      <div style={{ minWidth: `${Math.max(400, (showComparison ? comparisonChartData : chartData).length * 60)}px` }}>
+                        <ResponsiveContainer width="100%" height={250}>
+                          {showComparison ? (
+                            <LineChart data={comparisonChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                              <XAxis 
+                                dataKey="area" 
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                tick={{ fontSize: 9 }}
+                                stroke="hsl(var(--muted-foreground))"
+                                interval={0}
+                              />
+                              <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 9 }} width={30} />
+                              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }} />
+                              {uniqueYears.sort().map((year, idx) => (
+                                <Line 
+                                  key={year}
+                                  type="linear" 
+                                  dataKey={year} 
+                                  stroke={`hsl(${(idx * 60) % 360}, 70%, 50%)`}
+                                  strokeWidth={2}
+                                  name={year}
+                                  dot={{ r: 3 }}
+                                  activeDot={{ r: 5 }}
+                                />
+                              ))}
+                            </LineChart>
+                          ) : (
+                            <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                              <defs>
+                                <linearGradient id="colorMarks" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                              <XAxis 
+                                dataKey="area" 
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                tick={{ fontSize: 9 }}
+                                stroke="hsl(var(--muted-foreground))"
+                                interval={0}
+                              />
+                              <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 9 }} width={30} />
+                              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }} />
                               <Line 
-                                key={year}
                                 type="linear" 
-                                dataKey={year} 
-                                stroke={`hsl(${(idx * 60) % 360}, 70%, 50%)`}
+                                dataKey="marks" 
+                                stroke="hsl(var(--primary))" 
                                 strokeWidth={2}
-                                name={year}
-                                dot={{ r: 3 }}
+                                fill="url(#colorMarks)"
+                                name="Average Marks"
+                                dot={{ fill: 'hsl(var(--primary))', r: 3 }}
                                 activeDot={{ r: 5 }}
                               />
-                            ))}
-                          </LineChart>
-                        ) : (
-                          <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                            <defs>
-                              <linearGradient id="colorMarks" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                              </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
-                            <XAxis 
-                              dataKey="area" 
-                              angle={-45}
-                              textAnchor="end"
-                              height={80}
-                              tick={{ fontSize: 9 }}
-                              stroke="hsl(var(--muted-foreground))"
-                              interval={0}
-                            />
-                            <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 9 }} width={30} />
-                            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }} />
-                            <Line 
-                              type="linear" 
-                              dataKey="marks" 
-                              stroke="hsl(var(--primary))" 
-                              strokeWidth={2}
-                              fill="url(#colorMarks)"
-                              name="Average Marks"
-                              dot={{ fill: 'hsl(var(--primary))', r: 3 }}
-                              activeDot={{ r: 5 }}
-                            />
-                          </LineChart>
-                        )}
-                      </ResponsiveContainer>
+                            </LineChart>
+                          )}
+                        </ResponsiveContainer>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Performance Table - Only show in single view mode */}
-              {!showComparison && (
-                <div className="w-full overflow-x-auto rounded-lg border border-border/50">
+                {/* Performance Table - Only show in single view mode */}
+                {!showComparison && (
+                  <div className="flex-1 overflow-x-auto rounded-lg border border-border/50">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50 h-8">
@@ -615,6 +617,7 @@ export default function LearnerDashboard() {
                 </Table>
               </div>
               )}
+              </div>
             </>
           )}
         </CardContent>
