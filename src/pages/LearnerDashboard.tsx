@@ -23,6 +23,7 @@ export default function LearnerDashboard() {
   const [selectedTerm, setSelectedTerm] = useState<string>("");
   const [feeBalance, setFeeBalance] = useState(0);
   const [position, setPosition] = useState<{ grade: number; stream: number } | null>(null);
+  const [currentPeriod, setCurrentPeriod] = useState<{ year: string; term: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,6 +37,20 @@ export default function LearnerDashboard() {
 
     try {
       setLoading(true);
+      
+      // Fetch current academic period
+      const { data: currentAcademicPeriod } = await supabase
+        .from("academic_periods")
+        .select("academic_year, term")
+        .eq("is_current", true)
+        .maybeSingle();
+
+      if (currentAcademicPeriod) {
+        setCurrentPeriod({
+          year: currentAcademicPeriod.academic_year,
+          term: currentAcademicPeriod.term
+        });
+      }
       
       // Fetch performance data
       const { data: performanceData } = await supabase
@@ -213,7 +228,11 @@ export default function LearnerDashboard() {
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">
           Welcome back, {learnerDetails?.first_name}!
         </h1>
-        <p className="text-sm md:text-base text-muted-foreground">Here's your academic overview</p>
+        <p className="text-sm md:text-base text-muted-foreground">
+          {currentPeriod 
+            ? `This is your ${currentPeriod.year} ${currentPeriod.term.replace("term_", "Term ")} overview`
+            : "Here's your academic overview"}
+        </p>
       </div>
 
       {/* Stats Cards */}
