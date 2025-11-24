@@ -282,44 +282,44 @@ export default function LearnerDashboard() {
   };
 
   return (
-    <div className="w-full min-h-screen px-3 md:px-6 py-4 md:py-6 space-y-4">
+    <div className="w-full min-h-screen px-3 md:px-6 pb-4 md:pb-6 space-y-4">
       {/* Profile Header */}
       <Card className="border-border/50 overflow-hidden">
-        <CardContent className="pt-6 pb-4">
-          <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-            <Avatar className="h-24 w-24 md:h-28 md:w-28 mx-auto md:mx-0 border-2 border-primary/20">
-              <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} />
-              <AvatarFallback className="text-3xl md:text-4xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold">
+        <CardContent className="pt-4 pb-4">
+          <div className="grid grid-cols-[auto_1fr] gap-4 items-start">
+            <Avatar className="h-20 w-20 md:h-24 md:w-24 rounded-lg border-2 border-primary/20">
+              <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} className="object-cover" />
+              <AvatarFallback className="text-2xl md:text-3xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold rounded-lg">
                 {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1 space-y-4 text-center md:text-left">
+            <div className="flex-1 space-y-3 text-left">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                <h1 className="text-xl md:text-2xl font-bold text-foreground">
                   {learnerDetails?.first_name} {learnerDetails?.last_name}
                 </h1>
-                <p className="text-sm md:text-base text-muted-foreground mt-1">Admission No: <span className="font-semibold text-primary">{learnerDetails?.admission_number}</span></p>
+                <p className="text-xs md:text-sm text-muted-foreground mt-1">Admission No: <span className="font-semibold text-primary">{learnerDetails?.admission_number}</span></p>
               </div>
 
-              <div className="flex flex-wrap justify-center md:justify-start gap-2">
-                <Badge variant="secondary" className="text-xs px-3 py-1">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="text-xs px-2 py-0.5">
                   {learnerDetails?.current_grade?.name} {learnerDetails?.current_stream?.name}
                 </Badge>
-                <Badge className="text-xs px-3 py-1 bg-success text-success-foreground">Active</Badge>
+                <Badge className="text-xs px-2 py-0.5 bg-success text-success-foreground">Active</Badge>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-                <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
-                  <Calendar className="h-4 w-4 flex-shrink-0 text-primary" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="h-3 w-3 flex-shrink-0 text-primary" />
                   <span className="truncate">Born: {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"} ({learnerDetails?.date_of_birth ? calculateAge(learnerDetails.date_of_birth) : 0} yrs)</span>
                 </div>
-                <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
-                  <User className="h-4 w-4 flex-shrink-0 text-primary" />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <User className="h-3 w-3 flex-shrink-0 text-primary" />
                   <span className="capitalize">{learnerDetails?.gender}</span>
                 </div>
-                <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
-                  <Calendar className="h-4 w-4 flex-shrink-0 text-primary" />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="h-3 w-3 flex-shrink-0 text-primary" />
                   <span className="truncate">Enrolled: {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}</span>
                 </div>
               </div>
@@ -407,26 +407,26 @@ export default function LearnerDashboard() {
                   </div>
                   <div className="p-3">
                     <div className="w-full overflow-x-auto">
-                      <div style={{ minWidth: `${Math.max(500, chartData.length * 60)}px` }}>
+                      <div style={{ minWidth: `${Math.max(400, chartData.length * 35)}px` }}>
                         <ResponsiveContainer width="100%" height={250}>
-                          <LineChart data={chartData}>
+                          <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                             <defs>
                               <linearGradient id="colorMarks" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
                                 <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                               </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.2} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
                             <XAxis 
                               dataKey="area" 
-                              angle={-35}
+                              angle={-45}
                               textAnchor="end"
-                              height={100}
-                              tick={{ fontSize: 10 }}
+                              height={80}
+                              tick={{ fontSize: 9 }}
                               stroke="hsl(var(--muted-foreground))"
                               interval={0}
                             />
-                            <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10 }} width={35} />
+                            <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 9 }} width={30} />
                             <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }} />
                             <Line 
                               type="linear" 
@@ -450,64 +450,64 @@ export default function LearnerDashboard() {
               <div className="w-full overflow-x-auto rounded-lg border border-border/50">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="font-semibold whitespace-nowrap min-w-[120px]">Learning Area</TableHead>
-                      <TableHead className="text-center font-semibold whitespace-nowrap min-w-[70px]">Opener</TableHead>
-                      <TableHead className="text-center font-semibold whitespace-nowrap min-w-[70px]">Mid-Term</TableHead>
-                      <TableHead className="text-center font-semibold whitespace-nowrap min-w-[70px]">Final</TableHead>
-                      <TableHead className="text-center font-semibold whitespace-nowrap min-w-[80px]">Average</TableHead>
-                      <TableHead className="font-semibold whitespace-nowrap min-w-[150px]">Remarks</TableHead>
+                    <TableRow className="bg-muted/50 h-8">
+                      <TableHead className="font-semibold whitespace-nowrap min-w-[100px] py-1 text-xs">Learning Area</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap w-14 py-1 text-xs">Opener</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap w-14 py-1 text-xs">Mid-Term</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap w-14 py-1 text-xs">Final</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap w-16 py-1 text-xs">Average</TableHead>
+                      <TableHead className="font-semibold whitespace-nowrap w-24 py-1 text-xs">Remarks</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                      {groupedPerformance.map((area, index) => (
-                      <TableRow key={index} className="hover:bg-muted/30 transition-colors">
-                        <TableCell className="font-semibold text-foreground">{area.area}</TableCell>
-                        <TableCell className="text-center">
+                      <TableRow key={index} className="hover:bg-muted/30 transition-colors h-7">
+                        <TableCell className="font-semibold text-foreground py-1 text-xs">{area.area}</TableCell>
+                        <TableCell className="text-center py-1">
                           {area.opener !== null ? (
-                            <div className="space-y-1">
-                              <Badge className={`${getGradeColor(area.opener)}`}>
+                            <div className="space-y-0.5">
+                              <Badge className={`${getGradeColor(area.opener)} text-xs px-1 py-0`}>
                                 {area.opener}
                               </Badge>
                               {area.grades.opener && (
-                                <div className="text-xs text-muted-foreground">{area.grades.opener}</div>
+                                <div className="text-[10px] text-muted-foreground">{area.grades.opener}</div>
                               )}
                             </div>
                           ) : "-"}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center py-1">
                           {area.midterm !== null ? (
-                            <div className="space-y-1">
-                              <Badge className={`${getGradeColor(area.midterm)}`}>
+                            <div className="space-y-0.5">
+                              <Badge className={`${getGradeColor(area.midterm)} text-xs px-1 py-0`}>
                                 {area.midterm}
                               </Badge>
                               {area.grades.midterm && (
-                                <div className="text-xs text-muted-foreground">{area.grades.midterm}</div>
+                                <div className="text-[10px] text-muted-foreground">{area.grades.midterm}</div>
                               )}
                             </div>
                           ) : "-"}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center py-1">
                           {area.final !== null ? (
-                            <div className="space-y-1">
-                              <Badge className={`${getGradeColor(area.final)}`}>
+                            <div className="space-y-0.5">
+                              <Badge className={`${getGradeColor(area.final)} text-xs px-1 py-0`}>
                                 {area.final}
                               </Badge>
                               {area.grades.final && (
-                                <div className="text-xs text-muted-foreground">{area.grades.final}</div>
+                                <div className="text-[10px] text-muted-foreground">{area.grades.final}</div>
                               )}
                             </div>
                           ) : "-"}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center py-1">
                           {area.average !== null ? (
-                            <span className="inline-block px-3 py-1.5 rounded-md font-bold text-primary shadow-sm bg-primary/10">
+                            <span className="inline-block px-2 py-0.5 rounded-md font-bold text-primary text-xs bg-primary/10">
                               {area.average}
                             </span>
                           ) : "-"}
                         </TableCell>
-                        <TableCell>
-                          <div className="space-y-1 text-sm text-muted-foreground">
+                        <TableCell className="py-1">
+                          <div className="space-y-0.5 text-[10px] text-muted-foreground">
                             {area.remarks.opener && <div>O: {area.remarks.opener}</div>}
                             {area.remarks.midterm && <div>M: {area.remarks.midterm}</div>}
                             {area.remarks.final && <div>F: {area.remarks.final}</div>}

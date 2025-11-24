@@ -126,7 +126,7 @@ export default function LearnerPortalLayout() {
   return (
     <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-border/50 bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-border/50 bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90 shadow-md">
         <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6">
           {/* Left - School Logo */}
           <div className="flex items-center gap-3 md:gap-4">
@@ -208,7 +208,7 @@ export default function LearnerPortalLayout() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/50 bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/50 bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
         <div className="flex items-center justify-around h-16 px-2">
           {navigationItems.map((item) => (
             <Button
