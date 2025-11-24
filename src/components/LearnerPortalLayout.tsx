@@ -132,13 +132,13 @@ export default function LearnerPortalLayout() {
     navigate(url);
   };
 
-  // Reset loading state when location changes and data is ready
+  // Reset loading state when location changes
   useEffect(() => {
     if (isNavigating) {
       const timer = setTimeout(() => setIsNavigating(false), 500);
       return () => clearTimeout(timer);
     }
-  }, [location.pathname, isNavigating]);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
