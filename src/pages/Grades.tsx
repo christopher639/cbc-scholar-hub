@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, ArrowUp, FileDown, Settings } from "lucide-react";
+import { Plus, Users, ArrowUp, FileDown, Settings, Download } from "lucide-react";
 import { AddGradeStreamDialog } from "@/components/AddGradeStreamDialog";
 import { EditGradeDialog } from "@/components/EditGradeDialog";
 import { SetLastGradeDialog } from "@/components/SetLastGradeDialog";
@@ -17,9 +17,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { useToast } from "@/hooks/use-toast";
 
 const Grades = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [addStreamDialogOpen, setAddStreamDialogOpen] = useState(false);
   const [editGradeDialogOpen, setEditGradeDialogOpen] = useState(false);
   const [lastGradeDialogOpen, setLastGradeDialogOpen] = useState(false);
@@ -62,6 +66,86 @@ const Grades = () => {
 
   const currentGradeName = grades.find(g => g.id === selectedGradeId)?.name || "";
   const loading = gradesLoading || streamsLoading || learnersLoading;
+
+  const handleDownloadPDF = () => {
+    if (!selectedGradeId || learners.length === 0) {
+      toast({
+        title: "No data to download",
+        description: "Please select a grade with learners first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const gradeName = grades.find(g => g.id === selectedGradeId)?.name || "";
+    const streamName = selectedStreamId !== "all" 
+      ? streams.find(s => s.id === selectedStreamId)?.name 
+      : "All Streams";
+
+    // Title
+    doc.setFontSize(16);
+    doc.text(`${gradeName} - ${streamName}`, 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 22);
+
+    // Prepare table headers
+    const showStreamColumn = selectedStreamId === "all";
+    const headers = [
+      "#",
+      "Admission No.",
+      ...(showStreamColumn ? ["Stream"] : []),
+      ...Array(12).fill("").map((_, i) => `Col ${i + 1}`),
+    ];
+
+    // Prepare table data
+    const tableData = learners.map((learner, index) => [
+      (index + 1).toString(),
+      learner.admission_number,
+      ...(showStreamColumn ? [learner.stream?.name || "N/A"] : []),
+      ...Array(12).fill(""),
+    ]);
+
+    // Generate table
+    autoTable(doc, {
+      head: [headers],
+      body: tableData,
+      startY: 28,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        lineWidth: 0.1,
+        lineColor: [200, 200, 200],
+      },
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: 255,
+        fontStyle: "bold",
+        halign: "center",
+      },
+      columnStyles: {
+        0: { cellWidth: 10, halign: "center" },
+        1: { cellWidth: 25, halign: "left" },
+        ...(showStreamColumn ? { 2: { cellWidth: 20, halign: "left" } } : {}),
+      },
+      margin: { top: 28, left: 14, right: 14 },
+      tableWidth: "auto",
+    });
+
+    // Save PDF
+    const fileName = `${gradeName.replace(/\s+/g, "_")}_${streamName.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+    doc.save(fileName);
+
+    toast({
+      title: "PDF Downloaded",
+      description: `Learner list for ${gradeName} has been downloaded`,
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -129,15 +213,28 @@ const Grades = () => {
             </div>
 
             {selectedGradeId && (
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-xs">
-                  <Users className="mr-1 h-3 w-3" />
-                  {learners.length} learner{learners.length !== 1 ? 's' : ''}
-                </Badge>
-                {selectedStreamId !== "all" && (
-                  <Badge variant="outline" className="text-xs">
-                    {streams.find(s => s.id === selectedStreamId)?.name}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    <Users className="mr-1 h-3 w-3" />
+                    {learners.length} learner{learners.length !== 1 ? 's' : ''}
                   </Badge>
+                  {selectedStreamId !== "all" && (
+                    <Badge variant="outline" className="text-xs">
+                      {streams.find(s => s.id === selectedStreamId)?.name}
+                    </Badge>
+                  )}
+                </div>
+                {learners.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownloadPDF}
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download PDF
+                  </Button>
                 )}
               </div>
             )}
