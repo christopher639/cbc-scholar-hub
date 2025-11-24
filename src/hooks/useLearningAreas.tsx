@@ -13,7 +13,6 @@ export function useLearningAreas() {
     try {
       setLoading(true);
       
-      // Check if user is a teacher
       let query = supabase
         .from("learning_areas")
         .select(`
@@ -21,9 +20,17 @@ export function useLearningAreas() {
           teacher:teachers(first_name, last_name)
         `);
 
-      // If user is a teacher, only get their assigned learning areas
-      if (user?.role === 'teacher' && user?.data?.id) {
-        query = query.eq('teacher_id', user.data.id);
+      // If user is a teacher, get their teacher ID first and filter learning areas
+      if (user?.role === 'teacher') {
+        const { data: teacherData } = await supabase
+          .from("teachers")
+          .select("id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (teacherData) {
+          query = query.eq('teacher_id', teacherData.id);
+        }
       }
       
       const { data, error } = await query.order("name", { ascending: true });
