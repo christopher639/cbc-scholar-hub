@@ -1116,7 +1116,7 @@ export default function LearnerDashboard() {
       })()}
 
       {/* Stats Overview */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
         <Card className="border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-blue-500/10 to-primary/10">
             <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Average Score</CardTitle>
@@ -1132,253 +1132,88 @@ export default function LearnerDashboard() {
 
         <Card className="border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-purple-500/10 to-accent/10">
-            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fees Accumulated</CardTitle>
-            <FileText className="h-4 w-4 text-accent" />
+            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Total Subjects</CardTitle>
+            <BookOpen className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent className="pt-3">
-            <div className="text-xl font-bold text-foreground">{formatCurrency(feeInfo.totalAccumulatedFees)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Total fees</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-500/10 to-success/10">
-            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Amount Paid</CardTitle>
-            <DollarSign className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent className="pt-3">
-            <div className="text-xl font-bold text-success">{formatCurrency(feeInfo.totalPaid)}</div>
-            <p className="text-xs text-muted-foreground mt-1">{transactions.length} payments</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-orange-500/10 to-destructive/10">
-            <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Fee Balance</CardTitle>
-            <DollarSign className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent className="pt-3">
-            <div className="text-xl font-bold text-destructive">{formatCurrency(feeInfo.totalBalance)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Outstanding</p>
+            <div className="text-xl font-bold text-foreground">{stats.totalSubjects}</div>
+            <p className="text-xs text-muted-foreground mt-1">Learning areas</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabbed Content */}
-      <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList className="grid grid-cols-2 w-full sm:w-auto h-10 bg-muted/50 p-1 rounded-lg">
-          <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md transition-all">Profile</TabsTrigger>
-          <TabsTrigger value="fees" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md transition-all">Fees</TabsTrigger>
-        </TabsList>
+      {/* Personal Information */}
+      <Card className="border-border/50 overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-4">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <User className="h-4 w-4 text-primary" />
+            Personal Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Full Name</p>
+              <p className="text-base font-medium">
+                {learnerDetails?.first_name} {learnerDetails?.last_name}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
+              <p className="text-base font-medium">
+                {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Gender</p>
+              <p className="text-base font-medium capitalize">{learnerDetails?.gender}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Admission Number</p>
+              <p className="text-base font-medium">{learnerDetails?.admission_number}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Grade</p>
+              <p className="text-base font-medium">{learnerDetails?.current_grade?.name}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Stream</p>
+              <p className="text-base font-medium">{learnerDetails?.current_stream?.name}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Boarding Status</p>
+              <p className="text-base font-medium capitalize">
+                {learnerDetails?.boarding_status?.replace("_", " ")}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Enrollment Date</p>
+              <p className="text-base font-medium">
+                {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}
+              </p>
+            </div>
+          </div>
 
-        {/* Profile Tab */}
-        <TabsContent value="profile" className="space-y-3">
-          <Card className="border-border/50 overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-4">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <User className="h-4 w-4 text-primary" />
-                Personal Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Full Name</p>
-                  <p className="text-base font-medium">
-                    {learnerDetails?.first_name} {learnerDetails?.last_name}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
-                  <p className="text-base font-medium">
-                    {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Gender</p>
-                  <p className="text-base font-medium capitalize">{learnerDetails?.gender}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Admission Number</p>
-                  <p className="text-base font-medium">{learnerDetails?.admission_number}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Grade</p>
-                  <p className="text-base font-medium">{learnerDetails?.current_grade?.name}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Stream</p>
-                  <p className="text-base font-medium">{learnerDetails?.current_stream?.name}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Boarding Status</p>
-                  <p className="text-base font-medium capitalize">
-                    {learnerDetails?.boarding_status?.replace("_", " ")}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Enrollment Date</p>
-                  <p className="text-base font-medium">
-                    {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}
-                  </p>
-                </div>
-              </div>
-
-              {(learnerDetails?.emergency_contact || learnerDetails?.emergency_phone) && (
-                <>
-                  <Separator className="my-6" />
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Emergency Contact</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Contact Name</p>
-                        <p className="text-base font-medium">{learnerDetails?.emergency_contact || "Not set"}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
-                        <p className="text-base font-medium">{learnerDetails?.emergency_phone || "Not set"}</p>
-                      </div>
-                    </div>
+          {(learnerDetails?.emergency_contact || learnerDetails?.emergency_phone) && (
+            <>
+              <Separator className="my-6" />
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Emergency Contact</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Contact Name</p>
+                    <p className="text-base font-medium">{learnerDetails?.emergency_contact || "Not set"}</p>
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Fees Tab */}
-        <TabsContent value="fees" className="space-y-3">
-          {/* Fee Summary */}
-          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 overflow-hidden">
-            <CardHeader className="pb-3 border-b p-4">
-              <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Fee Summary
-              </CardTitle>
-              <CardDescription className="text-xs">Your complete fee information</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4 p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-4 rounded-lg bg-card border border-border/50">
-                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide mb-2">Total Fees</p>
-                  <p className="text-3xl font-bold text-foreground">{formatCurrency(feeInfo.totalAccumulatedFees)}</p>
-                  <p className="text-xs text-muted-foreground mt-2">From {invoices.length} invoices</p>
-                </div>
-                <div className="p-6 rounded-lg bg-card border border-border/50 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide mb-2">Amount Paid</p>
-                  <p className="text-3xl font-bold text-success">{formatCurrency(feeInfo.totalPaid)}</p>
-                  <p className="text-xs text-muted-foreground mt-2">{transactions.length} payments</p>
-                </div>
-                <div className="p-6 rounded-lg bg-card border border-border/50 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide mb-2">Balance Due</p>
-                  <p className={`text-3xl font-bold ${feeInfo.totalBalance > 0 ? 'text-destructive' : 'text-success'}`}>
-                    {formatCurrency(feeInfo.totalBalance)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">Outstanding</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
+                    <p className="text-base font-medium">{learnerDetails?.emergency_phone || "Not set"}</p>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Current Term Fees */}
-          <Card className="border-border/50 overflow-hidden">
-            <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-4">
-              <CardTitle className="text-base font-semibold">Current Term Fees</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4 p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide">Term Fees</p>
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(feeInfo.currentTermFees)}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide">Paid</p>
-                  <p className="text-2xl font-bold text-success">{formatCurrency(feeInfo.currentTermPaid)}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide">Balance</p>
-                  <p className={`text-2xl font-bold ${feeInfo.currentTermBalance > 0 ? 'text-destructive' : 'text-success'}`}>
-                    {formatCurrency(feeInfo.currentTermBalance)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Invoice History */}
-          <Card className="border-border/50 overflow-hidden">
-            <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-4">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary" />
-                Invoice History
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4 p-4">
-              {invoices.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">No invoices found</p>
-              ) : (
-                <div className="space-y-2">
-                  {invoices.map((invoice) => (
-                    <div key={invoice.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-border/50 rounded-lg gap-2 hover:bg-muted/30 transition-colors">
-                      <div className="space-y-1.5 flex-1">
-                        <p className="font-semibold text-base text-primary">{invoice.invoice_number}</p>
-                        <div className="text-sm text-muted-foreground">
-                          <span className="font-medium">{invoice.academic_year}</span>
-                          <span> • {invoice.term.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                        <p className="font-bold text-lg">{formatCurrency(invoice.balance_due)}</p>
-                        <Badge variant={
-                          invoice.status === 'paid' ? 'default' :
-                          invoice.status === 'partial' ? 'secondary' :
-                          invoice.status === 'overdue' ? 'destructive' : 'outline'
-                        } className="text-xs shadow-sm">
-                          {invoice.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Payment History */}
-          <Card className="border-border/50 overflow-hidden">
-            <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-4">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-primary" />
-                Payment History
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4 p-4">
-              {transactions.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">No payments recorded</p>
-              ) : (
-                <div className="space-y-2">
-                  {transactions.map((transaction) => (
-                    <div key={transaction.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-border/50 rounded-lg gap-2 hover:bg-muted/30 transition-colors">
-                      <div className="space-y-1.5 flex-1">
-                        <p className="font-semibold text-base text-foreground">{transaction.transaction_number}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(transaction.payment_date).toLocaleDateString()} • <span className="font-medium">{transaction.payment_method}</span>
-                        </p>
-                      </div>
-                      <div className="w-full sm:w-auto text-left sm:text-right">
-                        <p className="font-bold text-success text-lg">{formatCurrency(transaction.amount_paid)}</p>
-                        {transaction.reference_number && (
-                          <p className="text-xs text-muted-foreground mt-1">Ref: {transaction.reference_number}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
