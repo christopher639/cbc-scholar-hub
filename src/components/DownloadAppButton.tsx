@@ -11,14 +11,19 @@ interface BeforeInstallPromptEvent extends Event {
 
 export function DownloadAppButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check if app is already installed/running as standalone
+    const checkStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                            (window.navigator as any).standalone === true;
+    setIsStandalone(checkStandalone);
+
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
@@ -28,10 +33,18 @@ export function DownloadAppButton() {
 
   const handleInstall = async () => {
     if (!deferredPrompt) {
-      toast({
-        title: "Already Installed",
-        description: "This app is already installed on your device or you're viewing it from the app.",
-      });
+      if (isStandalone) {
+        toast({
+          title: "Already Installed",
+          description: "You're viewing the app from your device. No need to install again!",
+        });
+      } else {
+        toast({
+          title: "Installation Not Available",
+          description: "To install: tap your browser's menu and select 'Add to Home Screen' or 'Install App'.",
+          duration: 5000,
+        });
+      }
       return;
     }
 
@@ -40,7 +53,6 @@ export function DownloadAppButton() {
     
     if (outcome === "accepted") {
       setDeferredPrompt(null);
-      setShowPrompt(false);
       toast({
         title: "Success!",
         description: "App has been installed on your device.",
@@ -48,7 +60,8 @@ export function DownloadAppButton() {
     }
   };
 
-  if (!showPrompt) return null;
+  // Don't show if user dismissed it or if already in standalone mode
+  if (dismissed || isStandalone) return null;
 
   return (
     <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
@@ -74,7 +87,7 @@ export function DownloadAppButton() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => setShowPrompt(false)}
+                onClick={() => setDismissed(true)}
               >
                 <X className="h-4 w-4 mr-1" />
                 Not Now
