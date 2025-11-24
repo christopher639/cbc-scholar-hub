@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Grades = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const Grades = () => {
   const currentGradeName = grades.find(g => g.id === selectedGradeId)?.name || "";
   const loading = gradesLoading || streamsLoading || learnersLoading;
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!selectedGradeId || learners.length === 0) {
       toast({
         title: "No data to download",
@@ -77,77 +78,146 @@ const Grades = () => {
       return;
     }
 
-    const doc = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4",
-    });
+    try {
+      // Fetch school info
+      const { data: schoolInfo } = await supabase
+        .from("school_info")
+        .select("*")
+        .single();
 
-    const gradeName = grades.find(g => g.id === selectedGradeId)?.name || "";
-    const streamName = selectedStreamId !== "all" 
-      ? streams.find(s => s.id === selectedStreamId)?.name 
-      : "All Streams";
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
 
-    // Title
-    doc.setFontSize(16);
-    doc.text(`${gradeName} - ${streamName}`, 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 22);
+      const gradeName = grades.find(g => g.id === selectedGradeId)?.name || "";
+      const streamName = selectedStreamId !== "all" 
+        ? streams.find(s => s.id === selectedStreamId)?.name 
+        : "All Streams";
 
-    // Prepare table headers
-    const showStreamColumn = selectedStreamId === "all";
-    const headers = [
-      "#",
-      "Admission No.",
-      "Name",
-      ...(showStreamColumn ? ["Stream"] : []),
-      ...Array(12).fill(""),
-    ];
+      let yPosition = 15;
 
-    // Prepare table data
-    const tableData = learners.map((learner, index) => [
-      (index + 1).toString(),
-      learner.admission_number,
-      `${learner.first_name} ${learner.last_name}`,
-      ...(showStreamColumn ? [learner.stream?.name || "N/A"] : []),
-      ...Array(12).fill(""),
-    ]);
+      // Add school logo if available
+      if (schoolInfo?.logo_url) {
+        try {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = schoolInfo.logo_url;
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+          doc.addImage(img, "PNG", 14, 10, 20, 20);
+          yPosition = Math.max(yPosition, 35);
+        } catch (error) {
+          console.error("Failed to load logo:", error);
+        }
+      }
 
-    // Generate table
-    autoTable(doc, {
-      head: [headers],
-      body: tableData,
-      startY: 28,
-      styles: {
-        fontSize: 8,
-        cellPadding: 2,
-        lineWidth: 0.5,
-        lineColor: [0, 0, 0],
-      },
-      headStyles: {
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        fontStyle: "bold",
-        halign: "center",
-      },
-      columnStyles: {
-        0: { cellWidth: 10, halign: "center" },
-        1: { cellWidth: 25, halign: "left" },
-        2: { cellWidth: 35, halign: "left" },
-        ...(showStreamColumn ? { 3: { cellWidth: 20, halign: "left" } } : {}),
-      },
-      margin: { top: 28, left: 14, right: 14 },
-      tableWidth: "auto",
-    });
+      // Add school header information
+      if (schoolInfo) {
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text(schoolInfo.school_name || "", 40, 15);
+        
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        if (schoolInfo.address) {
+          doc.text(schoolInfo.address, 40, 21);
+        }
+        if (schoolInfo.phone || schoolInfo.email) {
+          const contact = [schoolInfo.phone, schoolInfo.email].filter(Boolean).join(" | ");
+          doc.text(contact, 40, 26);
+        }
+        yPosition = Math.max(yPosition, 35);
+      }
 
-    // Save PDF
-    const fileName = `${gradeName.replace(/\s+/g, "_")}_${streamName.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
-    doc.save(fileName);
+      // Add title and date
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${gradeName} - ${streamName}`, 14, yPosition);
+      
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, yPosition + 5);
 
-    toast({
-      title: "PDF Downloaded",
-      description: `Learner list for ${gradeName} has been downloaded`,
-    });
+      // Prepare table headers
+      const showStreamColumn = selectedStreamId === "all";
+      const headers = [
+        "#",
+        "Admission No.",
+        "Name",
+        ...(showStreamColumn ? ["Stream"] : []),
+        ...Array(12).fill(""),
+      ];
+
+      // Prepare table data
+      const tableData = learners.map((learner, index) => [
+        (index + 1).toString(),
+        learner.admission_number,
+        `${learner.first_name} ${learner.last_name}`,
+        ...(showStreamColumn ? [learner.stream?.name || "N/A"] : []),
+        ...Array(12).fill(""),
+      ]);
+
+      // Generate table with page numbers
+      autoTable(doc, {
+        head: [headers],
+        body: tableData,
+        startY: yPosition + 10,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          lineWidth: 0.5,
+          lineColor: [0, 0, 0],
+        },
+        headStyles: {
+          fillColor: [255, 255, 255],
+          textColor: [0, 0, 0],
+          fontStyle: "bold",
+          halign: "center",
+        },
+        columnStyles: {
+          0: { cellWidth: 10, halign: "center" },
+          1: { cellWidth: 25, halign: "left" },
+          2: { cellWidth: 35, halign: "left" },
+          ...(showStreamColumn ? { 3: { cellWidth: 20, halign: "left" } } : {}),
+        },
+        margin: { top: yPosition + 10, left: 14, right: 14 },
+        tableWidth: "auto",
+        didDrawPage: (data) => {
+          // Add page numbers
+          const pageCount = doc.getNumberOfPages();
+          const pageSize = doc.internal.pageSize;
+          const pageHeight = pageSize.height || pageSize.getHeight();
+          
+          doc.setFontSize(8);
+          doc.setFont("helvetica", "normal");
+          doc.text(
+            `Page ${data.pageNumber} of ${pageCount}`,
+            data.settings.margin.left,
+            pageHeight - 10
+          );
+        },
+      });
+
+      // Save PDF
+      const fileName = `${gradeName.replace(/\s+/g, "_")}_${streamName.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+      doc.save(fileName);
+
+      toast({
+        title: "PDF Downloaded",
+        description: `Learner list for ${gradeName} has been downloaded`,
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
