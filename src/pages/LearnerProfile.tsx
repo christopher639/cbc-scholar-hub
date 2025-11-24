@@ -15,6 +15,10 @@ import { TransferLearnerDialog } from "@/components/TransferLearnerDialog";
 import { useLearnerDetail } from "@/hooks/useLearnerDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/currency";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const LearnerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +26,22 @@ const LearnerProfile = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const { learner, loading, refetch } = useLearnerDetail(id || "");
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState("2025/2026");
+  const [selectedTerm, setSelectedTerm] = useState("term_1");
+
+  // Fetch available academic years
+  const { data: academicYears = [] } = useQuery({
+    queryKey: ['academic-years'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('academic_years')
+        .select('year')
+        .order('year', { ascending: false });
+      
+      if (error) throw error;
+      return data.map(y => y.year);
+    }
+  });
 
   // Group performance records by learning area
   const groupPerformanceByArea = (records: any[]) => {
@@ -314,67 +334,151 @@ const LearnerProfile = () => {
             {/* Performance Records */}
             <Card>
               <CardHeader>
-                <CardTitle>Performance Records</CardTitle>
-                <CardDescription>Academic performance by learning area</CardDescription>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <CardTitle>Performance Records</CardTitle>
+                    <CardDescription>Academic performance by learning area</CardDescription>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                  <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue placeholder="Select year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {academicYears.map((year) => (
+                        <SelectItem key={year} value={year}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue placeholder="Select term" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="term_1">Term 1</SelectItem>
+                      <SelectItem value="term_2">Term 2</SelectItem>
+                      <SelectItem value="term_3">Term 3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
                 {learner.performance.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No performance records found</p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Learning Area</TableHead>
-                          <TableHead className="hidden md:table-cell">Year/Term</TableHead>
-                          <TableHead className="text-center">Opener</TableHead>
-                          <TableHead className="text-center">Midterm</TableHead>
-                          <TableHead className="text-center">Final</TableHead>
-                          <TableHead className="text-center font-semibold">Average</TableHead>
-                          <TableHead className="hidden lg:table-cell">Remarks</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {groupPerformanceByArea(learner.performance).map((row: any, index: number) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-medium">{row.learning_area}</TableCell>
-                            <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                              {row.academic_year} / {getTermLabel(row.term)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {row.opener !== null ? (
-                                <Badge className={getGradeColor(row.opener)}>{row.opener}%</Badge>
-                              ) : (
-                                <span className="text-muted-foreground text-sm">-</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {row.midterm !== null ? (
-                                <Badge className={getGradeColor(row.midterm)}>{row.midterm}%</Badge>
-                              ) : (
-                                <span className="text-muted-foreground text-sm">-</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {row.final !== null ? (
-                                <Badge className={getGradeColor(row.final)}>{row.final}%</Badge>
-                              ) : (
-                                <span className="text-muted-foreground text-sm">-</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Badge variant="default" className={getGradeColor(row.average)}>
-                                {row.average.toFixed(1)}%
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
-                              {row.remarks || "-"}
-                            </TableCell>
+                  <>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Learning Area</TableHead>
+                            <TableHead className="hidden md:table-cell">Year/Term</TableHead>
+                            <TableHead className="text-center">Opener</TableHead>
+                            <TableHead className="text-center">Midterm</TableHead>
+                            <TableHead className="text-center">Final</TableHead>
+                            <TableHead className="text-center font-semibold">Average</TableHead>
+                            <TableHead className="hidden lg:table-cell">Remarks</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                        </TableHeader>
+                        <TableBody>
+                          {groupPerformanceByArea(learner.performance).filter((row: any) => 
+                            row.academic_year === selectedAcademicYear && row.term === selectedTerm
+                          ).map((row: any, index: number) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">{row.learning_area}</TableCell>
+                              <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                                {row.academic_year} / {getTermLabel(row.term)}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {row.opener !== null ? (
+                                  <Badge className={getGradeColor(row.opener)}>{row.opener}%</Badge>
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {row.midterm !== null ? (
+                                  <Badge className={getGradeColor(row.midterm)}>{row.midterm}%</Badge>
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {row.final !== null ? (
+                                  <Badge className={getGradeColor(row.final)}>{row.final}%</Badge>
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Badge variant="default" className={getGradeColor(row.average)}>
+                                  {row.average.toFixed(1)}%
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                                {row.remarks || "-"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    
+                    {/* Overview Graph */}
+                    {groupPerformanceByArea(learner.performance).filter((row: any) => 
+                      row.academic_year === selectedAcademicYear && row.term === selectedTerm
+                    ).length > 0 && (
+                      <div className="h-[300px] mt-6">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={groupPerformanceByArea(learner.performance).filter((row: any) => 
+                            row.academic_year === selectedAcademicYear && row.term === selectedTerm
+                          )}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="learning_area" 
+                              angle={-45}
+                              textAnchor="end"
+                              height={100}
+                            />
+                            <YAxis domain={[0, 100]} />
+                            <Tooltip />
+                            <Legend />
+                            <Line 
+                              type="linear" 
+                              dataKey="opener" 
+                              stroke="hsl(var(--primary))" 
+                              strokeWidth={2}
+                              name="Opener"
+                            />
+                            <Line 
+                              type="linear" 
+                              dataKey="midterm" 
+                              stroke="hsl(var(--accent))" 
+                              strokeWidth={2}
+                              name="Mid-Term"
+                            />
+                            <Line 
+                              type="linear" 
+                              dataKey="final" 
+                              stroke="hsl(var(--secondary))" 
+                              strokeWidth={2}
+                              name="Final"
+                            />
+                            <Line 
+                              type="linear" 
+                              dataKey="average" 
+                              stroke="hsl(var(--chart-1))" 
+                              strokeWidth={2}
+                              name="Average"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
