@@ -22,9 +22,11 @@ import { useReactToPrint } from "react-to-print";
 const groupPerformanceByArea = (records: any[], allRecords: any[], currentYear: string, currentTerm: string) => {
   const grouped = records.reduce((acc: any, record) => {
     const areaName = record.learning_area?.name || "Unknown";
+    const areaCode = record.learning_area?.code || "N/A";
     if (!acc[areaName]) {
       acc[areaName] = {
         area: areaName,
+        code: areaCode,
         opener: null,
         midterm: null,
         final: null,
@@ -151,7 +153,7 @@ export default function LearnerDashboard() {
       .from("performance_records")
       .select(`
         *,
-        learning_area:learning_areas(name),
+        learning_area:learning_areas(name, code),
         academic_period:academic_periods(academic_year, term)
       `)
       .eq("learner_id", learner.id)
@@ -279,6 +281,7 @@ export default function LearnerDashboard() {
 
   // Prepare chart data - use average scores per area
   const chartData = groupedPerformance.map(area => ({
+    code: area.code,
     area: area.area,
     marks: area.average || 0
   }));
@@ -549,7 +552,7 @@ export default function LearnerDashboard() {
                               </defs>
                               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
                               <XAxis 
-                                dataKey="area" 
+                                dataKey="code" 
                                 angle={-45}
                                 textAnchor="end"
                                 height={80}
@@ -558,7 +561,15 @@ export default function LearnerDashboard() {
                                 interval={0}
                               />
                               <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 9 }} width={30} />
-                              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }} />
+                              <Tooltip 
+                                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }}
+                                labelFormatter={(value, payload) => {
+                                  if (payload && payload.length > 0) {
+                                    return payload[0].payload.area;
+                                  }
+                                  return value;
+                                }}
+                              />
                               <Line 
                                 type="linear" 
                                 dataKey="marks" 
@@ -676,7 +687,7 @@ export default function LearnerDashboard() {
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent className="pt-3">
-            <div className="text-2xl font-bold text-foreground">{stats.averageScore}%</div>
+            <div className="text-xl font-bold text-foreground">{stats.averageScore}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               From {stats.totalSubjects} subjects
             </p>
@@ -689,7 +700,7 @@ export default function LearnerDashboard() {
             <FileText className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent className="pt-3">
-            <div className="text-2xl font-bold text-foreground">{formatCurrency(feeInfo.totalAccumulatedFees)}</div>
+            <div className="text-xl font-bold text-foreground">{formatCurrency(feeInfo.totalAccumulatedFees)}</div>
             <p className="text-xs text-muted-foreground mt-1">Total fees</p>
           </CardContent>
         </Card>
@@ -700,7 +711,7 @@ export default function LearnerDashboard() {
             <DollarSign className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent className="pt-3">
-            <div className="text-2xl font-bold text-success">{formatCurrency(feeInfo.totalPaid)}</div>
+            <div className="text-xl font-bold text-success">{formatCurrency(feeInfo.totalPaid)}</div>
             <p className="text-xs text-muted-foreground mt-1">{transactions.length} payments</p>
           </CardContent>
         </Card>
@@ -711,7 +722,7 @@ export default function LearnerDashboard() {
             <DollarSign className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent className="pt-3">
-            <div className="text-2xl font-bold text-destructive">{formatCurrency(feeInfo.totalBalance)}</div>
+            <div className="text-xl font-bold text-destructive">{formatCurrency(feeInfo.totalBalance)}</div>
             <p className="text-xs text-muted-foreground mt-1">Outstanding</p>
           </CardContent>
         </Card>
