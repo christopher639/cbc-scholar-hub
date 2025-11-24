@@ -341,9 +341,40 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         description: "Learner added successfully with auto-generated admission number",
       });
     } catch (error: any) {
+      console.error("Error adding learner:", error);
+      
+      let errorTitle = "Error Adding Learner";
+      let errorDescription = "An unexpected error occurred";
+      
+      // Parse specific error messages
+      if (error.message) {
+        if (error.message.includes("parents") && error.message.includes("row-level security")) {
+          errorTitle = "Permission Error";
+          errorDescription = "Unable to create parent record. You must be logged in as an admin to add learners. Please check your login credentials.";
+        } else if (error.message.includes("learners") && error.message.includes("row-level security")) {
+          errorTitle = "Permission Error";
+          errorDescription = "Unable to create learner record. You must be logged in as an admin to add learners. Please check your login credentials.";
+        } else if (error.message.includes("user_roles") && error.message.includes("row-level security")) {
+          errorTitle = "Permission Error";
+          errorDescription = "Unable to create user roles. You must be logged in as an admin to add learners. Please check your login credentials.";
+        } else if (error.message.includes("duplicate key")) {
+          errorTitle = "Duplicate Entry";
+          errorDescription = "A record with this information already exists. Please check the admission number, birth certificate number, or parent phone number.";
+        } else if (error.message.includes("foreign key")) {
+          errorTitle = "Invalid Reference";
+          errorDescription = "The selected grade or stream does not exist. Please refresh the page and try again.";
+        } else if (error.message.includes("not null")) {
+          errorTitle = "Missing Required Field";
+          errorDescription = "A required field is missing. Please ensure all mandatory fields are filled.";
+        } else {
+          // Use the original error message if it doesn't match our specific cases
+          errorDescription = error.message;
+        }
+      }
+      
       toast({
-        title: "Error",
-        description: error.message,
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive",
       });
     } finally {
