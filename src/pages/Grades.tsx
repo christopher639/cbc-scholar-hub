@@ -99,14 +99,16 @@ const Grades = () => {
     const headers = [
       "#",
       "Admission No.",
+      "Name",
       ...(showStreamColumn ? ["Stream"] : []),
-      ...Array(12).fill("").map((_, i) => `Col ${i + 1}`),
+      ...Array(12).fill(""),
     ];
 
     // Prepare table data
     const tableData = learners.map((learner, index) => [
       (index + 1).toString(),
       learner.admission_number,
+      `${learner.first_name} ${learner.last_name}`,
       ...(showStreamColumn ? [learner.stream?.name || "N/A"] : []),
       ...Array(12).fill(""),
     ]);
