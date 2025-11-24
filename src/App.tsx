@@ -65,8 +65,8 @@ const App = () => (
               <Route path="assignments" element={<LearnerPortal />} />
               <Route path="messages" element={<LearnerPortal />} />
             </Route>
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><AdminRoute><Dashboard /></AdminRoute></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><AdminRoute><Dashboard /></AdminRoute></ProtectedRoute>} />
             <Route path="/learners" element={<ProtectedRoute><Learners /></ProtectedRoute>} />
             <Route path="/learners/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
             <Route path="/alumni" element={<ProtectedRoute><Alumni /></ProtectedRoute>} />
@@ -82,7 +82,7 @@ const App = () => (
             <Route path="/fees" element={<ProtectedRoute><AdminRoute><FeeManagement /></AdminRoute></ProtectedRoute>} />
             <Route path="/invoices" element={<ProtectedRoute><AdminRoute><Invoices /></AdminRoute></ProtectedRoute>} />
             <Route path="/fee-structures" element={<ProtectedRoute><AdminRoute><FeeStructures /></AdminRoute></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><AdminRoute><Reports /></AdminRoute></ProtectedRoute>} />
             <Route path="/bulk-learner-reports" element={<ProtectedRoute><BulkLearnerReports /></ProtectedRoute>} />
             <Route path="/school-info" element={<ProtectedRoute><SchoolInfo /></ProtectedRoute>} />
             <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
