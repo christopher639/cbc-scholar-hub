@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { LearnerSidebar } from "@/components/LearnerSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User, Settings, GraduationCap } from "lucide-react";
+import { LogOut, User, Settings, GraduationCap, Home, BookOpen, DollarSign, Search, FileText, MessageSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export default function LearnerPortalLayout() {
   const navigate = useNavigate();
@@ -106,75 +105,126 @@ export default function LearnerPortalLayout() {
     return null;
   }
 
+  const location = useLocation();
+
+  const navigationItems = [
+    { title: "Dashboard", url: "/learner-portal", icon: Home },
+    { title: "Performance", url: "/learner-portal/performance", icon: BookOpen },
+    { title: "My Fees", url: "/learner-portal/fees", icon: DollarSign },
+    { title: "Fee Structures", url: "/learner-portal/fee-structures", icon: Search },
+    { title: "Assignments", url: "/learner-portal/assignments", icon: FileText },
+    { title: "Messages", url: "/learner-portal/messages", icon: MessageSquare },
+  ];
+
+  const isActive = (path: string) => {
+    if (path === "/learner-portal") {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-        <LearnerSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex h-14 md:h-16 items-center justify-between px-4">
-              <div className="flex items-center gap-2 md:gap-4">
-                <SidebarTrigger />
-                <div className="flex items-center gap-2 md:gap-3">
-                  {schoolInfo?.logo_url ? (
-                    <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 md:h-10 md:w-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-                    </div>
-                  )}
-                  <div className="hidden sm:block">
-                    <h1 className="text-sm md:text-lg font-bold">{schoolInfo?.school_name || "School Portal"}</h1>
-                    <p className="text-xs text-muted-foreground hidden md:block">{schoolInfo?.motto || "Learner Portal"}</p>
-                  </div>
-                </div>
+    <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
+          {/* Left - School Logo */}
+          <div className="flex items-center gap-2 md:gap-3">
+            {schoolInfo?.logo_url ? (
+              <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 md:h-10 md:w-10 rounded-full object-cover" />
+            ) : (
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary" />
               </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full p-0">
-                    <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
-                      <AvatarImage src={learnerDetails.photo_url} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs md:text-sm">
-                        {learnerDetails.first_name[0]}{learnerDetails.last_name[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{learnerDetails.first_name} {learnerDetails.last_name}</p>
-                      <p className="text-xs text-muted-foreground">Adm: {learnerDetails.admission_number}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/learner-portal")}>
-                    <User className="mr-2 h-4 w-4" />
-                    View Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowPasswordDialog(true)}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Change Password
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            )}
+            <div className="hidden sm:block">
+              <h1 className="text-sm md:text-base font-bold leading-tight">{schoolInfo?.school_name || "School Portal"}</h1>
+              <p className="text-xs text-muted-foreground hidden md:block">{schoolInfo?.motto || "Learner Portal"}</p>
             </div>
-          </header>
+          </div>
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto">
-            <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
-          </main>
+          {/* Right - User Profile */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full p-0">
+                <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
+                  <AvatarImage src={learnerDetails.photo_url} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs md:text-sm">
+                    {learnerDetails.first_name[0]}{learnerDetails.last_name[0]}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">{learnerDetails.first_name} {learnerDetails.last_name}</p>
+                  <p className="text-xs text-muted-foreground">Adm: {learnerDetails.admission_number}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/learner-portal")}>
+                <User className="mr-2 h-4 w-4" />
+                View Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowPasswordDialog(true)}>
+                <Settings className="mr-2 h-4 w-4" />
+                Change Password
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </div>
-    </SidebarProvider>
+
+        {/* Desktop Navigation - Below Header */}
+        <nav className="hidden md:flex items-center gap-1 px-6 pb-2 overflow-x-auto">
+          {navigationItems.map((item) => (
+            <Button
+              key={item.url}
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(item.url)}
+              className={cn(
+                "flex items-center gap-2 whitespace-nowrap",
+                isActive(item.url) && "bg-primary/10 text-primary font-medium"
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.title}
+            </Button>
+          ))}
+        </nav>
+      </header>
+
+      {/* Main Content - with top padding for fixed header */}
+      <main className="flex-1 mt-14 md:mt-[88px] mb-16 md:mb-0 overflow-auto">
+        <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
+      </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center justify-around h-16 px-2">
+          {navigationItems.map((item) => (
+            <Button
+              key={item.url}
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(item.url)}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 h-full flex-1 rounded-none",
+                isActive(item.url) && "text-primary bg-primary/10"
+              )}
+            >
+              <item.icon className={cn("h-5 w-5", isActive(item.url) && "text-primary")} />
+              <span className="text-xs">{item.title.split(" ")[0]}</span>
+            </Button>
+          ))}
+        </div>
+      </nav>
+    </div>
   );
 }
