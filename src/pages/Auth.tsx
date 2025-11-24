@@ -21,6 +21,8 @@ export default function Auth() {
     if (user && !loading) {
       if (user.role === "learner") {
         navigate("/learner-portal", { replace: true });
+      } else if (user.role === "teacher") {
+        navigate("/performance", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
@@ -36,6 +38,8 @@ export default function Auth() {
     if (result?.success) {
       if (result.role === "learner") {
         navigate("/learner-portal", { replace: true });
+      } else if (result.role === "teacher") {
+        navigate("/performance", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
