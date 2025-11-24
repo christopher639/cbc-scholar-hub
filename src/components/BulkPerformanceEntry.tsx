@@ -194,7 +194,7 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
       const { error } = await supabase
         .from("performance_records")
         .upsert(performanceRecords, {
-          onConflict: "learner_id,learning_area_id,academic_year,term,exam_type",
+          onConflict: "learner_id,learning_area_id,academic_year,term,exam_type,grade_id",
           ignoreDuplicates: false
         });
 
