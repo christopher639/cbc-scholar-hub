@@ -10,6 +10,8 @@ import { LogOut, User, Settings, GraduationCap, Home, BookOpen, DollarSign, Sear
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { LearnerChangePasswordDialog } from "@/components/LearnerChangePasswordDialog";
+import { Progress } from "@/components/ui/progress";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 export default function LearnerPortalLayout() {
   const navigate = useNavigate();
@@ -126,15 +128,20 @@ export default function LearnerPortalLayout() {
 
   const handleNavigate = (url: string) => {
     setIsNavigating(true);
-    // Small delay to show loading state, then navigate
-    setTimeout(() => {
-      navigate(url);
-      setIsNavigating(false);
-    }, 50);
+    navigate(url);
+    // Reset loading state after navigation completes
+    setTimeout(() => setIsNavigating(false), 300);
   };
 
   return (
     <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      {/* Loading Progress Bar */}
+      {isNavigating && (
+        <div className="fixed top-0 left-0 right-0 z-[60] h-1">
+          <Progress value={66} className="h-1 rounded-none" />
+        </div>
+      )}
+
       {/* Fixed Header */}
       <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
         <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6">
@@ -216,9 +223,7 @@ export default function LearnerPortalLayout() {
 
       {/* Main Content - with top padding for fixed header */}
       <main className="flex-1 mt-14 md:mt-[88px] mb-16 md:mb-0 overflow-auto relative">
-        <div className={cn("transition-opacity duration-200", isNavigating && "opacity-50 pointer-events-none")}>
-          <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
-        </div>
+        <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
       </main>
 
       {/* Mobile Bottom Navigation */}
@@ -251,6 +256,9 @@ export default function LearnerPortalLayout() {
           learnerId={learnerDetails.id}
         />
       )}
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 }
