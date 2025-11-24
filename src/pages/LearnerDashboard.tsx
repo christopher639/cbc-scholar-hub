@@ -369,138 +369,141 @@ export default function LearnerDashboard() {
         </Card>
       </div>
 
-      {/* Performance Graph */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Performance Overview
-              </CardTitle>
+      {/* Performance Table and Graph - 2 column layout on large screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        {/* Performance Table */}
+        {tableData.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Detailed Performance</CardTitle>
               <CardDescription>
-                {selectedYear && selectedTerm 
-                  ? `${selectedYear} - ${selectedTerm.replace("term_", "Term ")}`
-                  : "Filter to view performance"}
+                Scores by exam type - {selectedYear} {selectedTerm && `- ${selectedTerm.replace("term_", "Term ")}`}
               </CardDescription>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {uniqueYears.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Subject</TableHead>
+                      <TableHead className="text-center">Opener</TableHead>
+                      <TableHead className="text-center">Mid-Term</TableHead>
+                      <TableHead className="text-center">Final</TableHead>
+                      <TableHead className="text-center">Average</TableHead>
+                      <TableHead className="text-center">Grade</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tableData.map((area: any, idx: number) => (
+                      <TableRow key={idx}>
+                        <TableCell className="font-medium">{area.area}</TableCell>
+                        <TableCell className="text-center">{area.opener ?? "-"}</TableCell>
+                        <TableCell className="text-center">{area.midterm ?? "-"}</TableCell>
+                        <TableCell className="text-center">{area.final ?? "-"}</TableCell>
+                        <TableCell className="text-center font-semibold">
+                          {area.average ? `${area.average}%` : "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {area.grade ? (
+                            <span className={`font-semibold ${area.grade.color}`} title={area.grade.description}>
+                              {area.grade.label}
+                            </span>
+                          ) : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-            <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Term" />
-              </SelectTrigger>
-              <SelectContent>
-                {uniqueTerms.map((term) => (
-                  <SelectItem key={term} value={term}>
-                    {term.replace("term_", "Term ")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        
-        <CardContent>
-          {filteredPerformance.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No performance records for selected filters</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="code" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  tick={{ fontSize: 10 }}
-                />
-                <YAxis domain={[0, 100]} />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const grade = getGradeCategory(payload[0].value as number);
-                      return (
-                        <div className="bg-background border rounded-lg p-2 shadow-lg">
-                          <p className="font-semibold">{payload[0].payload.area}</p>
-                          <p className="text-sm">Average: {payload[0].value}%</p>
-                          <p className="text-sm font-medium">
-                            <span className={grade.color}>{grade.label}</span> - {grade.description}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Line type="linear" dataKey="average" stroke="hsl(var(--primary))" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Performance Table */}
-      {tableData.length > 0 && (
+        {/* Performance Graph */}
         <Card>
           <CardHeader>
-            <CardTitle>Detailed Performance</CardTitle>
-            <CardDescription>
-              Scores by exam type - {selectedYear} {selectedTerm && `- ${selectedTerm.replace("term_", "Term ")}`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Subject</TableHead>
-                    <TableHead className="text-center">Opener</TableHead>
-                    <TableHead className="text-center">Mid-Term</TableHead>
-                    <TableHead className="text-center">Final</TableHead>
-                    <TableHead className="text-center">Average</TableHead>
-                    <TableHead className="text-center">Grade</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tableData.map((area: any, idx: number) => (
-                    <TableRow key={idx}>
-                      <TableCell className="font-medium">{area.area}</TableCell>
-                      <TableCell className="text-center">{area.opener ?? "-"}</TableCell>
-                      <TableCell className="text-center">{area.midterm ?? "-"}</TableCell>
-                      <TableCell className="text-center">{area.final ?? "-"}</TableCell>
-                      <TableCell className="text-center font-semibold">
-                        {area.average ? `${area.average}%` : "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {area.grade ? (
-                          <span className={`font-semibold ${area.grade.color}`} title={area.grade.description}>
-                            {area.grade.label}
-                          </span>
-                        ) : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Performance Overview
+                </CardTitle>
+                <CardDescription>
+                  {selectedYear && selectedTerm 
+                    ? `${selectedYear} - ${selectedTerm.replace("term_", "Term ")}`
+                    : "Filter to view performance"}
+                </CardDescription>
+              </div>
             </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueYears.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Term" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueTerms.map((term) => (
+                    <SelectItem key={term} value={term}>
+                      {term.replace("term_", "Term ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            {filteredPerformance.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No performance records for selected filters</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="code" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    tick={{ fontSize: 10 }}
+                  />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const grade = getGradeCategory(payload[0].value as number);
+                        return (
+                          <div className="bg-background border rounded-lg p-2 shadow-lg">
+                            <p className="font-semibold">{payload[0].payload.area}</p>
+                            <p className="text-sm">Average: {payload[0].value}%</p>
+                            <p className="text-sm font-medium">
+                              <span className={grade.color}>{grade.label}</span> - {grade.description}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Line type="linear" dataKey="average" stroke="hsl(var(--primary))" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
-      )}
+      </div>
     </div>
   );
 }
