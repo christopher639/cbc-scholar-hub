@@ -118,7 +118,9 @@ const BulkLearnerReports = () => {
             .select(`
               *,
               learning_area:learning_areas(name, code),
-              academic_period:academic_periods(academic_year, term, start_date, end_date)
+              academic_period:academic_periods(academic_year, term, start_date, end_date),
+              historical_grade:grades!performance_records_grade_id_fkey(id, name),
+              historical_stream:streams!performance_records_stream_id_fkey(id, name)
             `)
             .eq("learner_id", learner.id)
             .eq("academic_year", selectedYear)
@@ -130,9 +132,15 @@ const BulkLearnerReports = () => {
 
           const { data: performanceData } = await perfQuery.order("created_at", { ascending: false });
 
+          // Get the historical grade/stream from first performance record
+          const historicalGrade = performanceData?.[0]?.historical_grade;
+          const historicalStream = performanceData?.[0]?.historical_stream;
+
           return {
             learner,
             performanceRecords: performanceData || [],
+            historicalGrade,
+            historicalStream,
           };
         })
       );
@@ -329,14 +337,14 @@ const BulkLearnerReports = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {learners.map((learner) => (
+                    {reportData.map(({ learner, historicalGrade, historicalStream }) => (
                       <tr key={learner.id} className="border-t hover:bg-muted/50">
                         <td className="p-3 text-sm">{learner.admission_number}</td>
                         <td className="p-3 text-sm">
                           {learner.first_name} {learner.last_name}
                         </td>
-                        <td className="p-3 text-sm">{learner.current_grade?.name}</td>
-                        <td className="p-3 text-sm">{learner.current_stream?.name}</td>
+                        <td className="p-3 text-sm">{historicalGrade?.name || learner.current_grade?.name}</td>
+                        <td className="p-3 text-sm">{historicalStream?.name || learner.current_stream?.name}</td>
                         <td className="p-3 text-center">
                           <Button
                             variant="outline"
@@ -369,7 +377,7 @@ const BulkLearnerReports = () => {
         {/* Hidden print area */}
         <div style={{ display: 'none' }}>
           <div ref={printRef}>
-            {reportData.map(({ learner, performanceRecords }, index) => (
+            {reportData.map(({ learner, performanceRecords, historicalGrade, historicalStream }, index) => (
               <div key={learner.id} style={{ pageBreakAfter: 'always' }}>
                 <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
                   {/* Header with School Info and Learner Photo */}
@@ -440,12 +448,12 @@ const BulkLearnerReports = () => {
                       </div>
                       <div style={{ display: 'flex', margin: '5px 0' }}>
                         <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Grade:</span>
-                        <span style={{ color: '#666' }}>{learner.current_grade?.name}</span>
+                        <span style={{ color: '#666' }}>{historicalGrade?.name || learner.current_grade?.name}</span>
                       </div>
-                      {learner.current_stream && (
+                      {(historicalStream || learner.current_stream) && (
                         <div style={{ display: 'flex', margin: '5px 0' }}>
                           <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Stream:</span>
-                          <span style={{ color: '#666' }}>{learner.current_stream.name}</span>
+                          <span style={{ color: '#666' }}>{historicalStream?.name || learner.current_stream?.name}</span>
                         </div>
                       )}
                     </div>
