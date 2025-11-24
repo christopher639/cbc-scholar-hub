@@ -181,8 +181,8 @@ export default function LearnerPortalLayout() {
         </div>
 
         {/* Desktop Navigation - Below Header */}
-        <nav className="hidden md:flex items-center justify-between w-full gap-2 px-6 pb-2 overflow-x-auto border-t border-border/30">
-          <div className="flex items-center gap-2">
+        <nav className="hidden md:flex items-center w-full gap-2 px-6 pb-2 overflow-x-auto border-t border-border/30">
+          <div className="flex items-center justify-between w-full gap-2">
             {navigationItems.map((item) => (
               <Button
                 key={item.url}
@@ -226,7 +226,6 @@ export default function LearnerPortalLayout() {
               )}
             >
               <item.icon className={cn("h-5 w-5 transition-transform", isActive(item.url) && "scale-110")} />
-              <span className="text-xs">{item.title.split(" ")[0]}</span>
             </Button>
           ))}
         </div>
