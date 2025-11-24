@@ -56,7 +56,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-0 shadow-none">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             {schoolInfo?.logo_url ? (
@@ -86,7 +86,6 @@ export default function Auth() {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                placeholder="TSC number, admission number, or email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -98,7 +97,6 @@ export default function Auth() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Birth certificate, ID number, or password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

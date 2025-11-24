@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogOut, User, Settings, GraduationCap, Home, BookOpen, DollarSign, Search, FileText, MessageSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { LearnerChangePasswordDialog } from "@/components/LearnerChangePasswordDialog";
 
 export default function LearnerPortalLayout() {
   const navigate = useNavigate();
@@ -230,6 +231,15 @@ export default function LearnerPortalLayout() {
           ))}
         </div>
       </nav>
+
+      {/* Password Change Dialog */}
+      {learnerDetails && (
+        <LearnerChangePasswordDialog
+          open={showPasswordDialog}
+          onOpenChange={setShowPasswordDialog}
+          learnerId={learnerDetails.id}
+        />
+      )}
     </div>
   );
 }
