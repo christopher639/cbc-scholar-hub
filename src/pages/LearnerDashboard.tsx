@@ -29,9 +29,10 @@ export default function LearnerDashboard() {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedTerm, setSelectedTerm] = useState<string>("");
   const [feeBalance, setFeeBalance] = useState(0);
-  const [position, setPosition] = useState<{ grade: number; stream: number } | null>(null);
+  const [position, setPosition] = useState<{ grade: number; stream: number; gradeTotal: number; streamTotal: number } | null>(null);
   const [currentPeriod, setCurrentPeriod] = useState<{ year: string; term: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [gradeName, setGradeName] = useState("");
 
   useEffect(() => {
     if (learner) {
@@ -120,6 +121,19 @@ export default function LearnerDashboard() {
 
       setFeeBalance(totalFees - totalPaid);
 
+      // Fetch grade name
+      if (learner.current_grade_id) {
+        const { data: gradeData } = await supabase
+          .from("grades")
+          .select("name")
+          .eq("id", learner.current_grade_id)
+          .single();
+        
+        if (gradeData) {
+          setGradeName(gradeData.name);
+        }
+      }
+
       // Calculate position/rank
       if (performanceData && performanceData.length > 0 && learner.current_grade_id && learner.current_stream_id) {
         const currentPeriod = performanceData[0];
@@ -156,12 +170,20 @@ export default function LearnerDashboard() {
             average: data.total / data.count
           })).sort((a, b) => b.average - a.average);
 
-          return averages.findIndex(l => l.learner_id === learner.id) + 1;
+          return { 
+            position: averages.findIndex(l => l.learner_id === learner.id) + 1,
+            total: averages.length
+          };
         };
 
+        const gradePos = gradePerformance ? calculatePosition(gradePerformance) : { position: 0, total: 0 };
+        const streamPos = streamPerformance ? calculatePosition(streamPerformance) : { position: 0, total: 0 };
+
         setPosition({
-          grade: gradePerformance ? calculatePosition(gradePerformance) : 0,
-          stream: streamPerformance ? calculatePosition(streamPerformance) : 0,
+          grade: gradePos.position,
+          stream: streamPos.position,
+          gradeTotal: gradePos.total,
+          streamTotal: streamPos.total,
         });
       }
     } catch (error) {
@@ -240,15 +262,15 @@ export default function LearnerDashboard() {
           Welcome back, {learnerDetails?.first_name}!
         </h1>
         <p className="text-sm md:text-base text-muted-foreground">
-          {currentPeriod 
-            ? `This is your ${currentPeriod.year} ${currentPeriod.term.replace("term_", "Term ")} overview`
+          {currentPeriod && gradeName
+            ? `This is your ${currentPeriod.year} ${gradeName} ${currentPeriod.term.replace("term_", "Term ")} overview`
             : "Here's your academic overview"}
         </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-0 shadow-none">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -260,7 +282,7 @@ export default function LearnerDashboard() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-0 shadow-none">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -272,7 +294,7 @@ export default function LearnerDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-none">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -284,16 +306,16 @@ export default function LearnerDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-none">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Position</p>
                 <p className="text-sm font-bold">
-                  {position ? `${position.stream} / Stream` : "N/A"}
+                  {position ? `${position.stream}/${position.streamTotal} Stream` : "N/A"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {position ? `${position.grade} / Grade` : ""}
+                  {position ? `${position.grade}/${position.gradeTotal} Grade` : ""}
                 </p>
               </div>
               <Users className="h-6 w-6 text-primary" />
