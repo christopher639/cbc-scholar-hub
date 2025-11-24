@@ -7,12 +7,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, DollarSign, FileText, MessageSquare, Wallet, TrendingUp, AlertCircle, Filter } from "lucide-react";
+import { BookOpen, DollarSign, FileText, MessageSquare, Wallet, TrendingUp, AlertCircle, Filter, Printer, Download } from "lucide-react";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Button } from "@/components/ui/button";
 
 export default function LearnerPortal() {
   const location = useLocation();
@@ -401,7 +402,7 @@ export default function LearnerPortal() {
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="marks" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    <Line type="linear" dataKey="marks" stroke="hsl(var(--primary))" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
