@@ -282,58 +282,51 @@ export default function LearnerDashboard() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6 pb-20">
-      {/* Header Section - Fixed */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Card className="border-0 shadow-none">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                <Avatar className="h-24 w-24 md:h-32 md:w-32 mx-auto md:mx-0">
-                  <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} />
-                  <AvatarFallback className="text-2xl md:text-3xl">
-                    {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
-                  </AvatarFallback>
-                </Avatar>
+    <div className="w-full min-h-screen px-3 md:px-6 py-4 md:py-8 space-y-6">
+      {/* Profile Header */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            <Avatar className="h-24 w-24 md:h-32 md:w-32 mx-auto md:mx-0">
+              <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} />
+              <AvatarFallback className="text-2xl md:text-3xl">
+                {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
+              </AvatarFallback>
+            </Avatar>
 
-                <div className="flex-1 space-y-4 text-center md:text-left">
-                  <div>
-                    <h1 className="text-2xl md:text-3xl font-bold">
-                      {learnerDetails?.first_name} {learnerDetails?.last_name}
-                    </h1>
-                    <p className="text-sm md:text-base text-muted-foreground mt-1">Admission No: {learnerDetails?.admission_number}</p>
-                  </div>
+            <div className="flex-1 space-y-4 text-center md:text-left">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">
+                  {learnerDetails?.first_name} {learnerDetails?.last_name}
+                </h1>
+                <p className="text-sm md:text-base text-muted-foreground mt-1">Admission No: {learnerDetails?.admission_number}</p>
+              </div>
 
-                  <div className="flex flex-wrap justify-center md:justify-start gap-2">
-                    <Badge variant="secondary" className="text-sm">
-                      {learnerDetails?.current_grade?.name} {learnerDetails?.current_stream?.name}
-                    </Badge>
-                    <Badge className="text-sm">Active</Badge>
-                  </div>
+              <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                <Badge variant="secondary" className="text-sm">
+                  {learnerDetails?.current_grade?.name} {learnerDetails?.current_stream?.name}
+                </Badge>
+                <Badge className="text-sm">Active</Badge>
+              </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                    <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate">Born: {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"} ({learnerDetails?.date_of_birth ? calculateAge(learnerDetails.date_of_birth) : 0} yrs)</span>
-                    </div>
-                    <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
-                      <User className="h-4 w-4 flex-shrink-0" />
-                      <span className="capitalize">{learnerDetails?.gender}</span>
-                    </div>
-                    <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate">Enrolled: {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}</span>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
+                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Born: {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"} ({learnerDetails?.date_of_birth ? calculateAge(learnerDetails.date_of_birth) : 0} yrs)</span>
+                </div>
+                <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
+                  <User className="h-4 w-4 flex-shrink-0" />
+                  <span className="capitalize">{learnerDetails?.gender}</span>
+                </div>
+                <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
+                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Enrolled: {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Spacer for fixed header */}
-      <div className="h-48 md:h-56"></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Academic Performance Section */}
       <Card>
