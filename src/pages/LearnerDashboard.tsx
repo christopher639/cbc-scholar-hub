@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3, ArrowUp, ArrowDown, BookOpen, Lightbulb, Target, Award } from "lucide-react";
+import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3, ArrowUp, ArrowDown, BookOpen, Lightbulb, Target, Award, Users, Minus, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/currency";
@@ -134,6 +134,7 @@ export default function LearnerDashboard() {
   // AI Recommendations
   const [aiRecommendation, setAiRecommendation] = useState<string>("");
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [classAverages, setClassAverages] = useState<any[]>([]);
 
   useEffect(() => {
     if (learner) {
@@ -164,6 +165,50 @@ export default function LearnerDashboard() {
       .order("created_at", { ascending: false });
 
     setPerformance(performanceData || []);
+
+    // Get current academic period for class comparison
+    const { data: currentAcademicPeriod } = await supabase
+      .from("academic_periods")
+      .select("*")
+      .eq("is_current", true)
+      .maybeSingle();
+
+    // Fetch class averages for peer comparison
+    if (learner.current_grade_id && learner.current_stream_id && currentAcademicPeriod) {
+      const { data: classPerformance } = await supabase
+        .from("performance_records")
+        .select(`
+          learning_area_id,
+          marks,
+          learning_area:learning_areas(name, code)
+        `)
+        .eq("grade_id", learner.current_grade_id)
+        .eq("stream_id", learner.current_stream_id)
+        .eq("academic_year", currentAcademicPeriod.academic_year)
+        .eq("term", currentAcademicPeriod.term);
+
+      if (classPerformance) {
+        const averagesByArea = classPerformance.reduce((acc: any, record: any) => {
+          if (!acc[record.learning_area_id]) {
+            acc[record.learning_area_id] = {
+              learning_area: record.learning_area,
+              total: 0,
+              count: 0
+            };
+          }
+          acc[record.learning_area_id].total += Number(record.marks);
+          acc[record.learning_area_id].count += 1;
+          return acc;
+        }, {});
+
+        const classAvgs = Object.values(averagesByArea).map((area: any) => ({
+          learning_area: area.learning_area,
+          classAverage: area.total / area.count
+        }));
+        
+        setClassAverages(classAvgs);
+      }
+    }
 
     // Fetch invoices with details
     const { data: invoicesData } = await supabase
@@ -1065,6 +1110,100 @@ export default function LearnerDashboard() {
                     <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                     <span className="text-sm text-muted-foreground">Generating personalized recommendations...</span>
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+      {/* Peer Comparison */}
+      {classAverages.length > 0 && performance.length > 0 && currentPeriod && (() => {
+        const currentTermPerformance = performance.filter(
+          r => r.academic_year === currentPeriod.academic_year && r.term === currentPeriod.term
+        );
+        
+        if (currentTermPerformance.length === 0) return null;
+        
+        const myAveragesByArea = currentTermPerformance.reduce((acc: any, record: any) => {
+          const areaName = record.learning_area?.name || "Unknown";
+          const areaCode = record.learning_area?.code || "N/A";
+          if (!acc[areaName]) {
+            acc[areaName] = { total: 0, count: 0, code: areaCode };
+          }
+          acc[areaName].total += Number(record.marks);
+          acc[areaName].count += 1;
+          return acc;
+        }, {});
+        
+        const myAverages = Object.entries(myAveragesByArea).map(([area, data]: [string, any]) => ({
+          area,
+          code: data.code,
+          average: data.total / data.count
+        }));
+        
+        return (
+          <Card className="border-0 shadow-none">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Class Comparison</CardTitle>
+              </div>
+              <CardDescription className="text-xs">
+                See how you perform relative to your classmates (anonymized data)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {classAverages.map((classData) => {
+                const myPerformance = myAverages.find(
+                  p => p.area === classData.learning_area.name
+                );
+                
+                if (!myPerformance) return null;
+                
+                const myAvg = myPerformance.average;
+                const classAvg = classData.classAverage;
+                const difference = myAvg - classAvg;
+                const percentDiff = ((difference / classAvg) * 100).toFixed(1);
+                
+                let status: "above" | "below" | "average" = "average";
+                let icon = <Minus className="h-4 w-4" />;
+                let color = "text-muted-foreground";
+                
+                if (Math.abs(difference) > 2) {
+                  if (difference > 0) {
+                    status = "above";
+                    icon = <TrendingUp className="h-4 w-4" />;
+                    color = "text-green-600";
+                  } else {
+                    status = "below";
+                    icon = <TrendingDown className="h-4 w-4" />;
+                    color = "text-orange-600";
+                  }
+                }
+                
+                return (
+                  <div key={classData.learning_area.code} className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{classData.learning_area.name}</div>
+                      <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                        <span>Your Score: <span className="font-semibold text-foreground">{myAvg.toFixed(1)}</span></span>
+                        <span>Class Avg: <span className="font-semibold">{classAvg.toFixed(1)}</span></span>
+                      </div>
+                    </div>
+                    <div className={`flex items-center gap-1 ${color}`}>
+                      {icon}
+                      <span className="text-sm font-semibold">
+                        {status === "above" ? "+" : status === "below" ? "" : "±"}{Math.abs(Number(percentDiff))}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              }).filter(Boolean)}
+              
+              {myAverages.length === 0 && (
+                <div className="text-center py-6 text-muted-foreground text-sm">
+                  No class comparison data available yet
                 </div>
               )}
             </CardContent>
