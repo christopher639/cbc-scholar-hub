@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3 } from "lucide-react";
+import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3, ArrowUp, ArrowDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/currency";
@@ -18,8 +18,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useToast } from "@/hooks/use-toast";
 import { useReactToPrint } from "react-to-print";
 
-// Helper function to group performance by learning area
-const groupPerformanceByArea = (records: any[]) => {
+// Helper function to group performance by learning area with deviation calculation
+const groupPerformanceByArea = (records: any[], allRecords: any[], currentYear: string, currentTerm: string) => {
   const grouped = records.reduce((acc: any, record) => {
     const areaName = record.learning_area?.name || "Unknown";
     if (!acc[areaName]) {
@@ -51,15 +51,49 @@ const groupPerformanceByArea = (records: any[]) => {
     return acc;
   }, {});
   
+  // Calculate previous term average for each learning area
+  const getPreviousTerm = (term: string) => {
+    if (term === "term_3") return "term_2";
+    if (term === "term_2") return "term_1";
+    return null;
+  };
+  
+  const previousTerm = getPreviousTerm(currentTerm);
+  const previousTermRecords = previousTerm 
+    ? allRecords.filter(r => r.academic_year === currentYear && r.term === previousTerm)
+    : [];
+  
+  const previousAverages: Record<string, { total: number; count: number }> = {};
+  previousTermRecords.forEach(record => {
+    const areaName = record.learning_area?.name || "Unknown";
+    if (!previousAverages[areaName]) {
+      previousAverages[areaName] = { total: 0, count: 0 };
+    }
+    previousAverages[areaName].total += Number(record.marks);
+    previousAverages[areaName].count += 1;
+  });
+  
+  const finalPreviousAverages: Record<string, number> = {};
+  Object.keys(previousAverages).forEach(area => {
+    finalPreviousAverages[area] = previousAverages[area].total / previousAverages[area].count;
+  });
+  
   return Object.values(grouped).map((area: any) => {
     const scores = [area.opener, area.midterm, area.final].filter(s => s !== null);
     const average = scores.length > 0 
       ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length 
       : null;
     
+    const previousAverage = finalPreviousAverages[area.area];
+    const deviation = average !== null && previousAverage 
+      ? Math.round((average - previousAverage) * 10) / 10 
+      : null;
+    
     return {
       ...area,
-      average: average !== null ? Math.round(average) : null
+      average: average !== null ? Math.round(average) : null,
+      deviation,
+      previousAverage: previousAverage ? Math.round(previousAverage) : null
     };
   });
 };
@@ -241,7 +275,7 @@ export default function LearnerDashboard() {
   const uniqueExamTypes = [...new Set(performance.map(p => p.exam_type))].filter(Boolean);
 
   // Group performance by learning area
-  const groupedPerformance = groupPerformanceByArea(filteredPerformance);
+  const groupedPerformance = groupPerformanceByArea(filteredPerformance, performance, selectedYear, selectedTerm);
 
   // Prepare chart data - use average scores per area
   const chartData = groupedPerformance.map(area => ({
@@ -599,9 +633,20 @@ export default function LearnerDashboard() {
                         </TableCell>
                         <TableCell className="text-center py-1">
                           {area.average !== null ? (
-                            <span className="inline-block px-2 py-0.5 rounded-md font-bold text-primary text-xs bg-primary/10">
-                              {area.average}
-                            </span>
+                            <div className="flex items-center justify-center gap-1">
+                              <span className="inline-block px-2 py-0.5 rounded-md font-bold text-primary text-xs bg-primary/10">
+                                {area.average}
+                              </span>
+                              {area.deviation !== null && (
+                                <div className="flex items-center">
+                                  {area.deviation > 0 ? (
+                                    <ArrowUp className="h-3 w-3 text-green-600" />
+                                  ) : area.deviation < 0 ? (
+                                    <ArrowDown className="h-3 w-3 text-red-600" />
+                                  ) : null}
+                                </div>
+                              )}
+                            </div>
                           ) : "-"}
                         </TableCell>
                         <TableCell className="py-1">
