@@ -13,7 +13,6 @@ import { LearnerChangePasswordDialog } from "@/components/LearnerChangePasswordD
 import { Progress } from "@/components/ui/progress";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PWAInstallButton } from "@/components/PWAInstallButton";
-import { TourGuide } from "@/components/TourGuide";
 import { useLearnerPortalCache } from "@/hooks/useLearnerCache";
 
 export default function LearnerPortalLayout() {
@@ -190,7 +189,7 @@ export default function LearnerPortalLayout() {
       <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
         <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6 gap-4 w-full">
           {/* Left - School Logo */}
-          <div className="flex items-center gap-2 md:gap-4 flex-shrink-0" data-tour="school-logo">
+          <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
             {displaySchool?.logo_url ? (
               <img src={displaySchool.logo_url} alt="School Logo" className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover ring-2 ring-primary/20" />
             ) : (
@@ -205,7 +204,7 @@ export default function LearnerPortalLayout() {
           </div>
 
           {/* Center - Desktop Navigation (visible on large screens only) */}
-          <nav className="hidden md:flex items-center justify-center flex-1 gap-1 lg:gap-2 overflow-x-auto" data-tour="navigation">
+          <nav className="hidden md:flex items-center justify-center flex-1 gap-1 lg:gap-2 overflow-x-auto">
             {navigationItems.map((item) => (
               <Button
                 key={item.url}
@@ -227,12 +226,10 @@ export default function LearnerPortalLayout() {
 
           {/* Right - PWA Install Button and User Profile */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div data-tour="install-button">
-              <PWAInstallButton />
-            </div>
+            <PWAInstallButton />
             
             <DropdownMenu>
-              <DropdownMenuTrigger asChild data-tour="profile-menu">
+              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full p-0 hover:bg-transparent">
                   <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
                     <AvatarImage src={displayLearner.photo_url} />
@@ -312,9 +309,6 @@ export default function LearnerPortalLayout() {
 
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
-      
-      {/* Tour Guide */}
-      <TourGuide />
     </div>
   );
 }
