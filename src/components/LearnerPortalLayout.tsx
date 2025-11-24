@@ -36,6 +36,14 @@ export default function LearnerPortalLayout() {
     }
   }, [authLoading, isLearner, learner, navigate]);
 
+  // Reset loading state when location changes
+  useEffect(() => {
+    if (isNavigating) {
+      const timer = setTimeout(() => setIsNavigating(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname]);
+
   const fetchData = async () => {
     if (!learner) return;
 
@@ -131,14 +139,6 @@ export default function LearnerPortalLayout() {
     setIsNavigating(true);
     navigate(url);
   };
-
-  // Reset loading state when location changes
-  useEffect(() => {
-    if (isNavigating) {
-      const timer = setTimeout(() => setIsNavigating(false), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [location.pathname]);
 
   return (
     <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
