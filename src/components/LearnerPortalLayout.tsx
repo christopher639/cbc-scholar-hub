@@ -112,11 +112,11 @@ export default function LearnerPortalLayout() {
 
   const navigationItems = [
     { title: "Dashboard", url: "/learner-portal", icon: Home },
-    { title: "Profile", url: "/learner-portal/profile", icon: UserCircle },
     { title: "Performance", url: "/learner-portal/performance", icon: BookOpen },
     { title: "My Fees", url: "/learner-portal/fees", icon: DollarSign },
     { title: "Fee Structures", url: "/learner-portal/fee-structures", icon: Search },
     { title: "Settings", url: "/learner-portal/settings", icon: Settings },
+    { title: "Profile", url: "/learner-portal/profile", icon: UserCircle },
   ];
 
   const isActive = (path: string) => {
@@ -127,11 +127,18 @@ export default function LearnerPortalLayout() {
   };
 
   const handleNavigate = (url: string) => {
+    if (location.pathname === url) return;
     setIsNavigating(true);
     navigate(url);
-    // Reset loading state after navigation completes
-    setTimeout(() => setIsNavigating(false), 300);
   };
+
+  // Reset loading state when location changes and data is ready
+  useEffect(() => {
+    if (isNavigating) {
+      const timer = setTimeout(() => setIsNavigating(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, isNavigating]);
 
   return (
     <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
@@ -223,7 +230,9 @@ export default function LearnerPortalLayout() {
 
       {/* Main Content - with top padding for fixed header */}
       <main className="flex-1 mt-14 md:mt-[88px] mb-16 md:mb-0 overflow-auto relative">
-        <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
+        <div className={cn("transition-opacity duration-200", isNavigating && "opacity-50 pointer-events-none")}>
+          <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
+        </div>
       </main>
 
       {/* Mobile Bottom Navigation */}
