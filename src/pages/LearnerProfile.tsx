@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History, ArrowLeft, Edit, UserX } from "lucide-react";
+import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History, ArrowLeft, Edit, UserX, ArrowUp, ArrowDown } from "lucide-react";
 import { PromotionHistoryDialog } from "@/components/PromotionHistoryDialog";
 import { EditLearnerDialog } from "@/components/EditLearnerDialog";
 import { TransferLearnerDialog } from "@/components/TransferLearnerDialog";
@@ -43,8 +43,8 @@ const LearnerProfile = () => {
     }
   });
 
-  // Group performance records by learning area
-  const groupPerformanceByArea = (records: any[]) => {
+  // Group performance records by learning area with deviation calculation
+  const groupPerformanceByArea = (records: any[], allRecords: any[], currentYear: string, currentTerm: string) => {
     const grouped = records.reduce((acc: any, record: any) => {
       const areaName = record.learning_area?.name || "Unknown";
       const key = `${areaName}-${record.academic_year}-${record.term}`;
@@ -77,12 +77,49 @@ const LearnerProfile = () => {
       return acc;
     }, {});
 
+    // Calculate previous term average for each learning area
+    const getPreviousTerm = (term: string) => {
+      if (term === "term_3") return "term_2";
+      if (term === "term_2") return "term_1";
+      return null;
+    };
+    
+    const previousTerm = getPreviousTerm(currentTerm);
+    const previousTermRecords = previousTerm 
+      ? allRecords.filter((r: any) => r.academic_year === currentYear && r.term === previousTerm)
+      : [];
+    
+    const previousAverages: Record<string, any> = {};
+    previousTermRecords.forEach((record: any) => {
+      const areaName = record.learning_area?.name || "Unknown";
+      if (!previousAverages[areaName]) {
+        previousAverages[areaName] = { total: 0, count: 0 };
+      }
+      previousAverages[areaName].total += Number(record.marks);
+      previousAverages[areaName].count += 1;
+    });
+    
+    Object.keys(previousAverages).forEach(area => {
+      previousAverages[area] = previousAverages[area].total / previousAverages[area].count;
+    });
+
     return Object.values(grouped).map((row: any) => {
       const scores = [row.opener, row.midterm, row.final].filter((s: any) => s !== null);
       const average = scores.length > 0 
         ? Math.round((scores.reduce((sum: number, s: number) => sum + s, 0) / scores.length) * 10) / 10
         : 0;
-      return { ...row, average };
+      
+      const previousAverage = previousAverages[row.learning_area];
+      const deviation = average > 0 && previousAverage 
+        ? Math.round((average - previousAverage) * 10) / 10 
+        : null;
+      
+      return { 
+        ...row, 
+        average,
+        deviation,
+        previousAverage: previousAverage ? Math.round(previousAverage) : null
+      };
     });
   };
 
@@ -384,7 +421,7 @@ const LearnerProfile = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {groupPerformanceByArea(learner.performance).filter((row: any) => 
+                          {groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm).filter((row: any) => 
                             row.academic_year === selectedAcademicYear && row.term === selectedTerm
                           ).map((row: any, index: number) => (
                             <TableRow key={index}>
@@ -414,9 +451,24 @@ const LearnerProfile = () => {
                                 )}
                               </TableCell>
                               <TableCell className="text-center">
-                                <Badge variant="default" className={getGradeColor(row.average)}>
-                                  {row.average.toFixed(1)}%
-                                </Badge>
+                                {row.average > 0 ? (
+                                  <div className="flex items-center justify-center gap-1">
+                                    <Badge variant="default" className={getGradeColor(row.average)}>
+                                      {row.average.toFixed(1)}%
+                                    </Badge>
+                                    {row.deviation !== null && (
+                                      <div className="flex items-center">
+                                        {row.deviation > 0 ? (
+                                          <ArrowUp className="h-3 w-3 text-green-600" />
+                                        ) : row.deviation < 0 ? (
+                                          <ArrowDown className="h-3 w-3 text-red-600" />
+                                        ) : null}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">-</span>
+                                )}
                               </TableCell>
                               <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                                 {row.remarks || "-"}
@@ -428,12 +480,12 @@ const LearnerProfile = () => {
                     </div>
                     
                     {/* Overview Graph */}
-                    {groupPerformanceByArea(learner.performance).filter((row: any) => 
+                    {groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm).filter((row: any) => 
                       row.academic_year === selectedAcademicYear && row.term === selectedTerm
                     ).length > 0 && (
                       <div className="h-[300px] mt-6">
                         <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={groupPerformanceByArea(learner.performance).filter((row: any) => 
+                          <LineChart data={groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm).filter((row: any) => 
                             row.academic_year === selectedAcademicYear && row.term === selectedTerm
                           )}>
                             <CartesianGrid strokeDasharray="3 3" />
