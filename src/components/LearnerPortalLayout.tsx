@@ -126,53 +126,53 @@ export default function LearnerPortalLayout() {
   return (
     <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-6">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-border/50 bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90 shadow-sm">
+        <div className="flex h-16 md:h-20 items-center justify-between px-4 md:px-8">
           {/* Left - School Logo */}
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-3 md:gap-4">
             {schoolInfo?.logo_url ? (
-              <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 md:h-10 md:w-10 rounded-full object-cover" />
+              <img src={schoolInfo.logo_url} alt="School Logo" className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover ring-2 ring-primary/20 shadow-md" />
             ) : (
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md ring-2 ring-primary/20">
+                <GraduationCap className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
               </div>
             )}
             <div className="hidden sm:block">
-              <h1 className="text-sm md:text-base font-bold leading-tight">{schoolInfo?.school_name || "School Portal"}</h1>
-              <p className="text-xs text-muted-foreground hidden md:block">{schoolInfo?.motto || "Learner Portal"}</p>
+              <h1 className="text-base md:text-lg font-bold leading-tight text-foreground">{schoolInfo?.school_name || "School Portal"}</h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden md:block">{schoolInfo?.motto || "Learner Portal"}</p>
             </div>
           </div>
 
           {/* Right - User Profile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full p-0">
-                <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer ring-2 ring-primary/10 hover:ring-primary/30 transition-all">
+              <Button variant="ghost" className="relative h-10 w-10 md:h-12 md:w-12 rounded-full p-0 hover:bg-transparent">
+                <Avatar className="h-10 w-10 md:h-12 md:w-12 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all shadow-md">
                   <AvatarImage src={learnerDetails.photo_url} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs md:text-sm">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-sm md:text-base">
                     {learnerDetails.first_name[0]}{learnerDetails.last_name[0]}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-64 shadow-lg">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{learnerDetails.first_name} {learnerDetails.last_name}</p>
-                  <p className="text-xs text-muted-foreground">Adm: {learnerDetails.admission_number}</p>
+                  <p className="text-sm font-semibold">{learnerDetails.first_name} {learnerDetails.last_name}</p>
+                  <p className="text-xs text-muted-foreground">Admission: {learnerDetails.admission_number}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/learner-portal")}>
+              <DropdownMenuItem onClick={() => navigate("/learner-portal")} className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 View Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowPasswordDialog(true)}>
+              <DropdownMenuItem onClick={() => setShowPasswordDialog(true)} className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
                 Change Password
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
@@ -181,7 +181,7 @@ export default function LearnerPortalLayout() {
         </div>
 
         {/* Desktop Navigation - Below Header */}
-        <nav className="hidden md:flex items-center gap-1 px-6 pb-2 overflow-x-auto">
+        <nav className="hidden md:flex items-center gap-2 px-8 pb-3 overflow-x-auto border-t border-border/30">
           {navigationItems.map((item) => (
             <Button
               key={item.url}
@@ -189,8 +189,10 @@ export default function LearnerPortalLayout() {
               size="sm"
               onClick={() => navigate(item.url)}
               className={cn(
-                "flex items-center gap-2 whitespace-nowrap",
-                isActive(item.url) && "bg-primary/10 text-primary font-medium"
+                "flex items-center gap-2 whitespace-nowrap transition-all rounded-lg px-4 py-2",
+                isActive(item.url) 
+                  ? "bg-primary text-primary-foreground shadow-sm font-semibold hover:bg-primary/90" 
+                  : "hover:bg-muted/50"
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -201,12 +203,12 @@ export default function LearnerPortalLayout() {
       </header>
 
       {/* Main Content - with top padding for fixed header */}
-      <main className="flex-1 mt-14 md:mt-[88px] mb-16 md:mb-0 overflow-auto">
+      <main className="flex-1 mt-16 md:mt-[116px] mb-16 md:mb-0 overflow-auto">
         <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/50 bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90 shadow-lg">
         <div className="flex items-center justify-around h-16 px-2">
           {navigationItems.map((item) => (
             <Button
@@ -215,11 +217,13 @@ export default function LearnerPortalLayout() {
               size="sm"
               onClick={() => navigate(item.url)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 h-full flex-1 rounded-none",
-                isActive(item.url) && "text-primary bg-primary/10"
+                "flex flex-col items-center justify-center gap-1 h-full flex-1 rounded-lg transition-all",
+                isActive(item.url) 
+                  ? "text-primary bg-primary/10 font-semibold" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               )}
             >
-              <item.icon className={cn("h-5 w-5", isActive(item.url) && "text-primary")} />
+              <item.icon className={cn("h-5 w-5 transition-transform", isActive(item.url) && "scale-110")} />
               <span className="text-xs">{item.title.split(" ")[0]}</span>
             </Button>
           ))}
