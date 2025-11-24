@@ -79,6 +79,31 @@ export function useLearningAreas() {
     }
   };
 
+  const updateLearningArea = async (id: string, areaData: any) => {
+    try {
+      const { error } = await supabase
+        .from("learning_areas")
+        .update(areaData)
+        .eq("id", id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Learning area updated successfully",
+      });
+      
+      fetchLearningAreas();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const deleteLearningArea = async (id: string) => {
     try {
       const { error } = await supabase
@@ -104,5 +129,5 @@ export function useLearningAreas() {
     }
   };
 
-  return { learningAreas, loading, fetchLearningAreas, addLearningArea, deleteLearningArea };
+  return { learningAreas, loading, fetchLearningAreas, addLearningArea, updateLearningArea, deleteLearningArea };
 }

@@ -18,7 +18,7 @@ interface ManageLearningAreasDialogProps {
 
 const ManageLearningAreasDialog = ({ open, onOpenChange }: ManageLearningAreasDialogProps) => {
   const { toast } = useToast();
-  const { learningAreas, loading, fetchLearningAreas, addLearningArea, deleteLearningArea } = useLearningAreas();
+  const { learningAreas, loading, fetchLearningAreas, addLearningArea, updateLearningArea, deleteLearningArea } = useLearningAreas();
   const { teachers, loading: teachersLoading } = useTeachers();
   
   const [newCode, setNewCode] = useState("");
@@ -95,30 +95,18 @@ const ManageLearningAreasDialog = ({ open, onOpenChange }: ManageLearningAreasDi
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from("learning_areas")
-        .update({
-          code: editCode.toUpperCase(),
-          name: editName,
-          teacher_id: editTeacherId || null,
-        })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Learning area updated successfully",
+      await updateLearningArea(id, {
+        code: editCode.toUpperCase(),
+        name: editName,
+        teacher_id: editTeacherId || null,
       });
 
       setEditingId(null);
-      fetchLearningAreas();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      setEditCode("");
+      setEditName("");
+      setEditTeacherId("");
+    } catch (error) {
+      // Error handled by hook
     } finally {
       setSubmitting(false);
     }
