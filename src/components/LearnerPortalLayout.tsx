@@ -20,9 +20,11 @@ export default function LearnerPortalLayout() {
   const [loading, setLoading] = useState(true);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const isLearner = user?.role === "learner";
   const learner = isLearner ? user.data : null;
+  const location = useLocation();
 
   useEffect(() => {
     if (!authLoading && !isLearner) {
@@ -106,8 +108,6 @@ export default function LearnerPortalLayout() {
     return null;
   }
 
-  const location = useLocation();
-
   const navigationItems = [
     { title: "Dashboard", url: "/learner-portal", icon: Home },
     { title: "Profile", url: "/learner-portal/profile", icon: UserCircle },
@@ -122,6 +122,15 @@ export default function LearnerPortalLayout() {
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
+  };
+
+  const handleNavigate = (url: string) => {
+    setIsNavigating(true);
+    // Small delay to show loading state, then navigate
+    setTimeout(() => {
+      navigate(url);
+      setIsNavigating(false);
+    }, 50);
   };
 
   return (
@@ -189,7 +198,7 @@ export default function LearnerPortalLayout() {
                 key={item.url}
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate(item.url)}
+                onClick={() => handleNavigate(item.url)}
                 className={cn(
                   "flex items-center gap-2 whitespace-nowrap transition-all rounded-lg px-3 py-2",
                   isActive(item.url) 
@@ -206,8 +215,10 @@ export default function LearnerPortalLayout() {
       </header>
 
       {/* Main Content - with top padding for fixed header */}
-      <main className="flex-1 mt-14 md:mt-[88px] mb-16 md:mb-0 overflow-auto">
-        <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
+      <main className="flex-1 mt-14 md:mt-[88px] mb-16 md:mb-0 overflow-auto relative">
+        <div className={cn("transition-opacity duration-200", isNavigating && "opacity-50 pointer-events-none")}>
+          <Outlet context={{ learnerDetails, schoolInfo, refetch: fetchData }} />
+        </div>
       </main>
 
       {/* Mobile Bottom Navigation */}
@@ -218,7 +229,7 @@ export default function LearnerPortalLayout() {
               key={item.url}
               variant="ghost"
               size="sm"
-              onClick={() => navigate(item.url)}
+              onClick={() => handleNavigate(item.url)}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 h-full flex-1 rounded-lg transition-all",
                 isActive(item.url) 
