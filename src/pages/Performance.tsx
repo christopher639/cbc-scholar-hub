@@ -10,6 +10,7 @@ import { PerformanceAnalyticsDialog } from "@/components/PerformanceAnalyticsDia
 import { Badge } from "@/components/ui/badge";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Performance = () => {
   const [isAddPerformanceOpen, setIsAddPerformanceOpen] = useState(false);
@@ -17,6 +18,9 @@ const Performance = () => {
   const [isBulkEntryOpen, setIsBulkEntryOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const { learningAreas, loading } = useLearningAreas();
+  const { user } = useAuth();
+  
+  const isAdmin = user?.role === 'admin';
 
   return (
     <DashboardLayout>
@@ -27,14 +31,18 @@ const Performance = () => {
             <p className="text-muted-foreground">Record and manage learner performance across learning areas</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => setIsAnalyticsOpen(true)}>
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Performance Analytics
-            </Button>
-            <Button variant="outline" onClick={() => setIsManageLearningAreasOpen(true)}>
-              <BookOpen className="h-4 w-4 mr-2" />
-              Manage Learning Areas
-            </Button>
+            {isAdmin && (
+              <Button variant="secondary" onClick={() => setIsAnalyticsOpen(true)}>
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Performance Analytics
+              </Button>
+            )}
+            {isAdmin && (
+              <Button variant="outline" onClick={() => setIsManageLearningAreasOpen(true)}>
+                <BookOpen className="h-4 w-4 mr-2" />
+                Manage Learning Areas
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setIsBulkEntryOpen(true)}>
               <Users className="h-4 w-4 mr-2" />
               Bulk Entry by Stream
