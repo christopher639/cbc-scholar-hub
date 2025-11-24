@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User, Settings, GraduationCap, Home, BookOpen, DollarSign, Search, FileText, MessageSquare } from "lucide-react";
+import { LogOut, User, Settings, GraduationCap, Home, BookOpen, DollarSign, Search, FileText, MessageSquare, UserCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { LearnerChangePasswordDialog } from "@/components/LearnerChangePasswordDialog";
@@ -110,11 +110,11 @@ export default function LearnerPortalLayout() {
 
   const navigationItems = [
     { title: "Dashboard", url: "/learner-portal", icon: Home },
+    { title: "Profile", url: "/learner-portal/profile", icon: UserCircle },
     { title: "Performance", url: "/learner-portal/performance", icon: BookOpen },
     { title: "My Fees", url: "/learner-portal/fees", icon: DollarSign },
     { title: "Fee Structures", url: "/learner-portal/fee-structures", icon: Search },
-    { title: "Assignments", url: "/learner-portal/assignments", icon: FileText },
-    { title: "Messages", url: "/learner-portal/messages", icon: MessageSquare },
+    { title: "Settings", url: "/learner-portal/settings", icon: Settings },
   ];
 
   const isActive = (path: string) => {
