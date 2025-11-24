@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { LearnerChangePasswordDialog } from "@/components/LearnerChangePasswordDialog";
 import { Progress } from "@/components/ui/progress";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { PWAInstallButton } from "@/components/PWAInstallButton";
+import { VirtualAssistant } from "@/components/VirtualAssistant";
 import { useLearnerPortalCache } from "@/hooks/useLearnerCache";
 
 export default function LearnerPortalLayout() {
@@ -196,9 +198,9 @@ export default function LearnerPortalLayout() {
                 <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
               </div>
             )}
-            <div className="hidden md:block">
+            <div>
               <h1 className="text-xs sm:text-sm md:text-base font-bold leading-tight text-foreground whitespace-nowrap">{displaySchool?.school_name || "School Portal"}</h1>
-              <p className="text-xs text-muted-foreground">{displaySchool?.motto || "Learner Portal"}</p>
+              <p className="hidden md:block text-xs text-muted-foreground">{displaySchool?.motto || "Learner Portal"}</p>
             </div>
           </div>
 
@@ -223,8 +225,10 @@ export default function LearnerPortalLayout() {
             ))}
           </nav>
 
-          {/* Right - User Profile */}
-          <div className="flex-shrink-0">
+          {/* Right - PWA Install Button and User Profile */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <PWAInstallButton />
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full p-0 hover:bg-transparent">
@@ -244,9 +248,12 @@ export default function LearnerPortalLayout() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/learner-portal")} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => {
+                  setIsNavigating(true);
+                  navigate("/learner-portal/profile");
+                }} className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
-                  View Profile
+                  Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setShowPasswordDialog(true)} className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
@@ -303,6 +310,9 @@ export default function LearnerPortalLayout() {
 
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
+      
+      {/* Virtual Assistant */}
+      <VirtualAssistant />
     </div>
   );
 }
