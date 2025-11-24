@@ -679,6 +679,167 @@ export default function LearnerDashboard() {
         </CardContent>
       </Card>
 
+      {/* Performance Trends Section */}
+      {performance.length > 0 && (() => {
+        // Calculate term averages for all terms
+        const termAverages: { year: string; term: string; average: number; subjectCount: number }[] = [];
+        const termGroups: Record<string, { total: number; count: number }> = {};
+        
+        performance.forEach(record => {
+          const key = `${record.academic_year}-${record.term}`;
+          if (!termGroups[key]) {
+            termGroups[key] = { total: 0, count: 0 };
+          }
+          termGroups[key].total += Number(record.marks);
+          termGroups[key].count += 1;
+        });
+        
+        Object.entries(termGroups).forEach(([key, data]) => {
+          const [year, term] = key.split('-');
+          termAverages.push({
+            year,
+            term,
+            average: Math.round(data.total / data.count),
+            subjectCount: data.count
+          });
+        });
+        
+        // Sort by year and term
+        termAverages.sort((a, b) => {
+          if (a.year !== b.year) return a.year.localeCompare(b.year);
+          return a.term.localeCompare(b.term);
+        });
+        
+        // Calculate trends
+        const trendsData = termAverages.map((current, index) => {
+          if (index === 0) return { ...current, change: null, percentChange: null };
+          const previous = termAverages[index - 1];
+          const change = current.average - previous.average;
+          const percentChange = previous.average > 0 
+            ? Math.round((change / previous.average) * 100) 
+            : 0;
+          return { ...current, change, percentChange };
+        });
+        
+        return trendsData.length > 1 ? (
+          <Card className="border-border/50 overflow-hidden">
+            <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Performance Trends
+              </CardTitle>
+              <CardDescription className="text-xs mt-1">
+                Term-over-term progress analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {trendsData.map((trend, index) => (
+                  <Card key={index} className="border-border/50 bg-gradient-to-br from-card to-muted/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase">
+                            {trend.year}
+                          </p>
+                          <p className="text-sm font-bold text-foreground">
+                            {trend.term.replace('term_', 'Term ')}
+                          </p>
+                        </div>
+                        <Badge className="bg-primary/10 text-primary border-primary/20">
+                          {trend.subjectCount} subjects
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <p className="text-2xl font-bold text-foreground">{trend.average}%</p>
+                          <p className="text-xs text-muted-foreground">Average</p>
+                        </div>
+                        
+                        {trend.change !== null && (
+                          <div className="flex flex-col items-end gap-1">
+                            <div className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+                              trend.change > 0 
+                                ? 'bg-green-500/10 text-green-700 dark:text-green-400' 
+                                : trend.change < 0 
+                                  ? 'bg-red-500/10 text-red-700 dark:text-red-400'
+                                  : 'bg-gray-500/10 text-gray-700 dark:text-gray-400'
+                            }`}>
+                              {trend.change > 0 ? (
+                                <ArrowUp className="h-3 w-3" />
+                              ) : trend.change < 0 ? (
+                                <ArrowDown className="h-3 w-3" />
+                              ) : null}
+                              <span className="text-sm font-bold">
+                                {trend.change > 0 ? '+' : ''}{trend.change}%
+                              </span>
+                            </div>
+                            {trend.percentChange !== null && trend.percentChange !== 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                {trend.percentChange > 0 ? '+' : ''}{trend.percentChange}% change
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {index === trendsData.length - 1 && trend.change !== null && (
+                        <div className="mt-3 pt-3 border-t border-border/50">
+                          <p className="text-xs text-muted-foreground">
+                            {trend.change > 0 
+                              ? '🎉 Great improvement! Keep up the good work.'
+                              : trend.change < 0
+                                ? '📚 Focus on improving your performance next term.'
+                                : '➡️ Maintain consistent performance.'}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              
+              {trendsData.length > 0 && (
+                <div className="mt-4 p-3 bg-muted/30 rounded-lg border border-border/50">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-foreground mb-1">Overall Trend Analysis</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(() => {
+                          const firstTerm = trendsData[0];
+                          const lastTerm = trendsData[trendsData.length - 1];
+                          const overallChange = lastTerm.average - firstTerm.average;
+                          const overallPercent = firstTerm.average > 0 
+                            ? Math.round((overallChange / firstTerm.average) * 100)
+                            : 0;
+                          
+                          return (
+                            <>
+                              From {firstTerm.year} {firstTerm.term.replace('term_', 'Term ')} ({firstTerm.average}%) to {' '}
+                              {lastTerm.year} {lastTerm.term.replace('term_', 'Term ')} ({lastTerm.average}%): {' '}
+                              <span className={`font-bold ${
+                                overallChange > 0 
+                                  ? 'text-green-600 dark:text-green-400' 
+                                  : overallChange < 0
+                                    ? 'text-red-600 dark:text-red-400'
+                                    : 'text-foreground'
+                              }`}>
+                                {overallChange > 0 ? '+' : ''}{overallChange}% ({overallPercent > 0 ? '+' : ''}{overallPercent}% change)
+                              </span>
+                            </>
+                          );
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : null;
+      })()}
+
       {/* Stats Overview */}
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-border/50 overflow-hidden bg-gradient-to-br from-card to-card/80">
