@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3, ArrowUp, ArrowDown } from "lucide-react";
+import { User, DollarSign, TrendingUp, FileText, Calendar, Download, Printer, BarChart3, ArrowUp, ArrowDown, BookOpen, Lightbulb, Target, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/currency";
@@ -130,6 +130,10 @@ export default function LearnerDashboard() {
   const [selectedTerm, setSelectedTerm] = useState<string>("");
   const [selectedExamType, setSelectedExamType] = useState<string>("all");
   const [showComparison, setShowComparison] = useState(false);
+  
+  // AI Recommendations
+  const [aiRecommendation, setAiRecommendation] = useState<string>("");
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   useEffect(() => {
     if (learner) {
@@ -352,6 +356,45 @@ export default function LearnerDashboard() {
     }
     
     handlePrint();
+  };
+
+  // Fetch AI recommendations
+  const fetchAIRecommendations = async (strengths: any[], weaknesses: any[]) => {
+    if (strengths.length === 0 && weaknesses.length === 0) return;
+    
+    try {
+      setLoadingRecommendations(true);
+      const { data, error } = await supabase.functions.invoke('study-recommendations', {
+        body: {
+          strengths,
+          weaknesses,
+          learnerName: `${learnerDetails?.first_name} ${learnerDetails?.last_name}`
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.recommendation) {
+        setAiRecommendation(data.recommendation);
+      }
+    } catch (error: any) {
+      console.error("Error fetching AI recommendations:", error);
+      if (error.message?.includes("429")) {
+        toast({
+          title: "Rate Limit",
+          description: "Too many requests. Please try again later.",
+          variant: "destructive",
+        });
+      } else if (error.message?.includes("402")) {
+        toast({
+          title: "Credits Required",
+          description: "AI credits depleted. Please contact support.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoadingRecommendations(false);
+    }
   };
 
   return (
@@ -838,6 +881,195 @@ export default function LearnerDashboard() {
             </CardContent>
           </Card>
         ) : null;
+      })()}
+
+      {/* Strengths & Weaknesses Analysis */}
+      {performance.length > 0 && (() => {
+        // Calculate average per learning area across all records
+        const areaAverages: Record<string, { total: number; count: number; area: string; code: string }> = {};
+        
+        performance.forEach(record => {
+          const areaName = record.learning_area?.name || "Unknown";
+          const areaCode = record.learning_area?.code || "N/A";
+          if (!areaAverages[areaName]) {
+            areaAverages[areaName] = { total: 0, count: 0, area: areaName, code: areaCode };
+          }
+          areaAverages[areaName].total += Number(record.marks);
+          areaAverages[areaName].count += 1;
+        });
+        
+        const averages = Object.values(areaAverages).map(item => ({
+          area: item.area,
+          code: item.code,
+          average: Math.round(item.total / item.count),
+          count: item.count
+        })).sort((a, b) => b.average - a.average);
+        
+        if (averages.length === 0) return null;
+        
+        // Get top 3 strengths and bottom 3 weaknesses
+        const strengths = averages.slice(0, Math.min(3, averages.length));
+        const weaknesses = averages.slice(-Math.min(3, averages.length)).reverse();
+        
+        // Calculate trend for each subject (last 3 records)
+        const getTrend = (areaName: string) => {
+          const areaRecords = performance
+            .filter(r => r.learning_area?.name === areaName)
+            .slice(0, 3)
+            .map(r => Number(r.marks));
+          
+          if (areaRecords.length < 2) return "stable";
+          
+          const recent = areaRecords[0];
+          const previous = areaRecords[areaRecords.length - 1];
+          const diff = recent - previous;
+          
+          if (diff > 5) return "improving";
+          if (diff < -5) return "declining";
+          return "stable";
+        };
+        
+        const strengthsWithTrend = strengths.map(s => ({ ...s, trend: getTrend(s.area) }));
+        const weaknessesWithTrend = weaknesses.map(w => ({ ...w, trend: getTrend(w.area) }));
+        
+        return (
+          <Card className="border-border/50 overflow-hidden">
+            <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <Target className="h-5 w-5 text-primary" />
+                    Strengths & Weaknesses Analysis
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-1">
+                    Performance insights with personalized study recommendations
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={() => fetchAIRecommendations(strengthsWithTrend, weaknessesWithTrend)}
+                  disabled={loadingRecommendations}
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  {loadingRecommendations ? "Generating..." : "Get AI Tips"}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="grid gap-4 lg:grid-cols-2">
+                {/* Strengths */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Award className="h-5 w-5 text-green-600" />
+                    <h3 className="font-semibold text-foreground">Your Strengths</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {strengthsWithTrend.map((strength, index) => (
+                      <Card key={index} className="border-green-200 dark:border-green-900 bg-gradient-to-r from-green-50 to-green-50/50 dark:from-green-950/20 dark:to-green-950/10">
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <Badge className="bg-green-600 text-white border-0 text-xs">
+                                  #{index + 1}
+                                </Badge>
+                                <span className="font-semibold text-sm text-foreground">
+                                  {strength.area}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {strength.count} assessment{strength.count !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-green-700 dark:text-green-400">
+                                  {strength.average}%
+                                </div>
+                              </div>
+                              {strength.trend === "improving" && (
+                                <ArrowUp className="h-4 w-4 text-green-600" />
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Weaknesses */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <BookOpen className="h-5 w-5 text-orange-600" />
+                    <h3 className="font-semibold text-foreground">Areas for Growth</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {weaknessesWithTrend.map((weakness, index) => (
+                      <Card key={index} className="border-orange-200 dark:border-orange-900 bg-gradient-to-r from-orange-50 to-orange-50/50 dark:from-orange-950/20 dark:to-orange-950/10">
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <Badge className="bg-orange-600 text-white border-0 text-xs">
+                                  Focus
+                                </Badge>
+                                <span className="font-semibold text-sm text-foreground">
+                                  {weakness.area}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {weakness.count} assessment{weakness.count !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-orange-700 dark:text-orange-400">
+                                  {weakness.average}%
+                                </div>
+                              </div>
+                              {weakness.trend === "declining" && (
+                                <ArrowDown className="h-4 w-4 text-red-600" />
+                              )}
+                              {weakness.trend === "improving" && (
+                                <ArrowUp className="h-4 w-4 text-green-600" />
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Recommendations */}
+              {aiRecommendation && (
+                <div className="mt-4 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border border-primary/20">
+                  <div className="flex items-start gap-3">
+                    <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-foreground mb-2">Personalized Study Recommendations</h4>
+                      <div className="text-sm text-muted-foreground whitespace-pre-line">
+                        {aiRecommendation}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {loadingRecommendations && (
+                <div className="mt-4 p-4 bg-muted/30 rounded-lg border border-border/50">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-sm text-muted-foreground">Generating personalized recommendations...</span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
       })()}
 
       {/* Stats Overview */}
