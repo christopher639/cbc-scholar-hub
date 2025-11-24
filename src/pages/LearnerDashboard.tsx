@@ -282,82 +282,93 @@ export default function LearnerDashboard() {
   };
 
   return (
-    <div className="container mx-auto px-2 py-3 space-y-3 max-w-full overflow-hidden">
-      {/* Header Section */}
-      <Card>
-        <CardContent className="pt-3 pb-3">
-          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
-            <Avatar className="h-16 w-16 md:h-24 md:w-24 mx-auto md:mx-0">
-              <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} />
-              <AvatarFallback className="text-lg md:text-2xl">
-                {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
-              </AvatarFallback>
-            </Avatar>
+    <div className="container mx-auto px-4 py-8 space-y-6 pb-20">
+      {/* Header Section - Fixed */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
+        <div className="container mx-auto px-4 py-4">
+          <Card className="border-0 shadow-none">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <Avatar className="h-24 w-24 md:h-32 md:w-32 mx-auto md:mx-0">
+                  <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} />
+                  <AvatarFallback className="text-2xl md:text-3xl">
+                    {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
+                  </AvatarFallback>
+                </Avatar>
 
-            <div className="flex-1 space-y-2 text-center md:text-left">
-              <div>
-                <h1 className="text-lg md:text-2xl font-bold">
-                  {learnerDetails?.first_name} {learnerDetails?.last_name}
-                </h1>
-                <p className="text-xs text-muted-foreground">Admission: {learnerDetails?.admission_number}</p>
-              </div>
+                <div className="flex-1 space-y-4 text-center md:text-left">
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-bold">
+                      {learnerDetails?.first_name} {learnerDetails?.last_name}
+                    </h1>
+                    <p className="text-sm md:text-base text-muted-foreground mt-1">Admission No: {learnerDetails?.admission_number}</p>
+                  </div>
 
-              <div className="flex flex-wrap justify-center md:justify-start gap-1.5">
-                <Badge variant="secondary" className="text-xs">
-                  {learnerDetails?.current_grade?.name} {learnerDetails?.current_stream?.name}
-                </Badge>
-                <Badge className="text-xs">Active</Badge>
-              </div>
+                  <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                    <Badge variant="secondary" className="text-sm">
+                      {learnerDetails?.current_grade?.name} {learnerDetails?.current_stream?.name}
+                    </Badge>
+                    <Badge className="text-sm">Active</Badge>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-                <div className="flex items-center justify-center md:justify-start gap-1.5 text-muted-foreground">
-                  <Calendar className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">Born: {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">Born: {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"} ({learnerDetails?.date_of_birth ? calculateAge(learnerDetails.date_of_birth) : 0} yrs)</span>
+                    </div>
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
+                      <User className="h-4 w-4 flex-shrink-0" />
+                      <span className="capitalize">{learnerDetails?.gender}</span>
+                    </div>
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">Enrolled: {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-center md:justify-start gap-1.5 text-muted-foreground">
-                  <User className="h-3 w-3 flex-shrink-0" />
-                  <span className="capitalize">{learnerDetails?.gender}</span>
-                </div>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Spacer for fixed header */}
+      <div className="h-48 md:h-56"></div>
 
       {/* Academic Performance Section */}
       <Card>
-        <CardHeader className="pb-2">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="w-full sm:w-auto">
-              <CardTitle className="text-base md:text-lg">Academic Performance</CardTitle>
-              <CardDescription className="text-xs mt-0.5">
+              <CardTitle className="text-xl">Academic Performance</CardTitle>
+              <CardDescription className="text-sm mt-1">
                 {selectedYear && selectedTerm 
                   ? `${selectedYear} - ${selectedTerm.replace("term_", "Term ")}`
-                  : "Filter to view"}
+                  : "Filter to view performance"}
               </CardDescription>
             </div>
-            <div className="flex gap-1.5 w-full sm:w-auto">
-              <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-1 flex-1 sm:flex-none text-xs px-2">
-                <Printer className="h-3 w-3" />
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button onClick={() => window.print()} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none">
+                <Printer className="h-4 w-4" />
                 <span className="hidden sm:inline">Print</span>
               </Button>
-              <Button onClick={handleDownloadReportCard} variant="outline" size="sm" className="gap-1 flex-1 sm:flex-none text-xs px-2">
-                <Download className="h-3 w-3" />
+              <Button onClick={handleDownloadReportCard} variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none">
+                <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Download</span>
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-6">
           {/* Filters */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="text-xs h-8">
-                <SelectValue placeholder="Year" />
+              <SelectTrigger>
+                <SelectValue placeholder="Select Year" />
               </SelectTrigger>
               <SelectContent>
                 {uniqueYears.map((year) => (
-                  <SelectItem key={year} value={year} className="text-xs">
+                  <SelectItem key={year} value={year}>
                     {year}
                   </SelectItem>
                 ))}
@@ -365,12 +376,12 @@ export default function LearnerDashboard() {
             </Select>
 
             <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-              <SelectTrigger className="text-xs h-8">
-                <SelectValue placeholder="Term" />
+              <SelectTrigger>
+                <SelectValue placeholder="Select Term" />
               </SelectTrigger>
               <SelectContent>
                 {uniqueTerms.map((term) => (
-                  <SelectItem key={term} value={term} className="text-xs">
+                  <SelectItem key={term} value={term}>
                     {term.replace("term_", "Term ")}
                   </SelectItem>
                 ))}
@@ -389,87 +400,112 @@ export default function LearnerDashboard() {
           </div>
 
           {filteredPerformance.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4 text-xs">No records for selected filters</p>
+            <p className="text-center text-muted-foreground py-8 text-sm">No performance records for selected filters</p>
           ) : (
             <>
               {/* Performance Overview Graph */}
               {chartData.length > 0 && (
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm md:text-base">Performance Overview</CardTitle>
+                  <CardHeader className="pb-6">
+                    <CardTitle className="text-lg">Performance Overview</CardTitle>
                   </CardHeader>
-                  <CardContent className="px-2">
-                    <ResponsiveContainer width="100%" height={200}>
-                      <LineChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="area" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={60}
-                          tick={{ fontSize: 9 }}
-                        />
-                        <YAxis domain={[0, 100]} tick={{ fontSize: 9 }} />
-                        <Tooltip contentStyle={{ fontSize: '10px' }} />
-                        <Legend wrapperStyle={{ fontSize: '10px' }} />
-                        <Line 
-                          type="linear" 
-                          dataKey="marks" 
-                          stroke="hsl(var(--primary))" 
-                          strokeWidth={2}
-                          name="Avg Marks"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                  <CardContent>
+                    <div className="w-full overflow-x-auto">
+                      <div className="min-w-[500px]">
+                        <ResponsiveContainer width="100%" height={300}>
+                          <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="area" 
+                              angle={-45}
+                              textAnchor="end"
+                              height={80}
+                              tick={{ fontSize: 12 }}
+                            />
+                            <YAxis domain={[0, 100]} />
+                            <Tooltip />
+                            <Legend />
+                            <Line 
+                              type="linear" 
+                              dataKey="marks" 
+                              stroke="hsl(var(--primary))" 
+                              strokeWidth={2}
+                              name="Average Marks"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               )}
 
               {/* Performance Table */}
-              <div className="rounded-md border overflow-x-auto -mx-2">
+              <div className="w-full overflow-x-auto rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="font-semibold text-xs px-2">Subject</TableHead>
-                      <TableHead className="text-center font-semibold text-xs px-1.5">Open</TableHead>
-                      <TableHead className="text-center font-semibold text-xs px-1.5">Mid</TableHead>
-                      <TableHead className="text-center font-semibold text-xs px-1.5">Final</TableHead>
-                      <TableHead className="text-center font-semibold text-xs px-1.5">Avg</TableHead>
+                      <TableHead className="font-semibold whitespace-nowrap">Learning Area</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap">Opener</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap">Mid-Term</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap">Final</TableHead>
+                      <TableHead className="text-center font-semibold whitespace-nowrap">Average</TableHead>
+                      <TableHead className="font-semibold whitespace-nowrap">Remarks</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {groupedPerformance.map((area, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium text-xs px-2 py-2">
-                          <div className="line-clamp-2 max-w-[100px] sm:max-w-none">{area.area}</div>
-                        </TableCell>
-                        <TableCell className="text-center px-1.5 py-2">
+                        <TableCell className="font-medium">{area.area}</TableCell>
+                        <TableCell className="text-center">
                           {area.opener !== null ? (
-                            <Badge className={`${getGradeColor(area.opener)} text-[10px] px-1 py-0`}>
-                              {area.opener}
-                            </Badge>
+                            <div className="space-y-1">
+                              <Badge className={`${getGradeColor(area.opener)}`}>
+                                {area.opener}
+                              </Badge>
+                              {area.grades.opener && (
+                                <div className="text-xs text-muted-foreground">{area.grades.opener}</div>
+                              )}
+                            </div>
                           ) : "-"}
                         </TableCell>
-                        <TableCell className="text-center px-1.5 py-2">
+                        <TableCell className="text-center">
                           {area.midterm !== null ? (
-                            <Badge className={`${getGradeColor(area.midterm)} text-[10px] px-1 py-0`}>
-                              {area.midterm}
-                            </Badge>
+                            <div className="space-y-1">
+                              <Badge className={`${getGradeColor(area.midterm)}`}>
+                                {area.midterm}
+                              </Badge>
+                              {area.grades.midterm && (
+                                <div className="text-xs text-muted-foreground">{area.grades.midterm}</div>
+                              )}
+                            </div>
                           ) : "-"}
                         </TableCell>
-                        <TableCell className="text-center px-1.5 py-2">
+                        <TableCell className="text-center">
                           {area.final !== null ? (
-                            <Badge className={`${getGradeColor(area.final)} text-[10px] px-1 py-0`}>
-                              {area.final}
-                            </Badge>
+                            <div className="space-y-1">
+                              <Badge className={`${getGradeColor(area.final)}`}>
+                                {area.final}
+                              </Badge>
+                              {area.grades.final && (
+                                <div className="text-xs text-muted-foreground">{area.grades.final}</div>
+                              )}
+                            </div>
                           ) : "-"}
                         </TableCell>
-                        <TableCell className="text-center px-1.5 py-2">
+                        <TableCell className="text-center">
                           {area.average !== null ? (
-                            <Badge className={`${getGradeColor(area.average)} font-bold text-[10px] px-1 py-0`}>
+                            <Badge className={`${getGradeColor(area.average)} font-bold`}>
                               {area.average}
                             </Badge>
                           ) : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1 text-sm text-muted-foreground">
+                            {area.remarks.opener && <div>O: {area.remarks.opener}</div>}
+                            {area.remarks.midterm && <div>M: {area.remarks.midterm}</div>}
+                            {area.remarks.final && <div>F: {area.remarks.final}</div>}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -482,104 +518,106 @@ export default function LearnerDashboard() {
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium">Avg Score</CardTitle>
-            <TrendingUp className="h-3 w-3 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-xl font-bold">{stats.averageScore}%</div>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              {stats.totalSubjects} subjects
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.averageScore}%</div>
+            <p className="text-xs text-muted-foreground mt-2">
+              From {stats.totalSubjects} subjects
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium">Total Fees</CardTitle>
-            <FileText className="h-3 w-3 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Fees Accumulated</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-base font-bold truncate">{formatCurrency(feeInfo.totalAccumulatedFees)}</div>
-            <p className="text-[10px] text-muted-foreground mt-1">Accumulated</p>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(feeInfo.totalAccumulatedFees)}</div>
+            <p className="text-xs text-muted-foreground mt-2">Total fees</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium">Paid</CardTitle>
-            <DollarSign className="h-3 w-3 text-success" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Amount Paid</CardTitle>
+            <DollarSign className="h-4 w-4 text-success" />
           </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-base font-bold text-success truncate">{formatCurrency(feeInfo.totalPaid)}</div>
-            <p className="text-[10px] text-muted-foreground mt-1">{transactions.length} payments</p>
+          <CardContent>
+            <div className="text-2xl font-bold text-success">{formatCurrency(feeInfo.totalPaid)}</div>
+            <p className="text-xs text-muted-foreground mt-2">{transactions.length} payments</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-3">
-            <CardTitle className="text-xs font-medium">Balance</CardTitle>
-            <DollarSign className="h-3 w-3 text-destructive" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Fee Balance</CardTitle>
+            <DollarSign className="h-4 w-4 text-destructive" />
           </CardHeader>
-          <CardContent className="px-3 pb-3">
-            <div className="text-base font-bold text-destructive truncate">{formatCurrency(feeInfo.totalBalance)}</div>
-            <p className="text-[10px] text-muted-foreground mt-1">Outstanding</p>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">{formatCurrency(feeInfo.totalBalance)}</div>
+            <p className="text-xs text-muted-foreground mt-2">Outstanding</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabbed Content */}
-      <Tabs defaultValue="profile" className="space-y-3">
-        <TabsList className="grid grid-cols-2 w-full sm:w-[300px] h-9">
-          <TabsTrigger value="profile" className="text-xs">Profile</TabsTrigger>
-          <TabsTrigger value="fees" className="text-xs">Fees</TabsTrigger>
+      <Tabs defaultValue="profile" className="space-y-6">
+        <TabsList className="grid grid-cols-2 w-full sm:w-auto">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="fees">Fees</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
-        <TabsContent value="profile" className="space-y-3">
+        <TabsContent value="profile" className="space-y-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Personal Information</CardTitle>
+            <CardHeader>
+              <CardTitle className="text-xl">Personal Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Name</p>
-                  <p className="text-xs font-medium">{learnerDetails?.first_name} {learnerDetails?.last_name}</p>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Full Name</p>
+                  <p className="text-base font-medium">
+                    {learnerDetails?.first_name} {learnerDetails?.last_name}
+                  </p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">DOB</p>
-                  <p className="text-xs font-medium">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
+                  <p className="text-base font-medium">
                     {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"}
                   </p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Gender</p>
-                  <p className="text-xs font-medium capitalize">{learnerDetails?.gender}</p>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Gender</p>
+                  <p className="text-base font-medium capitalize">{learnerDetails?.gender}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Admission No</p>
-                  <p className="text-xs font-medium">{learnerDetails?.admission_number}</p>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Admission Number</p>
+                  <p className="text-base font-medium">{learnerDetails?.admission_number}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Grade</p>
-                  <p className="text-xs font-medium">{learnerDetails?.current_grade?.name}</p>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Grade</p>
+                  <p className="text-base font-medium">{learnerDetails?.current_grade?.name}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Stream</p>
-                  <p className="text-xs font-medium">{learnerDetails?.current_stream?.name}</p>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Stream</p>
+                  <p className="text-base font-medium">{learnerDetails?.current_stream?.name}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Status</p>
-                  <p className="text-xs font-medium capitalize">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Boarding Status</p>
+                  <p className="text-base font-medium capitalize">
                     {learnerDetails?.boarding_status?.replace("_", " ")}
                   </p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Enrolled</p>
-                  <p className="text-xs font-medium">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Enrollment Date</p>
+                  <p className="text-base font-medium">
                     {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}
                   </p>
                 </div>
@@ -587,17 +625,17 @@ export default function LearnerDashboard() {
 
               {(learnerDetails?.emergency_contact || learnerDetails?.emergency_phone) && (
                 <>
-                  <Separator />
+                  <Separator className="my-6" />
                   <div>
-                    <h3 className="text-sm font-semibold mb-2">Emergency Contact</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground">Name</p>
-                        <p className="text-xs font-medium">{learnerDetails?.emergency_contact || "Not set"}</p>
+                    <h3 className="text-lg font-semibold mb-3">Emergency Contact</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Contact Name</p>
+                        <p className="text-base font-medium">{learnerDetails?.emergency_contact || "Not set"}</p>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground">Phone</p>
-                        <p className="text-xs font-medium">{learnerDetails?.emergency_phone || "Not set"}</p>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
+                        <p className="text-base font-medium">{learnerDetails?.emergency_phone || "Not set"}</p>
                       </div>
                     </div>
                   </div>
@@ -611,31 +649,31 @@ export default function LearnerDashboard() {
         <TabsContent value="fees" className="space-y-4">
           {/* Fee Summary */}
           <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <TrendingUp className="h-4 w-4" />
+            <CardHeader className="pb-6">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <TrendingUp className="h-5 w-5" />
                 Fee Summary
               </CardTitle>
-              <CardDescription className="text-xs">Complete fee information</CardDescription>
+              <CardDescription>Your complete fee information</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div className="p-2.5 rounded-lg bg-background border">
-                  <p className="text-xs text-muted-foreground mb-0.5">Total Fees</p>
-                  <p className="text-base font-bold truncate">{formatCurrency(feeInfo.totalAccumulatedFees)}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{invoices.length} invoices</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 rounded-lg bg-background border">
+                  <p className="text-sm text-muted-foreground mb-1">Total Fees</p>
+                  <p className="text-2xl font-bold">{formatCurrency(feeInfo.totalAccumulatedFees)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">From {invoices.length} invoices</p>
                 </div>
-                <div className="p-2.5 rounded-lg bg-background border">
-                  <p className="text-xs text-muted-foreground mb-0.5">Paid</p>
-                  <p className="text-base font-bold text-success truncate">{formatCurrency(feeInfo.totalPaid)}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{transactions.length} payments</p>
+                <div className="p-4 rounded-lg bg-background border">
+                  <p className="text-sm text-muted-foreground mb-1">Amount Paid</p>
+                  <p className="text-2xl font-bold text-success">{formatCurrency(feeInfo.totalPaid)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{transactions.length} payments</p>
                 </div>
-                <div className="p-2.5 rounded-lg bg-background border">
-                  <p className="text-xs text-muted-foreground mb-0.5">Balance</p>
-                  <p className={`text-base font-bold truncate ${feeInfo.totalBalance > 0 ? 'text-destructive' : 'text-success'}`}>
+                <div className="p-4 rounded-lg bg-background border">
+                  <p className="text-sm text-muted-foreground mb-1">Balance Due</p>
+                  <p className={`text-2xl font-bold ${feeInfo.totalBalance > 0 ? 'text-destructive' : 'text-success'}`}>
                     {formatCurrency(feeInfo.totalBalance)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Outstanding</p>
+                  <p className="text-xs text-muted-foreground mt-1">Outstanding</p>
                 </div>
               </div>
             </CardContent>
@@ -643,22 +681,22 @@ export default function LearnerDashboard() {
 
           {/* Current Term Fees */}
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Current Term</CardTitle>
+            <CardHeader className="pb-6">
+              <CardTitle className="text-lg">Current Term Fees</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-muted-foreground">Fees</p>
-                  <p className="text-sm font-bold truncate">{formatCurrency(feeInfo.currentTermFees)}</p>
+                  <p className="text-sm text-muted-foreground">Term Fees</p>
+                  <p className="text-xl font-bold">{formatCurrency(feeInfo.currentTermFees)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Paid</p>
-                  <p className="text-sm font-bold text-success truncate">{formatCurrency(feeInfo.currentTermPaid)}</p>
+                  <p className="text-sm text-muted-foreground">Paid</p>
+                  <p className="text-xl font-bold text-success">{formatCurrency(feeInfo.currentTermPaid)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Balance</p>
-                  <p className={`text-sm font-bold truncate ${feeInfo.currentTermBalance > 0 ? 'text-destructive' : 'text-success'}`}>
+                  <p className="text-sm text-muted-foreground">Balance</p>
+                  <p className={`text-xl font-bold ${feeInfo.currentTermBalance > 0 ? 'text-destructive' : 'text-success'}`}>
                     {formatCurrency(feeInfo.currentTermBalance)}
                   </p>
                 </div>
@@ -668,29 +706,30 @@ export default function LearnerDashboard() {
 
           {/* Invoice History */}
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Invoices</CardTitle>
+            <CardHeader className="pb-6">
+              <CardTitle className="text-lg">Invoice History</CardTitle>
             </CardHeader>
             <CardContent>
               {invoices.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4 text-xs">No invoices found</p>
+                <p className="text-center text-muted-foreground py-8 text-sm">No invoices found</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {invoices.map((invoice) => (
-                    <div key={invoice.id} className="flex items-center justify-between p-2.5 border rounded-lg gap-2">
-                      <div className="space-y-0.5 flex-1 min-w-0">
-                        <p className="font-medium text-xs truncate">{invoice.invoice_number}</p>
-                        <div className="text-[10px] text-muted-foreground truncate">
-                          {invoice.academic_year} • {invoice.term.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                    <div key={invoice.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-2">
+                      <div className="space-y-1 flex-1">
+                        <p className="font-medium text-base">{invoice.invoice_number}</p>
+                        <div className="text-sm text-muted-foreground">
+                          <span>{invoice.academic_year}</span>
+                          <span> • {invoice.term.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <p className="font-bold text-xs">{formatCurrency(invoice.balance_due)}</p>
+                      <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                        <p className="font-bold text-base">{formatCurrency(invoice.balance_due)}</p>
                         <Badge variant={
                           invoice.status === 'paid' ? 'default' :
                           invoice.status === 'partial' ? 'secondary' :
                           invoice.status === 'overdue' ? 'destructive' : 'outline'
-                        } className="text-[10px]">
+                        } className="text-xs">
                           {invoice.status}
                         </Badge>
                       </div>
