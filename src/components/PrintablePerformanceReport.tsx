@@ -48,6 +48,25 @@ export function PrintablePerformanceReport({
               padding: 0;
               margin: 0;
               font-size: 9px;
+              position: relative;
+            }
+            .watermark {
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              opacity: 0.08;
+              z-index: 0;
+              pointer-events: none;
+            }
+            .watermark img {
+              width: 400px;
+              height: 400px;
+              object-fit: contain;
+            }
+            .content {
+              position: relative;
+              z-index: 1;
             }
             .header {
               display: flex;
@@ -166,52 +185,6 @@ export function PrintablePerformanceReport({
               text-align: center;
               border: 1px solid #ddd;
             }
-            .graph-container {
-              margin-top: 8px;
-              padding: 8px;
-              border: 1px solid #ddd;
-            }
-            .graph-container h4 {
-              font-size: 9px;
-              font-weight: bold;
-              margin-bottom: 4px;
-              text-align: center;
-            }
-            .simple-bar-chart {
-              display: flex;
-              align-items: flex-end;
-              justify-content: space-around;
-              height: 100px;
-              border-bottom: 1px solid #333;
-              padding: 4px 0;
-            }
-            .bar-item {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              flex: 1;
-              margin: 0 2px;
-            }
-            .bar {
-              width: 100%;
-              background: linear-gradient(to top, #3b82f6, #60a5fa);
-              border: 1px solid #2563eb;
-              position: relative;
-            }
-            .bar-label {
-              font-size: 7px;
-              margin-top: 2px;
-              text-align: center;
-              font-weight: bold;
-            }
-            .bar-value {
-              font-size: 6px;
-              position: absolute;
-              top: -12px;
-              left: 50%;
-              transform: translateX(-50%);
-              font-weight: bold;
-            }
             .summary {
               margin-top: 8px;
               padding: 6px;
@@ -256,7 +229,14 @@ export function PrintablePerformanceReport({
           </style>
         </head>
         <body>
-          ${printContent.innerHTML}
+          ${schoolInfo?.logo_url ? `
+            <div class="watermark">
+              <img src="${schoolInfo.logo_url}" alt="School Logo Watermark" />
+            </div>
+          ` : ''}
+          <div class="content">
+            ${printContent.innerHTML}
+          </div>
         </body>
       </html>
     `);
@@ -454,20 +434,6 @@ export function PrintablePerformanceReport({
               <div className="grading-key-item grade-be">
                 <strong>B.E</strong><br/>0-29%<br/>Below Expectation
               </div>
-            </div>
-          </div>
-
-          <div className="graph-container">
-            <h4>Performance Overview by Subject</h4>
-            <div className="simple-bar-chart">
-              ${tableData.map((area: any) => `
-                <div class="bar-item">
-                  <div class="bar" style="height: ${Math.max(5, (area.average / 100) * 100)}px;">
-                    <div class="bar-value">${area.average.toFixed(0)}</div>
-                  </div>
-                  <div class="bar-label">${area.code}</div>
-                </div>
-              `).join('')}
             </div>
           </div>
 
