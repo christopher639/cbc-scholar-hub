@@ -38,9 +38,14 @@ const BulkLearnerReports = () => {
   const [journeyDialogOpen, setJourneyDialogOpen] = useState(false);
   
   const printRef = useRef<HTMLDivElement>(null);
+  const marksSheetRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
+  });
+
+  const handlePrintMarksSheet = useReactToPrint({
+    contentRef: marksSheetRef,
   });
 
   // Fetch streams when grade changes
@@ -351,10 +356,16 @@ const BulkLearnerReports = () => {
                 </Button>
                 
                 {reportData.length > 0 && (
-                  <Button onClick={handlePrint} variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download/Print All
-                  </Button>
+                  <>
+                    <Button onClick={handlePrint} variant="outline">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download/Print All Reports
+                    </Button>
+                    <Button onClick={handlePrintMarksSheet} variant="default">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download Marks Sheet
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
@@ -449,12 +460,137 @@ const BulkLearnerReports = () => {
             ))}
           </div>
         </div>
+
+        {/* Hidden marks sheet print area */}
+        <div style={{ display: 'none' }}>
+          <div ref={marksSheetRef}>
+            {(() => {
+              // Get all unique learning areas from performance records
+              const allLearningAreas = new Map();
+              reportData.forEach(({ performanceRecords }) => {
+                performanceRecords.forEach((record: any) => {
+                  if (record.learning_area && !allLearningAreas.has(record.learning_area.id)) {
+                    allLearningAreas.set(record.learning_area.id, {
+                      code: record.learning_area.code,
+                      name: record.learning_area.name
+                    });
+                  }
+                });
+              });
+              const learningAreasArray = Array.from(allLearningAreas.values());
+
+              return (
+                <div style={{ padding: '15mm', fontFamily: 'Arial, sans-serif', fontSize: '9px' }}>
+                  {/* Header with School Info */}
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', paddingBottom: '10px', borderBottom: '2px solid #333' }}>
+                    {schoolInfo?.logo_url && (
+                      <img src={schoolInfo.logo_url} alt="School Logo" style={{ maxWidth: '60px', marginRight: '15px' }} />
+                    )}
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>
+                        {schoolInfo?.school_name || "School Name"}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#666' }}>
+                        {schoolInfo?.address && <span>{schoolInfo.address} | </span>}
+                        {schoolInfo?.phone && <span>Tel: {schoolInfo.phone} | </span>}
+                        {schoolInfo?.email && <span>Email: {schoolInfo.email}</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Report Title */}
+                  <div style={{ textAlign: 'center', fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', textTransform: 'uppercase' }}>
+                    Learner Marks Sheet - {selectedGradeData?.name}
+                    {selectedStream && ` - ${streams.find(s => s.id === selectedStream)?.name}`}
+                  </div>
+                  <div style={{ textAlign: 'center', fontSize: '10px', color: '#666', marginBottom: '15px' }}>
+                    Academic Year: {selectedYear} | Term: {selectedTerm.replace("term_", "Term ")}
+                  </div>
+
+                  {/* Marks Table */}
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ border: '1px solid #333', padding: '5px', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '30px' }}>#</th>
+                        <th style={{ border: '1px solid #333', padding: '5px', backgroundColor: '#f5f5f5', fontWeight: 'bold', minWidth: '80px' }}>Admission No.</th>
+                        <th style={{ border: '1px solid #333', padding: '5px', backgroundColor: '#f5f5f5', fontWeight: 'bold', minWidth: '150px', textAlign: 'left' }}>Learner Name</th>
+                        {learningAreasArray.map((area, idx) => (
+                          <th key={idx} style={{ border: '1px solid #333', padding: '5px', backgroundColor: '#f5f5f5', fontWeight: 'bold', minWidth: '40px', textAlign: 'center' }} title={area.name}>
+                            {area.code}
+                          </th>
+                        ))}
+                        <th style={{ border: '1px solid #333', padding: '5px', backgroundColor: '#f5f5f5', fontWeight: 'bold', minWidth: '50px', textAlign: 'center' }}>Avg</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reportData.map(({ learner, performanceRecords }, index) => {
+                        // Group performance by learning area for this learner
+                        const learnerPerformance = new Map();
+                        performanceRecords.forEach((record: any) => {
+                          if (record.learning_area) {
+                            const areaId = record.learning_area.id;
+                            if (!learnerPerformance.has(areaId)) {
+                              learnerPerformance.set(areaId, []);
+                            }
+                            learnerPerformance.get(areaId).push(record.marks);
+                          }
+                        });
+
+                        // Calculate averages per learning area
+                        const areaAverages = learningAreasArray.map(area => {
+                          const areaId = Array.from(allLearningAreas.entries())
+                            .find(([, value]) => value.code === area.code)?.[0];
+                          const marks = learnerPerformance.get(areaId) || [];
+                          if (marks.length === 0) return null;
+                          const avg = marks.reduce((a: number, b: number) => a + b, 0) / marks.length;
+                          return Math.round(avg * 10) / 10;
+                        });
+
+                        // Calculate overall average
+                        const validAverages = areaAverages.filter(avg => avg !== null) as number[];
+                        const overallAvg = validAverages.length > 0
+                          ? Math.round((validAverages.reduce((a, b) => a + b, 0) / validAverages.length) * 10) / 10
+                          : null;
+
+                        return (
+                          <tr key={learner.id}>
+                            <td style={{ border: '1px solid #ddd', padding: '4px', textAlign: 'center' }}>{index + 1}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '4px', textAlign: 'center' }}>{learner.admission_number}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '4px' }}>{learner.first_name} {learner.last_name}</td>
+                            {areaAverages.map((avg, idx) => (
+                              <td key={idx} style={{ border: '1px solid #ddd', padding: '4px', textAlign: 'center', fontWeight: avg ? 'bold' : 'normal' }}>
+                                {avg !== null ? avg.toFixed(1) : '-'}
+                              </td>
+                            ))}
+                            <td style={{ border: '1px solid #ddd', padding: '4px', textAlign: 'center', fontWeight: 'bold', backgroundColor: '#f9fafb' }}>
+                              {overallAvg !== null ? overallAvg.toFixed(1) : '-'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+
+                  {/* Footer */}
+                  <div style={{ marginTop: '20px', paddingTop: '10px', borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: '#666' }}>
+                    <div>Generated: {new Date().toLocaleDateString()}</div>
+                    <div>Page 1</div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
       </div>
 
       <style>{`
         @media print {
           .page-break-before {
             page-break-before: always;
+          }
+          @page {
+            margin: 15mm;
+            size: A4 landscape;
           }
         }
       `}</style>
