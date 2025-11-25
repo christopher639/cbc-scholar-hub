@@ -432,6 +432,10 @@ export default function LearnerDashboard() {
             academicYear={selectedAcademicYear}
             term={selectedTerm}
             examType={selectedExamType === "all" ? undefined : selectedExamType}
+            gradePosition={position?.grade}
+            totalInGrade={position?.gradeTotal}
+            streamPosition={position?.stream}
+            totalInStream={position?.streamTotal}
           />
         )}
       </div>
