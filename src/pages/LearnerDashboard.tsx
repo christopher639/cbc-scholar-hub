@@ -419,25 +419,6 @@ export default function LearnerDashboard() {
               : "Here's your academic overview"}
           </p>
         </div>
-        
-        {/* Download Report Button */}
-        {learner && filteredPerformance.length > 0 && (
-          <PrintablePerformanceReport
-            learner={{
-              ...learner,
-              current_grade: { name: selectedGradeName },
-              current_stream: learner.current_stream
-            }}
-            performance={filteredPerformance}
-            academicYear={selectedAcademicYear}
-            term={selectedTerm}
-            examType={selectedExamType === "all" ? undefined : selectedExamType}
-            gradePosition={position?.grade}
-            totalInGrade={position?.gradeTotal}
-            streamPosition={position?.stream}
-            totalInStream={position?.streamTotal}
-          />
-        )}
       </div>
 
       {/* Filters */}
@@ -779,6 +760,27 @@ export default function LearnerDashboard() {
             )}
           </CardContent>
         </Card>
+        </div>
+      )}
+
+      {/* Download Report Button - Below Graphs */}
+      {learner && filteredPerformance.length > 0 && (
+        <div className="flex justify-center mt-6">
+          <PrintablePerformanceReport
+            learner={{
+              ...learner,
+              current_grade: { name: selectedGradeName },
+              current_stream: learner.current_stream
+            }}
+            performance={filteredPerformance}
+            academicYear={selectedAcademicYear}
+            term={selectedTerm}
+            examType={selectedExamType === "all" ? undefined : selectedExamType}
+            gradePosition={position?.grade}
+            totalInGrade={position?.gradeTotal}
+            streamPosition={position?.stream}
+            totalInStream={position?.streamTotal}
+          />
         </div>
       )}
     </div>

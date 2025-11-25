@@ -30,225 +30,197 @@ export function PrintablePerformanceReport({
   const printRef = useRef<HTMLDivElement>(null);
   const { schoolInfo } = useSchoolInfo();
 
-  const handlePrint = () => {
-    const printContent = printRef.current;
-    if (!printContent) return;
-
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Performance Report - ${learner.first_name} ${learner.last_name}</title>
-          <style>
-            @page { margin: 15mm; size: A4; }
-            body {
-              font-family: Arial, sans-serif;
-              padding: 0;
-              margin: 0;
-              font-size: 9px;
-              position: relative;
-            }
-            .watermark {
-              position: absolute;
-              top: 120px;
-              left: 50%;
-              transform: translateX(-50%);
-              opacity: 0.06;
-              z-index: 0;
-              pointer-events: none;
-            }
-            .watermark img {
-              width: 300px;
-              height: 300px;
-              object-fit: contain;
-            }
-            table {
-              position: relative;
-              z-index: 1;
-            }
-            .content {
-              position: relative;
-              z-index: 1;
-            }
-            .header {
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
-              margin-bottom: 8px;
-              padding-bottom: 8px;
-              border-bottom: 2px solid #333;
-            }
-            .logo-section {
-              width: 60px;
-            }
-            .logo {
-              max-width: 60px;
-              max-height: 60px;
-              object-fit: contain;
-            }
-            .school-info {
-              flex: 1;
-              text-align: center;
-              padding: 0 10px;
-            }
-            .school-name {
-              font-size: 16px;
-              font-weight: bold;
-              margin: 2px 0;
-            }
-            .school-details {
-              font-size: 8px;
-              color: #666;
-              line-height: 1.3;
-            }
-            .learner-photo-section {
-              width: 60px;
-            }
-            .learner-photo {
-              max-width: 60px;
-              max-height: 60px;
-              object-fit: cover;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            }
-            .report-title {
-              text-align: center;
-              font-size: 12px;
-              font-weight: bold;
-              margin: 8px 0 6px;
-              text-transform: uppercase;
-            }
-            .student-info {
-              display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              gap: 4px;
-              margin: 8px 0;
-              padding: 6px;
-              background-color: #f9fafb;
-              font-size: 8px;
-            }
-            .info-item {
-              display: flex;
-              gap: 4px;
-            }
-            .info-label {
-              font-weight: bold;
-              color: #333;
-            }
-            .info-value {
-              color: #666;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin: 8px 0;
-              font-size: 8px;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 4px;
-              text-align: center;
-            }
-            th {
-              background-color: #f5f5f5;
-              font-weight: bold;
-              font-size: 8px;
-            }
-            td:first-child {
-              text-align: left;
-            }
-            .grade-ee { background-color: #d1fae5; }
-            .grade-me { background-color: #dbeafe; }
-            .grade-ae { background-color: #fef3c7; }
-            .grade-be { background-color: #fee2e2; }
-            .overall-row {
-              background-color: #f0f0f0;
-              font-weight: bold;
-            }
-            .grading-key {
-              margin-top: 8px;
-              padding: 6px;
-            }
-            .grading-key h4 {
-              font-size: 9px;
-              font-weight: bold;
-              margin-bottom: 4px;
-            }
-            .grading-key-grid {
-              display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              gap: 8px;
-              font-size: 7px;
-            }
-            .grading-key-item {
-              padding: 3px;
-              text-align: center;
-            }
-            .summary {
-              margin-top: 8px;
-              padding: 6px;
-              background-color: #f9fafb;
-              display: flex;
-              justify-content: space-around;
-              font-size: 9px;
-            }
-            .summary-item {
-              text-align: center;
-            }
-            .summary-label {
-              font-size: 8px;
-              color: #666;
-              margin-bottom: 2px;
-            }
-            .summary-value {
-              font-size: 11px;
-              font-weight: bold;
-              color: #333;
-            }
-            .footer {
-              margin-top: 10px;
-              padding-top: 8px;
-              border-top: 1px solid #ddd;
-              display: flex;
-              justify-content: space-between;
-              font-size: 7px;
-            }
-            .signature-section {
-              text-align: center;
-            }
-            .signature-line {
-              border-top: 1px solid #333;
-              width: 120px;
-              margin: 15px auto 2px;
-            }
-            @media print {
-              body { padding: 0; margin: 0; }
-              .no-print { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          ${schoolInfo?.logo_url ? `
-            <div class="watermark">
-              <img src="${schoolInfo.logo_url}" alt="School Logo Watermark" />
-            </div>
-          ` : ''}
-          <div class="content">
-            ${printContent.innerHTML}
-          </div>
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
-  };
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Performance Report - ${learner.first_name} ${learner.last_name}`,
+    pageStyle: `
+      @page { margin: 15mm; size: A4; }
+      body {
+        font-family: Arial, sans-serif;
+        padding: 0;
+        margin: 0;
+        font-size: 9px;
+        position: relative;
+      }
+      .watermark {
+        position: absolute;
+        top: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0.06;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .watermark img {
+        width: 300px;
+        height: 300px;
+        object-fit: contain;
+      }
+      table {
+        position: relative;
+        z-index: 1;
+      }
+      .content {
+        position: relative;
+        z-index: 1;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #333;
+      }
+      .logo-section {
+        width: 60px;
+      }
+      .logo {
+        max-width: 60px;
+        max-height: 60px;
+        object-fit: contain;
+      }
+      .school-info {
+        flex: 1;
+        text-align: center;
+        padding: 0 10px;
+      }
+      .school-name {
+        font-size: 16px;
+        font-weight: bold;
+        margin: 2px 0;
+      }
+      .school-details {
+        font-size: 8px;
+        color: #666;
+        line-height: 1.3;
+      }
+      .learner-photo-section {
+        width: 60px;
+      }
+      .learner-photo {
+        max-width: 60px;
+        max-height: 60px;
+        object-fit: cover;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .report-title {
+        text-align: center;
+        font-size: 12px;
+        font-weight: bold;
+        margin: 8px 0 6px;
+        text-transform: uppercase;
+      }
+      .student-info {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+        margin: 8px 0;
+        padding: 6px;
+        background-color: #f9fafb;
+        font-size: 8px;
+      }
+      .info-item {
+        display: flex;
+        gap: 4px;
+      }
+      .info-label {
+        font-weight: bold;
+        color: #333;
+      }
+      .info-value {
+        color: #666;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8px 0;
+        font-size: 8px;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 4px;
+        text-align: center;
+      }
+      th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+        font-size: 8px;
+      }
+      td:first-child {
+        text-align: left;
+      }
+      .grade-ee { background-color: #d1fae5; }
+      .grade-me { background-color: #dbeafe; }
+      .grade-ae { background-color: #fef3c7; }
+      .grade-be { background-color: #fee2e2; }
+      .overall-row {
+        background-color: #f0f0f0;
+        font-weight: bold;
+      }
+      .grading-key {
+        margin-top: 8px;
+        padding: 6px;
+      }
+      .grading-key h4 {
+        font-size: 9px;
+        font-weight: bold;
+        margin-bottom: 4px;
+      }
+      .grading-key-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        font-size: 7px;
+      }
+      .grading-key-item {
+        padding: 3px;
+        text-align: center;
+      }
+      .summary {
+        margin-top: 8px;
+        padding: 6px;
+        background-color: #f9fafb;
+        display: flex;
+        justify-content: space-around;
+        font-size: 9px;
+      }
+      .summary-item {
+        text-align: center;
+      }
+      .summary-label {
+        font-size: 8px;
+        color: #666;
+        margin-bottom: 2px;
+      }
+      .summary-value {
+        font-size: 11px;
+        font-weight: bold;
+        color: #333;
+      }
+      .footer {
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        font-size: 7px;
+      }
+      .signature-section {
+        text-align: center;
+      }
+      .signature-line {
+        border-top: 1px solid #333;
+        width: 120px;
+        margin: 15px auto 2px;
+      }
+      @media print {
+        body { padding: 0; margin: 0; }
+        .no-print { display: none; }
+      }
+    `
+  });
 
   const getGradeClass = (marks: number) => {
     if (marks >= 80) return "grade-ee";
@@ -310,7 +282,13 @@ export function PrintablePerformanceReport({
 
       <div style={{ display: "none" }}>
         <div ref={printRef}>
-          <div className="header">
+          {schoolInfo?.logo_url && (
+            <div className="watermark">
+              <img src={schoolInfo.logo_url} alt="School Logo Watermark" />
+            </div>
+          )}
+          <div className="content">
+            <div className="header">
             <div className="logo-section">
               {schoolInfo?.logo_url && (
                 <img src={schoolInfo.logo_url} alt="School Logo" className="logo" />
@@ -453,8 +431,9 @@ export function PrintablePerformanceReport({
             </div>
           </div>
 
-          <div style={{ marginTop: "8px", textAlign: "center", fontSize: "7px", color: "#999" }}>
-            Generated: {new Date().toLocaleDateString()} | Computer-generated report
+            <div style={{ marginTop: "8px", textAlign: "center", fontSize: "7px", color: "#999" }}>
+              Generated: {new Date().toLocaleDateString()} | Computer-generated report
+            </div>
           </div>
         </div>
       </div>
