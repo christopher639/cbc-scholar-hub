@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 
 const getGradeCategory = (marks: number) => {
@@ -27,8 +27,9 @@ export default function LearnerDashboard() {
     averageScore: 0,
   });
   const [performance, setPerformance] = useState<any[]>([]);
-  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [selectedTerm, setSelectedTerm] = useState<string>("");
+  const [selectedExamType, setSelectedExamType] = useState<string>("all");
   const [feeBalance, setFeeBalance] = useState(0);
   const [position, setPosition] = useState<{ grade: number; stream: number; gradeTotal: number; streamTotal: number } | null>(null);
   const [currentPeriod, setCurrentPeriod] = useState<{ year: string; term: string } | null>(null);
@@ -67,7 +68,8 @@ export default function LearnerDashboard() {
         .select(`
           *,
           learning_area:learning_areas(name, code),
-          academic_period:academic_periods(academic_year, term)
+          academic_period:academic_periods(academic_year, term),
+          grade:grades(id, name)
         `)
         .eq("learner_id", learner.id)
         .order("created_at", { ascending: false });
@@ -77,8 +79,8 @@ export default function LearnerDashboard() {
       // Set default filters
       if (performanceData && performanceData.length > 0) {
         const latest = performanceData[0];
-        if (!selectedYear && latest.academic_year) {
-          setSelectedYear(latest.academic_year);
+        if (!selectedGrade && latest.grade_id) {
+          setSelectedGrade(latest.grade_id);
         }
         if (!selectedTerm && latest.term) {
           setSelectedTerm(latest.term);
@@ -122,25 +124,43 @@ export default function LearnerDashboard() {
         }
       }
 
-      // Calculate position/rank
-      if (performanceData && performanceData.length > 0 && learner.current_grade_id && learner.current_stream_id) {
-        const currentPeriod = performanceData[0];
-        
-        // Get all learners in grade
-        const { data: gradePerformance } = await supabase
+      // Calculate position will be done when filters are applied
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calculate position based on current filters
+  useEffect(() => {
+    const calculatePosition = async () => {
+      if (!learner?.current_grade_id || !learner?.current_stream_id || !selectedGrade || !selectedTerm) {
+        setPosition(null);
+        return;
+      }
+
+      try {
+        // Build query with filters
+        let gradeQuery = supabase
           .from("performance_records")
           .select("learner_id, marks")
-          .eq("grade_id", learner.current_grade_id)
-          .eq("academic_year", currentPeriod.academic_year)
-          .eq("term", currentPeriod.term);
+          .eq("grade_id", selectedGrade)
+          .eq("term", selectedTerm as any);
 
-        // Get all learners in stream
-        const { data: streamPerformance } = await supabase
+        let streamQuery = supabase
           .from("performance_records")
           .select("learner_id, marks")
           .eq("stream_id", learner.current_stream_id)
-          .eq("academic_year", currentPeriod.academic_year)
-          .eq("term", currentPeriod.term);
+          .eq("term", selectedTerm as any);
+
+        if (selectedExamType !== "all") {
+          gradeQuery = gradeQuery.eq("exam_type", selectedExamType);
+          streamQuery = streamQuery.eq("exam_type", selectedExamType);
+        }
+
+        const { data: gradePerformance } = await gradeQuery;
+        const { data: streamPerformance } = await streamQuery;
 
         // Calculate averages per learner
         const calculatePosition = (data: any[]) => {
@@ -164,8 +184,29 @@ export default function LearnerDashboard() {
           };
         };
 
-        const gradePos = gradePerformance ? calculatePosition(gradePerformance) : { position: 0, total: 0 };
-        const streamPos = streamPerformance ? calculatePosition(streamPerformance) : { position: 0, total: 0 };
+        const calculatePositionFromData = (data: any[]) => {
+          const learnerAverages = data.reduce((acc: any, record: any) => {
+            if (!acc[record.learner_id]) {
+              acc[record.learner_id] = { total: 0, count: 0 };
+            }
+            acc[record.learner_id].total += Number(record.marks);
+            acc[record.learner_id].count += 1;
+            return acc;
+          }, {});
+
+          const averages = Object.entries(learnerAverages).map(([id, data]: [string, any]) => ({
+            learner_id: id,
+            average: data.total / data.count
+          })).sort((a, b) => b.average - a.average);
+
+          return { 
+            position: averages.findIndex(l => l.learner_id === learner.id) + 1,
+            total: averages.length
+          };
+        };
+
+        const gradePos = gradePerformance ? calculatePositionFromData(gradePerformance) : { position: 0, total: 0 };
+        const streamPos = streamPerformance ? calculatePositionFromData(streamPerformance) : { position: 0, total: 0 };
 
         setPosition({
           grade: gradePos.position,
@@ -173,24 +214,31 @@ export default function LearnerDashboard() {
           gradeTotal: gradePos.total,
           streamTotal: streamPos.total,
         });
+      } catch (error) {
+        console.error("Error calculating position:", error);
       }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    calculatePosition();
+  }, [learner, selectedGrade, selectedTerm, selectedExamType]);
 
   const filteredPerformance = performance.filter(record => {
-    if (selectedYear && record.academic_year !== selectedYear) return false;
+    if (selectedGrade && record.grade_id !== selectedGrade) return false;
     if (selectedTerm && record.term !== selectedTerm) return false;
+    if (selectedExamType !== "all" && record.exam_type !== selectedExamType) return false;
     return true;
   });
 
-  const uniqueYears = [...new Set(performance.map(p => p.academic_year))].filter(Boolean);
+  const uniqueGrades = [...new Set(performance.map(p => ({ id: p.grade_id, name: p.grade?.name })))].filter(g => g.id);
   const uniqueTerms = ["term_1", "term_2", "term_3"];
+  const examTypes = [
+    { value: "all", label: "All Exams" },
+    { value: "opener", label: "Opener" },
+    { value: "mid-term", label: "Mid-Term" },
+    { value: "final", label: "Final" }
+  ];
 
-  // Calculate filtered stats based on selected year and term
+  // Calculate filtered stats based on selected filters
   const filteredStats = {
     totalSubjects: filteredPerformance.length 
       ? new Set(filteredPerformance.map(p => p.learning_area_id)).size 
@@ -199,6 +247,8 @@ export default function LearnerDashboard() {
       ? Math.round(filteredPerformance.reduce((sum, p) => sum + Number(p.marks), 0) / filteredPerformance.length)
       : 0
   };
+
+  const averageGrade = filteredStats.averageScore > 0 ? getGradeCategory(filteredStats.averageScore) : null;
 
   // Group by learning area
   const groupedPerformance = filteredPerformance.reduce((acc: any, record) => {
@@ -247,19 +297,24 @@ export default function LearnerDashboard() {
 
   useEffect(() => {
     const fetchClassAverages = async () => {
-      if (!learner?.current_grade_id || !learner?.current_stream_id || !selectedYear || !selectedTerm) return;
+      if (!learner?.current_stream_id || !selectedGrade || !selectedTerm) return;
 
-      const { data } = await supabase
+      let query = supabase
         .from("performance_records")
         .select(`
           learning_area_id,
           marks,
           learning_areas (code)
         `)
-        .eq("grade_id", learner.current_grade_id)
+        .eq("grade_id", selectedGrade)
         .eq("stream_id", learner.current_stream_id)
-        .eq("academic_year", selectedYear)
         .eq("term", selectedTerm as any);
+
+      if (selectedExamType !== "all") {
+        query = query.eq("exam_type", selectedExamType);
+      }
+
+      const { data } = await query;
 
       if (!data) return;
 
@@ -287,7 +342,7 @@ export default function LearnerDashboard() {
     };
 
     fetchClassAverages();
-  }, [learner, selectedYear, selectedTerm]);
+  }, [learner, selectedGrade, selectedTerm, selectedExamType]);
 
   // Performance over time data - group by academic year, term, exam type
   const performanceOverTime = performance.reduce((acc: any[], record) => {
@@ -352,18 +407,18 @@ export default function LearnerDashboard() {
       <Card>
         <CardHeader>
           <CardTitle>Performance Filters</CardTitle>
-          <CardDescription>Select academic year and term to view performance data</CardDescription>
+          <CardDescription>Select grade, term, and exam type to view performance data</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <Select value={selectedGrade} onValueChange={setSelectedGrade}>
               <SelectTrigger>
-                <SelectValue placeholder="Select Year" />
+                <SelectValue placeholder="Select Grade" />
               </SelectTrigger>
               <SelectContent>
-                {uniqueYears.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
+                {uniqueGrades.map((grade: any) => (
+                  <SelectItem key={grade.id} value={grade.id}>
+                    {grade.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -382,6 +437,19 @@ export default function LearnerDashboard() {
               </SelectContent>
             </Select>
 
+            <Select value={selectedExamType} onValueChange={setSelectedExamType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Exam Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {examTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Card className="border-0 shadow-none bg-primary/5">
               <CardContent className="pt-6 pb-4">
                 <p className="text-xs text-muted-foreground">Subjects</p>
@@ -392,7 +460,14 @@ export default function LearnerDashboard() {
             <Card className="border-0 shadow-none bg-primary/5">
               <CardContent className="pt-6 pb-4">
                 <p className="text-xs text-muted-foreground">Average</p>
-                <p className="text-xl font-bold">{filteredStats.averageScore}%</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold">{filteredStats.averageScore}%</p>
+                  {averageGrade && (
+                    <span className={`text-xs font-semibold ${averageGrade.color}`} title={averageGrade.description}>
+                      {averageGrade.label}
+                    </span>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -484,7 +559,7 @@ export default function LearnerDashboard() {
             <CardHeader>
               <CardTitle>Detailed Performance</CardTitle>
               <CardDescription>
-                {selectedYear} {selectedTerm && `- ${selectedTerm.replace("term_", "Term ")}`}
+                {selectedTerm && `${selectedTerm.replace("term_", "Term ")} ${selectedExamType !== "all" ? `- ${selectedExamType}` : ""}`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -534,8 +609,8 @@ export default function LearnerDashboard() {
               Performance Overview
             </CardTitle>
             <CardDescription>
-              {selectedYear && selectedTerm && gradeName
-                ? `${selectedYear} ${gradeName} ${selectedTerm.replace("term_", "Term ")}`
+              {selectedGrade && selectedTerm
+                ? `${selectedTerm.replace("term_", "Term ")} ${selectedExamType !== "all" ? `- ${selectedExamType}` : ""}`
                 : "Filter to view performance"}
             </CardDescription>
           </CardHeader>
@@ -582,6 +657,15 @@ export default function LearnerDashboard() {
                         );
                       }
                       return null;
+                    }}
+                  />
+                  <Legend 
+                    wrapperStyle={{ paddingTop: "10px" }}
+                    iconType="line"
+                    formatter={(value) => {
+                      if (value === "average") return "Your Score";
+                      if (value === "classAverage") return "Class Average";
+                      return value;
                     }}
                   />
                   <Line type="linear" dataKey="average" stroke="hsl(var(--primary))" strokeWidth={2} name="Your Score" />
