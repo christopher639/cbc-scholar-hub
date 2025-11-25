@@ -344,9 +344,10 @@ export default function LearnerDashboard() {
     fetchClassAverages();
   }, [learner, selectedGrade, selectedTerm, selectedExamType]);
 
-  // Performance over time data - group by academic year, term, exam type
+  // Performance over time data - group by grade, academic year, term, exam type
   const performanceOverTime = performance.reduce((acc: any[], record) => {
-    const key = `${record.academic_year}-${record.term}-${record.exam_type || 'unknown'}`;
+    const recordGradeName = record.grade?.name || 'N/A';
+    const key = `${recordGradeName}-${record.academic_year}-${record.term}-${record.exam_type || 'unknown'}`;
     const existing = acc.find(item => item.key === key);
     
     if (existing) {
@@ -358,7 +359,7 @@ export default function LearnerDashboard() {
         academic_year: record.academic_year,
         term: record.term,
         exam_type: record.exam_type || 'unknown',
-        grade: gradeName || 'N/A',
+        grade: recordGradeName,
         total: Number(record.marks),
         count: 1
       });
@@ -368,8 +369,9 @@ export default function LearnerDashboard() {
   }, []).map(item => ({
     ...item,
     average: Math.round((item.total / item.count) * 10) / 10,
-    label: `${item.academic_year} ${item.term.replace('term_', 'T')} ${item.exam_type}`
+    label: `${item.grade} ${item.term.replace('term_', 'T')} ${item.exam_type}`
   })).sort((a, b) => {
+    if (a.grade !== b.grade) return a.grade.localeCompare(b.grade);
     if (a.academic_year !== b.academic_year) return a.academic_year.localeCompare(b.academic_year);
     if (a.term !== b.term) return a.term.localeCompare(b.term);
     return a.exam_type.localeCompare(b.exam_type);
@@ -417,9 +419,11 @@ export default function LearnerDashboard() {
               </SelectTrigger>
               <SelectContent>
                 {uniqueGrades.map((grade: any) => (
-                  <SelectItem key={grade.id} value={grade.id}>
-                    {grade.name}
-                  </SelectItem>
+                  grade.name && (
+                    <SelectItem key={grade.id} value={grade.id}>
+                      {grade.name}
+                    </SelectItem>
+                  )
                 ))}
               </SelectContent>
             </Select>
@@ -551,10 +555,9 @@ export default function LearnerDashboard() {
         </Card>
       </div>
 
-      {/* Performance Table and Graphs - 3 column layout on large screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-        {/* Performance Table */}
-        {tableData.length > 0 && (
+      {/* Performance Table - Full width on all screens */}
+      {tableData.length > 0 && (
+        <div className="w-full">
           <Card>
             <CardHeader>
               <CardTitle>Detailed Performance</CardTitle>
@@ -599,8 +602,11 @@ export default function LearnerDashboard() {
               </div>
             </CardContent>
           </Card>
-        )}
+        </div>
+      )}
 
+      {/* Performance Graphs - 2 column layout on large screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         {/* Performance Overview Graph */}
         <Card>
           <CardHeader>
