@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useReactToPrint } from "react-to-print";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { LearnerJourneyDialog } from "@/components/LearnerJourneyDialog";
+import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
 
 const BulkLearnerReports = () => {
   const { grades, loading: gradesLoading } = useGrades();
@@ -136,16 +137,66 @@ const BulkLearnerReports = () => {
           const historicalGrade = performanceData?.[0]?.historical_grade;
           const historicalStream = performanceData?.[0]?.historical_stream;
 
+          // Calculate average for this learner
+          const groupedByArea = (performanceData || []).reduce((acc: any, record: any) => {
+            const areaId = record.learning_area_id;
+            if (!acc[areaId]) acc[areaId] = [];
+            acc[areaId].push(record.marks);
+            return acc;
+          }, {});
+
+          const areaAverages = Object.values(groupedByArea).map((marks: any) => {
+            const sum = marks.reduce((a: number, b: number) => a + b, 0);
+            return sum / marks.length;
+          });
+
+          const overallAverage = areaAverages.length > 0
+            ? areaAverages.reduce((a, b) => a + b, 0) / areaAverages.length
+            : 0;
+
           return {
             learner,
             performanceRecords: performanceData || [],
             historicalGrade,
             historicalStream,
+            overallAverage,
           };
         })
       );
 
-      setReportData(reportsData);
+      // Calculate positions
+      const reportsWithPositions = reportsData.map((report) => {
+        // Grade position
+        const gradeReports = reportsData.filter(
+          (r) => (r.historicalGrade?.id || r.learner.current_grade_id) === 
+                 (report.historicalGrade?.id || report.learner.current_grade_id)
+        );
+        const sortedByGrade = [...gradeReports].sort((a, b) => b.overallAverage - a.overallAverage);
+        const gradePosition = sortedByGrade.findIndex((r) => r.learner.id === report.learner.id) + 1;
+
+        // Stream position
+        let streamPosition = undefined;
+        let totalInStream = undefined;
+        if (report.historicalStream || report.learner.current_stream_id) {
+          const streamReports = reportsData.filter(
+            (r) => (r.historicalStream?.id || r.learner.current_stream_id) === 
+                   (report.historicalStream?.id || report.learner.current_stream_id)
+          );
+          const sortedByStream = [...streamReports].sort((a, b) => b.overallAverage - a.overallAverage);
+          streamPosition = sortedByStream.findIndex((r) => r.learner.id === report.learner.id) + 1;
+          totalInStream = streamReports.length;
+        }
+
+        return {
+          ...report,
+          gradePosition,
+          totalInGrade: gradeReports.length,
+          streamPosition,
+          totalInStream,
+        };
+      });
+
+      setReportData(reportsWithPositions);
       setLearners(learnersData || []);
       
       toast({
@@ -377,257 +428,23 @@ const BulkLearnerReports = () => {
         {/* Hidden print area */}
         <div style={{ display: 'none' }}>
           <div ref={printRef}>
-            {reportData.map(({ learner, performanceRecords, historicalGrade, historicalStream }, index) => (
-              <div key={learner.id} style={{ pageBreakAfter: 'always' }}>
-                <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
-                  {/* Header with School Info and Learner Photo */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '2px solid #333', paddingBottom: '15px' }}>
-                    {/* School Information - Center */}
-                    <div style={{ flex: 1, textAlign: 'center' }}>
-                      {schoolInfo?.logo_url && (
-                        <img src={schoolInfo.logo_url} alt="School Logo" style={{ maxWidth: '80px', marginBottom: '8px' }} />
-                      )}
-                      <div style={{ fontSize: '20px', fontWeight: 'bold', margin: '8px 0' }}>
-                        {schoolInfo?.school_name || "School Name"}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#666' }}>
-                        {schoolInfo?.address && <div>{schoolInfo.address}</div>}
-                        {schoolInfo?.phone && <div>Tel: {schoolInfo.phone}</div>}
-                        {schoolInfo?.email && <div>Email: {schoolInfo.email}</div>}
-                      </div>
-                    </div>
-                    
-                    {/* Learner Photo - Top Right */}
-                    <div style={{ width: '100px', flexShrink: 0, marginLeft: '15px' }}>
-                      {learner.photo_url ? (
-                        <img 
-                          src={learner.photo_url} 
-                          alt="Learner" 
-                          style={{ 
-                            width: '100px', 
-                            height: '100px', 
-                            objectFit: 'cover', 
-                            border: '2px solid #333',
-                            borderRadius: '4px'
-                          }} 
-                        />
-                      ) : (
-                        <div style={{ 
-                          width: '100px', 
-                          height: '100px', 
-                          backgroundColor: '#f0f0f0', 
-                          border: '2px solid #333',
-                          borderRadius: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          color: '#999'
-                        }}>
-                          No Photo
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Report Title */}
-                  <div style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', margin: '20px 0', textTransform: 'uppercase' }}>
-                    Academic Performance Report
-                  </div>
-
-                  {/* Student Info */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', margin: '20px 0', padding: '15px', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
-                    <div>
-                      <div style={{ display: 'flex', margin: '5px 0' }}>
-                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Name:</span>
-                        <span style={{ color: '#666' }}>{learner.first_name} {learner.last_name}</span>
-                      </div>
-                      <div style={{ display: 'flex', margin: '5px 0' }}>
-                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Admission No:</span>
-                        <span style={{ color: '#666' }}>{learner.admission_number}</span>
-                      </div>
-                      <div style={{ display: 'flex', margin: '5px 0' }}>
-                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Grade:</span>
-                        <span style={{ color: '#666' }}>{historicalGrade?.name || learner.current_grade?.name}</span>
-                      </div>
-                      {(historicalStream || learner.current_stream) && (
-                        <div style={{ display: 'flex', margin: '5px 0' }}>
-                          <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Stream:</span>
-                          <span style={{ color: '#666' }}>{historicalStream?.name || learner.current_stream?.name}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', margin: '5px 0' }}>
-                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Academic Year:</span>
-                        <span style={{ color: '#666' }}>{selectedYear}</span>
-                      </div>
-                      <div style={{ display: 'flex', margin: '5px 0' }}>
-                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Term:</span>
-                        <span style={{ color: '#666' }}>{selectedTerm.replace("term_", "Term ")}</span>
-                      </div>
-                      <div style={{ display: 'flex', margin: '5px 0' }}>
-                        <span style={{ fontWeight: 'bold', width: '150px', color: '#333' }}>Report Date:</span>
-                        <span style={{ color: '#666' }}>{new Date().toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Performance Table */}
-                  {(() => {
-                    // Group records by learning area
-                    const groupedRecords = performanceRecords.reduce((acc: any, record: any) => {
-                      const areaName = record.learning_area?.name || "N/A";
-                      if (!acc[areaName]) acc[areaName] = [];
-                      acc[areaName].push(record);
-                      return acc;
-                    }, {});
-
-                    const getRemarkFromMarks = (marks: number) => {
-                      if (marks >= 76) return "E.E";
-                      if (marks >= 51) return "M.E";
-                      if (marks >= 26) return "B.E";
-                      return "D.E";
-                    };
-
-                    return (
-                      <table style={{ width: '100%', borderCollapse: 'collapse', margin: '15px 0', fontSize: '11px' }}>
-                        <thead>
-                          <tr>
-                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '30px' }}>#</th>
-                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'left', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>Learning Area</th>
-                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Opener</th>
-                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Mid-Term</th>
-                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Final</th>
-                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '60px' }}>Average</th>
-                            <th style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', backgroundColor: '#f5f5f5', fontWeight: 'bold', width: '50px' }}>Remark</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {performanceRecords && performanceRecords.length > 0 ? (
-                            Object.entries(groupedRecords).map(([areaName, records]: [string, any], idx: number) => {
-                              const opening = records.find((r: any) => r.exam_type?.toLowerCase().includes('opener'));
-                              const midterm = records.find((r: any) => r.exam_type?.toLowerCase().includes('mid'));
-                              const final = records.find((r: any) => r.exam_type?.toLowerCase().includes('final'));
-                              
-                              const marks = [opening?.marks, midterm?.marks, final?.marks].filter(m => m != null);
-                              const average = marks.length > 0 ? (marks.reduce((a, b) => a + b, 0) / marks.length) : 0;
-                              const remark = getRemarkFromMarks(average);
-
-                              return (
-                                <tr key={idx}>
-                                  <td style={{ border: '1px solid #ddd', padding: '6px' }}>{idx + 1}</td>
-                                  <td style={{ border: '1px solid #ddd', padding: '6px' }}>{areaName}</td>
-                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center' }}>{opening?.marks || '-'}</td>
-                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center' }}>{midterm?.marks || '-'}</td>
-                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center' }}>{final?.marks || '-'}</td>
-                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', fontWeight: 'bold' }}>{average.toFixed(1)}</td>
-                                  <td style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', fontWeight: 'bold' }}>{remark}</td>
-                                </tr>
-                              );
-                            })
-                          ) : (
-                            <tr>
-                              <td colSpan={7} style={{ border: '1px solid #ddd', padding: '6px', textAlign: 'center', color: '#999' }}>
-                                No performance records available
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    );
-                  })()}
-
-                  {/* Performance Graph & Summary */}
-                  {performanceRecords && performanceRecords.length > 0 && (
-                    <div style={{ marginTop: '15px', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
-                      {/* Performance Graph */}
-                      <div style={{ padding: '12px', backgroundColor: '#f9fafb', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Performance Trend</div>
-                        <div style={{ display: 'flex', alignItems: 'flex-end', height: '120px', gap: '4px' }}>
-                          {(() => {
-                            const groupedRecords = performanceRecords.reduce((acc: any, record: any) => {
-                              const areaName = record.learning_area?.name || "N/A";
-                              if (!acc[areaName]) acc[areaName] = [];
-                              acc[areaName].push(record);
-                              return acc;
-                            }, {});
-
-                            return Object.entries(groupedRecords).map(([areaName, records]: [string, any], idx: number) => {
-                              const marks = (records as any[]).map((r: any) => r.marks).filter(m => m != null);
-                              const average = marks.length > 0 ? (marks.reduce((a, b) => a + b, 0) / marks.length) : 0;
-                              const height = (average / 100) * 100;
-
-                              return (
-                                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                  <div style={{ 
-                                    width: '100%', 
-                                    height: `${height}%`, 
-                                    backgroundColor: '#666',
-                                    borderRadius: '2px 2px 0 0',
-                                    display: 'flex',
-                                    alignItems: 'flex-start',
-                                    justifyContent: 'center',
-                                    paddingTop: '2px'
-                                  }}>
-                                    <span style={{ fontSize: '8px', color: '#000', fontWeight: 'bold' }}>{average.toFixed(0)}</span>
-                                  </div>
-                                  <div style={{ fontSize: '7px', marginTop: '4px', textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {areaName.substring(0, 8)}
-                                  </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
-                      </div>
-
-                      {/* Summary Stats */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ padding: '10px', backgroundColor: '#f9fafb', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
-                          <div style={{ fontSize: '10px', color: '#666', marginBottom: '3px' }}>Total Subjects</div>
-                          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
-                            {Object.keys(performanceRecords.reduce((acc: any, r: any) => ({ ...acc, [r.learning_area?.name]: 1 }), {})).length}
-                          </div>
-                        </div>
-                        <div style={{ padding: '10px', backgroundColor: '#f9fafb', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
-                          <div style={{ fontSize: '10px', color: '#666', marginBottom: '3px' }}>Overall Average</div>
-                          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
-                            {(performanceRecords.reduce((sum: number, p: any) => sum + Number(p.marks), 0) / performanceRecords.length).toFixed(1)}%
-                          </div>
-                        </div>
-                        <div style={{ padding: '10px', backgroundColor: '#f9fafb', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
-                          <div style={{ fontSize: '10px', color: '#666', marginBottom: '3px' }}>Grade Legend</div>
-                          <div style={{ fontSize: '8px', lineHeight: '1.4' }}>
-                            E.E: 76-100 | M.E: 51-75<br/>
-                            B.E: 26-50 | D.E: 0-25
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Footer with Signatures */}
-                  <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ borderTop: '1px solid #333', width: '150px', margin: '20px auto 5px' }}></div>
-                      <div style={{ fontSize: '10px', color: '#666' }}>Class Teacher</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ borderTop: '1px solid #333', width: '150px', margin: '20px auto 5px' }}></div>
-                      <div style={{ fontSize: '10px', color: '#666' }}>Principal</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ borderTop: '1px solid #333', width: '150px', margin: '20px auto 5px' }}></div>
-                      <div style={{ fontSize: '10px', color: '#666' }}>Parent/Guardian</div>
-                    </div>
-                  </div>
-
-                  {/* Generation Info */}
-                  <div style={{ marginTop: '15px', textAlign: 'center', fontSize: '9px', color: '#999' }}>
-                    Generated on {new Date().toLocaleString()} | This is a computer-generated report
-                  </div>
-                </div>
+            {reportData.map(({ learner, performanceRecords, historicalGrade, historicalStream, gradePosition, totalInGrade, streamPosition, totalInStream }, index) => (
+              <div key={learner.id} style={{ pageBreakAfter: index < reportData.length - 1 ? 'always' : 'auto' }}>
+                <PrintablePerformanceReport
+                  learner={{
+                    ...learner,
+                    current_grade: historicalGrade || learner.current_grade,
+                    current_stream: historicalStream || learner.current_stream,
+                  }}
+                  performance={performanceRecords}
+                  academicYear={selectedYear}
+                  term={selectedTerm}
+                  examType={combineExamTypes ? undefined : examTypes.join(", ")}
+                  gradePosition={gradePosition}
+                  totalInGrade={totalInGrade}
+                  streamPosition={streamPosition}
+                  totalInStream={totalInStream}
+                />
               </div>
             ))}
           </div>
