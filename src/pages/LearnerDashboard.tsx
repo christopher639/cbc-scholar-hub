@@ -76,15 +76,12 @@ export default function LearnerDashboard() {
 
       setPerformance(performanceData || []);
 
-      // Set default filters
-      if (performanceData && performanceData.length > 0) {
-        const latest = performanceData[0];
-        if (!selectedGrade && latest.grade_id) {
-          setSelectedGrade(latest.grade_id);
-        }
-        if (!selectedTerm && latest.term) {
-          setSelectedTerm(latest.term);
-        }
+      // Set default filters to learner's current grade and current academic period
+      if (!selectedGrade && learner.current_grade_id) {
+        setSelectedGrade(learner.current_grade_id);
+      }
+      if (!selectedTerm && currentAcademicPeriod?.term) {
+        setSelectedTerm(currentAcademicPeriod.term);
       }
 
       // Fetch fee balance
@@ -229,7 +226,15 @@ export default function LearnerDashboard() {
     return true;
   });
 
-  const uniqueGrades = [...new Set(performance.map(p => ({ id: p.grade_id, name: p.grade?.name })))].filter(g => g.id);
+  // Get unique grades from performance records - properly deduplicated
+  const uniqueGrades = Array.from(
+    new Map(
+      performance
+        .filter(p => p.grade_id && p.grade?.name)
+        .map(p => [p.grade_id, { id: p.grade_id, name: p.grade.name }])
+    ).values()
+  );
+  
   const uniqueTerms = ["term_1", "term_2", "term_3"];
   const examTypes = [
     { value: "all", label: "All Exams" },
