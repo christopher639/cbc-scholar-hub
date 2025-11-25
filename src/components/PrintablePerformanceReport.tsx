@@ -51,18 +51,22 @@ export function PrintablePerformanceReport({
               position: relative;
             }
             .watermark {
-              position: fixed;
-              top: 50%;
+              position: absolute;
+              top: 120px;
               left: 50%;
-              transform: translate(-50%, -50%);
-              opacity: 0.08;
+              transform: translateX(-50%);
+              opacity: 0.06;
               z-index: 0;
               pointer-events: none;
             }
             .watermark img {
-              width: 400px;
-              height: 400px;
+              width: 300px;
+              height: 300px;
               object-fit: contain;
+            }
+            table {
+              position: relative;
+              z-index: 1;
             }
             .content {
               position: relative;
@@ -166,8 +170,6 @@ export function PrintablePerformanceReport({
             .grading-key {
               margin-top: 8px;
               padding: 6px;
-              background-color: #f9fafb;
-              border: 1px solid #ddd;
             }
             .grading-key h4 {
               font-size: 9px;
@@ -177,13 +179,12 @@ export function PrintablePerformanceReport({
             .grading-key-grid {
               display: grid;
               grid-template-columns: repeat(4, 1fr);
-              gap: 4px;
+              gap: 8px;
               font-size: 7px;
             }
             .grading-key-item {
               padding: 3px;
               text-align: center;
-              border: 1px solid #ddd;
             }
             .summary {
               margin-top: 8px;
@@ -422,16 +423,16 @@ export function PrintablePerformanceReport({
           <div className="grading-key">
             <h4>Grading Key</h4>
             <div className="grading-key-grid">
-              <div className="grading-key-item grade-ee">
+              <div className="grading-key-item">
                 <strong>E.E</strong><br/>80-100%<br/>Exceeding Expectation
               </div>
-              <div className="grading-key-item grade-me">
+              <div className="grading-key-item">
                 <strong>M.E</strong><br/>50-79%<br/>Meeting Expectation
               </div>
-              <div className="grading-key-item grade-ae">
+              <div className="grading-key-item">
                 <strong>A.E</strong><br/>30-49%<br/>Approaching Expectation
               </div>
-              <div className="grading-key-item grade-be">
+              <div className="grading-key-item">
                 <strong>B.E</strong><br/>0-29%<br/>Below Expectation
               </div>
             </div>
