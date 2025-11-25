@@ -392,6 +392,12 @@ export default function LearnerDashboard() {
   const bestSubjects = sortedByAverage.slice(0, 3);
   const weakestSubjects = sortedByAverage.slice(-3).reverse();
 
+  // Get selected grade name and academic year for display
+  const selectedGradeName = uniqueGrades.find((g: any) => g.id === selectedGrade)?.name || gradeName || "";
+  const selectedAcademicYear = filteredPerformance.length > 0 ? filteredPerformance[0].academic_year : currentPeriod?.year || "";
+  const displayTerm = selectedTerm ? selectedTerm.replace("term_", "Term ") : "";
+  const displayExamType = selectedExamType !== "all" ? selectedExamType : "";
+
   return (
     <div className="w-full min-h-screen px-3 md:px-6 pt-2 pb-4 md:pb-6 space-y-6">
       <div>
@@ -399,8 +405,10 @@ export default function LearnerDashboard() {
           Welcome back, {learnerDetails?.first_name}!
         </h1>
         <p className="text-sm md:text-base text-muted-foreground">
-          {currentPeriod && gradeName
-            ? `This is your ${currentPeriod.year} ${gradeName} ${currentPeriod.term.replace("term_", "Term ")} overview`
+          {selectedGradeName && displayTerm && selectedAcademicYear
+            ? `This is your ${selectedGradeName} ${displayTerm} ${selectedAcademicYear} overview`
+            : currentPeriod && gradeName
+            ? `This is your ${gradeName} ${currentPeriod.term.replace("term_", "Term ")} ${currentPeriod.year} overview`
             : "Here's your academic overview"}
         </p>
       </div>
@@ -518,6 +526,11 @@ export default function LearnerDashboard() {
               <Award className="h-4 w-4 text-primary" />
               Top Performing Subjects
             </CardTitle>
+            <CardDescription>
+              {selectedGradeName && displayTerm && selectedAcademicYear
+                ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}`
+                : "Select filters to view top subjects"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -539,6 +552,11 @@ export default function LearnerDashboard() {
               <AlertCircle className="h-4 w-4 text-destructive" />
               Areas for Improvement
             </CardTitle>
+            <CardDescription>
+              {selectedGradeName && displayTerm && selectedAcademicYear
+                ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}`
+                : "Select filters to view areas for improvement"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -562,7 +580,9 @@ export default function LearnerDashboard() {
             <CardHeader>
               <CardTitle>Detailed Performance</CardTitle>
               <CardDescription>
-                {selectedTerm && `${selectedTerm.replace("term_", "Term ")} ${selectedExamType !== "all" ? `- ${selectedExamType}` : ""}`}
+                {selectedGradeName && displayTerm && selectedAcademicYear
+                  ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}${displayExamType ? ` - ${displayExamType}` : ""}`
+                  : "Select filters to view performance"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -615,8 +635,8 @@ export default function LearnerDashboard() {
               Performance Overview
             </CardTitle>
             <CardDescription>
-              {selectedGrade && selectedTerm
-                ? `${selectedTerm.replace("term_", "Term ")} ${selectedExamType !== "all" ? `- ${selectedExamType}` : ""}`
+              {selectedGradeName && displayTerm && selectedAcademicYear
+                ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}${displayExamType ? ` - ${displayExamType}` : ""}`
                 : "Filter to view performance"}
             </CardDescription>
           </CardHeader>
@@ -689,7 +709,7 @@ export default function LearnerDashboard() {
               <TrendingUp className="h-5 w-5 text-primary" />
               Performance Over Time
             </CardTitle>
-            <CardDescription>Overall average across all periods</CardDescription>
+            <CardDescription>Overall average across all periods and grades</CardDescription>
           </CardHeader>
           
           <CardContent>
