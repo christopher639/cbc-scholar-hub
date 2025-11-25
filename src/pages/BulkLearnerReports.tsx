@@ -571,10 +571,10 @@ const BulkLearnerReports = () => {
                     </tbody>
                   </table>
 
-                  {/* Footer */}
+                  {/* Footer with dynamic page counter */}
                   <div style={{ marginTop: '20px', paddingTop: '10px', borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: '#666' }}>
-                    <div>Generated: {new Date().toLocaleDateString()}</div>
-                    <div>Page 1</div>
+                    <div>Generated: {new Date().toLocaleDateString()} | Total Learners: {reportData.length}</div>
+                    <div className="page-number"></div>
                   </div>
                 </div>
               );
@@ -591,6 +591,14 @@ const BulkLearnerReports = () => {
           @page {
             margin: 15mm;
             size: A4 landscape;
+          }
+          @page {
+            @bottom-right {
+              content: "Page " counter(page) " of " counter(pages);
+            }
+          }
+          .page-number::after {
+            content: "Page " counter(page);
           }
         }
       `}</style>
