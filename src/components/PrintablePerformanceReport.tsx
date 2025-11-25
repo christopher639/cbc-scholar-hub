@@ -34,54 +34,76 @@ export function PrintablePerformanceReport({
         <head>
           <title>Performance Report - ${learner.first_name} ${learner.last_name}</title>
           <style>
+            @page { margin: 15mm; size: A4; }
             body {
               font-family: Arial, sans-serif;
-              padding: 20px;
-              max-width: 900px;
-              margin: 0 auto;
+              padding: 0;
+              margin: 0;
+              font-size: 9px;
             }
             .header {
-              text-align: center;
-              margin-bottom: 30px;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 8px;
+              padding-bottom: 8px;
               border-bottom: 2px solid #333;
-              padding-bottom: 20px;
+            }
+            .logo-section {
+              width: 60px;
             }
             .logo {
-              max-width: 100px;
-              margin-bottom: 10px;
+              max-width: 60px;
+              max-height: 60px;
+              object-fit: contain;
+            }
+            .school-info {
+              flex: 1;
+              text-align: center;
+              padding: 0 10px;
             }
             .school-name {
-              font-size: 24px;
+              font-size: 16px;
               font-weight: bold;
-              margin: 10px 0;
+              margin: 2px 0;
             }
             .school-details {
-              font-size: 12px;
+              font-size: 8px;
               color: #666;
+              line-height: 1.3;
+            }
+            .learner-photo-section {
+              width: 60px;
+            }
+            .learner-photo {
+              max-width: 60px;
+              max-height: 60px;
+              object-fit: cover;
+              border: 1px solid #ddd;
+              border-radius: 4px;
             }
             .report-title {
               text-align: center;
-              font-size: 20px;
+              font-size: 12px;
               font-weight: bold;
-              margin: 20px 0;
+              margin: 8px 0 6px;
               text-transform: uppercase;
             }
             .student-info {
               display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 10px;
-              margin: 20px 0;
-              padding: 15px;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 4px;
+              margin: 8px 0;
+              padding: 6px;
               background-color: #f9fafb;
-              border-radius: 4px;
+              font-size: 8px;
             }
-            .info-row {
+            .info-item {
               display: flex;
-              margin: 5px 0;
+              gap: 4px;
             }
             .info-label {
               font-weight: bold;
-              width: 150px;
               color: #333;
             }
             .info-value {
@@ -90,69 +112,69 @@ export function PrintablePerformanceReport({
             table {
               width: 100%;
               border-collapse: collapse;
-              margin: 20px 0;
+              margin: 8px 0;
+              font-size: 8px;
             }
             th, td {
               border: 1px solid #ddd;
-              padding: 10px;
-              text-align: left;
+              padding: 4px;
+              text-align: center;
             }
             th {
               background-color: #f5f5f5;
               font-weight: bold;
+              font-size: 8px;
             }
-            .grade-A { background-color: #d1fae5; }
-            .grade-B { background-color: #dbeafe; }
-            .grade-C { background-color: #fef3c7; }
-            .grade-D { background-color: #fee2e2; }
-            .grade-E { background-color: #fecaca; }
+            td:first-child {
+              text-align: left;
+            }
+            .grade-ee { background-color: #d1fae5; }
+            .grade-me { background-color: #dbeafe; }
+            .grade-ae { background-color: #fef3c7; }
+            .grade-be { background-color: #fee2e2; }
+            .overall-row {
+              background-color: #f0f0f0;
+              font-weight: bold;
+            }
             .summary {
-              margin-top: 30px;
-              padding: 20px;
+              margin-top: 8px;
+              padding: 6px;
               background-color: #f9fafb;
-              border-radius: 4px;
-            }
-            .summary-grid {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 15px;
-              margin-top: 15px;
+              display: flex;
+              justify-content: space-around;
+              font-size: 9px;
             }
             .summary-item {
               text-align: center;
-              padding: 15px;
-              background-color: white;
-              border-radius: 4px;
-              border: 1px solid #e5e7eb;
             }
             .summary-label {
-              font-size: 12px;
+              font-size: 8px;
               color: #666;
-              margin-bottom: 5px;
+              margin-bottom: 2px;
             }
             .summary-value {
-              font-size: 20px;
+              font-size: 11px;
               font-weight: bold;
               color: #333;
             }
             .footer {
-              margin-top: 40px;
-              padding-top: 20px;
+              margin-top: 10px;
+              padding-top: 8px;
               border-top: 1px solid #ddd;
               display: flex;
               justify-content: space-between;
-              align-items: center;
+              font-size: 7px;
             }
             .signature-section {
               text-align: center;
             }
             .signature-line {
               border-top: 1px solid #333;
-              width: 200px;
-              margin: 30px auto 5px;
+              width: 120px;
+              margin: 15px auto 2px;
             }
             @media print {
-              body { padding: 0; }
+              body { padding: 0; margin: 0; }
               .no-print { display: none; }
             }
           </style>
@@ -171,26 +193,50 @@ export function PrintablePerformanceReport({
     }, 250);
   };
 
-  const getGradeClass = (grade: string) => {
-    if (!grade) return "";
-    const firstChar = grade.charAt(0).toUpperCase();
-    return `grade-${firstChar}`;
+  const getGradeClass = (marks: number) => {
+    if (marks >= 80) return "grade-ee";
+    if (marks >= 50) return "grade-me";
+    if (marks >= 30) return "grade-ae";
+    return "grade-be";
   };
 
-  const calculateAverage = () => {
-    if (performance.length === 0) return 0;
-    const total = performance.reduce((sum, p) => sum + Number(p.marks), 0);
-    return (total / performance.length).toFixed(1);
+  const getGradeLabel = (marks: number) => {
+    if (marks >= 80) return "E.E";
+    if (marks >= 50) return "M.E";
+    if (marks >= 30) return "A.E";
+    return "B.E";
   };
 
-  const getGradeDistribution = () => {
-    const distribution: Record<string, number> = {};
-    performance.forEach(p => {
-      const grade = p.grade_letter?.charAt(0) || "N/A";
-      distribution[grade] = (distribution[grade] || 0) + 1;
-    });
-    return distribution;
-  };
+  // Group performance by learning area
+  const groupedPerformance = performance.reduce((acc: any, record: any) => {
+    const areaId = record.learning_area_id;
+    if (!acc[areaId]) {
+      acc[areaId] = {
+        name: record.learning_area?.name || "N/A",
+        code: record.learning_area?.code || "N/A",
+        opener: null,
+        midterm: null,
+        final: null
+      };
+    }
+    const examType = record.exam_type?.toLowerCase();
+    if (examType === "opener") acc[areaId].opener = record.marks;
+    if (examType === "mid-term") acc[areaId].midterm = record.marks;
+    if (examType === "final") acc[areaId].final = record.marks;
+    return acc;
+  }, {});
+
+  const tableData = Object.values(groupedPerformance).map((area: any) => {
+    const scores = [area.opener, area.midterm, area.final].filter((s) => s !== null);
+    const average = scores.length > 0 ? scores.reduce((sum: number, s: number) => sum + s, 0) / scores.length : 0;
+    return { ...area, average: Math.round(average * 10) / 10 };
+  });
+
+  // Calculate overall average
+  const overallAverage = tableData.length > 0
+    ? tableData.reduce((sum, area) => sum + (area.average || 0), 0) / tableData.length
+    : 0;
+  const overallGrade = getGradeLabel(overallAverage);
 
   return (
     <>
@@ -208,130 +254,120 @@ export function PrintablePerformanceReport({
       <div style={{ display: "none" }}>
         <div ref={printRef}>
           <div className="header">
-            {schoolInfo?.logo_url && (
-              <img src={schoolInfo.logo_url} alt="School Logo" className="logo" />
-            )}
-            <div className="school-name">{schoolInfo?.school_name || "School Name"}</div>
-            <div className="school-details">
-              {schoolInfo?.address && <div>{schoolInfo.address}</div>}
-              {schoolInfo?.phone && <div>Tel: {schoolInfo.phone}</div>}
-              {schoolInfo?.email && <div>Email: {schoolInfo.email}</div>}
+            <div className="logo-section">
+              {schoolInfo?.logo_url && (
+                <img src={schoolInfo.logo_url} alt="School Logo" className="logo" />
+              )}
+            </div>
+            <div className="school-info">
+              <div className="school-name">{schoolInfo?.school_name || "School Name"}</div>
+              <div className="school-details">
+                {schoolInfo?.address && <div>{schoolInfo.address}</div>}
+                {schoolInfo?.phone && <div>Tel: {schoolInfo.phone}</div>}
+                {schoolInfo?.email && <div>Email: {schoolInfo.email}</div>}
+              </div>
+            </div>
+            <div className="learner-photo-section">
+              {learner.photo_url && (
+                <img src={learner.photo_url} alt="Learner" className="learner-photo" />
+              )}
             </div>
           </div>
 
           <div className="report-title">
-            Academic Performance Report
+            Academic Performance Report - {academicYear} {term.replace("term_", "Term ")}
           </div>
 
           <div className="student-info">
-            <div>
-              <div className="info-row">
-                <span className="info-label">Name:</span>
-                <span className="info-value">{learner.first_name} {learner.last_name}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Admission No:</span>
-                <span className="info-value">{learner.admission_number}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Grade:</span>
-                <span className="info-value">{learner.current_grade?.name}</span>
-              </div>
-              {learner.current_stream && (
-                <div className="info-row">
-                  <span className="info-label">Stream:</span>
-                  <span className="info-value">{learner.current_stream.name}</span>
-                </div>
-              )}
+            <div className="info-item">
+              <span className="info-label">Name:</span>
+              <span className="info-value">{learner.first_name} {learner.last_name}</span>
             </div>
-            <div>
-              <div className="info-row">
-                <span className="info-label">Academic Year:</span>
-                <span className="info-value">{academicYear}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Term:</span>
-                <span className="info-value">{term.replace("term_", "Term ")}</span>
-              </div>
-              {examType && (
-                <div className="info-row">
-                  <span className="info-label">Exam Type:</span>
-                  <span className="info-value">{examType}</span>
-                </div>
-              )}
-              <div className="info-row">
-                <span className="info-label">Report Date:</span>
-                <span className="info-value">{new Date().toLocaleDateString()}</span>
-              </div>
+            <div className="info-item">
+              <span className="info-label">Admission:</span>
+              <span className="info-value">{learner.admission_number}</span>
             </div>
+            <div className="info-item">
+              <span className="info-label">Grade:</span>
+              <span className="info-value">{learner.current_grade?.name}</span>
+            </div>
+            {learner.current_stream && (
+              <div className="info-item">
+                <span className="info-label">Stream:</span>
+                <span className="info-value">{learner.current_stream.name}</span>
+              </div>
+            )}
           </div>
 
           <table>
             <thead>
               <tr>
-                <th style={{ width: "50px" }}>#</th>
                 <th>Learning Area</th>
-                <th style={{ width: "100px", textAlign: "center" }}>Exam Type</th>
-                <th style={{ width: "100px", textAlign: "center" }}>Marks</th>
-                <th style={{ width: "80px", textAlign: "center" }}>Grade</th>
-                <th>Remarks</th>
+                <th>Opener</th>
+                <th>Mid-Term</th>
+                <th>Final</th>
+                <th>Average</th>
+                <th>Grade</th>
               </tr>
             </thead>
             <tbody>
-              {performance.map((record, index) => (
-                <tr key={record.id}>
-                  <td>{index + 1}</td>
-                  <td>{record.learning_area?.name || "N/A"}</td>
-                  <td style={{ textAlign: "center" }}>{record.exam_type || "N/A"}</td>
-                  <td style={{ textAlign: "center", fontWeight: "bold" }}>{record.marks}/100</td>
-                  <td style={{ textAlign: "center" }} className={getGradeClass(record.grade_letter || "")}>
-                    <strong>{record.grade_letter || "N/A"}</strong>
+              {tableData.map((area: any, index: number) => (
+                <tr key={index}>
+                  <td style={{ textAlign: "left" }}>{area.name}</td>
+                  <td>{area.opener !== null ? area.opener : "-"}</td>
+                  <td>{area.midterm !== null ? area.midterm : "-"}</td>
+                  <td>{area.final !== null ? area.final : "-"}</td>
+                  <td style={{ fontWeight: "bold" }}>{area.average.toFixed(1)}</td>
+                  <td className={getGradeClass(area.average)}>
+                    <strong>{getGradeLabel(area.average)}</strong>
                   </td>
-                  <td style={{ fontSize: "12px" }}>{record.remarks || "-"}</td>
                 </tr>
               ))}
+              <tr className="overall-row">
+                <td style={{ textAlign: "left" }}>OVERALL</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>{overallAverage.toFixed(1)}</td>
+                <td className={getGradeClass(overallAverage)}>
+                  <strong>{overallGrade}</strong>
+                </td>
+              </tr>
             </tbody>
           </table>
 
           <div className="summary">
-            <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "10px" }}>
-              Performance Summary
+            <div className="summary-item">
+              <div className="summary-label">Total Subjects</div>
+              <div className="summary-value">{tableData.length}</div>
             </div>
-            <div className="summary-grid">
-              <div className="summary-item">
-                <div className="summary-label">Total Subjects</div>
-                <div className="summary-value">{performance.length}</div>
-              </div>
-              <div className="summary-item">
-                <div className="summary-label">Average Score</div>
-                <div className="summary-value">{calculateAverage()}%</div>
-              </div>
-              <div className="summary-item">
-                <div className="summary-label">Total Marks</div>
-                <div className="summary-value">
-                  {performance.reduce((sum, p) => sum + Number(p.marks), 0)}/{performance.length * 100}
-                </div>
-              </div>
+            <div className="summary-item">
+              <div className="summary-label">Overall Average</div>
+              <div className="summary-value">{overallAverage.toFixed(1)}%</div>
+            </div>
+            <div className="summary-item">
+              <div className="summary-label">Overall Grade</div>
+              <div className="summary-value">{overallGrade}</div>
             </div>
           </div>
 
           <div className="footer">
             <div className="signature-section">
               <div className="signature-line"></div>
-              <div style={{ fontSize: "12px", color: "#666" }}>Class Teacher</div>
+              <div>Class Teacher</div>
             </div>
             <div className="signature-section">
               <div className="signature-line"></div>
-              <div style={{ fontSize: "12px", color: "#666" }}>Principal</div>
+              <div>Principal</div>
             </div>
             <div className="signature-section">
               <div className="signature-line"></div>
-              <div style={{ fontSize: "12px", color: "#666" }}>Parent/Guardian</div>
+              <div>Parent/Guardian</div>
             </div>
           </div>
 
-          <div style={{ marginTop: "30px", textAlign: "center", fontSize: "10px", color: "#999" }}>
-            Generated on {new Date().toLocaleString()} | This is a computer-generated report
+          <div style={{ marginTop: "8px", textAlign: "center", fontSize: "7px", color: "#999" }}>
+            Generated: {new Date().toLocaleDateString()} | Computer-generated report
           </div>
         </div>
       </div>
