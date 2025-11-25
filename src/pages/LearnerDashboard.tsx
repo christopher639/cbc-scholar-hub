@@ -8,6 +8,7 @@ import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
 
 
 const getGradeCategory = (marks: number) => {
@@ -405,17 +406,34 @@ export default function LearnerDashboard() {
 
   return (
     <div className="w-full min-h-screen px-3 md:px-6 pt-2 pb-4 md:pb-6 space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-          Welcome back, {learnerDetails?.first_name}!
-        </h1>
-        <p className="text-sm md:text-base text-muted-foreground">
-          {selectedGradeName && displayTerm && selectedAcademicYear
-            ? `This is your ${selectedGradeName} ${displayTerm} ${selectedAcademicYear} overview`
-            : currentPeriod && gradeName
-            ? `This is your ${gradeName} ${currentPeriod.term.replace("term_", "Term ")} ${currentPeriod.year} overview`
-            : "Here's your academic overview"}
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            Welcome back, {learnerDetails?.first_name}!
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            {selectedGradeName && displayTerm && selectedAcademicYear
+              ? `This is your ${selectedGradeName} ${displayTerm} ${selectedAcademicYear} overview`
+              : currentPeriod && gradeName
+              ? `This is your ${gradeName} ${currentPeriod.term.replace("term_", "Term ")} ${currentPeriod.year} overview`
+              : "Here's your academic overview"}
+          </p>
+        </div>
+        
+        {/* Download Report Button */}
+        {learner && filteredPerformance.length > 0 && (
+          <PrintablePerformanceReport
+            learner={{
+              ...learner,
+              current_grade: { name: selectedGradeName },
+              current_stream: learner.current_stream
+            }}
+            performance={filteredPerformance}
+            academicYear={selectedAcademicYear}
+            term={selectedTerm}
+            examType={selectedExamType === "all" ? undefined : selectedExamType}
+          />
+        )}
       </div>
 
       {/* Filters */}
