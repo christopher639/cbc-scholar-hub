@@ -578,9 +578,10 @@ export default function LearnerDashboard() {
         </Card>
       </div>
 
-      {/* Performance Table - Full width on all screens */}
+      {/* Performance Table and Graphs - 3 column layout on large screens, stacked on small */}
       {tableData.length > 0 && (
-        <div className="w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          {/* Performance Table */}
           <Card>
             <CardHeader className="py-3 md:py-6">
               <CardTitle className="text-sm md:text-base">Detailed Performance</CardTitle>
@@ -627,11 +628,7 @@ export default function LearnerDashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
-
-      {/* Performance Graphs - 2 column layout on large screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          
         {/* Performance Overview Graph */}
         <Card>
           <CardHeader>
@@ -760,7 +757,8 @@ export default function LearnerDashboard() {
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
