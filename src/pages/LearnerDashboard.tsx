@@ -582,38 +582,38 @@ export default function LearnerDashboard() {
       {tableData.length > 0 && (
         <div className="w-full">
           <Card>
-            <CardHeader>
-              <CardTitle>Detailed Performance</CardTitle>
-              <CardDescription>
+            <CardHeader className="py-3 md:py-6">
+              <CardTitle className="text-sm md:text-base">Detailed Performance</CardTitle>
+              <CardDescription className="text-xs md:text-sm">
                 {selectedGradeName && displayTerm && selectedAcademicYear
                   ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}${displayExamType ? ` - ${displayExamType}` : ""}`
                   : "Select filters to view performance"}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0 md:p-6">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Subject</TableHead>
-                      <TableHead className="text-center">Opener</TableHead>
-                      <TableHead className="text-center">Mid-Term</TableHead>
-                      <TableHead className="text-center">Final</TableHead>
-                      <TableHead className="text-center">Avg</TableHead>
-                      <TableHead className="text-center">Grade</TableHead>
+                    <TableRow className="border-b">
+                      <TableHead className="h-7 py-1 px-2 text-[10px] md:text-sm md:px-4 md:py-2 whitespace-nowrap">Subject</TableHead>
+                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Opener</TableHead>
+                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Mid</TableHead>
+                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Final</TableHead>
+                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Avg</TableHead>
+                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Grade</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {tableData.map((area: any, idx: number) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-medium text-sm">{area.area}</TableCell>
-                        <TableCell className="text-center text-sm">{area.opener ?? "-"}</TableCell>
-                        <TableCell className="text-center text-sm">{area.midterm ?? "-"}</TableCell>
-                        <TableCell className="text-center text-sm">{area.final ?? "-"}</TableCell>
-                        <TableCell className="text-center font-semibold text-sm">
+                      <TableRow key={idx} className="border-b">
+                        <TableCell className="h-7 py-1 px-2 text-[10px] md:text-sm md:px-4 md:py-2 font-medium whitespace-nowrap">{area.area}</TableCell>
+                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">{area.opener ?? "-"}</TableCell>
+                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">{area.midterm ?? "-"}</TableCell>
+                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">{area.final ?? "-"}</TableCell>
+                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center font-semibold">
                           {area.average ? `${area.average}%` : "-"}
                         </TableCell>
-                        <TableCell className="text-center text-sm">
+                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">
                           {area.grade ? (
                             <span className={`font-semibold ${area.grade.color}`} title={area.grade.description}>
                               {area.grade.label}
