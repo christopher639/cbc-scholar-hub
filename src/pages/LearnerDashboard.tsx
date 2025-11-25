@@ -85,19 +85,6 @@ export default function LearnerDashboard() {
         }
       }
 
-      const avgScore = performanceData?.length
-        ? performanceData.reduce((sum, p) => sum + Number(p.marks), 0) / performanceData.length
-        : 0;
-
-      const subjectCount = performanceData 
-        ? new Set(performanceData.map(p => p.learning_area_id)).size 
-        : 0;
-
-      setStats({
-        totalSubjects: subjectCount,
-        averageScore: Math.round(avgScore),
-      });
-
       // Fetch fee balance
       const { data: invoices } = await supabase
         .from("student_invoices")
@@ -203,6 +190,16 @@ export default function LearnerDashboard() {
   const uniqueYears = [...new Set(performance.map(p => p.academic_year))].filter(Boolean);
   const uniqueTerms = ["term_1", "term_2", "term_3"];
 
+  // Calculate filtered stats based on selected year and term
+  const filteredStats = {
+    totalSubjects: filteredPerformance.length 
+      ? new Set(filteredPerformance.map(p => p.learning_area_id)).size 
+      : 0,
+    averageScore: filteredPerformance.length
+      ? Math.round(filteredPerformance.reduce((sum, p) => sum + Number(p.marks), 0) / filteredPerformance.length)
+      : 0
+  };
+
   // Group by learning area
   const groupedPerformance = filteredPerformance.reduce((acc: any, record) => {
     const areaName = record.learning_area?.name || "Unknown";
@@ -292,6 +289,37 @@ export default function LearnerDashboard() {
     fetchClassAverages();
   }, [learner, selectedYear, selectedTerm]);
 
+  // Performance over time data - group by academic year, term, exam type
+  const performanceOverTime = performance.reduce((acc: any[], record) => {
+    const key = `${record.academic_year}-${record.term}-${record.exam_type || 'unknown'}`;
+    const existing = acc.find(item => item.key === key);
+    
+    if (existing) {
+      existing.total += Number(record.marks);
+      existing.count += 1;
+    } else {
+      acc.push({
+        key,
+        academic_year: record.academic_year,
+        term: record.term,
+        exam_type: record.exam_type || 'unknown',
+        grade: gradeName || 'N/A',
+        total: Number(record.marks),
+        count: 1
+      });
+    }
+    
+    return acc;
+  }, []).map(item => ({
+    ...item,
+    average: Math.round((item.total / item.count) * 10) / 10,
+    label: `${item.academic_year} ${item.term.replace('term_', 'T')} ${item.exam_type}`
+  })).sort((a, b) => {
+    if (a.academic_year !== b.academic_year) return a.academic_year.localeCompare(b.academic_year);
+    if (a.term !== b.term) return a.term.localeCompare(b.term);
+    return a.exam_type.localeCompare(b.exam_type);
+  });
+
   const chartData = tableData.map(area => {
     const classAvg = classAverages.find(ca => ca.code === area.code);
     return {
@@ -320,32 +348,59 @@ export default function LearnerDashboard() {
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 shadow-none">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Total Subjects</p>
-                <p className="text-xl font-bold">{stats.totalSubjects}</p>
-              </div>
-              <TrendingUp className="h-6 w-6 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-0 shadow-none">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Average Score</p>
-                <p className="text-xl font-bold">{stats.averageScore}%</p>
-              </div>
-              <Target className="h-6 w-6 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Performance Filters</CardTitle>
+          <CardDescription>Select academic year and term to view performance data</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {uniqueYears.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
+            <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Term" />
+              </SelectTrigger>
+              <SelectContent>
+                {uniqueTerms.map((term) => (
+                  <SelectItem key={term} value={term}>
+                    {term.replace("term_", "Term ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Card className="border-0 shadow-none bg-primary/5">
+              <CardContent className="pt-6 pb-4">
+                <p className="text-xs text-muted-foreground">Subjects</p>
+                <p className="text-xl font-bold">{filteredStats.totalSubjects}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-none bg-primary/5">
+              <CardContent className="pt-6 pb-4">
+                <p className="text-xs text-muted-foreground">Average</p>
+                <p className="text-xl font-bold">{filteredStats.averageScore}%</p>
+              </CardContent>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
         <Card className="border-0 shadow-none">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -421,15 +476,15 @@ export default function LearnerDashboard() {
         </Card>
       </div>
 
-      {/* Performance Table and Graph - 2 column layout on large screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+      {/* Performance Table and Graphs - 3 column layout on large screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Performance Table */}
         {tableData.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Detailed Performance</CardTitle>
               <CardDescription>
-                Scores by exam type - {selectedYear} {selectedTerm && `- ${selectedTerm.replace("term_", "Term ")}`}
+                {selectedYear} {selectedTerm && `- ${selectedTerm.replace("term_", "Term ")}`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -441,21 +496,21 @@ export default function LearnerDashboard() {
                       <TableHead className="text-center">Opener</TableHead>
                       <TableHead className="text-center">Mid-Term</TableHead>
                       <TableHead className="text-center">Final</TableHead>
-                      <TableHead className="text-center">Average</TableHead>
+                      <TableHead className="text-center">Avg</TableHead>
                       <TableHead className="text-center">Grade</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {tableData.map((area: any, idx: number) => (
                       <TableRow key={idx}>
-                        <TableCell className="font-medium">{area.area}</TableCell>
-                        <TableCell className="text-center">{area.opener ?? "-"}</TableCell>
-                        <TableCell className="text-center">{area.midterm ?? "-"}</TableCell>
-                        <TableCell className="text-center">{area.final ?? "-"}</TableCell>
-                        <TableCell className="text-center font-semibold">
+                        <TableCell className="font-medium text-sm">{area.area}</TableCell>
+                        <TableCell className="text-center text-sm">{area.opener ?? "-"}</TableCell>
+                        <TableCell className="text-center text-sm">{area.midterm ?? "-"}</TableCell>
+                        <TableCell className="text-center text-sm">{area.final ?? "-"}</TableCell>
+                        <TableCell className="text-center font-semibold text-sm">
                           {area.average ? `${area.average}%` : "-"}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center text-sm">
                           {area.grade ? (
                             <span className={`font-semibold ${area.grade.color}`} title={area.grade.description}>
                               {area.grade.label}
@@ -471,55 +526,23 @@ export default function LearnerDashboard() {
           </Card>
         )}
 
-        {/* Performance Graph */}
+        {/* Performance Overview Graph */}
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  Performance Overview
-                </CardTitle>
-                <CardDescription>
-                  {selectedYear && selectedTerm && gradeName
-                    ? `${selectedYear} ${gradeName} ${selectedTerm.replace("term_", "Term ")}`
-                    : "Filter to view performance"}
-                </CardDescription>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueYears.map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Term" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueTerms.map((term) => (
-                    <SelectItem key={term} value={term}>
-                      {term.replace("term_", "Term ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Performance Overview
+            </CardTitle>
+            <CardDescription>
+              {selectedYear && selectedTerm && gradeName
+                ? `${selectedYear} ${gradeName} ${selectedTerm.replace("term_", "Term ")}`
+                : "Filter to view performance"}
+            </CardDescription>
           </CardHeader>
           
           <CardContent>
             {filteredPerformance.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No performance records for selected filters</p>
+              <p className="text-center text-muted-foreground py-8 text-sm">No performance records for selected filters</p>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData}>
@@ -541,19 +564,19 @@ export default function LearnerDashboard() {
                         
                         return (
                           <div className="bg-background border rounded-lg p-2 shadow-lg">
-                            <p className="font-semibold">{payload[0].payload.area}</p>
+                            <p className="font-semibold text-sm">{payload[0].payload.area}</p>
                             {learnerScore && (
                               <>
-                                <p className="text-sm">Your Score: {learnerScore.value}%</p>
+                                <p className="text-xs">Your Score: {learnerScore.value}%</p>
                                 {grade && (
-                                  <p className="text-sm font-medium">
+                                  <p className="text-xs font-medium">
                                     <span className={grade.color}>{grade.label}</span> - {grade.description}
                                   </p>
                                 )}
                               </>
                             )}
                             {classAvg && classAvg.value && (
-                              <p className="text-sm text-green-600">Class Average: {classAvg.value}%</p>
+                              <p className="text-xs text-green-600">Class Average: {classAvg.value}%</p>
                             )}
                           </div>
                         );
@@ -563,6 +586,60 @@ export default function LearnerDashboard() {
                   />
                   <Line type="linear" dataKey="average" stroke="hsl(var(--primary))" strokeWidth={2} name="Your Score" />
                   <Line type="linear" dataKey="classAverage" stroke="hsl(142 76% 36%)" strokeWidth={2} name="Class Average" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Performance Over Time Graph */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Performance Over Time
+            </CardTitle>
+            <CardDescription>Overall average across all periods</CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            {performanceOverTime.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 text-sm">No performance data available</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={performanceOverTime}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="label" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                    tick={{ fontSize: 9 }}
+                    interval={0}
+                  />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        const grade = getGradeCategory(data.average);
+                        
+                        return (
+                          <div className="bg-background border rounded-lg p-2 shadow-lg">
+                            <p className="font-semibold text-sm">{data.academic_year}</p>
+                            <p className="text-xs">{data.grade} - {data.term.replace('term_', 'Term ')}</p>
+                            <p className="text-xs">{data.exam_type}</p>
+                            <p className="text-xs font-semibold mt-1">Average: {data.average}%</p>
+                            <p className="text-xs">
+                              <span className={grade.color}>{grade.label}</span> - {grade.description}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Line type="linear" dataKey="average" stroke="hsl(var(--primary))" strokeWidth={2} name="Overall Average" />
                 </LineChart>
               </ResponsiveContainer>
             )}
