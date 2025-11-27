@@ -197,7 +197,17 @@ function AppSidebar() {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    await logout();
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    navigate("/auth");
+  };
 
   useEffect(() => {
     if (user) {
@@ -312,7 +322,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/signout")} className="cursor-pointer text-destructive">
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
                   </DropdownMenuItem>
