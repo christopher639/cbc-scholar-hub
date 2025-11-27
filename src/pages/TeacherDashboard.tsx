@@ -276,7 +276,7 @@ export default function TeacherDashboard() {
       </div>
 
       {/* Best Performing Area & Charts Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         {/* Best Performing Learning Area */}
         <Card>
           <CardHeader className="p-3 md:p-6 pb-2">
@@ -371,66 +371,6 @@ export default function TeacherDashboard() {
           </CardContent>
         </Card>
 
-        {/* Performance Over Time */}
-        <Card className="md:col-span-2 lg:col-span-1">
-          <CardHeader className="p-3 md:p-6 pb-2">
-            <CardTitle className="text-sm md:text-base">Performance Over Time</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 md:p-6 pt-0">
-            {performanceOverTime.length > 0 ? (
-              <ChartContainer
-                config={{
-                  average: {
-                    label: "Average",
-                    color: "hsl(var(--primary))",
-                  },
-                }}
-                className="h-[160px] md:h-[220px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={performanceOverTime}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="period" 
-                      tick={{ fontSize: 7 }} 
-                      angle={-45} 
-                      textAnchor="end"
-                      height={50}
-                      interval={0}
-                    />
-                    <YAxis domain={[0, 100]} tick={{ fontSize: 8 }} width={25} />
-                    <ChartTooltip
-                      content={({ payload }) => {
-                        if (payload && payload.length > 0) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="bg-card border border-border rounded-md p-2 shadow-md text-xs">
-                              <p className="font-medium">{data.period}</p>
-                              <p>Average: {data.average}%</p>
-                              <p className={`font-medium ${getGradeColor(getGradeCategory(data.average))}`}>
-                                Grade: {getGradeCategory(data.average)}
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="average"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2}
-                      dot={{ fill: "hsl(var(--primary))", r: 3 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            ) : (
-              <p className="text-xs md:text-sm text-muted-foreground text-center py-6 md:py-10">No historical data</p>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Quick Actions */}
