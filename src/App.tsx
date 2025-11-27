@@ -46,6 +46,12 @@ import AcademicSettings from "./pages/AcademicSettings";
 import LearnerFeesPortal from "./pages/LearnerFeesPortal";
 import Signout from "./pages/Signout";
 import Notifications from "./pages/Notifications";
+import { TeacherPortalLayout } from "./components/TeacherPortalLayout";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import TeacherMarks from "./pages/TeacherMarks";
+import TeacherAssignments from "./pages/TeacherAssignments";
+import TeacherPortalProfile from "./pages/TeacherPortalProfile";
+import TeacherSettings from "./pages/TeacherSettings";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +66,8 @@ const App = () => (
             <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/signout" element={<Signout />} />
+            
+            {/* Learner Portal Routes */}
             <Route path="/learner-portal" element={<ProtectedRoute><LearnerPortalLayout /></ProtectedRoute>}>
               <Route index element={<LearnerDashboard />} />
               <Route path="profile" element={<LearnerProfilePage />} />
@@ -67,6 +75,15 @@ const App = () => (
               <Route path="fees" element={<LearnerFeesPage />} />
               <Route path="fee-structures" element={<LearnerFeeStructures />} />
               <Route path="settings" element={<LearnerSettings />} />
+            </Route>
+
+            {/* Teacher Portal Routes */}
+            <Route path="/teacher-portal" element={<ProtectedRoute><TeacherPortalLayout /></ProtectedRoute>}>
+              <Route index element={<TeacherDashboard />} />
+              <Route path="marks" element={<TeacherMarks />} />
+              <Route path="assignments" element={<TeacherAssignments />} />
+              <Route path="profile" element={<TeacherPortalProfile />} />
+              <Route path="settings" element={<TeacherSettings />} />
             </Route>
             <Route path="/dashboard" element={<ProtectedRoute><AdminRoute><Dashboard /></AdminRoute></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><AdminRoute><Dashboard /></AdminRoute></ProtectedRoute>} />

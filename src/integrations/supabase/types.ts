@@ -195,6 +195,146 @@ export type Database = {
           },
         ]
       }
+      assignment_submissions: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          feedback: string | null
+          file_url: string | null
+          graded_at: string | null
+          id: string
+          learner_id: string
+          marks_obtained: number | null
+          status: string
+          submission_text: string | null
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          feedback?: string | null
+          file_url?: string | null
+          graded_at?: string | null
+          id?: string
+          learner_id: string
+          marks_obtained?: number | null
+          status?: string
+          submission_text?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          feedback?: string | null
+          file_url?: string | null
+          graded_at?: string | null
+          id?: string
+          learner_id?: string
+          marks_obtained?: number | null
+          status?: string
+          submission_text?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_submissions_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: false
+            referencedRelation: "learners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          academic_year: string
+          created_at: string
+          description: string | null
+          due_date: string
+          file_url: string | null
+          grade_id: string
+          id: string
+          learning_area_id: string
+          stream_id: string | null
+          teacher_id: string
+          term: Database["public"]["Enums"]["term"]
+          title: string
+          total_marks: number
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          description?: string | null
+          due_date: string
+          file_url?: string | null
+          grade_id: string
+          id?: string
+          learning_area_id: string
+          stream_id?: string | null
+          teacher_id: string
+          term: Database["public"]["Enums"]["term"]
+          title: string
+          total_marks?: number
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          file_url?: string | null
+          grade_id?: string
+          id?: string
+          learning_area_id?: string
+          stream_id?: string | null
+          teacher_id?: string
+          term?: Database["public"]["Enums"]["term"]
+          title?: string
+          total_marks?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignments_learning_area_id_fkey"
+            columns: ["learning_area_id"]
+            isOneToOne: false
+            referencedRelation: "learning_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignments_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "streams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignments_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance: {
         Row: {
           created_at: string
