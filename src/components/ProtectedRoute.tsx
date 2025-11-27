@@ -24,6 +24,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // Handle role-based redirects
   const isLearnerRoute = location.pathname.startsWith("/learner-portal");
+  const isTeacherRoute = location.pathname.startsWith("/teacher-portal");
   const isLearner = user.role === "learner";
   const isTeacher = user.role === "teacher";
 
@@ -32,14 +33,19 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/learner-portal" replace />;
   }
 
-  // If non-learner trying to access learner routes, redirect appropriately
-  if (!isLearner && isLearnerRoute) {
-    return <Navigate to={isTeacher ? "/performance" : "/dashboard"} replace />;
+  // If teacher trying to access non-teacher routes (except auth), redirect to teacher portal
+  if (isTeacher && !isTeacherRoute && location.pathname !== "/auth") {
+    return <Navigate to="/teacher-portal" replace />;
   }
 
-  // If teacher trying to access dashboard, redirect to performance
-  if (isTeacher && location.pathname === "/dashboard") {
-    return <Navigate to="/performance" replace />;
+  // If non-learner trying to access learner routes, redirect appropriately
+  if (!isLearner && isLearnerRoute) {
+    return <Navigate to={isTeacher ? "/teacher-portal" : "/dashboard"} replace />;
+  }
+
+  // If non-teacher trying to access teacher routes, redirect appropriately
+  if (!isTeacher && isTeacherRoute) {
+    return <Navigate to={isLearner ? "/learner-portal" : "/dashboard"} replace />;
   }
 
   return <>{children}</>;

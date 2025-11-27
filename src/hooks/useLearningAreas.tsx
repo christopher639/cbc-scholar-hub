@@ -20,16 +20,33 @@ export function useLearningAreas() {
           teacher:teachers(first_name, last_name)
         `);
 
-      // If user is a teacher, get their teacher ID first and filter learning areas
+      // If user is a teacher, filter to show only their assigned learning areas
       if (user?.role === 'teacher') {
-        const { data: teacherData } = await supabase
-          .from("teachers")
-          .select("id")
-          .eq("user_id", user.id)
-          .single();
+        // For teacher sessions, get teacher_id from the session
+        const teacherSession = localStorage.getItem("teacher_session");
+        
+        if (teacherSession) {
+          const { data: sessionData } = await supabase
+            .from("teacher_sessions")
+            .select("teacher_id")
+            .eq("session_token", teacherSession)
+            .gt("expires_at", new Date().toISOString())
+            .maybeSingle();
 
-        if (teacherData) {
-          query = query.eq('teacher_id', teacherData.id);
+          if (sessionData) {
+            query = query.eq('teacher_id', sessionData.teacher_id);
+          }
+        } else {
+          // Fallback to user_id lookup
+          const { data: teacherData } = await supabase
+            .from("teachers")
+            .select("id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (teacherData) {
+            query = query.eq('teacher_id', teacherData.id);
+          }
         }
       }
       
@@ -50,7 +67,7 @@ export function useLearningAreas() {
 
   useEffect(() => {
     fetchLearningAreas();
-  }, []);
+  }, [user]);
 
   const addLearningArea = async (areaData: any) => {
     try {
