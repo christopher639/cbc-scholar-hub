@@ -4,32 +4,44 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function TeacherPortalLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { schoolInfo } = useSchoolInfo();
+  const { user, loading: authLoading } = useAuth();
   const [teacher, setTeacher] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTeacherData();
-  }, []);
+    if (!authLoading) {
+      if (!user || user.role !== "teacher") {
+        navigate("/auth", { replace: true });
+        return;
+      }
+      fetchTeacherData();
+    }
+  }, [user, authLoading, navigate]);
 
   const fetchTeacherData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
       
-      if (!user) {
-        navigate("/auth");
+      // For teacher sessions, user.id is the teacher's id directly
+      // and user.data contains the teacher info
+      if (user.role === "teacher" && user.data) {
+        setTeacher(user.data);
+        setLoading(false);
         return;
       }
 
+      // Fallback: fetch from database
       const { data: teacherData, error } = await supabase
         .from("teachers")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .single();
 
       if (error) throw error;
@@ -53,7 +65,7 @@ export function TeacherPortalLayout() {
     { path: "/teacher-portal/settings", icon: Settings, label: "Settings" },
   ];
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -114,7 +126,7 @@ export function TeacherPortalLayout() {
 
       {/* Main Content */}
       <div className="flex-1 pt-14 pb-16 md:pb-4">
-        <Outlet />
+        <Outlet context={{ teacher }} />
       </div>
 
       {/* Bottom Navigation - Mobile Only */}

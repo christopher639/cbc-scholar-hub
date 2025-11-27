@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,10 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Edit, Save, X } from "lucide-react";
 import { format } from "date-fns";
 
+interface OutletContext {
+  teacher: any;
+}
+
 export default function TeacherPortalProfile() {
   const { toast } = useToast();
-  const [teacher, setTeacher] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { teacher: initialTeacher } = useOutletContext<OutletContext>();
+  const [teacher, setTeacher] = useState<any>(initialTeacher);
+  const [loading, setLoading] = useState(!initialTeacher);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -22,19 +28,27 @@ export default function TeacherPortalProfile() {
   });
 
   useEffect(() => {
-    fetchTeacherData();
-  }, []);
+    if (initialTeacher) {
+      setTeacher(initialTeacher);
+      setFormData({
+        first_name: initialTeacher.first_name || "",
+        last_name: initialTeacher.last_name || "",
+        email: initialTeacher.email || "",
+        phone: initialTeacher.phone || "",
+        specialization: initialTeacher.specialization || "",
+      });
+      setLoading(false);
+    }
+  }, [initialTeacher]);
 
   const fetchTeacherData = async () => {
+    if (!teacher?.id) return;
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return;
-
       const { data, error } = await supabase
         .from("teachers")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("id", teacher.id)
         .single();
 
       if (error) throw error;
@@ -53,8 +67,6 @@ export default function TeacherPortalProfile() {
         description: "Failed to load profile data",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -226,7 +238,7 @@ export default function TeacherPortalProfile() {
             <CardTitle>Employment Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>Employee Number</Label>
                 <p className="text-sm">{teacher?.employee_number || "N/A"}</p>
@@ -235,6 +247,11 @@ export default function TeacherPortalProfile() {
               <div className="space-y-2">
                 <Label>TSC Number</Label>
                 <p className="text-sm">{teacher?.tsc_number || "N/A"}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>ID Number</Label>
+                <p className="text-sm">{teacher?.id_number || "N/A"}</p>
               </div>
 
               <div className="space-y-2">
