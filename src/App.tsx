@@ -8,6 +8,8 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { SessionTimeoutWarning } from "@/components/SessionTimeoutWarning";
 import Dashboard from "./pages/Dashboard";
 import Learners from "./pages/Students";
 import Alumni from "./pages/Alumni";
@@ -55,6 +57,21 @@ import TeacherSettings from "./pages/TeacherSettings";
 
 const queryClient = new QueryClient();
 
+function SessionTimeoutWrapper({ children }: { children: React.ReactNode }) {
+  const { showWarning, timeRemaining, extendSession } = useSessionTimeout();
+  
+  return (
+    <>
+      {children}
+      <SessionTimeoutWarning
+        open={showWarning}
+        timeRemaining={timeRemaining}
+        onExtend={extendSession}
+      />
+    </>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
@@ -63,7 +80,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
+            <SessionTimeoutWrapper>
+              <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/signout" element={<Signout />} />
             
@@ -118,6 +136,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+            </SessionTimeoutWrapper>
         </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>
