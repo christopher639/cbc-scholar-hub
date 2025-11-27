@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, FileText, Users, TrendingUp } from "lucide-react";
 
+interface OutletContext {
+  teacher: any;
+}
+
 export default function TeacherDashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { teacher } = useOutletContext<OutletContext>();
   const [stats, setStats] = useState({
     learningAreas: 0,
     totalAssignments: 0,
@@ -15,72 +20,34 @@ export default function TeacherDashboard() {
     averagePerformance: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [teacher, setTeacher] = useState<any>(null);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (teacher) {
+      fetchDashboardData();
+    }
+  }, [teacher]);
 
   const fetchDashboardData = async () => {
+    if (!teacher) return;
+    
     try {
-      // Get teacher session from localStorage
-      const teacherSession = localStorage.getItem("teacher_session");
-      if (!teacherSession) {
-        navigate("/auth");
-        return;
-      }
-
-      // Verify session and get teacher data
-      const { data: sessionData, error: sessionError } = await supabase
-        .from("teacher_sessions")
-        .select("teacher_id")
-        .eq("session_token", teacherSession)
-        .gt("expires_at", new Date().toISOString())
-        .maybeSingle();
-
-      if (sessionError || !sessionData) {
-        localStorage.removeItem("teacher_session");
-        navigate("/auth");
-        return;
-      }
-
-      // Fetch teacher data
-      const { data: teacherData, error: teacherError } = await supabase
-        .from("teachers")
-        .select("*")
-        .eq("id", sessionData.teacher_id)
-        .single();
-
-      if (teacherError || !teacherData) {
-        console.error("Error fetching teacher:", teacherError);
-        toast({
-          title: "Error",
-          description: "Failed to load teacher information",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return;
-      }
-
-      setTeacher(teacherData);
-
       // Get learning areas count for this teacher
       const { count: areasCount } = await supabase
         .from("learning_areas")
         .select("*", { count: "exact", head: true })
-        .eq("teacher_id", teacherData.id);
+        .eq("teacher_id", teacher.id);
 
       // Get assignments count for this teacher
       const { count: assignmentsCount } = await supabase
         .from("assignments")
         .select("*", { count: "exact", head: true })
-        .eq("teacher_id", teacherData.id);
+        .eq("teacher_id", teacher.id);
 
       // Get pending submissions count for this teacher's assignments
       const { data: assignments } = await supabase
         .from("assignments")
         .select("id")
-        .eq("teacher_id", teacherData.id);
+        .eq("teacher_id", teacher.id);
 
       let pendingCount = 0;
       if (assignments && assignments.length > 0) {
@@ -96,7 +63,7 @@ export default function TeacherDashboard() {
       const { data: performanceData } = await supabase
         .from("performance_records")
         .select("marks")
-        .eq("teacher_id", teacherData.id);
+        .eq("teacher_id", teacher.id);
 
       const avgPerformance = performanceData && performanceData.length > 0
         ? performanceData.reduce((sum, p) => sum + Number(p.marks), 0) / performanceData.length

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,20 +9,24 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Eye, Edit, Trash2, FileText } from "lucide-react";
+import { Plus, Trash2, FileText, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { useGrades } from "@/hooks/useGrades";
 
+interface OutletContext {
+  teacher: any;
+}
+
 export default function TeacherAssignments() {
   const { toast } = useToast();
+  const { teacher } = useOutletContext<OutletContext>();
   const { currentPeriod } = useAcademicPeriods();
   const { grades } = useGrades();
   const [assignments, setAssignments] = useState<any[]>([]);
   const [learningAreas, setLearningAreas] = useState<any[]>([]);
   const [streams, setStreams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [teacher, setTeacher] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -32,10 +37,6 @@ export default function TeacherAssignments() {
     due_date: "",
     total_marks: "100",
   });
-
-  useEffect(() => {
-    fetchTeacherData();
-  }, []);
 
   useEffect(() => {
     if (teacher) {
@@ -50,20 +51,9 @@ export default function TeacherAssignments() {
     }
   }, [formData.grade_id]);
 
-  const fetchTeacherData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("teachers")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
-
-    setTeacher(data);
-  };
-
   const fetchAssignments = async () => {
+    if (!teacher?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from("assignments")
@@ -90,6 +80,8 @@ export default function TeacherAssignments() {
   };
 
   const fetchLearningAreas = async () => {
+    if (!teacher?.id) return;
+    
     const { data } = await supabase
       .from("learning_areas")
       .select("*")
@@ -187,8 +179,8 @@ export default function TeacherAssignments() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="container mx-auto p-4 flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -327,62 +319,72 @@ export default function TeacherAssignments() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
-        {assignments.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No assignments yet</p>
-              <p className="text-sm text-muted-foreground">Create your first assignment to get started</p>
-            </CardContent>
-          </Card>
-        ) : (
-          assignments.map((assignment) => (
-            <Card key={assignment.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{assignment.title}</CardTitle>
-                    <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-                      <span>{assignment.learning_area?.name}</span>
-                      <span>•</span>
-                      <span>{assignment.grade?.name}</span>
-                      {assignment.stream && (
-                        <>
-                          <span>•</span>
-                          <span>{assignment.stream.name}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(assignment.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {assignment.description && (
-                  <p className="text-sm text-muted-foreground">{assignment.description}</p>
-                )}
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Due:</span>{" "}
-                    {format(new Date(assignment.due_date), "MMM dd, yyyy")}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Total Marks:</span>{" "}
-                    {assignment.total_marks}
-                  </div>
-                </div>
+      {learningAreas.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No learning areas assigned</p>
+            <p className="text-sm text-muted-foreground">Contact the administrator to assign learning areas to you</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {assignments.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No assignments yet</p>
+                <p className="text-sm text-muted-foreground">Create your first assignment to get started</p>
               </CardContent>
             </Card>
-          ))
-        )}
-      </div>
+          ) : (
+            assignments.map((assignment) => (
+              <Card key={assignment.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-lg">{assignment.title}</CardTitle>
+                      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                        <span>{assignment.learning_area?.name}</span>
+                        <span>•</span>
+                        <span>{assignment.grade?.name}</span>
+                        {assignment.stream && (
+                          <>
+                            <span>•</span>
+                            <span>{assignment.stream.name}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(assignment.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {assignment.description && (
+                    <p className="text-sm text-muted-foreground">{assignment.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Due:</span>{" "}
+                      {format(new Date(assignment.due_date), "MMM dd, yyyy")}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Total Marks:</span>{" "}
+                      {assignment.total_marks}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }

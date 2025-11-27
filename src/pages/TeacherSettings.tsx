@@ -1,64 +1,25 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { LogOut, Lock } from "lucide-react";
+import { LogOut, User } from "lucide-react";
+
+interface OutletContext {
+  teacher: any;
+}
 
 export default function TeacherSettings() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [passwords, setPasswords] = useState({
-    current: "",
-    new: "",
-    confirm: "",
-  });
-  const [loading, setLoading] = useState(false);
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (passwords.new !== passwords.confirm) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: passwords.new,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Password changed successfully",
-      });
-
-      setPasswords({ current: "", new: "", confirm: "" });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { logout } = useAuth();
+  const { teacher } = useOutletContext<OutletContext>();
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      navigate("/auth");
+      await logout();
+      navigate("/auth", { replace: true });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -76,45 +37,29 @@ export default function TeacherSettings() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 max-w-2xl">
-        {/* Change Password */}
+        {/* Account Info */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              Change Password
+              <User className="h-5 w-5" />
+              Account Information
             </CardTitle>
             <CardDescription>
-              Update your password to keep your account secure
+              Your login credentials
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  value={passwords.new}
-                  onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  value={passwords.confirm}
-                  onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                  required
-                />
-              </div>
-
-              <Button type="submit" disabled={loading}>
-                {loading ? "Changing..." : "Change Password"}
-              </Button>
-            </form>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Employee Number (Username)</p>
+              <p className="font-medium">{teacher?.employee_number || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">ID Number (Password)</p>
+              <p className="font-medium">{teacher?.id_number ? "••••••••" : "N/A"}</p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Contact the administrator to update your login credentials.
+            </p>
           </CardContent>
         </Card>
 
