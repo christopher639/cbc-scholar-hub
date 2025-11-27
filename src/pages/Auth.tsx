@@ -22,7 +22,7 @@ export default function Auth() {
       if (user.role === "learner") {
         navigate("/learner-portal", { replace: true });
       } else if (user.role === "teacher") {
-        navigate("/performance", { replace: true });
+        navigate("/teacher-portal", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
@@ -39,7 +39,7 @@ export default function Auth() {
       if (result.role === "learner") {
         navigate("/learner-portal", { replace: true });
       } else if (result.role === "teacher") {
-        navigate("/performance", { replace: true });
+        navigate("/teacher-portal", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
