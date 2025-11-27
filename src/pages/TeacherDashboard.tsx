@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, FileText, Users, TrendingUp } from "lucide-react";
-import { formatCurrency } from "@/lib/currency";
 
 export default function TeacherDashboard() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     learningAreas: 0,
     totalAssignments: 0,
@@ -22,33 +23,60 @@ export default function TeacherDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return;
+      // Get teacher session from localStorage
+      const teacherSession = localStorage.getItem("teacher_session");
+      if (!teacherSession) {
+        navigate("/auth");
+        return;
+      }
 
-      const { data: teacherData } = await supabase
+      // Verify session and get teacher data
+      const { data: sessionData, error: sessionError } = await supabase
+        .from("teacher_sessions")
+        .select("teacher_id")
+        .eq("session_token", teacherSession)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+
+      if (sessionError || !sessionData) {
+        localStorage.removeItem("teacher_session");
+        navigate("/auth");
+        return;
+      }
+
+      // Fetch teacher data
+      const { data: teacherData, error: teacherError } = await supabase
         .from("teachers")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("id", sessionData.teacher_id)
         .single();
+
+      if (teacherError || !teacherData) {
+        console.error("Error fetching teacher:", teacherError);
+        toast({
+          title: "Error",
+          description: "Failed to load teacher information",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
 
       setTeacher(teacherData);
 
-      if (!teacherData) return;
-
-      // Get learning areas count
+      // Get learning areas count for this teacher
       const { count: areasCount } = await supabase
         .from("learning_areas")
         .select("*", { count: "exact", head: true })
         .eq("teacher_id", teacherData.id);
 
-      // Get assignments count
+      // Get assignments count for this teacher
       const { count: assignmentsCount } = await supabase
         .from("assignments")
         .select("*", { count: "exact", head: true })
         .eq("teacher_id", teacherData.id);
 
-      // Get pending submissions count
+      // Get pending submissions count for this teacher's assignments
       const { data: assignments } = await supabase
         .from("assignments")
         .select("id")
@@ -64,7 +92,7 @@ export default function TeacherDashboard() {
         pendingCount = count || 0;
       }
 
-      // Get average performance for teacher's learning areas
+      // Get average performance for this teacher's learning areas
       const { data: performanceData } = await supabase
         .from("performance_records")
         .select("marks")
@@ -81,6 +109,7 @@ export default function TeacherDashboard() {
         averagePerformance: Math.round(avgPerformance),
       });
     } catch (error: any) {
+      console.error("Dashboard error:", error);
       toast({
         title: "Error",
         description: "Failed to load dashboard data",
@@ -96,7 +125,7 @@ export default function TeacherDashboard() {
       title: "Learning Areas",
       value: stats.learningAreas,
       icon: BookOpen,
-      description: "Subjects assigned",
+      description: "Subjects assigned to you",
     },
     {
       title: "Total Assignments",
@@ -179,7 +208,7 @@ export default function TeacherDashboard() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
-            onClick={() => window.location.href = "/teacher-portal/marks"}
+            onClick={() => navigate("/teacher-portal/marks")}
             className="p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
           >
             <BookOpen className="h-6 w-6 mb-2 text-primary" />
@@ -189,7 +218,7 @@ export default function TeacherDashboard() {
             </p>
           </button>
           <button
-            onClick={() => window.location.href = "/teacher-portal/assignments"}
+            onClick={() => navigate("/teacher-portal/assignments")}
             className="p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
           >
             <FileText className="h-6 w-6 mb-2 text-primary" />
@@ -199,7 +228,7 @@ export default function TeacherDashboard() {
             </p>
           </button>
           <button
-            onClick={() => window.location.href = "/teacher-portal/profile"}
+            onClick={() => navigate("/teacher-portal/profile")}
             className="p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
           >
             <Users className="h-6 w-6 mb-2 text-primary" />

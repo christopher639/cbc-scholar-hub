@@ -19,11 +19,9 @@ export default function Auth() {
 
   useEffect(() => {
     if (user && !loading) {
-      console.log("Auth redirect - User role:", user.role);
       if (user.role === "learner") {
         navigate("/learner-portal", { replace: true });
       } else if (user.role === "teacher") {
-        console.log("Redirecting teacher to portal");
         navigate("/teacher-portal", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
@@ -36,21 +34,15 @@ export default function Auth() {
     
     const result = await login(username, password);
     
-    console.log("Login result:", result);
-    
     // Explicitly navigate based on result
     if (result?.success) {
-      console.log("Login successful, role:", result.role);
       if (result.role === "learner") {
         navigate("/learner-portal", { replace: true });
       } else if (result.role === "teacher") {
-        console.log("Navigating teacher to /teacher-portal");
         navigate("/teacher-portal", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
-    } else {
-      console.log("Login failed:", result);
     }
   };
 
