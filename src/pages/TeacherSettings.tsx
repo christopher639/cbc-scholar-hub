@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "next-themes";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { LogOut, User, Moon } from "lucide-react";
 
 interface OutletContext {
   teacher: any;
@@ -15,6 +18,7 @@ export default function TeacherSettings() {
   const { toast } = useToast();
   const { logout } = useAuth();
   const { teacher } = useOutletContext<OutletContext>();
+  const { theme, setTheme } = useTheme();
 
   const handleLogout = async () => {
     try {
@@ -37,6 +41,34 @@ export default function TeacherSettings() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 max-w-2xl">
+        {/* Appearance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Moon className="h-5 w-5" />
+              Appearance
+            </CardTitle>
+            <CardDescription>
+              Customize how the portal looks
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="dark-mode" className="flex flex-col gap-1">
+                <span>Dark Mode</span>
+                <span className="text-sm text-muted-foreground font-normal">
+                  Toggle dark mode on or off
+                </span>
+              </Label>
+              <Switch
+                id="dark-mode"
+                checked={theme === "dark"}
+                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Account Info */}
         <Card>
           <CardHeader>

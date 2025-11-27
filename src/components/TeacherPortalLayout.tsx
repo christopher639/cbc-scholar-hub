@@ -1,17 +1,26 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Home, BookOpen, FileText, User, Settings } from "lucide-react";
+import { Home, BookOpen, FileText, User, Settings, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function TeacherPortalLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { schoolInfo } = useSchoolInfo();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [teacher, setTeacher] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,6 +66,19 @@ export function TeacherPortalLayout() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/auth", { replace: true });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to logout",
+        variant: "destructive",
+      });
+    }
+  };
+
   const navItems = [
     { path: "/teacher-portal", icon: Home, label: "Dashboard" },
     { path: "/teacher-portal/marks", icon: BookOpen, label: "Marks" },
@@ -72,6 +94,10 @@ export function TeacherPortalLayout() {
       </div>
     );
   }
+
+  const teacherInitials = teacher 
+    ? `${teacher.first_name?.[0] || ''}${teacher.last_name?.[0] || ''}`.toUpperCase()
+    : 'T';
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -110,18 +136,46 @@ export function TeacherPortalLayout() {
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
-          {teacher?.photo_url && (
-            <img
-              src={teacher.photo_url}
-              alt="Teacher"
-              className="h-8 w-8 rounded-full object-cover"
-            />
-          )}
-          <span className="text-sm font-medium hidden sm:inline">
-            {teacher?.first_name} {teacher?.last_name}
-          </span>
-        </div>
+        {/* Teacher Avatar Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Avatar className="h-8 w-8 cursor-pointer">
+                <AvatarImage src={teacher?.photo_url} alt={teacher?.first_name} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                  {teacherInitials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium hidden sm:inline">
+                {teacher?.first_name} {teacher?.last_name}
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+              <div className="flex flex-col">
+                <span>{teacher?.first_name} {teacher?.last_name}</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  {teacher?.email}
+                </span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/teacher-portal/profile")}>
+              <User className="mr-2 h-4 w-4" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/teacher-portal/settings")}>
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Main Content */}
