@@ -210,13 +210,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginTeacher = async (tscNumber: string, idNumber: string, silent = false) => {
+  const loginTeacher = async (employeeNumber: string, idNumber: string, silent = false) => {
     try {
-      // Try case-insensitive search using ilike for TSC number and ID number
+      // Try case-insensitive search using ilike for employee number and ID number
       const { data: teacherData } = await supabase
         .from("teachers")
         .select("*")
-        .ilike("tsc_number", tscNumber.trim())
+        .ilike("employee_number", employeeNumber.trim())
         .ilike("id_number", idNumber.trim())
         .maybeSingle();
 
