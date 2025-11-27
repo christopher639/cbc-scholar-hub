@@ -7,7 +7,6 @@ import { BookOpen, FileText, Users, TrendingUp, Award } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
   LineChart,
@@ -200,39 +199,39 @@ export default function TeacherDashboard() {
       title: "Learning Areas",
       value: stats.learningAreas,
       icon: BookOpen,
-      description: "Subjects assigned to you",
+      description: "Subjects assigned",
     },
     {
-      title: "Total Assignments",
+      title: "Assignments",
       value: stats.totalAssignments,
       icon: FileText,
-      description: "Created assignments",
+      description: "Created",
     },
     {
-      title: "Pending Reviews",
+      title: "Pending",
       value: stats.pendingSubmissions,
       icon: Users,
       description: "Awaiting grading",
     },
     {
-      title: "Class Average",
+      title: "Class Avg",
       value: `${stats.averagePerformance}%`,
       icon: TrendingUp,
-      description: "Overall performance",
+      description: "Performance",
     },
   ];
 
   if (loading) {
     return (
-      <div className="container mx-auto p-4 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="w-full px-3 md:px-6 py-4 space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i}>
-              <CardHeader className="space-y-2">
-                <div className="h-4 bg-muted animate-pulse rounded" />
+              <CardHeader className="p-3 md:p-6 space-y-2">
+                <div className="h-3 md:h-4 bg-muted animate-pulse rounded" />
               </CardHeader>
-              <CardContent>
-                <div className="h-8 bg-muted animate-pulse rounded" />
+              <CardContent className="p-3 md:p-6 pt-0">
+                <div className="h-6 md:h-8 bg-muted animate-pulse rounded" />
               </CardContent>
             </Card>
           ))}
@@ -242,32 +241,32 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="w-full px-3 md:px-6 py-4 space-y-4 md:space-y-6">
       {/* Welcome Section */}
-      <div className="space-y-2">
-        <h1 className="text-2xl md:text-3xl font-bold">
-          Welcome back, {teacher?.first_name}!
+      <div className="space-y-1">
+        <h1 className="text-xl md:text-3xl font-bold">
+          Welcome, {teacher?.first_name}!
         </h1>
-        <p className="text-muted-foreground">
-          Here's an overview of your teaching activities
+        <p className="text-xs md:text-sm text-muted-foreground">
+          Overview of your teaching activities
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Grid - 2 columns on mobile, 4 on desktop */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         {statsCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-6 pb-1 md:pb-2">
+                <CardTitle className="text-[10px] md:text-sm font-medium truncate">
                   {stat.title}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <Icon className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
+              <CardContent className="p-3 md:p-6 pt-0">
+                <div className="text-lg md:text-2xl font-bold">{stat.value}</div>
+                <p className="text-[9px] md:text-xs text-muted-foreground truncate">
                   {stat.description}
                 </p>
               </CardContent>
@@ -277,35 +276,35 @@ export default function TeacherDashboard() {
       </div>
 
       {/* Best Performing Area & Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {/* Best Performing Learning Area */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-yellow-500" />
+          <CardHeader className="p-3 md:p-6 pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm md:text-base">
+              <Award className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
               Best Performing Area
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-6 pt-0">
             {bestPerformingArea ? (
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 <div>
-                  <p className="text-lg font-semibold">{bestPerformingArea.name}</p>
-                  <p className="text-sm text-muted-foreground">Code: {bestPerformingArea.code}</p>
+                  <p className="text-sm md:text-lg font-semibold truncate">{bestPerformingArea.name}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">Code: {bestPerformingArea.code}</p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 md:gap-4">
                   <div>
-                    <p className="text-3xl font-bold">{Math.round(bestPerformingArea.average)}%</p>
-                    <p className="text-xs text-muted-foreground">Class Average</p>
+                    <p className="text-xl md:text-3xl font-bold">{Math.round(bestPerformingArea.average)}%</p>
+                    <p className="text-[9px] md:text-xs text-muted-foreground">Class Average</p>
                   </div>
                   <div>
-                    <p className={`text-2xl font-bold ${getGradeColor(getGradeCategory(bestPerformingArea.average))}`}>
+                    <p className={`text-lg md:text-2xl font-bold ${getGradeColor(getGradeCategory(bestPerformingArea.average))}`}>
                       {getGradeCategory(bestPerformingArea.average)}
                     </p>
-                    <p className="text-xs text-muted-foreground">Grade</p>
+                    <p className="text-[9px] md:text-xs text-muted-foreground">Grade</p>
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground mt-2">
+                <div className="text-[8px] md:text-xs text-muted-foreground grid grid-cols-2 gap-x-2">
                   <p>E.E = Exceeding (80%+)</p>
                   <p>M.E = Meeting (50-79%)</p>
                   <p>A.E = Approaching (30-49%)</p>
@@ -313,17 +312,17 @@ export default function TeacherDashboard() {
                 </div>
               </div>
             ) : (
-              <p className="text-muted-foreground">No performance data available</p>
+              <p className="text-xs md:text-sm text-muted-foreground">No performance data available</p>
             )}
           </CardContent>
         </Card>
 
         {/* Class Performance Overview - Radar Chart */}
         <Card>
-          <CardHeader>
-            <CardTitle>Class Performance Overview</CardTitle>
+          <CardHeader className="p-3 md:p-6 pb-2">
+            <CardTitle className="text-sm md:text-base">Class Performance</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-6 pt-0">
             {classPerformanceData.length > 0 ? (
               <ChartContainer
                 config={{
@@ -332,13 +331,13 @@ export default function TeacherDashboard() {
                     color: "hsl(var(--primary))",
                   },
                 }}
-                className="h-[250px]"
+                className="h-[160px] md:h-[220px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={classPerformanceData}>
                     <PolarGrid />
-                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 8 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
                     <Radar
                       name="Class Average"
                       dataKey="average"
@@ -351,10 +350,10 @@ export default function TeacherDashboard() {
                         if (payload && payload.length > 0) {
                           const data = payload[0].payload;
                           return (
-                            <div className="bg-card border border-border rounded-md p-2 shadow-md">
+                            <div className="bg-card border border-border rounded-md p-2 shadow-md text-xs">
                               <p className="font-medium">{data.fullName}</p>
-                              <p className="text-sm">Average: {data.average}%</p>
-                              <p className={`text-sm font-medium ${getGradeColor(getGradeCategory(data.average))}`}>
+                              <p>Average: {data.average}%</p>
+                              <p className={`font-medium ${getGradeColor(getGradeCategory(data.average))}`}>
                                 Grade: {getGradeCategory(data.average)}
                               </p>
                             </div>
@@ -367,17 +366,17 @@ export default function TeacherDashboard() {
                 </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <p className="text-muted-foreground text-center py-10">No performance data available</p>
+              <p className="text-xs md:text-sm text-muted-foreground text-center py-6 md:py-10">No performance data</p>
             )}
           </CardContent>
         </Card>
 
         {/* Performance Over Time */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance Over Time</CardTitle>
+        <Card className="md:col-span-2 lg:col-span-1">
+          <CardHeader className="p-3 md:p-6 pb-2">
+            <CardTitle className="text-sm md:text-base">Performance Over Time</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-6 pt-0">
             {performanceOverTime.length > 0 ? (
               <ChartContainer
                 config={{
@@ -386,28 +385,29 @@ export default function TeacherDashboard() {
                     color: "hsl(var(--primary))",
                   },
                 }}
-                className="h-[250px]"
+                className="h-[160px] md:h-[220px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={performanceOverTime}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="period" 
-                      tick={{ fontSize: 9 }} 
+                      tick={{ fontSize: 7 }} 
                       angle={-45} 
                       textAnchor="end"
-                      height={60}
+                      height={50}
+                      interval={0}
                     />
-                    <YAxis domain={[0, 100]} />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 8 }} width={25} />
                     <ChartTooltip
                       content={({ payload }) => {
                         if (payload && payload.length > 0) {
                           const data = payload[0].payload;
                           return (
-                            <div className="bg-card border border-border rounded-md p-2 shadow-md">
-                              <p className="font-medium text-xs">{data.period}</p>
-                              <p className="text-sm">Average: {data.average}%</p>
-                              <p className={`text-sm font-medium ${getGradeColor(getGradeCategory(data.average))}`}>
+                            <div className="bg-card border border-border rounded-md p-2 shadow-md text-xs">
+                              <p className="font-medium">{data.period}</p>
+                              <p>Average: {data.average}%</p>
+                              <p className={`font-medium ${getGradeColor(getGradeCategory(data.average))}`}>
                                 Grade: {getGradeCategory(data.average)}
                               </p>
                             </div>
@@ -421,13 +421,13 @@ export default function TeacherDashboard() {
                       dataKey="average"
                       stroke="hsl(var(--primary))"
                       strokeWidth={2}
-                      dot={{ fill: "hsl(var(--primary))", strokeWidth: 2 }}
+                      dot={{ fill: "hsl(var(--primary))", r: 3 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <p className="text-muted-foreground text-center py-10">No historical data available</p>
+              <p className="text-xs md:text-sm text-muted-foreground text-center py-6 md:py-10">No historical data</p>
             )}
           </CardContent>
         </Card>
@@ -435,38 +435,38 @@ export default function TeacherDashboard() {
 
       {/* Quick Actions */}
       <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+        <CardHeader className="p-3 md:p-6 pb-2">
+          <CardTitle className="text-sm md:text-base">Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="p-3 md:p-6 pt-0 grid grid-cols-3 gap-2 md:gap-4">
           <button
             onClick={() => navigate("/teacher-portal/marks")}
-            className="p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
+            className="p-2 md:p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
           >
-            <BookOpen className="h-6 w-6 mb-2 text-primary" />
-            <h3 className="font-semibold">Post Marks</h3>
-            <p className="text-sm text-muted-foreground">
+            <BookOpen className="h-4 w-4 md:h-6 md:w-6 mb-1 md:mb-2 text-primary" />
+            <h3 className="text-xs md:text-base font-semibold">Post Marks</h3>
+            <p className="text-[9px] md:text-sm text-muted-foreground hidden sm:block">
               Enter performance records
             </p>
           </button>
           <button
             onClick={() => navigate("/teacher-portal/assignments")}
-            className="p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
+            className="p-2 md:p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
           >
-            <FileText className="h-6 w-6 mb-2 text-primary" />
-            <h3 className="font-semibold">Create Assignment</h3>
-            <p className="text-sm text-muted-foreground">
+            <FileText className="h-4 w-4 md:h-6 md:w-6 mb-1 md:mb-2 text-primary" />
+            <h3 className="text-xs md:text-base font-semibold">Assignments</h3>
+            <p className="text-[9px] md:text-sm text-muted-foreground hidden sm:block">
               Post new assignments
             </p>
           </button>
           <button
             onClick={() => navigate("/teacher-portal/profile")}
-            className="p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
+            className="p-2 md:p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
           >
-            <Users className="h-6 w-6 mb-2 text-primary" />
-            <h3 className="font-semibold">View Profile</h3>
-            <p className="text-sm text-muted-foreground">
-              Manage your information
+            <Users className="h-4 w-4 md:h-6 md:w-6 mb-1 md:mb-2 text-primary" />
+            <h3 className="text-xs md:text-base font-semibold">Profile</h3>
+            <p className="text-[9px] md:text-sm text-muted-foreground hidden sm:block">
+              Manage your info
             </p>
           </button>
         </CardContent>
