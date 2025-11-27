@@ -495,7 +495,7 @@ export default function LearnerDashboard() {
       </Card>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <Card className="border-0 shadow-none">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -504,23 +504,6 @@ export default function LearnerDashboard() {
                 <p className="text-sm font-bold text-destructive">KES {feeBalance.toLocaleString()}</p>
               </div>
               <DollarSign className="h-6 w-6 text-destructive" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-none">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Position</p>
-                <p className="text-sm font-bold">
-                  {position ? `${position.stream}/${position.streamTotal} Stream` : "N/A"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {position ? `${position.grade}/${position.gradeTotal} Grade` : ""}
-                </p>
-              </div>
-              <Users className="h-6 w-6 text-primary" />
             </div>
           </CardContent>
         </Card>
