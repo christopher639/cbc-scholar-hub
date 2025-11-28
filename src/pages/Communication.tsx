@@ -21,6 +21,7 @@ export default function Communication() {
   const { streams } = useStreams();
   const { data: recentMessages, isLoading: messagesLoading } = useRecentMessages();
   const [loading, setLoading] = useState(false);
+  const [showAllMessages, setShowAllMessages] = useState(false);
   
   const [formData, setFormData] = useState({
     messageType: "both",
@@ -350,7 +351,7 @@ export default function Communication() {
                   <div className="text-sm text-muted-foreground">No messages sent yet</div>
                 ) : (
                   <div className="space-y-3">
-                    {recentMessages.map((msg: any) => (
+                    {(showAllMessages ? recentMessages : recentMessages.slice(0, 5)).map((msg: any) => (
                       <div
                         key={msg.id}
                         className="p-3 border border-border rounded-lg space-y-2"
@@ -395,6 +396,16 @@ export default function Communication() {
                         </div>
                       </div>
                     ))}
+                    {recentMessages.length > 5 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-muted-foreground"
+                        onClick={() => setShowAllMessages(!showAllMessages)}
+                      >
+                        {showAllMessages ? "Show Less" : `Show More (${recentMessages.length - 5} more)`}
+                      </Button>
+                    )}
                   </div>
                 )}
               </CardContent>
