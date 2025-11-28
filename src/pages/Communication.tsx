@@ -12,7 +12,7 @@ import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { useRecentMessages } from "@/hooks/useRecentMessages";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle, Users, GraduationCap } from "lucide-react";
 import { format } from "date-fns";
 
 export default function Communication() {
@@ -24,7 +24,7 @@ export default function Communication() {
   
   const [formData, setFormData] = useState({
     messageType: "both",
-    recipientType: "all",
+    recipientType: "all_parents",
     gradeId: "",
     streamId: "",
     subject: "",
@@ -47,6 +47,25 @@ export default function Communication() {
       return;
     }
 
+    // Validate grade selection for grade/stream recipient types
+    if ((formData.recipientType === "grade" || formData.recipientType === "stream") && !formData.gradeId) {
+      toast({
+        title: "Error",
+        description: "Please select a grade",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.recipientType === "stream" && !formData.streamId) {
+      toast({
+        title: "Error",
+        description: "Please select a stream",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -56,13 +75,16 @@ export default function Communication() {
         throw new Error("You must be logged in");
       }
 
+      // Map recipient type to database format
+      const dbRecipientType = formData.recipientType === "all_parents" ? "all" : formData.recipientType;
+
       // Insert bulk message record
       const { error } = await supabase
         .from("bulk_messages")
         .insert({
           sender_id: user.id,
           message_type: formData.messageType,
-          recipient_type: formData.recipientType,
+          recipient_type: dbRecipientType,
           grade_id: formData.gradeId || null,
           stream_id: formData.streamId || null,
           subject: formData.subject || null,
@@ -87,17 +109,18 @@ export default function Communication() {
         }).catch(err => console.error("Error triggering email send:", err));
       }
 
+      const recipientLabel = formData.recipientType === "all_teachers" ? "teachers" : "parents";
       toast({
         title: "Success",
         description: formData.messageType === "email" || formData.messageType === "both" 
-          ? "Emails are being sent to parent recipients. Check recent messages for status." 
+          ? `Emails are being sent to ${recipientLabel}. Check recent messages for status.` 
           : "Message sent successfully.",
       });
 
       // Reset form
       setFormData({
         messageType: "both",
-        recipientType: "all",
+        recipientType: "all_parents",
         gradeId: "",
         streamId: "",
         subject: "",
@@ -127,12 +150,28 @@ export default function Communication() {
     }
   };
 
+  const getRecipientLabel = (recipientType: string) => {
+    switch (recipientType) {
+      case "all":
+      case "all_parents":
+        return "All Parents";
+      case "all_teachers":
+        return "All Teachers";
+      case "grade":
+        return "Grade Parents";
+      case "stream":
+        return "Stream Parents";
+      default:
+        return recipientType;
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Communication</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Send bulk messages and emails to parents</p>
+          <p className="text-sm sm:text-base text-muted-foreground">Send bulk messages and emails to parents and teachers</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -141,7 +180,7 @@ export default function Communication() {
           <CardHeader>
             <CardTitle>Send Bulk Message</CardTitle>
             <CardDescription>
-              Send messages via SMS, email, or both to parents and guardians
+              Send messages via SMS, email, or both to parents, guardians, or teachers
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -187,17 +226,30 @@ export default function Communication() {
                     setFormData({ ...formData, recipientType: value, gradeId: "", streamId: "" });
                   }}
                 >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="all" id="all" />
-                    <Label htmlFor="all" className="cursor-pointer">All Parents (Whole School)</Label>
+                  <div className="font-medium text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Parents
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 ml-4">
+                    <RadioGroupItem value="all_parents" id="all_parents" />
+                    <Label htmlFor="all_parents" className="cursor-pointer">All Parents (Whole School)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-4">
                     <RadioGroupItem value="grade" id="grade" />
-                    <Label htmlFor="grade" className="cursor-pointer">Specific Grade</Label>
+                    <Label htmlFor="grade" className="cursor-pointer">Parents of Specific Grade</Label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 ml-4">
                     <RadioGroupItem value="stream" id="stream" />
-                    <Label htmlFor="stream" className="cursor-pointer">Specific Stream</Label>
+                    <Label htmlFor="stream" className="cursor-pointer">Parents of Specific Stream</Label>
+                  </div>
+                  
+                  <div className="font-medium text-sm text-muted-foreground mt-4 mb-2 flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4" />
+                    Teachers
+                  </div>
+                  <div className="flex items-center space-x-2 ml-4">
+                    <RadioGroupItem value="all_teachers" id="all_teachers" />
+                    <Label htmlFor="all_teachers" className="cursor-pointer">All Teachers</Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -323,6 +375,7 @@ export default function Communication() {
                             )}
                             {msg.message_type}
                           </span>
+                          <span>• {getRecipientLabel(msg.recipient_type)}</span>
                           {msg.grades && (
                             <span>• {msg.grades.name}</span>
                           )}
