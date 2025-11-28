@@ -33,43 +33,71 @@ serve(async (req) => {
       throw new Error("Message not found");
     }
 
-    // Build query to get recipients based on recipient_type
-    let recipientsQuery = supabase
-      .from("learners")
-      .select(`
-        id,
-        first_name,
-        last_name,
-        parent_id,
-        parents!inner(email, first_name, last_name)
-      `)
-      .eq("status", "active");
-
-    if (message.recipient_type === "grade" && message.grade_id) {
-      recipientsQuery = recipientsQuery.eq("current_grade_id", message.grade_id);
-    } else if (message.recipient_type === "stream" && message.stream_id) {
-      recipientsQuery = recipientsQuery.eq("current_stream_id", message.stream_id);
-    }
-
-    const { data: learners, error: learnersError } = await recipientsQuery;
-
-    if (learnersError) {
-      throw learnersError;
-    }
-
-    console.log(`Found ${learners?.length || 0} recipients`);
-
-    // Extract unique parent emails
-    const parentEmails = new Set<string>();
-    learners?.forEach((learner: any) => {
-      if (learner.parents?.email) {
-        parentEmails.add(learner.parents.email);
-      }
+    console.log("Message details:", {
+      recipient_type: message.recipient_type,
+      message_type: message.message_type,
+      grade_id: message.grade_id,
+      stream_id: message.stream_id
     });
 
-    const emailList = Array.from(parentEmails);
+    let emailList: string[] = [];
     let sentCount = 0;
     let failedCount = 0;
+
+    // Handle different recipient types
+    if (message.recipient_type === "all_teachers") {
+      // Get all teachers' emails
+      const { data: teachers, error: teachersError } = await supabase
+        .from("teachers")
+        .select("email, first_name, last_name");
+
+      if (teachersError) {
+        console.error("Error fetching teachers:", teachersError);
+        throw teachersError;
+      }
+
+      emailList = teachers?.filter(t => t.email).map(t => t.email) || [];
+      console.log(`Found ${emailList.length} teachers to email`);
+
+    } else {
+      // Get parent recipients based on recipient_type (all, grade, stream)
+      let recipientsQuery = supabase
+        .from("learners")
+        .select(`
+          id,
+          first_name,
+          last_name,
+          parent_id,
+          parents!inner(email, first_name, last_name)
+        `)
+        .eq("status", "active");
+
+      if (message.recipient_type === "grade" && message.grade_id) {
+        recipientsQuery = recipientsQuery.eq("current_grade_id", message.grade_id);
+      } else if (message.recipient_type === "stream" && message.stream_id) {
+        recipientsQuery = recipientsQuery.eq("current_stream_id", message.stream_id);
+      }
+
+      const { data: learners, error: learnersError } = await recipientsQuery;
+
+      if (learnersError) {
+        console.error("Error fetching learners:", learnersError);
+        throw learnersError;
+      }
+
+      console.log(`Found ${learners?.length || 0} learners with parents`);
+
+      // Extract unique parent emails
+      const parentEmails = new Set<string>();
+      learners?.forEach((learner: any) => {
+        if (learner.parents?.email) {
+          parentEmails.add(learner.parents.email);
+        }
+      });
+
+      emailList = Array.from(parentEmails);
+      console.log(`Found ${emailList.length} unique parent emails`);
+    }
 
     // Send emails only if message_type is email or both
     if (message.message_type === "email" || message.message_type === "both") {
