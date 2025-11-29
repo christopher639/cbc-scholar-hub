@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -22,6 +23,7 @@ export default function LearnerDashboard() {
   const { learnerDetails } = useOutletContext<any>();
   const { user } = useAuth();
   const learner = user?.data;
+  const navigate = useNavigate();
   
   const [stats, setStats] = useState({
     totalSubjects: 0,
@@ -419,6 +421,13 @@ export default function LearnerDashboard() {
               : "Here's your academic overview"}
           </p>
         </div>
+        <Button 
+          onClick={() => navigate("/learner-portal/ai-tutor")}
+          className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+        >
+          <Sparkles className="h-4 w-4" />
+          <span className="hidden sm:inline">AI Tutor</span>
+        </Button>
       </div>
 
       {/* Filters */}
