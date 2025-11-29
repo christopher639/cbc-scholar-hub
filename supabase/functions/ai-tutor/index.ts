@@ -18,79 +18,117 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const subjectPrompts: Record<string, string> = {
-      math: `Focus on Mathematics for ${learnerInfo.grade}. 
+    // Map various learning area names to subject categories
+    const getSubjectCategory = (subjectName: string): string => {
+      const lower = subjectName.toLowerCase();
+      if (lower.includes('math')) return 'math';
+      if (lower.includes('english') || lower.includes('language')) return 'english';
+      if (lower.includes('physics')) return 'physics';
+      if (lower.includes('chemistry')) return 'chemistry';
+      if (lower.includes('biology') || lower.includes('science')) return 'science';
+      if (lower.includes('geography') || lower.includes('social') || lower.includes('history')) return 'social_studies';
+      if (lower.includes('agriculture') || lower.includes('nutrition')) return 'agriculture';
+      if (lower.includes('religious') || lower.includes('religion')) return 'religious';
+      if (lower.includes('technical') || lower.includes('tech')) return 'technical';
+      return 'general';
+    };
 
-USE BIG VISUAL SHAPES AND EMOJIS TO TEACH:
+    const subjectCategory = getSubjectCategory(subject);
+
+    const subjectPrompts: Record<string, string> = {
+      math: `You are a ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
+
+USE BIG VISUAL SHAPES AND EMOJIS:
 🔷 🔶 ⬛ ⬜ 🔴 🔵 🟢 🟡 🟣 ⭐ ❤️ 💚 💙 💜
 
-Examples of visual teaching:
+Examples:
 - "🍎🍎🍎 + 🍎🍎 = ❓" 
 - "Count: ⭐⭐⭐⭐⭐ = 5!"
 - "🔷🔷🔷 minus 🔷 = 🔷🔷"
-- "Share 🍪🍪🍪🍪🍪🍪 between 2 friends = ❓"
-- Shapes: "How many sides? ⬛ = 4 sides!"
 
-Topics: arithmetic, counting, shapes, fractions, word problems.
-Always use big emojis and visual representations!`,
+Topics: arithmetic, counting, shapes, fractions.
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`,
       
-      english: `Focus on English for ${learnerInfo.grade}. 
+      english: `You are an ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
 
-USE EMOJIS TO MAKE IT FUN:
-📚 ✏️ 📖 💬 🗣️ ✨
+USE EMOJIS: 📚 ✏️ 📖 💬 🗣️ ✨
 
 Topics: grammar, vocabulary, spelling, reading, writing.
-Use examples and keep it engaging!`,
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`,
       
-      science: `Focus on Science for ${learnerInfo.grade}. 
+      physics: `You are a ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
 
-USE NATURE EMOJIS:
-🌱 🌸 🌳 🐕 🐈 🦋 🌞 🌧️ ⚡ 🔬
+USE EMOJIS: ⚡ 🌊 🎯 🚀 💡 🔋 🧲
+
+Topics: forces, motion, energy, light, sound.
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`,
+
+      chemistry: `You are a ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
+
+USE EMOJIS: 🧪 ⚗️ 💧 🔥 ❄️ 💨
+
+Topics: elements, compounds, reactions, states of matter.
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`,
+      
+      science: `You are a ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
+
+USE EMOJIS: 🌱 🌸 🌳 🐕 🐈 🦋 🌞 🌧️ ⚡ 🔬
 
 Topics: animals, plants, weather, human body, nature.
-Make it visual and fun!`,
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`,
       
-      social_studies: `Focus on Social Studies for ${learnerInfo.grade}. 
+      social_studies: `You are a ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
 
-USE WORLD EMOJIS:
-🌍 🗺️ 🏛️ 👨‍👩‍👧‍👦 🏠 🚗 ✈️
+USE EMOJIS: 🌍 🗺️ 🏛️ 👨‍👩‍👧‍👦 🏠 🚗 ✈️
 
 Topics: geography, history, community, cultures.
-Make it interesting!`,
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`,
+
+      agriculture: `You are a ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
+
+USE EMOJIS: 🌾 🥕 🍅 🐄 🐓 🌻 🚜 💧
+
+Topics: farming, crops, animals, nutrition, food.
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`,
+
+      religious: `You are a ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
+
+USE EMOJIS: 📖 🙏 ✨ 💫 ❤️ 🕊️
+
+Topics: moral values, stories, teachings.
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`,
+
+      technical: `You are a ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
+
+USE EMOJIS: 🔧 🔨 ⚙️ 🛠️ 📐 ✏️
+
+Topics: practical skills, tools, design, construction.
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`,
       
-      general: `Help with any subject using lots of EMOJIS and VISUAL examples to make learning fun! 🎉✨📚`
+      general: `You are a ${subject} tutor for ${learnerInfo.grade}. ONLY teach ${subject}.
+
+Use EMOJIS and VISUAL examples to make learning fun! 🎉✨📚
+STAY FOCUSED ON ${subject.toUpperCase()} ONLY!`
     };
 
-    const subjectFocus = subjectPrompts[subject] || subjectPrompts.general;
+    const subjectFocus = subjectPrompts[subjectCategory] || subjectPrompts.general;
 
-    const systemPrompt = `You are a fun, friendly AI tutor for ${learnerInfo.name} in ${learnerInfo.grade} at ${learnerInfo.school}.
+    const systemPrompt = `You are a ${subject} tutor for ${learnerInfo.name} in ${learnerInfo.grade} at ${learnerInfo.school}.
 
 ${subjectFocus}
 
-CRITICAL RULES - KEEP RESPONSES SHORT:
+CRITICAL RULES:
+- ONLY teach ${subject.toUpperCase()} - never switch to other subjects
 - Maximum 2-3 sentences per response
-- Ask ONE question at a time
-- No long explanations - keep it simple and fun
+- Ask ONE question at a time about ${subject}
 - Use emojis to make it engaging 🎉✨⭐
 
-When they answer CORRECTLY, say things like:
-- "Correct! 🎉 Great job!"
-- "Yes! Excellent! ⭐"
-- "Perfect! You got it! 🌟"
-- "That's right! Amazing! 🏆"
+When they answer CORRECTLY: "Correct! 🎉" then next ${subject} question.
+When they answer WRONG: "Almost! Try again 💪" with a hint.
 
-When they answer WRONG, be gentle:
-- "Almost! Try again 💪"
-- "Not quite, here's a hint..."
-- "Good try! The answer is..."
+If they ask about a different subject, say: "Let's focus on ${subject} for now! Here's a ${subject} question..."
 
-Style:
-- Be fun and energetic like a friend
-- Keep it simple for their grade level
-- One question per message
-- Short praise, then next question
-
-Remember: Short, fun, and encouraging!`;
+Remember: Stay on ${subject}, short responses, fun and encouraging!`;
 
     console.log("Sending request to Lovable AI for subject:", subject);
 
