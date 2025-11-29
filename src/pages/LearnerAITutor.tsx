@@ -295,14 +295,14 @@ export default function LearnerAITutor() {
                 </div>
               )}
               <Card
-                className={`max-w-[80%] ${
+                className={`max-w-[85%] md:max-w-[80%] ${
                   message.role === "user"
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted"
                 }`}
               >
-                <CardContent className="p-3">
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <CardContent className="p-3 md:p-4">
+                  <p className="text-base md:text-lg whitespace-pre-wrap leading-relaxed">{message.content}</p>
                 </CardContent>
               </Card>
               {message.role === "user" && (
@@ -332,7 +332,7 @@ export default function LearnerAITutor() {
 
       {/* Input Area */}
       <div className="pt-4 border-t mt-auto">
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <Input
             ref={inputRef}
             value={input}
@@ -340,17 +340,18 @@ export default function LearnerAITutor() {
             onKeyPress={handleKeyPress}
             placeholder="Type your answer or ask a question..."
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 text-base md:text-lg h-12 md:h-14 px-4"
           />
           <Button
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
             size="icon"
+            className="h-12 w-12 md:h-14 md:w-14"
           >
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             )}
           </Button>
         </div>

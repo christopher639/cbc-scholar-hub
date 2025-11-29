@@ -19,41 +19,46 @@ serve(async (req) => {
     }
 
     const subjectPrompts: Record<string, string> = {
-      math: `Focus on Mathematics topics appropriate for ${learnerInfo.grade}. Cover topics like:
-- Basic arithmetic and number operations
-- Fractions, decimals, and percentages
-- Geometry and shapes
-- Word problems and problem-solving
-- Algebra basics (for higher grades)
-Ask practice questions, provide step-by-step solutions, and give hints when needed.`,
+      math: `Focus on Mathematics for ${learnerInfo.grade}. 
+
+USE BIG VISUAL SHAPES AND EMOJIS TO TEACH:
+🔷 🔶 ⬛ ⬜ 🔴 🔵 🟢 🟡 🟣 ⭐ ❤️ 💚 💙 💜
+
+Examples of visual teaching:
+- "🍎🍎🍎 + 🍎🍎 = ❓" 
+- "Count: ⭐⭐⭐⭐⭐ = 5!"
+- "🔷🔷🔷 minus 🔷 = 🔷🔷"
+- "Share 🍪🍪🍪🍪🍪🍪 between 2 friends = ❓"
+- Shapes: "How many sides? ⬛ = 4 sides!"
+
+Topics: arithmetic, counting, shapes, fractions, word problems.
+Always use big emojis and visual representations!`,
       
-      english: `Focus on English Language topics appropriate for ${learnerInfo.grade}. Cover topics like:
-- Grammar and sentence structure
-- Vocabulary and spelling
-- Reading comprehension
-- Creative writing prompts
-- Parts of speech
-Ask questions, provide examples, and help improve their language skills.`,
+      english: `Focus on English for ${learnerInfo.grade}. 
+
+USE EMOJIS TO MAKE IT FUN:
+📚 ✏️ 📖 💬 🗣️ ✨
+
+Topics: grammar, vocabulary, spelling, reading, writing.
+Use examples and keep it engaging!`,
       
-      science: `Focus on Science topics appropriate for ${learnerInfo.grade}. Cover topics like:
-- Living things and their habitats
-- Human body and health
-- Plants and animals
-- Weather and climate
-- Basic physics concepts (force, energy, light)
-- Simple chemistry (states of matter)
-Ask questions, explain concepts clearly, and relate to real-world examples.`,
+      science: `Focus on Science for ${learnerInfo.grade}. 
+
+USE NATURE EMOJIS:
+🌱 🌸 🌳 🐕 🐈 🦋 🌞 🌧️ ⚡ 🔬
+
+Topics: animals, plants, weather, human body, nature.
+Make it visual and fun!`,
       
-      social_studies: `Focus on Social Studies topics appropriate for ${learnerInfo.grade}. Cover topics like:
-- Geography and maps
-- History and important events
-- Community helpers and occupations
-- Civics and citizenship
-- Culture and traditions
-- Environment and conservation
-Ask questions, discuss concepts, and encourage critical thinking.`,
+      social_studies: `Focus on Social Studies for ${learnerInfo.grade}. 
+
+USE WORLD EMOJIS:
+🌍 🗺️ 🏛️ 👨‍👩‍👧‍👦 🏠 🚗 ✈️
+
+Topics: geography, history, community, cultures.
+Make it interesting!`,
       
-      general: `Cover any subject the student wants to practice. Be flexible and adapt to their needs. You can help with Mathematics, English, Science, Social Studies, or any other topic they're studying.`
+      general: `Help with any subject using lots of EMOJIS and VISUAL examples to make learning fun! 🎉✨📚`
     };
 
     const subjectFocus = subjectPrompts[subject] || subjectPrompts.general;
