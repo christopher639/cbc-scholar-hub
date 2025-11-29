@@ -40,6 +40,7 @@ import LearnerPortalLayout from "./components/LearnerPortalLayout";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import LearnerFeeStructures from "./pages/LearnerFeeStructures";
 import LearnerFeesPage from "./pages/LearnerFeesPage";
+import LearnerAITutor from "./pages/LearnerAITutor";
 import Profile from "./pages/Profile";
 import AcademicYears from "./pages/AcademicYears";
 import Communication from "./pages/Communication";
@@ -92,6 +93,7 @@ const App = () => (
               <Route path="performance" element={<LearnerPerformance />} />
               <Route path="fees" element={<LearnerFeesPage />} />
               <Route path="fee-structures" element={<LearnerFeeStructures />} />
+              <Route path="ai-tutor" element={<LearnerAITutor />} />
               <Route path="settings" element={<LearnerSettings />} />
             </Route>
 

@@ -1,4 +1,4 @@
-import { Home, BookOpen, DollarSign, FileText, MessageSquare, Search } from "lucide-react";
+import { Home, BookOpen, DollarSign, FileText, MessageSquare, Search, Sparkles } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -17,6 +17,7 @@ import {
 const menuItems = [
   { title: "Dashboard", url: "/learner-portal", icon: Home },
   { title: "Performance", url: "/learner-portal/performance", icon: BookOpen },
+  { title: "AI Tutor", url: "/learner-portal/ai-tutor", icon: Sparkles },
   { title: "My Fees", url: "/learner-portal/fees", icon: DollarSign },
   { title: "Fee Structures", url: "/learner-portal/fee-structures", icon: Search },
   { title: "Assignments", url: "/learner-portal/assignments", icon: FileText },
