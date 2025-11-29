@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, Bot, User, Sparkles } from "lucide-react";
+import { Loader2, Send, Bot, User, Sparkles, Calculator, BookOpen, FlaskConical, Globe, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 interface Message {
@@ -14,14 +14,25 @@ interface Message {
   content: string;
 }
 
+type Subject = "general" | "math" | "english" | "science" | "social_studies";
+
+const subjects: { id: Subject; label: string; icon: React.ReactNode; color: string }[] = [
+  { id: "general", label: "All Subjects", icon: <Sparkles className="h-4 w-4" />, color: "bg-primary/10 text-primary" },
+  { id: "math", label: "Math", icon: <Calculator className="h-4 w-4" />, color: "bg-blue-500/10 text-blue-600" },
+  { id: "english", label: "English", icon: <BookOpen className="h-4 w-4" />, color: "bg-amber-500/10 text-amber-600" },
+  { id: "science", label: "Science", icon: <FlaskConical className="h-4 w-4" />, color: "bg-green-500/10 text-green-600" },
+  { id: "social_studies", label: "Social Studies", icon: <Globe className="h-4 w-4" />, color: "bg-purple-500/10 text-purple-600" },
+];
+
 export default function LearnerAITutor() {
   const { user } = useAuth();
   const { schoolInfo } = useSchoolInfo();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(false);
   const [gradeName, setGradeName] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -48,43 +59,42 @@ export default function LearnerAITutor() {
     school: schoolInfo?.school_name || "School",
   };
 
-  // Initialize with a greeting
-  useEffect(() => {
-    if (!learnerData || !gradeName) return;
+  // Initialize chat when subject is selected
+  const startSession = async (subject: Subject) => {
+    setSelectedSubject(subject);
+    setMessages([]);
+    setIsInitializing(true);
     
-    const initializeChat = async () => {
-      setIsInitializing(true);
-      try {
-        const { data, error } = await supabase.functions.invoke("ai-tutor", {
-          body: {
-            messages: [],
-            learnerInfo: {
-              ...learnerInfo,
-              grade: gradeName,
-            },
-          },
-        });
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-tutor", {
+        body: {
+          messages: [],
+          learnerInfo,
+          subject,
+        },
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (data?.message) {
-          setMessages([{ role: "assistant", content: data.message }]);
-        }
-      } catch (error) {
-        console.error("Failed to initialize chat:", error);
-        setMessages([
-          {
-            role: "assistant",
-            content: `Hello ${learnerInfo.name}! 👋 I'm your AI tutor. I'm here to help you learn and practice. What subject would you like to work on today? We can do Math, English, Science, or anything else you'd like to study!`,
-          },
-        ]);
-      } finally {
-        setIsInitializing(false);
+      if (data?.message) {
+        setMessages([{ role: "assistant", content: data.message }]);
+      } else if (data?.error) {
+        throw new Error(data.error);
       }
-    };
-
-    initializeChat();
-  }, [learnerData, gradeName]);
+    } catch (error) {
+      console.error("Failed to initialize chat:", error);
+      const subjectLabel = subjects.find(s => s.id === subject)?.label || "your chosen subject";
+      setMessages([
+        {
+          role: "assistant",
+          content: `Hello ${learnerInfo.name}! 👋 I'm your AI tutor for ${subjectLabel}. Let's start learning! What topic would you like to practice today?`,
+        },
+      ]);
+    } finally {
+      setIsInitializing(false);
+      inputRef.current?.focus();
+    }
+  };
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -97,7 +107,7 @@ export default function LearnerAITutor() {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !selectedSubject) return;
 
     const userMessage = input.trim();
     setInput("");
@@ -109,6 +119,7 @@ export default function LearnerAITutor() {
         body: {
           messages: [...messages, { role: "user", content: userMessage }],
           learnerInfo,
+          subject: selectedSubject,
         },
       });
 
@@ -135,28 +146,78 @@ export default function LearnerAITutor() {
     }
   };
 
-  if (isInitializing) {
+  const resetSession = () => {
+    setSelectedSubject(null);
+    setMessages([]);
+  };
+
+  // Subject selection screen
+  if (!selectedSubject) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground">Starting your AI tutor session...</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">
+        <div className="text-center">
+          <div className="p-3 rounded-full bg-primary/10 w-fit mx-auto mb-4">
+            <Sparkles className="h-8 w-8 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">AI Tutor</h1>
+          <p className="text-muted-foreground">
+            Choose a subject to start practicing, {learnerInfo.name}!
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-md">
+          {subjects.map((subject) => (
+            <Button
+              key={subject.id}
+              variant="outline"
+              className={`h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform ${subject.color}`}
+              onClick={() => startSession(subject.id)}
+            >
+              <div className={`p-2 rounded-full ${subject.color}`}>
+                {subject.icon}
+              </div>
+              <span className="text-sm font-medium">{subject.label}</span>
+            </Button>
+          ))}
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center max-w-sm">
+          Your tutor will ask questions appropriate for {gradeName || "your grade"} level
+        </p>
       </div>
     );
   }
 
+  if (isInitializing) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground">Starting your {subjects.find(s => s.id === selectedSubject)?.label} session...</p>
+      </div>
+    );
+  }
+
+  const currentSubject = subjects.find(s => s.id === selectedSubject);
+
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] md:h-[calc(100vh-140px)]">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4 pb-3 border-b">
-        <div className="p-2 rounded-full bg-primary/10">
-          <Sparkles className="h-5 w-5 text-primary" />
+      <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-full ${currentSubject?.color}`}>
+            {currentSubject?.icon}
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold">{currentSubject?.label} Tutor</h1>
+            <p className="text-xs text-muted-foreground">
+              Practicing for {gradeName || "your grade"}
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-lg font-semibold">AI Tutor</h1>
-          <p className="text-xs text-muted-foreground">
-            Ask questions and practice for {gradeName || "your grade"}
-          </p>
-        </div>
+        <Button variant="ghost" size="sm" onClick={resetSession} className="text-muted-foreground">
+          <RotateCcw className="h-4 w-4 mr-1" />
+          <span className="hidden sm:inline">Change Subject</span>
+        </Button>
       </div>
 
       {/* Chat Messages */}
@@ -170,8 +231,8 @@ export default function LearnerAITutor() {
               }`}
             >
               {message.role === "assistant" && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-primary" />
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full ${currentSubject?.color} flex items-center justify-center`}>
+                  <Bot className="h-4 w-4" />
                 </div>
               )}
               <Card
@@ -194,8 +255,8 @@ export default function LearnerAITutor() {
           ))}
           {isLoading && (
             <div className="flex gap-3 justify-start">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Bot className="h-4 w-4 text-primary" />
+              <div className={`flex-shrink-0 w-8 h-8 rounded-full ${currentSubject?.color} flex items-center justify-center`}>
+                <Bot className="h-4 w-4" />
               </div>
               <Card className="bg-muted">
                 <CardContent className="p-3">
