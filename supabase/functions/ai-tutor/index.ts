@@ -11,22 +11,64 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, learnerInfo } = await req.json();
+    const { messages, learnerInfo, subject } = await req.json();
     
-    const DEEP_SEEK_API_KEY = Deno.env.get("DEEP_SEEK_API_KEY");
-    if (!DEEP_SEEK_API_KEY) {
-      throw new Error("DEEP_SEEK_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    const subjectPrompts: Record<string, string> = {
+      math: `Focus on Mathematics topics appropriate for ${learnerInfo.grade}. Cover topics like:
+- Basic arithmetic and number operations
+- Fractions, decimals, and percentages
+- Geometry and shapes
+- Word problems and problem-solving
+- Algebra basics (for higher grades)
+Ask practice questions, provide step-by-step solutions, and give hints when needed.`,
+      
+      english: `Focus on English Language topics appropriate for ${learnerInfo.grade}. Cover topics like:
+- Grammar and sentence structure
+- Vocabulary and spelling
+- Reading comprehension
+- Creative writing prompts
+- Parts of speech
+Ask questions, provide examples, and help improve their language skills.`,
+      
+      science: `Focus on Science topics appropriate for ${learnerInfo.grade}. Cover topics like:
+- Living things and their habitats
+- Human body and health
+- Plants and animals
+- Weather and climate
+- Basic physics concepts (force, energy, light)
+- Simple chemistry (states of matter)
+Ask questions, explain concepts clearly, and relate to real-world examples.`,
+      
+      social_studies: `Focus on Social Studies topics appropriate for ${learnerInfo.grade}. Cover topics like:
+- Geography and maps
+- History and important events
+- Community helpers and occupations
+- Civics and citizenship
+- Culture and traditions
+- Environment and conservation
+Ask questions, discuss concepts, and encourage critical thinking.`,
+      
+      general: `Cover any subject the student wants to practice. Be flexible and adapt to their needs. You can help with Mathematics, English, Science, Social Studies, or any other topic they're studying.`
+    };
+
+    const subjectFocus = subjectPrompts[subject] || subjectPrompts.general;
 
     const systemPrompt = `You are a friendly and encouraging AI tutor for a student named ${learnerInfo.name}. 
 The student is currently in ${learnerInfo.grade} at ${learnerInfo.school}.
+
+${subjectFocus}
 
 Your role is to:
 1. Ask educational questions appropriate for their grade level
 2. Help them understand concepts they're struggling with
 3. Provide hints and explanations when they get stuck
 4. Celebrate their correct answers and encourage them when they make mistakes
-5. Cover subjects like Mathematics, English, Science, Social Studies, and other subjects appropriate for ${learnerInfo.grade}
+5. Keep the learning fun and engaging
 
 Guidelines:
 - Keep questions age-appropriate and aligned with their grade curriculum
@@ -34,18 +76,21 @@ Guidelines:
 - Be patient and supportive
 - Provide step-by-step explanations when needed
 - Mix different types of questions (multiple choice, short answer, problem-solving)
-- Start by asking what subject they'd like to practice or what they need help with
+- Use emojis occasionally to keep it fun 🎉📚✨
+- If starting a new session, introduce yourself and ask what specific topic they'd like to practice
 
 Remember: You're here to help them learn and build confidence in their abilities!`;
 
-    const response = await fetch("https://api.deepseek.com/chat/completions", {
+    console.log("Sending request to Lovable AI for subject:", subject);
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${DEEP_SEEK_API_KEY}`,
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -57,7 +102,7 @@ Remember: You're here to help them learn and build confidence in their abilities
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("DeepSeek API error:", response.status, errorText);
+      console.error("Lovable AI error:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -66,7 +111,14 @@ Remember: You're here to help them learn and build confidence in their abilities
         );
       }
       
-      throw new Error(`DeepSeek API error: ${response.status}`);
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "AI credits depleted. Please try again later." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      throw new Error(`AI API error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -75,6 +127,8 @@ Remember: You're here to help them learn and build confidence in their abilities
     if (!assistantMessage) {
       throw new Error("No response from AI");
     }
+
+    console.log("AI response received successfully");
 
     return new Response(
       JSON.stringify({ message: assistantMessage }),
