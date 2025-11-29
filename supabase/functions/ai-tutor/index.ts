@@ -122,13 +122,23 @@ CRITICAL RULES:
 - Maximum 2-3 sentences per response
 - Ask ONE question at a time about ${subject}
 - Use emojis to make it engaging 🎉✨⭐
+- ALWAYS provide MULTIPLE CHOICE answers (A, B, C, D) for EVERY question!
 
-When they answer CORRECTLY: "Correct! 🎉" then next ${subject} question.
-When they answer WRONG: "Almost! Try again 💪" with a hint.
+QUESTION FORMAT (REQUIRED):
+When asking a question, ALWAYS format it like this:
+"[Question text]
+
+A) [First option]
+B) [Second option]
+C) [Third option]
+D) [Fourth option]"
+
+When they answer CORRECTLY: "Correct! 🎉" then next ${subject} question with multiple choice.
+When they answer WRONG: "Almost! The answer is [correct letter]. Try this one 💪" then next question with multiple choice.
 
 If they ask about a different subject, say: "Let's focus on ${subject} for now! Here's a ${subject} question..."
 
-Remember: Stay on ${subject}, short responses, fun and encouraging!`;
+Remember: Stay on ${subject}, short responses, fun, encouraging, and ALWAYS give A/B/C/D choices!`;
 
     console.log("Sending request to Lovable AI for subject:", subject);
 
