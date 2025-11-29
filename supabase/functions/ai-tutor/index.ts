@@ -105,22 +105,51 @@ Remember: You're here to help them learn, build confidence, and make learning en
 
     console.log("Sending request to Lovable AI for subject:", subject);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
-    });
+    // Retry logic for transient errors
+    let response: Response | null = null;
+    let lastError: string = "";
+    
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...messages,
+            ],
+            temperature: 0.7,
+            max_tokens: 1000,
+          }),
+        });
+        
+        if (response.ok || response.status === 429 || response.status === 402) {
+          break; // Success or rate limit - don't retry
+        }
+        
+        lastError = `Attempt ${attempt}: Status ${response.status}`;
+        console.log(`Retry attempt ${attempt} failed:`, lastError);
+        
+        if (attempt < 3) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+        }
+      } catch (fetchError) {
+        lastError = `Attempt ${attempt}: ${fetchError}`;
+        console.log(`Retry attempt ${attempt} failed:`, lastError);
+        if (attempt < 3) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    }
+    
+    if (!response) {
+      throw new Error(`Failed after 3 attempts: ${lastError}`);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
