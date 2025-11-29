@@ -331,7 +331,7 @@ export default function LearnerAITutor() {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="pt-4 border-t mt-auto">
+      <div className="pt-4 border-t mt-auto px-4 md:px-6">
         <div className="flex gap-2 items-center">
           <Input
             ref={inputRef}
