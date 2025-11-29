@@ -13,9 +13,9 @@ serve(async (req) => {
   try {
     const { messages, learnerInfo, subject } = await req.json();
     
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     const subjectPrompts: Record<string, string> = {
@@ -81,30 +81,28 @@ Guidelines:
 
 Remember: You're here to help them learn and build confidence in their abilities!`;
 
-    console.log("Sending request to Gemini AI for subject:", subject);
+    console.log("Sending request to Lovable AI for subject:", subject);
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: systemPrompt + "\n\n" + (messages.length > 0 ? messages.map((m: any) => `${m.role}: ${m.content}`).join("\n") : "Please start the session by introducing yourself and asking what topic the student wants to practice.") }]
-          }
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...messages,
         ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 1000,
-        },
+        temperature: 0.7,
+        max_tokens: 1000,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Gemini AI error:", response.status, errorText);
+      console.error("Lovable AI error:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -113,11 +111,18 @@ Remember: You're here to help them learn and build confidence in their abilities
         );
       }
       
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "AI credits depleted. Please try again later." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
       throw new Error(`AI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const assistantMessage = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const assistantMessage = data.choices?.[0]?.message?.content;
 
     if (!assistantMessage) {
       throw new Error("No response from AI");
