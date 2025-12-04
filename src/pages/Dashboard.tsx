@@ -292,8 +292,8 @@ const Dashboard = () => {
                         <p className="font-medium text-foreground">
                           {payment.learner?.first_name} {payment.learner?.last_name}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {payment.payment_method} • {payment.transaction_number}
+                <p className="text-sm text-muted-foreground">
+                          {payment.payment_method || 'N/A'} {payment.receipt_number ? `• ${payment.receipt_number}` : ''}
                         </p>
                       </div>
                     </div>
