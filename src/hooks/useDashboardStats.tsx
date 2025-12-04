@@ -254,7 +254,7 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
         };
       }).filter(g => g.learners > 0);
 
-      // Get recent payments
+      // Get recent payments - last 5 fee transactions recorded
       const { data: paymentsHistoryData } = await supabase
         .from("fee_transactions")
         .select(`
@@ -263,13 +263,14 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
           amount_paid,
           payment_date,
           payment_method,
+          created_at,
           learner:learners(
             admission_number,
             first_name,
             last_name
           )
         `)
-        .order("payment_date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(5);
 
       setStats({
