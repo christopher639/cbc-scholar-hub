@@ -254,12 +254,12 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
         };
       }).filter(g => g.learners > 0);
 
-      // Get recent payments - last 5 fee transactions recorded
+      // Get recent payments - last 5 fee payments recorded
       const { data: paymentsHistoryData } = await supabase
-        .from("fee_transactions")
+        .from("fee_payments")
         .select(`
           id,
-          transaction_number,
+          receipt_number,
           amount_paid,
           payment_date,
           payment_method,
