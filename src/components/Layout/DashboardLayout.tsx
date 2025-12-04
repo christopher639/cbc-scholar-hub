@@ -67,6 +67,7 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+// Theme toggle component for dark/light/system mode
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
