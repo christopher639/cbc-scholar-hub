@@ -50,7 +50,11 @@ import {
   HardDrive,
   Coins,
   Bell,
+  Moon,
+  Sun,
+  Monitor,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +65,47 @@ import {
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+}
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+
+  const cycleTheme = () => {
+    if (theme === "light") {
+      setTheme("dark");
+    } else if (theme === "dark") {
+      setTheme("system");
+    } else {
+      setTheme("light");
+    }
+  };
+
+  const getIcon = () => {
+    if (theme === "dark") return <Moon className="h-5 w-5" />;
+    if (theme === "light") return <Sun className="h-5 w-5" />;
+    return <Monitor className="h-5 w-5" />;
+  };
+
+  const getTooltip = () => {
+    if (theme === "dark") return "Dark mode (click for system)";
+    if (theme === "light") return "Light mode (click for dark)";
+    return "System mode (click for light)";
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" onClick={cycleTheme} className="h-9 w-9">
+            {getIcon()}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {getTooltip()}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 const navigation = [
@@ -296,6 +341,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             <div className="flex items-center gap-2 sm:gap-4 ml-auto">
               <NotificationsDropdown />
+              <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
