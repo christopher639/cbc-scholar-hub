@@ -289,10 +289,24 @@ const Dashboard = () => {
                         <DollarSign className="h-5 w-5 text-success" />
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">
+                        <p className="font-medium text-foreground flex items-center gap-2">
                           {payment.learner?.first_name} {payment.learner?.last_name}
+                          <Badge 
+                            variant={
+                              payment.status === 'paid' ? 'default' :
+                              payment.status === 'partial' ? 'secondary' :
+                              payment.status === 'overdue' ? 'destructive' : 'outline'
+                            }
+                            className={cn(
+                              "text-[10px] px-1.5 py-0",
+                              payment.status === 'paid' && "bg-success text-success-foreground",
+                              payment.status === 'partial' && "bg-warning text-warning-foreground"
+                            )}
+                          >
+                            {payment.status || 'pending'}
+                          </Badge>
                         </p>
-                <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           {payment.payment_method || 'N/A'} {payment.receipt_number ? `• ${payment.receipt_number}` : ''}
                         </p>
                       </div>
