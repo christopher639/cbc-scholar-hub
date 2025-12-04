@@ -263,6 +263,7 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
           amount_paid,
           payment_date,
           payment_method,
+          status,
           created_at,
           learner:learners(
             admission_number,
