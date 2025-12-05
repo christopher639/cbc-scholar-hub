@@ -163,56 +163,65 @@ const Activities = () => {
       });
   }, [activities]);
 
+  // Get only last 20 activities for the table
+  const recentActivities = filteredActivities.slice(0, 20);
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">System Activities</h1>
-          <p className="text-muted-foreground">Track all actions performed in the system</p>
+          <h1 className="text-xl md:text-3xl font-bold text-foreground">System Activities</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Track all actions performed in the system</p>
         </div>
 
         {/* Trend Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-3 md:p-6">
               <div className="flex items-center gap-2">
-                <LogIn className="h-5 w-5 text-primary" />
-                <CardTitle>Login Trends</CardTitle>
+                <LogIn className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <CardTitle className="text-sm md:text-base">Login Trends</CardTitle>
               </div>
-              <CardDescription>Daily login activity over the last 30 days</CardDescription>
+              <CardDescription className="text-xs md:text-sm">Daily login activity over the last 30 days</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-2 md:p-6">
               {loading ? (
-                <Skeleton className="h-[300px] w-full" />
+                <Skeleton className="h-[200px] md:h-[300px] w-full" />
               ) : (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 200 : 300}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="date" 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      className="text-[10px] md:text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: window.innerWidth < 768 ? 8 : 12 }}
+                      interval={window.innerWidth < 768 ? 6 : 2}
+                      angle={-45}
+                      textAnchor="end"
+                      height={50}
                     />
                     <YAxis 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      className="text-[10px] md:text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: window.innerWidth < 768 ? 8 : 12 }}
+                      width={30}
                     />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '0.5rem'
+                        borderRadius: '0.5rem',
+                        fontSize: '12px'
                       }}
                     />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Line 
                       type="monotone" 
                       dataKey="logins" 
                       stroke="hsl(var(--primary))" 
                       strokeWidth={2}
                       name="Logins"
-                      dot={{ fill: 'hsl(var(--primary))' }}
+                      dot={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -221,44 +230,50 @@ const Activities = () => {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="p-3 md:p-6">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-success" />
-                <CardTitle>Activity Trends</CardTitle>
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />
+                <CardTitle className="text-sm md:text-base">Activity Trends</CardTitle>
               </div>
-              <CardDescription>All system actions over the last 30 days</CardDescription>
+              <CardDescription className="text-xs md:text-sm">All system actions over the last 30 days</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-2 md:p-6">
               {loading ? (
-                <Skeleton className="h-[300px] w-full" />
+                <Skeleton className="h-[200px] md:h-[300px] w-full" />
               ) : (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 200 : 300}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="date" 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      className="text-[10px] md:text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: window.innerWidth < 768 ? 8 : 12 }}
+                      interval={window.innerWidth < 768 ? 6 : 2}
+                      angle={-45}
+                      textAnchor="end"
+                      height={50}
                     />
                     <YAxis 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      className="text-[10px] md:text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: window.innerWidth < 768 ? 8 : 12 }}
+                      width={30}
                     />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '0.5rem'
+                        borderRadius: '0.5rem',
+                        fontSize: '12px'
                       }}
                     />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Line 
                       type="monotone" 
                       dataKey="actions" 
                       stroke="hsl(var(--success))" 
                       strokeWidth={2}
                       name="Total Actions"
-                      dot={{ fill: 'hsl(var(--success))' }}
+                      dot={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -269,116 +284,110 @@ const Activities = () => {
 
         {/* Filters */}
         <Card>
-          <CardHeader>
-            <CardTitle>Filter Activities</CardTitle>
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="text-sm md:text-base">Filter Activities</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-4">
+          <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+            <div className="flex flex-col gap-3 md:flex-row md:gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search by user, entity, or action..."
+                  placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-sm"
                 />
               </div>
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="Entity Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {entityTypes.map(type => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={filterAction} onValueChange={setFilterAction}>
-                <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="Action" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Actions</SelectItem>
-                  {actions.map(action => (
-                    <SelectItem key={action} value={action}>{action}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="flex-1 md:w-[150px] text-sm">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    {entityTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={filterAction} onValueChange={setFilterAction}>
+                  <SelectTrigger className="flex-1 md:w-[150px] text-sm">
+                    <SelectValue placeholder="Action" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Actions</SelectItem>
+                    {actions.map(action => (
+                      <SelectItem key={action} value={action}>{action}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Activities List */}
+        {/* Activities List - Last 20 */}
         <Card>
-          <CardHeader>
-            <CardTitle>Recent Activities</CardTitle>
-            <CardDescription>
-              Showing {filteredActivities.length} of {activities.length} activities
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="text-sm md:text-base">Recent Activities</CardTitle>
+            <CardDescription className="text-xs md:text-sm">
+              Showing last {recentActivities.length} of {filteredActivities.length} activities
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
             {loading ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-20 w-full" />
+                  <Skeleton key={i} className="h-16 w-full" />
                 ))}
               </div>
-            ) : filteredActivities.length === 0 ? (
-              <div className="text-center py-12">
-                <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No activities found</p>
+            ) : recentActivities.length === 0 ? (
+              <div className="text-center py-8">
+                <Activity className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No activities found</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredActivities.map((activity) => (
+              <div className="space-y-2 md:space-y-3">
+                {recentActivities.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex items-start gap-4 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                    className="flex items-start gap-2 md:gap-4 p-2 md:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                   >
-                    <div className={`p-2 rounded-full ${getActionColor(activity.action)}`}>
+                    <div className={`p-1.5 md:p-2 rounded-full shrink-0 ${getActionColor(activity.action)}`}>
                       {getActionIcon(activity.action)}
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-foreground">
+                      <div className="flex items-start justify-between gap-1 md:gap-2 mb-0.5 md:mb-1">
+                        <div className="flex items-center gap-1 md:gap-2 flex-wrap">
+                          <span className="font-medium text-foreground text-xs md:text-sm truncate max-w-[100px] md:max-w-none">
                             {activity.user_name || "System"}
                           </span>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-[10px] md:text-xs px-1 md:px-2">
                             {activity.user_role || "system"}
                           </Badge>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {new Date(activity.created_at).toLocaleString()}
+                        <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap shrink-0">
+                          {new Date(activity.created_at).toLocaleDateString()}
                         </span>
                       </div>
                       
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-sm text-muted-foreground flex-wrap">
                         <span className="capitalize">{activity.action}</span>
                         <span>•</span>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5 md:gap-1">
                           {getEntityIcon(activity.entity_type)}
                           <span className="capitalize">{activity.entity_type}</span>
                         </div>
                         {activity.entity_name && (
                           <>
-                            <span>•</span>
-                            <span className="font-medium text-foreground">
+                            <span className="hidden md:inline">•</span>
+                            <span className="font-medium text-foreground hidden md:inline truncate max-w-[150px]">
                               {activity.entity_name}
                             </span>
                           </>
                         )}
                       </div>
-
-                      {activity.details && (
-                        <div className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                          {typeof activity.details === "string" 
-                            ? activity.details 
-                            : JSON.stringify(activity.details, null, 2)}
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
