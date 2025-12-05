@@ -36,11 +36,16 @@ const Activities = () => {
   const fetchActivities = async () => {
     try {
       setLoading(true);
+      
+      // Calculate date 30 days ago
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
       const { data, error } = await supabase
         .from("activity_logs")
         .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
+        .gte("created_at", thirtyDaysAgo.toISOString())
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setActivities(data || []);
@@ -117,21 +122,31 @@ const Activities = () => {
   const entityTypes = Array.from(new Set(activities.map(a => a.entity_type))).filter(Boolean);
   const actions = Array.from(new Set(activities.map(a => a.action))).filter(Boolean);
 
-  // Prepare chart data
+  // Prepare chart data - show all 30 days
   const chartData = useMemo(() => {
-    const dailyStats: { [key: string]: { logins: number; actions: number } } = {};
+    const dailyStats: { [key: string]: { logins: number; actions: number; date: Date } } = {};
     
+    // Initialize all 30 days with zero counts
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      dailyStats[dateStr] = { logins: 0, actions: 0, date };
+    }
+    
+    // Count activities for each day
     activities.forEach(activity => {
-      const date = new Date(activity.created_at).toLocaleDateString();
+      const activityDate = new Date(activity.created_at);
+      activityDate.setHours(0, 0, 0, 0);
+      const dateStr = activityDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       
-      if (!dailyStats[date]) {
-        dailyStats[date] = { logins: 0, actions: 0 };
-      }
-      
-      dailyStats[date].actions += 1;
-      
-      if (activity.action.toLowerCase() === "login") {
-        dailyStats[date].logins += 1;
+      if (dailyStats[dateStr]) {
+        dailyStats[dateStr].actions += 1;
+        
+        if (activity.action?.toLowerCase() === "login") {
+          dailyStats[dateStr].logins += 1;
+        }
       }
     });
     
@@ -141,8 +156,11 @@ const Activities = () => {
         logins: stats.logins,
         actions: stats.actions,
       }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-30); // Last 30 days
+      .sort((a, b) => {
+        const dateA = new Date(a.date + ", 2024");
+        const dateB = new Date(b.date + ", 2024");
+        return dateA.getTime() - dateB.getTime();
+      });
   }, [activities]);
 
   return (
