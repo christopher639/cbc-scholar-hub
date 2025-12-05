@@ -322,11 +322,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider defaultOpen>
-      <div className="min-h-screen w-full flex bg-background">
+      <div className="h-screen w-full flex bg-background overflow-hidden">
         <AppSidebar />
         
-        <main className="flex-1 flex flex-col">
-          <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card px-4 sm:px-6">
+        <main className="flex-1 flex flex-col h-screen overflow-hidden">
+          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-border bg-card px-4 sm:px-6">
             <SidebarTrigger className="lg:hidden">
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
@@ -378,7 +378,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </header>
 
-          <div className="flex-1 p-4 sm:p-6">
+          <div className="flex-1 overflow-auto p-4 sm:p-6">
             {children}
           </div>
         </main>
