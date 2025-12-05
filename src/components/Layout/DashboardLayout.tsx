@@ -245,6 +245,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const { schoolInfo } = useSchoolInfo();
 
   const handleLogout = async () => {
     await logout();
@@ -326,10 +327,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <AppSidebar />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-border bg-card px-4 sm:px-6">
+          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card px-3 sm:px-6">
             <SidebarTrigger className="lg:hidden">
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
+            
+            {/* School Logo - visible on small screens */}
+            <div className="flex lg:hidden items-center gap-2">
+              {schoolInfo?.logo_url ? (
+                <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 object-contain rounded-full" />
+              ) : (
+                <GraduationCap className="h-8 w-8 text-primary" />
+              )}
+            </div>
             
             {/* Admin Search Bar - Centered between sidebar and notifications */}
             {user?.role === "admin" && (
