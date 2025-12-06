@@ -412,11 +412,11 @@ export default function Home() {
               {blogs.map((blog) => (
                 <Card key={blog.id} className="overflow-hidden border bg-card hover:shadow-lg transition-shadow group">
                   {blog.image_url && (
-                    <div className="h-48 overflow-hidden">
+                    <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
                       <img
                         src={blog.image_url}
                         alt={blog.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                   )}
