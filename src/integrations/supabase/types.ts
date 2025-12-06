@@ -1488,6 +1488,7 @@ export type Database = {
           bank_account_number: string | null
           bank_branch: string | null
           bank_name: string | null
+          core_values: string | null
           created_at: string
           director_email: string | null
           director_message: string | null
@@ -1498,6 +1499,7 @@ export type Database = {
           email: string | null
           id: string
           logo_url: string | null
+          mission: string | null
           motto: string | null
           mpesa_account_name: string | null
           mpesa_paybill: string | null
@@ -1505,6 +1507,7 @@ export type Database = {
           phone: string | null
           school_name: string
           updated_at: string
+          vision: string | null
         }
         Insert: {
           address?: string | null
@@ -1512,6 +1515,7 @@ export type Database = {
           bank_account_number?: string | null
           bank_branch?: string | null
           bank_name?: string | null
+          core_values?: string | null
           created_at?: string
           director_email?: string | null
           director_message?: string | null
@@ -1522,6 +1526,7 @@ export type Database = {
           email?: string | null
           id?: string
           logo_url?: string | null
+          mission?: string | null
           motto?: string | null
           mpesa_account_name?: string | null
           mpesa_paybill?: string | null
@@ -1529,6 +1534,7 @@ export type Database = {
           phone?: string | null
           school_name: string
           updated_at?: string
+          vision?: string | null
         }
         Update: {
           address?: string | null
@@ -1536,6 +1542,7 @@ export type Database = {
           bank_account_number?: string | null
           bank_branch?: string | null
           bank_name?: string | null
+          core_values?: string | null
           created_at?: string
           director_email?: string | null
           director_message?: string | null
@@ -1546,6 +1553,7 @@ export type Database = {
           email?: string | null
           id?: string
           logo_url?: string | null
+          mission?: string | null
           motto?: string | null
           mpesa_account_name?: string | null
           mpesa_paybill?: string | null
@@ -1553,6 +1561,7 @@ export type Database = {
           phone?: string | null
           school_name?: string
           updated_at?: string
+          vision?: string | null
         }
         Relationships: []
       }

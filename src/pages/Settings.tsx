@@ -14,17 +14,24 @@ import { useTheme } from "next-themes";
 import { useDiscountSettings } from "@/hooks/useDiscountSettings";
 import { useAdmissionNumberSettings } from "@/hooks/useAdmissionNumberSettings";
 import { useToast } from "@/hooks/use-toast";
-
+import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import { Textarea } from "@/components/ui/textarea";
 const Settings = () => {
   const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
   const [feeStructureDialogOpen, setFeeStructureDialogOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { settings, loading, updateSettings } = useDiscountSettings();
   const { settings: admissionSettings, loading: admissionLoading, updateSettings: updateAdmissionSettings } = useAdmissionNumberSettings();
+  const { schoolInfo, loading: schoolInfoLoading, updateSchoolInfo } = useSchoolInfo();
   const { toast } = useToast();
   
   const [admissionPrefix, setAdmissionPrefix] = useState("");
   const [admissionNumber, setAdmissionNumber] = useState("");
+  
+  // School mission, vision, values state
+  const [mission, setMission] = useState("");
+  const [vision, setVision] = useState("");
+  const [coreValues, setCoreValues] = useState("");
   const [admissionPadding, setAdmissionPadding] = useState("4");
 
   // Get individual discount settings
@@ -41,6 +48,23 @@ const Settings = () => {
       setAdmissionPadding(admissionSettings.padding.toString());
     }
   }, [admissionSettings]);
+
+  // Update local state when school info loads
+  useEffect(() => {
+    if (schoolInfo) {
+      setMission(schoolInfo.mission || "");
+      setVision(schoolInfo.vision || "");
+      setCoreValues(schoolInfo.core_values || "");
+    }
+  }, [schoolInfo]);
+
+  const handleSaveSchoolValues = async () => {
+    await updateSchoolInfo({
+      mission,
+      vision,
+      core_values: coreValues,
+    });
+  };
 
   const handleToggleDiscount = async (discountType: string, currentEnabled: boolean) => {
     const discountToUpdate = settings.find(s => s.discount_type === discountType);
@@ -181,6 +205,64 @@ const Settings = () => {
                     </Button>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Mission, Vision, Values Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>School Mission, Vision & Values</CardTitle>
+                <CardDescription>Set your school's mission, vision, and core values for the public website</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {schoolInfoLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading school information...</p>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="mission">Mission Statement</Label>
+                      <Textarea 
+                        id="mission" 
+                        placeholder="Enter your school's mission statement..."
+                        value={mission}
+                        onChange={(e) => setMission(e.target.value)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Describe what your school aims to achieve
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="vision">Vision Statement</Label>
+                      <Textarea 
+                        id="vision" 
+                        placeholder="Enter your school's vision statement..."
+                        value={vision}
+                        onChange={(e) => setVision(e.target.value)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Describe what your school aspires to become
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="coreValues">Core Values</Label>
+                      <Textarea 
+                        id="coreValues" 
+                        placeholder="Enter your school's core values..."
+                        value={coreValues}
+                        onChange={(e) => setCoreValues(e.target.value)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        List the values that guide your school community
+                      </p>
+                    </div>
+                    <Button onClick={handleSaveSchoolValues}>
+                      Save Mission, Vision & Values
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
 
