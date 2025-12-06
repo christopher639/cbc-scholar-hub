@@ -366,22 +366,19 @@ export default function Home() {
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/50 to-background/30" />
         
-        <div className="relative w-full pt-24 pb-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground leading-tight mb-3">
-                Welcome to{" "}
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  {schoolInfo?.school_name || "SAGME School"}
-                </span>
-              </h1>
-              
-              <p className="text-sm sm:text-base md:text-lg text-foreground/80 font-medium">
-                {schoolInfo?.motto || "Nurturing minds, building futures"}
-              </p>
-            </div>
+        <div className="relative w-full pt-24 pb-16 flex items-center justify-center min-h-[70vh]">
+          <div className="text-center">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight mb-3 drop-shadow-lg">
+              Welcome to{" "}
+              <span className="text-white">
+                {schoolInfo?.school_name || "SAGME School"}
+              </span>
+            </h1>
+            
+            <p className="text-sm sm:text-base md:text-lg text-white/90 font-medium drop-shadow-md">
+              {schoolInfo?.motto || "Nurturing minds, building futures"}
+            </p>
           </div>
         </div>
       </section>
