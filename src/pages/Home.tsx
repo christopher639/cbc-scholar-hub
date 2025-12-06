@@ -338,38 +338,34 @@ export default function Home() {
             alt="School Campus" 
             className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/70" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background/60" />
         </div>
         
         <div className="relative w-full pt-24 pb-16 md:pt-32 md:pb-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4 drop-shadow-md">
                 Welcome to{" "}
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent drop-shadow-lg">
                   {schoolInfo?.school_name || "SAGME School"}
                 </span>
               </h1>
               
-              <p className="text-lg sm:text-xl md:text-2xl text-foreground/80 mb-6 font-medium">
+              <p className="text-lg sm:text-xl md:text-2xl text-foreground mb-8 font-medium drop-shadow-sm">
                 {schoolInfo?.motto || "Nurturing minds, building futures"}
-              </p>
-
-              <p className="text-base text-muted-foreground mb-8 max-w-2xl leading-relaxed">
-                A center of excellence committed to nurturing young minds through innovative teaching and a supportive learning environment.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <a href="#contact">
-                  <Button size="lg" className="w-full sm:w-auto gap-2 h-12 px-8">
+                  <Button size="lg" className="gap-2 h-11 px-5">
                     Get in Touch
-                    <ArrowRight className="h-5 w-5" />
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </a>
                 <a href="#about">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto gap-2 h-12 px-8 bg-background/60 backdrop-blur-sm">
-                    <Play className="h-5 w-5" />
+                  <Button variant="outline" size="lg" className="gap-2 h-11 px-5 bg-background/60 backdrop-blur-sm">
+                    <Play className="h-4 w-4" />
                     Learn More
                   </Button>
                 </a>
