@@ -172,7 +172,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center pt-20">
+      <section id="home" className="relative min-h-screen flex items-center pt-20 lg:pt-24">
         {/* Background */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
@@ -184,83 +184,114 @@ export default function Home() {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.3)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.3)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 backdrop-blur-sm rounded-full text-primary text-xs sm:text-sm font-medium mb-6 md:mb-8 border border-primary/20 animate-fade-in">
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Excellence in Education</span>
-            </div>
-            
-            {/* Main Heading */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-[1.1] tracking-tight mb-4 md:mb-6 animate-fade-in">
-              Welcome to{" "}
-              <span className="relative">
-                <span className="bg-gradient-to-r from-primary via-primary/90 to-secondary bg-clip-text text-transparent">
-                  {schoolInfo?.school_name || "SAGME School"}
-                </span>
-              </span>
-            </h1>
-            
-            {/* Subtitle */}
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in px-4">
-              {schoolInfo?.motto || "Nurturing minds, building futures. Join us on a journey of academic excellence and holistic development."}
-            </p>
-            
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 md:mb-16 animate-fade-in px-4">
-              <a href="#admissions">
-                <Button size="lg" className="w-full sm:w-auto gap-2 h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
-                  Get Started
-                  <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
-              </a>
-              <a href="#about">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto gap-2 h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base bg-background/50 backdrop-blur-sm">
-                  <Play className="h-4 w-4" />
-                  Learn More
-                </Button>
-              </a>
-            </div>
-
-            {/* Stats Row */}
-            <div className="flex flex-wrap justify-center gap-6 md:gap-12 animate-fade-in">
-              <div className="flex items-center gap-3 px-4 py-2 bg-card/50 backdrop-blur-sm rounded-full border border-border/50">
-                <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Users className="h-5 w-5 text-primary" />
-                </div>
-                <div className="text-left">
-                  <p className="text-2xl font-bold text-foreground">{stats.learners}+</p>
-                  <p className="text-xs text-muted-foreground">Learners</p>
-                </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left Side - School Info */}
+            <div className="text-center lg:text-left order-2 lg:order-1">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 backdrop-blur-sm rounded-full text-primary text-xs sm:text-sm font-medium mb-6 border border-primary/20 animate-fade-in">
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span>Excellence in Education</span>
               </div>
               
-              {grades.length > 0 && (
-                <div className="flex items-center gap-3 px-4 py-2 bg-card/50 backdrop-blur-sm rounded-full border border-border/50">
-                  <div className="h-10 w-10 bg-secondary/10 rounded-full flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 text-secondary" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-2xl font-bold text-foreground">{grades.length}</p>
-                    <p className="text-xs text-muted-foreground">Grades</p>
-                  </div>
-                </div>
-              )}
+              {/* Main Heading */}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] tracking-tight mb-4 md:mb-6 animate-fade-in">
+                Welcome to{" "}
+                <span className="relative block mt-2">
+                  <span className="bg-gradient-to-r from-primary via-primary/90 to-secondary bg-clip-text text-transparent">
+                    {schoolInfo?.school_name || "SAGME School"}
+                  </span>
+                </span>
+              </h1>
+              
+              {/* Motto */}
+              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-6 font-medium animate-fade-in">
+                {schoolInfo?.motto || "Nurturing minds, building futures"}
+              </p>
+
+              {/* Description Paragraph */}
+              <p className="text-sm sm:text-base text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in">
+                We are a Center of Excellence committed to nurturing young minds through innovative teaching methods, 
+                a supportive learning environment, and a curriculum designed to develop well-rounded individuals. 
+                Our dedicated educators inspire curiosity, creativity, and critical thinking in every learner, 
+                preparing them for success in an ever-changing world.
+              </p>
+              
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-fade-in">
+                <a href="#admissions">
+                  <Button size="lg" className="w-full sm:w-auto gap-2 h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+                    Apply Now
+                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </Button>
+                </a>
+                <a href="#about">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto gap-2 h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base bg-background/50 backdrop-blur-sm">
+                    <Play className="h-4 w-4" />
+                    Learn More
+                  </Button>
+                </a>
+              </div>
             </div>
 
-            {/* Grade Pills */}
-            {grades.length > 0 && (
-              <div className="mt-8 flex flex-wrap justify-center gap-2 animate-fade-in px-4">
-                {grades.map((grade, i) => (
-                  <span
-                    key={i}
-                    className="px-3 py-1.5 bg-muted/50 backdrop-blur-sm text-muted-foreground text-xs font-medium rounded-full border border-border/50 hover:bg-muted transition-colors"
-                  >
-                    {grade}
-                  </span>
-                ))}
+            {/* Right Side - Stats & Grades */}
+            <div className="order-1 lg:order-2 animate-fade-in">
+              <div className="bg-card/60 backdrop-blur-xl rounded-3xl border border-border/50 p-6 md:p-8 shadow-2xl">
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="text-center p-4 md:p-6 bg-primary/5 rounded-2xl border border-primary/10">
+                    <div className="h-12 w-12 md:h-14 md:w-14 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <Users className="h-6 w-6 md:h-7 md:w-7 text-primary" />
+                    </div>
+                    <p className="text-3xl md:text-4xl font-bold text-foreground">{stats.learners}</p>
+                    <p className="text-sm text-muted-foreground font-medium">Learners</p>
+                  </div>
+                  
+                  <div className="text-center p-4 md:p-6 bg-secondary/5 rounded-2xl border border-secondary/10">
+                    <div className="h-12 w-12 md:h-14 md:w-14 bg-secondary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <BookOpen className="h-6 w-6 md:h-7 md:w-7 text-secondary" />
+                    </div>
+                    <p className="text-3xl md:text-4xl font-bold text-foreground">{grades.length}</p>
+                    <p className="text-sm text-muted-foreground font-medium">Grades</p>
+                  </div>
+                </div>
+
+                {/* Grades List */}
+                {grades.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3 text-center">Our Grade Levels</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {grades.map((grade, i) => (
+                        <span
+                          key={i}
+                          className="px-4 py-2 bg-muted/60 backdrop-blur-sm text-foreground text-sm font-medium rounded-xl border border-border/50 hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all cursor-default"
+                        >
+                          {grade}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Features */}
+                <div className="mt-6 pt-6 border-t border-border/50">
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { icon: Shield, label: "Safe Environment" },
+                      { icon: Zap, label: "Modern Learning" },
+                      { icon: Award, label: "Quality Education" },
+                    ].map((item, i) => (
+                      <div key={i} className="text-center">
+                        <div className="h-10 w-10 bg-muted/50 rounded-lg flex items-center justify-center mx-auto mb-2">
+                          <item.icon className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">{item.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
