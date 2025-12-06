@@ -376,6 +376,36 @@ export type Database = {
           },
         ]
       }
+      blogs: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          is_published: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          image_url?: string | null
+          is_published?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          is_published?: boolean | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bulk_messages: {
         Row: {
           created_at: string
@@ -1530,6 +1560,7 @@ export type Database = {
           director_photo_url: string | null
           director_qualification: string | null
           email: string | null
+          hero_background_url: string | null
           id: string
           logo_url: string | null
           mission: string | null
@@ -1557,6 +1588,7 @@ export type Database = {
           director_photo_url?: string | null
           director_qualification?: string | null
           email?: string | null
+          hero_background_url?: string | null
           id?: string
           logo_url?: string | null
           mission?: string | null
@@ -1584,6 +1616,7 @@ export type Database = {
           director_photo_url?: string | null
           director_qualification?: string | null
           email?: string | null
+          hero_background_url?: string | null
           id?: string
           logo_url?: string | null
           mission?: string | null

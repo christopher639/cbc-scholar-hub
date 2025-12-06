@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { School, Users, Bell, Shield, DollarSign, Moon, Sun } from "lucide-react";
+import { School, Users, Bell, Shield, DollarSign, Moon, Sun, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
@@ -16,6 +16,7 @@ import { useAdmissionNumberSettings } from "@/hooks/useAdmissionNumberSettings";
 import { useToast } from "@/hooks/use-toast";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Textarea } from "@/components/ui/textarea";
+
 const Settings = () => {
   const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
   const [feeStructureDialogOpen, setFeeStructureDialogOpen] = useState(false);
@@ -33,6 +34,10 @@ const Settings = () => {
   const [vision, setVision] = useState("");
   const [coreValues, setCoreValues] = useState("");
   const [admissionPadding, setAdmissionPadding] = useState("4");
+  
+  // Hero background image state
+  const [heroBackgroundUrl, setHeroBackgroundUrl] = useState("");
+  const [savingBackground, setSavingBackground] = useState(false);
 
   // Get individual discount settings
   const staffDiscount = settings.find(s => s.discount_type === 'staff_parent');
@@ -55,8 +60,21 @@ const Settings = () => {
       setMission(schoolInfo.mission || "");
       setVision(schoolInfo.vision || "");
       setCoreValues(schoolInfo.core_values || "");
+      setHeroBackgroundUrl(schoolInfo.hero_background_url || "");
     }
   }, [schoolInfo]);
+
+  const handleSaveHeroBackground = async () => {
+    setSavingBackground(true);
+    try {
+      await updateSchoolInfo({ hero_background_url: heroBackgroundUrl.trim() || null });
+      toast({ title: "Success", description: "Hero background image updated successfully" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSavingBackground(false);
+    }
+  };
 
   const handleSaveSchoolValues = async () => {
     await updateSchoolInfo({
@@ -205,6 +223,49 @@ const Settings = () => {
                     </Button>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Hero Background Image Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5" />
+                  Homepage Hero Background
+                </CardTitle>
+                <CardDescription>Set the background image for the public website hero section</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="heroBackground">Background Image URL</Label>
+                  <Input
+                    id="heroBackground"
+                    value={heroBackgroundUrl}
+                    onChange={(e) => setHeroBackgroundUrl(e.target.value)}
+                    placeholder="https://example.com/hero-image.jpg"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter a URL for the hero section background image. Recommended size: 1920x1080px
+                  </p>
+                </div>
+                {heroBackgroundUrl && (
+                  <div className="relative">
+                    <p className="text-sm font-medium mb-2">Preview:</p>
+                    <img
+                      src={heroBackgroundUrl}
+                      alt="Hero Background Preview"
+                      className="w-full h-40 object-cover rounded-lg border border-border"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "";
+                        (e.target as HTMLImageElement).className = "hidden";
+                      }}
+                    />
+                  </div>
+                )}
+                <Button onClick={handleSaveHeroBackground} disabled={savingBackground}>
+                  {savingBackground && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Save Background Image
+                </Button>
               </CardContent>
             </Card>
 
