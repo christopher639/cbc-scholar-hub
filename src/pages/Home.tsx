@@ -347,7 +347,7 @@ export default function Home() {
             <div className="max-w-3xl">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4 drop-shadow-md">
                 Welcome to{" "}
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent drop-shadow-lg">
+                <span className="bg-gradient-to-r from-red-600 via-red-700 to-rose-900 bg-clip-text text-transparent drop-shadow-lg">
                   {schoolInfo?.school_name || "SAGME School"}
                 </span>
               </h1>
