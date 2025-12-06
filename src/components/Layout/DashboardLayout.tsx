@@ -110,7 +110,8 @@ function ThemeToggle() {
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin"] },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] },
+  { name: "Public Website", href: "/", icon: School, roles: ["admin"], external: true },
   { name: "Learners", href: "/learners", icon: Users, roles: ["admin", "teacher"] },
   { name: "Grades & Streams", href: "/grades", icon: GraduationCap, roles: ["admin", "teacher"] },
   { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher"] },
@@ -176,11 +177,11 @@ function AppSidebar() {
       </div>
 
       <SidebarContent className="bg-card">
-        <SidebarGroup>
+      <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredNav.map((item) => {
-                const isActive = location.pathname === item.href;
+                const isActive = item.external ? false : location.pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.name}>
                     <TooltipProvider>
@@ -194,10 +195,17 @@ function AppSidebar() {
                               isActive && "bg-primary text-primary-foreground"
                             )}
                           >
-                            <Link to={item.href}>
-                              <item.icon className="h-5 w-5" />
-                              <span>{item.name}</span>
-                            </Link>
+                            {item.external ? (
+                              <a href={item.href} target="_blank" rel="noopener noreferrer">
+                                <item.icon className="h-5 w-5" />
+                                <span>{item.name}</span>
+                              </a>
+                            ) : (
+                              <Link to={item.href}>
+                                <item.icon className="h-5 w-5" />
+                                <span>{item.name}</span>
+                              </Link>
+                            )}
                           </SidebarMenuButton>
                         </TooltipTrigger>
                         {collapsed && (
@@ -410,7 +418,7 @@ function BottomNavigation() {
   if (user?.role !== "admin") return null;
   
   const bottomNavItems = [
-    { name: "Home", href: "/", icon: LayoutDashboard },
+    { name: "Home", href: "/dashboard", icon: LayoutDashboard },
     { name: "Learners", href: "/learners", icon: Users },
     { name: "Fees", href: "/fees", icon: DollarSign },
     { name: "Performance", href: "/performance", icon: FileText },
