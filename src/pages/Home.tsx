@@ -47,12 +47,12 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [learnersRes, gradesRes] = await Promise.all([
-        supabase.from("learners").select("id", { count: "exact", head: true }).eq("status", "active"),
+      const [learnerCountRes, gradesRes] = await Promise.all([
+        supabase.rpc("get_active_learner_count"),
         supabase.from("grades").select("name").order("grade_level"),
       ]);
       setStats({
-        learners: learnersRes.count || 0,
+        learners: learnerCountRes.data || 0,
       });
       setGrades(gradesRes.data?.map(g => g.name) || []);
     };
