@@ -6,10 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { School, Upload, Save, User } from "lucide-react";
+import { School, Upload, Save, User, Trash2, Plus, Image } from "lucide-react";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+
+interface HeroBackground {
+  id: string;
+  image_url: string;
+  display_order: number;
+  is_active: boolean;
+}
 
 const SchoolInfo = () => {
   const { toast } = useToast();
@@ -19,6 +27,8 @@ const SchoolInfo = () => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [directorPhotoPreview, setDirectorPhotoPreview] = useState<string>("/placeholder.svg");
   const [directorPhotoFile, setDirectorPhotoFile] = useState<File | null>(null);
+  const [heroBackgrounds, setHeroBackgrounds] = useState<HeroBackground[]>([]);
+  const [uploadingHero, setUploadingHero] = useState(false);
   
   const [formData, setFormData] = useState({
     school_name: "",
@@ -69,6 +79,89 @@ const SchoolInfo = () => {
       }
     }
   }, [schoolInfo]);
+
+  // Fetch hero backgrounds
+  useEffect(() => {
+    const fetchHeroBackgrounds = async () => {
+      const { data } = await supabase
+        .from("hero_backgrounds")
+        .select("*")
+        .order("display_order", { ascending: true });
+      setHeroBackgrounds(data || []);
+    };
+    fetchHeroBackgrounds();
+  }, []);
+
+  const handleAddHeroBackground = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      toast({ title: "Error", description: "Please upload a PNG, JPG, or JPEG file", variant: "destructive" });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Error", description: "File size must be less than 5MB", variant: "destructive" });
+      return;
+    }
+
+    setUploadingHero(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `hero-bg-${Date.now()}.${fileExt}`;
+      const filePath = `hero/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      const { error: insertError } = await supabase
+        .from("hero_backgrounds")
+        .insert({ image_url: publicUrl, display_order: heroBackgrounds.length });
+
+      if (insertError) throw insertError;
+
+      const { data } = await supabase
+        .from("hero_backgrounds")
+        .select("*")
+        .order("display_order", { ascending: true });
+      setHeroBackgrounds(data || []);
+
+      toast({ title: "Success", description: "Hero background added" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setUploadingHero(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteHeroBackground = async (id: string) => {
+    try {
+      const { error } = await supabase.from("hero_backgrounds").delete().eq("id", id);
+      if (error) throw error;
+      setHeroBackgrounds(heroBackgrounds.filter((bg) => bg.id !== id));
+      toast({ title: "Success", description: "Hero background removed" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleToggleHeroActive = async (id: string, isActive: boolean) => {
+    try {
+      const { error } = await supabase.from("hero_backgrounds").update({ is_active: isActive }).eq("id", id);
+      if (error) throw error;
+      setHeroBackgrounds(heroBackgrounds.map((bg) => bg.id === id ? { ...bg, is_active: isActive } : bg));
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -208,10 +301,11 @@ const SchoolInfo = () => {
 
         <form onSubmit={handleSave}>
           <Tabs defaultValue="school" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="school">School Details</TabsTrigger>
-              <TabsTrigger value="director">Director Information</TabsTrigger>
-              <TabsTrigger value="payment">Payment Methods</TabsTrigger>
+              <TabsTrigger value="director">Director</TabsTrigger>
+              <TabsTrigger value="hero">Hero Images</TabsTrigger>
+              <TabsTrigger value="payment">Payment</TabsTrigger>
             </TabsList>
 
             <TabsContent value="school" className="space-y-6">
@@ -411,6 +505,79 @@ const SchoolInfo = () => {
                       </p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="hero" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Image className="h-5 w-5" />
+                    Hero Background Images
+                  </CardTitle>
+                  <CardDescription>
+                    Add multiple background images that will rotate every 3 seconds on the homepage
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Label htmlFor="hero_upload" className="cursor-pointer">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+                        <Plus className="h-4 w-4" />
+                        <span>{uploadingHero ? "Uploading..." : "Add Image"}</span>
+                      </div>
+                    </Label>
+                    <Input
+                      id="hero_upload"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={handleAddHeroBackground}
+                      className="hidden"
+                      disabled={uploadingHero}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Recommended: 1920x1080px (16:9 ratio)
+                    </p>
+                  </div>
+
+                  {heroBackgrounds.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+                      No hero images added yet. Upload images to display on the homepage.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {heroBackgrounds.map((bg, index) => (
+                        <div key={bg.id} className="relative group border rounded-lg overflow-hidden">
+                          <img
+                            src={bg.image_url}
+                            alt={`Hero ${index + 1}`}
+                            className="w-full h-32 object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="destructive"
+                              onClick={() => handleDeleteHeroBackground(bg.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
+                            #{index + 1}
+                          </div>
+                          <div className="absolute top-2 right-2 flex items-center gap-2 bg-background/80 px-2 py-1 rounded">
+                            <span className="text-xs">{bg.is_active ? "Active" : "Off"}</span>
+                            <Switch
+                              checked={bg.is_active}
+                              onCheckedChange={(checked) => handleToggleHeroActive(bg.id, checked)}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
