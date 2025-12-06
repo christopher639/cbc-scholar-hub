@@ -10,7 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { SessionTimeoutWarning } from "@/components/SessionTimeoutWarning";
-import SagmeHome from "./pages/SagmeHome";
+import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Learners from "./pages/Students";
 import Alumni from "./pages/Alumni";
@@ -85,7 +85,7 @@ const App = () => (
             <SessionTimeoutWrapper>
             <Routes>
             {/* Public School Website */}
-            <Route path="/" element={<SagmeHome />} />
+            <Route path="/" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signout" element={<Signout />} />
             
