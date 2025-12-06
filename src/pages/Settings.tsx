@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { School, Users, Bell, Shield, DollarSign, Moon, Sun, Image as ImageIcon, Loader2 } from "lucide-react";
+import { School, Users, Bell, Shield, DollarSign, Moon, Sun, Image as ImageIcon, Loader2, X, Plus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
@@ -17,6 +17,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+
+interface HeroBackground {
+  id: string;
+  image_url: string;
+  display_order: number;
+  is_active: boolean;
+}
 
 const Settings = () => {
   const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
@@ -36,9 +43,10 @@ const Settings = () => {
   const [coreValues, setCoreValues] = useState("");
   const [admissionPadding, setAdmissionPadding] = useState("4");
   
-  // Hero background image state
-  const [heroBackgroundUrl, setHeroBackgroundUrl] = useState("");
-  const [savingBackground, setSavingBackground] = useState(false);
+  // Hero background images state
+  const [heroBackgrounds, setHeroBackgrounds] = useState<HeroBackground[]>([]);
+  const [loadingBackgrounds, setLoadingBackgrounds] = useState(true);
+  const [uploadingBackground, setUploadingBackground] = useState(false);
 
   // Get individual discount settings
   const staffDiscount = settings.find(s => s.discount_type === 'staff_parent');
@@ -61,19 +69,90 @@ const Settings = () => {
       setMission(schoolInfo.mission || "");
       setVision(schoolInfo.vision || "");
       setCoreValues(schoolInfo.core_values || "");
-      setHeroBackgroundUrl(schoolInfo.hero_background_url || "");
     }
   }, [schoolInfo]);
 
-  const handleSaveHeroBackground = async () => {
-    setSavingBackground(true);
+  // Fetch hero backgrounds
+  useEffect(() => {
+    const fetchHeroBackgrounds = async () => {
+      setLoadingBackgrounds(true);
+      try {
+        const { data, error } = await supabase
+          .from("hero_backgrounds")
+          .select("*")
+          .order("display_order", { ascending: true });
+        
+        if (error) throw error;
+        setHeroBackgrounds(data || []);
+      } catch (error: any) {
+        console.error("Error fetching hero backgrounds:", error);
+      } finally {
+        setLoadingBackgrounds(false);
+      }
+    };
+    fetchHeroBackgrounds();
+  }, []);
+
+  const handleUploadHeroImage = async (file: File) => {
+    if (heroBackgrounds.length >= 4) {
+      toast({ 
+        title: "Maximum reached", 
+        description: "You can only have up to 4 hero background images. Delete one to add another.",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setUploadingBackground(true);
     try {
-      await updateSchoolInfo({ hero_background_url: heroBackgroundUrl.trim() || null });
-      toast({ title: "Success", description: "Hero background image updated successfully" });
+      const fileExt = file.name.split('.').pop();
+      const fileName = `hero-background-${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+      
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+      
+      // Insert into hero_backgrounds table
+      const { data: newBackground, error: insertError } = await supabase
+        .from("hero_backgrounds")
+        .insert({
+          image_url: publicUrl,
+          display_order: heroBackgrounds.length,
+          is_active: true
+        })
+        .select()
+        .single();
+      
+      if (insertError) throw insertError;
+      
+      setHeroBackgrounds([...heroBackgrounds, newBackground]);
+      toast({ title: "Success", description: "Hero background image added" });
+    } catch (error: any) {
+      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+    } finally {
+      setUploadingBackground(false);
+    }
+  };
+
+  const handleDeleteHeroImage = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("hero_backgrounds")
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
+      
+      setHeroBackgrounds(heroBackgrounds.filter(bg => bg.id !== id));
+      toast({ title: "Deleted", description: "Hero background image removed" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
-      setSavingBackground(false);
     }
   };
 
@@ -227,81 +306,79 @@ const Settings = () => {
               </CardContent>
             </Card>
 
-            {/* Hero Background Image Card */}
+            {/* Hero Background Images Card */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ImageIcon className="h-5 w-5" />
                   Homepage Hero Background
                 </CardTitle>
-                <CardDescription>Upload or set the background image for the public website hero section</CardDescription>
+                <CardDescription>
+                  Upload up to 4 background images that will rotate every 3 seconds on the homepage hero section
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="heroBackgroundUpload">Upload Background Image</Label>
-                  <Input
-                    id="heroBackgroundUpload"
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      
-                      setSavingBackground(true);
-                      try {
-                        const fileExt = file.name.split('.').pop();
-                        const fileName = `hero-background-${Date.now()}.${fileExt}`;
-                        
-                        const { data, error } = await supabase.storage
-                          .from('avatars')
-                          .upload(fileName, file, { upsert: true });
-                        
-                        if (error) throw error;
-                        
-                        const { data: { publicUrl } } = supabase.storage
-                          .from('avatars')
-                          .getPublicUrl(fileName);
-                        
-                        setHeroBackgroundUrl(publicUrl);
-                        toast({ title: "Image uploaded", description: "Click 'Save Background Image' to apply changes" });
-                      } catch (error: any) {
-                        toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-                      } finally {
-                        setSavingBackground(false);
-                      }
-                    }}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Upload an image or enter a URL below. Recommended size: 1920x1080px
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="heroBackground">Or enter Image URL</Label>
-                  <Input
-                    id="heroBackground"
-                    value={heroBackgroundUrl}
-                    onChange={(e) => setHeroBackgroundUrl(e.target.value)}
-                    placeholder="https://example.com/hero-image.jpg"
-                  />
-                </div>
-                {heroBackgroundUrl && (
-                  <div className="relative">
-                    <p className="text-sm font-medium mb-2">Preview:</p>
-                    <img
-                      src={heroBackgroundUrl}
-                      alt="Hero Background Preview"
-                      className="w-full h-40 object-cover rounded-lg border border-border"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "";
-                        (e.target as HTMLImageElement).className = "hidden";
-                      }}
-                    />
+                {loadingBackgrounds ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading hero backgrounds...
                   </div>
+                ) : (
+                  <>
+                    {/* Current Images Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {heroBackgrounds.map((bg, index) => (
+                        <div key={bg.id} className="relative group">
+                          <img
+                            src={bg.image_url}
+                            alt={`Hero background ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border border-border"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleDeleteHeroImage(bg.id)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                          <span className="absolute bottom-1 left-1 bg-background/80 text-xs px-1.5 py-0.5 rounded">
+                            #{index + 1}
+                          </span>
+                        </div>
+                      ))}
+                      
+                      {/* Add Image Button */}
+                      {heroBackgrounds.length < 4 && (
+                        <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-muted-foreground/30 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                          {uploadingBackground ? (
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                          ) : (
+                            <>
+                              <Plus className="h-6 w-6 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground mt-1">Add Image</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingBackground}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleUploadHeroImage(file);
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground">
+                      {heroBackgrounds.length}/4 images uploaded. Recommended size: 1920x1080px. Images will rotate every 3 seconds.
+                    </p>
+                  </>
                 )}
-                <Button onClick={handleSaveHeroBackground} disabled={savingBackground}>
-                  {savingBackground && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Save Background Image
-                </Button>
               </CardContent>
             </Card>
 
