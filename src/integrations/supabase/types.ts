@@ -1898,6 +1898,7 @@ export type Database = {
         Returns: string
       }
       generate_transaction_number: { Args: never; Returns: string }
+      get_active_learner_count: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
