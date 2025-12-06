@@ -46,6 +46,14 @@ interface Blog {
   created_at: string;
 }
 
+interface GalleryImage {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string;
+  category: string;
+}
+
 // Generate or get visitor ID
 const getVisitorId = (): string => {
   let visitorId = localStorage.getItem('visitor_id');
@@ -64,8 +72,10 @@ export default function Home() {
   const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [likedBlogs, setLikedBlogs] = useState<Set<string>>(new Set());
   const [likingBlog, setLikingBlog] = useState<string | null>(null);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState<GalleryImage | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -110,6 +120,19 @@ export default function Home() {
     if (storedLikes) {
       setLikedBlogs(new Set(JSON.parse(storedLikes)));
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      const { data } = await supabase
+        .from("gallery_images")
+        .select("id, title, description, image_url, category")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true })
+        .limit(8);
+      setGalleryImages(data || []);
+    };
+    fetchGallery();
   }, []);
 
   const handleLikeBlog = async (blogId: string) => {
@@ -188,8 +211,8 @@ export default function Home() {
     { name: "Home", href: "#home" },
     { name: "About", href: "#about" },
     { name: "Blog", href: "#blog" },
+    { name: "Gallery", href: "#gallery" },
     { name: "Programs", href: "#programs" },
-    { name: "Testimonials", href: "#testimonials" },
     { name: "Contact", href: "#contact" },
   ];
 
@@ -434,7 +457,73 @@ export default function Home() {
         </section>
       )}
 
-      {/* About Section */}
+      {/* Photo Gallery Section */}
+      {galleryImages.length > 0 && (
+        <section id="gallery" className="py-16 md:py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <p className="text-primary text-sm font-medium mb-2">Our School</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Photo Gallery
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Explore our facilities, events, and vibrant school life through our gallery.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {galleryImages.map((image) => (
+                <div
+                  key={image.id}
+                  className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer"
+                  onClick={() => setSelectedGalleryImage(image)}
+                >
+                  <img
+                    src={image.image_url}
+                    alt={image.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <p className="text-white font-medium text-sm truncate">{image.title}</p>
+                      <p className="text-white/70 text-xs capitalize">{image.category}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Gallery Lightbox Modal */}
+      {selectedGalleryImage && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setSelectedGalleryImage(null)}
+        >
+          <div className="relative max-w-4xl w-full max-h-[90vh]">
+            <button
+              onClick={() => setSelectedGalleryImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-primary transition-colors"
+            >
+              <X className="h-8 w-8" />
+            </button>
+            <img
+              src={selectedGalleryImage.image_url}
+              alt={selectedGalleryImage.title}
+              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+            />
+            <div className="mt-4 text-center">
+              <h3 className="text-white text-xl font-bold">{selectedGalleryImage.title}</h3>
+              {selectedGalleryImage.description && (
+                <p className="text-white/70 mt-2">{selectedGalleryImage.description}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <section id="about" className="py-16 md:py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
