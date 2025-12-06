@@ -358,30 +358,20 @@ export default function Home() {
         )}
       </header>
 
-      {/* Hero Section */}
-      <section id="home" className="relative min-h-[90vh] flex items-center">
-        <div className="absolute inset-0">
-          <img 
-            key={currentBgIndex}
-            src={heroBackground} 
-            alt="School Campus" 
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background/60" />
-        </div>
-        
-        <div className="relative w-full pt-24 pb-16 md:pt-32 md:pb-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4 drop-shadow-md">
+      {/* Hero Section - Two Column Layout */}
+      <section id="home" className="min-h-[90vh] pt-20 md:pt-24 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(90vh-6rem)]">
+            {/* Left Column - Text Content */}
+            <div className="flex flex-col justify-center py-8 lg:py-0">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
                 Welcome to{" "}
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent drop-shadow-lg">
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   {schoolInfo?.school_name || "SAGME School"}
                 </span>
               </h1>
               
-              <p className="text-lg sm:text-xl md:text-2xl text-foreground mb-8 font-medium drop-shadow-sm">
+              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 font-medium">
                 {schoolInfo?.motto || "Nurturing minds, building futures"}
               </p>
               
@@ -393,7 +383,7 @@ export default function Home() {
                   </Button>
                 </a>
                 <a href="#about">
-                  <Button variant="outline" size="lg" className="gap-2 h-11 px-5 bg-background/60 backdrop-blur-sm">
+                  <Button variant="outline" size="lg" className="gap-2 h-11 px-5">
                     <Play className="h-4 w-4" />
                     Learn More
                   </Button>
@@ -401,19 +391,29 @@ export default function Home() {
               </div>
 
               {/* Why Choose Us Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {[
                   { icon: Shield, title: "Safe Environment", color: "text-green-600" },
                   { icon: Zap, title: "Modern Facilities", color: "text-yellow-600" },
                   { icon: Award, title: "Quality Education", color: "text-blue-600" },
                   { icon: Heart, title: "Caring Teachers", color: "text-pink-600" },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 p-3 bg-card/80 backdrop-blur-md rounded-xl border border-border/50">
+                  <div key={i} className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border border-border/50">
                     <item.icon className={`h-5 w-5 ${item.color} flex-shrink-0`} />
                     <span className="text-xs sm:text-sm font-medium text-foreground">{item.title}</span>
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Right Column - Rotating Images */}
+            <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[500px] xl:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
+              <img 
+                key={currentBgIndex}
+                src={heroBackground} 
+                alt="School Campus" 
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
+              />
             </div>
           </div>
         </div>
