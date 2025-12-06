@@ -358,7 +358,7 @@ export default function Home() {
       {/* Hero Section - Two Column Layout */}
       <section id="home" className="min-h-[90vh] pt-20 md:pt-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-          <div className={`grid ${heroBackgrounds.length > 0 ? 'lg:grid-cols-2' : ''} gap-8 lg:gap-12 items-center min-h-[calc(90vh-6rem)]`}>
+          <div className={`grid ${(heroBackgrounds.length > 0 || schoolInfo?.hero_background_url) ? 'lg:grid-cols-2' : ''} gap-8 lg:gap-12 items-center min-h-[calc(90vh-6rem)]`}>
             {/* Left Column - Text Content */}
             <div className="flex flex-col justify-center py-8 lg:py-0">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
@@ -368,26 +368,17 @@ export default function Home() {
                 </span>
               </h1>
               
-              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 font-medium">
+              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground font-medium">
                 {schoolInfo?.motto || "Nurturing minds, building futures"}
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                <a href="#contact">
-                  <Button size="lg" className="gap-2 h-11 px-5">
-                    Get in Touch
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </a>
-              </div>
             </div>
 
-            {/* Right Column - Rotating Images (only if images exist) */}
-            {heroBackgrounds.length > 0 && (
+            {/* Right Column - Rotating Images or fallback background */}
+            {(heroBackgrounds.length > 0 || schoolInfo?.hero_background_url) && (
               <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[500px] xl:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
                 <img 
                   key={currentBgIndex}
-                  src={heroBackgrounds[currentBgIndex]} 
+                  src={heroBackgrounds.length > 0 ? heroBackgrounds[currentBgIndex] : schoolInfo?.hero_background_url} 
                   alt="School Campus" 
                   className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
                 />
