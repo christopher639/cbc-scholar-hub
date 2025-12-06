@@ -76,6 +76,8 @@ export default function Home() {
   const [likedBlogs, setLikedBlogs] = useState<Set<string>>(new Set());
   const [likingBlog, setLikingBlog] = useState<string | null>(null);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState<GalleryImage | null>(null);
+  const [heroBackgrounds, setHeroBackgrounds] = useState<string[]>([]);
+  const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -134,6 +136,30 @@ export default function Home() {
     };
     fetchGallery();
   }, []);
+
+  // Fetch hero backgrounds
+  useEffect(() => {
+    const fetchHeroBackgrounds = async () => {
+      const { data } = await supabase
+        .from("hero_backgrounds")
+        .select("image_url")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      if (data && data.length > 0) {
+        setHeroBackgrounds(data.map((bg) => bg.image_url));
+      }
+    };
+    fetchHeroBackgrounds();
+  }, []);
+
+  // Cycle through hero backgrounds every 3 seconds
+  useEffect(() => {
+    if (heroBackgrounds.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBgIndex((prev) => (prev + 1) % heroBackgrounds.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [heroBackgrounds]);
 
   const handleLikeBlog = async (blogId: string) => {
     const visitorId = getVisitorId();
@@ -237,7 +263,9 @@ export default function Home() {
     },
   ];
 
-  const heroBackground = schoolInfo?.hero_background_url || heroSchoolBg;
+  const heroBackground = heroBackgrounds.length > 0 
+    ? heroBackgrounds[currentBgIndex] 
+    : (schoolInfo?.hero_background_url || heroSchoolBg);
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -334,9 +362,10 @@ export default function Home() {
       <section id="home" className="relative min-h-[90vh] flex items-center">
         <div className="absolute inset-0">
           <img 
+            key={currentBgIndex}
             src={heroBackground} 
             alt="School Campus" 
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background/60" />
@@ -347,7 +376,7 @@ export default function Home() {
             <div className="max-w-3xl">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4 drop-shadow-md">
                 Welcome to{" "}
-                <span className="bg-gradient-to-r from-red-600 via-red-700 to-rose-900 bg-clip-text text-transparent drop-shadow-lg">
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent drop-shadow-lg">
                   {schoolInfo?.school_name || "SAGME School"}
                 </span>
               </h1>
