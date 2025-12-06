@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { supabase } from "@/integrations/supabase/client";
+import heroSchoolBg from "@/assets/hero-school-bg.jpg";
 import {
   GraduationCap,
   Users,
@@ -173,34 +174,34 @@ export default function Home() {
 
       {/* Hero Section */}
       <section id="home" className="relative min-h-screen flex items-center pt-20 lg:pt-24">
-        {/* Background */}
+        {/* Background Image */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
-          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[150px] animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px]" />
-          <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-accent/10 rounded-full blur-[100px]" />
-          
-          {/* Grid Pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.3)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.3)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+          <img 
+            src={heroSchoolBg} 
+            alt="School Campus" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
         </div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 w-full">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left Side - School Info */}
-            <div className="text-center lg:text-left order-2 lg:order-1">
+            <div className="text-center lg:text-left">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 backdrop-blur-sm rounded-full text-primary text-xs sm:text-sm font-medium mb-6 border border-primary/20 animate-fade-in">
                 <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Excellence in Education</span>
               </div>
               
-              {/* Main Heading */}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] tracking-tight mb-4 md:mb-6 animate-fade-in">
-                Welcome to{" "}
-                <span className="relative block mt-2">
-                  <span className="bg-gradient-to-r from-primary via-primary/90 to-secondary bg-clip-text text-transparent">
-                    {schoolInfo?.school_name || "SAGME School"}
-                  </span>
+              {/* Main Heading - 2 lines */}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] tracking-tight mb-2 animate-fade-in">
+                Welcome to
+              </h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight mb-4 md:mb-6 animate-fade-in">
+                <span className="bg-gradient-to-r from-primary via-primary/90 to-secondary bg-clip-text text-transparent">
+                  {schoolInfo?.school_name || "SAGME School"}
                 </span>
               </h1>
               
@@ -209,12 +210,48 @@ export default function Home() {
                 {schoolInfo?.motto || "Nurturing minds, building futures"}
               </p>
 
+              {/* Stats - Below welcome on small screens, left side on all */}
+              <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-6 animate-fade-in">
+                <div className="flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm rounded-xl border border-border/50">
+                  <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground">{stats.learners}</p>
+                    <p className="text-xs text-muted-foreground">Learners</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm rounded-xl border border-border/50">
+                  <div className="h-10 w-10 bg-secondary/10 rounded-lg flex items-center justify-center">
+                    <BookOpen className="h-5 w-5 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground">{grades.length}</p>
+                    <p className="text-xs text-muted-foreground">Grades</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grades List */}
+              {grades.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center lg:justify-start mb-6 animate-fade-in">
+                  {grades.map((grade, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1.5 bg-muted/60 backdrop-blur-sm text-foreground text-xs sm:text-sm font-medium rounded-lg border border-border/50"
+                    >
+                      {grade}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               {/* Description Paragraph */}
               <p className="text-sm sm:text-base text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in">
                 We are a Center of Excellence committed to nurturing young minds through innovative teaching methods, 
                 a supportive learning environment, and a curriculum designed to develop well-rounded individuals. 
-                Our dedicated educators inspire curiosity, creativity, and critical thinking in every learner, 
-                preparing them for success in an ever-changing world.
+                Our dedicated educators inspire curiosity, creativity, and critical thinking in every learner.
               </p>
               
               {/* CTAs */}
@@ -234,61 +271,28 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right Side - Stats & Grades */}
-            <div className="order-1 lg:order-2 animate-fade-in">
-              <div className="bg-card/60 backdrop-blur-xl rounded-3xl border border-border/50 p-6 md:p-8 shadow-2xl">
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="text-center p-4 md:p-6 bg-primary/5 rounded-2xl border border-primary/10">
-                    <div className="h-12 w-12 md:h-14 md:w-14 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <Users className="h-6 w-6 md:h-7 md:w-7 text-primary" />
-                    </div>
-                    <p className="text-3xl md:text-4xl font-bold text-foreground">{stats.learners}</p>
-                    <p className="text-sm text-muted-foreground font-medium">Learners</p>
-                  </div>
-                  
-                  <div className="text-center p-4 md:p-6 bg-secondary/5 rounded-2xl border border-secondary/10">
-                    <div className="h-12 w-12 md:h-14 md:w-14 bg-secondary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <BookOpen className="h-6 w-6 md:h-7 md:w-7 text-secondary" />
-                    </div>
-                    <p className="text-3xl md:text-4xl font-bold text-foreground">{grades.length}</p>
-                    <p className="text-sm text-muted-foreground font-medium">Grades</p>
-                  </div>
-                </div>
-
-                {/* Grades List */}
-                {grades.length > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3 text-center">Our Grade Levels</p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {grades.map((grade, i) => (
-                        <span
-                          key={i}
-                          className="px-4 py-2 bg-muted/60 backdrop-blur-sm text-foreground text-sm font-medium rounded-xl border border-border/50 hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all cursor-default"
-                        >
-                          {grade}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Quick Features */}
-                <div className="mt-6 pt-6 border-t border-border/50">
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { icon: Shield, label: "Safe Environment" },
-                      { icon: Zap, label: "Modern Learning" },
-                      { icon: Award, label: "Quality Education" },
-                    ].map((item, i) => (
-                      <div key={i} className="text-center">
-                        <div className="h-10 w-10 bg-muted/50 rounded-lg flex items-center justify-center mx-auto mb-2">
-                          <item.icon className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">{item.label}</p>
+            {/* Right Side - Features Card (Large screens only) */}
+            <div className="hidden lg:block animate-fade-in">
+              <div className="bg-card/60 backdrop-blur-xl rounded-3xl border border-border/50 p-8 shadow-2xl">
+                <h3 className="text-xl font-bold text-foreground mb-6 text-center">Why Choose Us?</h3>
+                
+                <div className="space-y-4">
+                  {[
+                    { icon: Shield, title: "Safe Environment", desc: "Secure campus with caring staff" },
+                    { icon: Zap, title: "Modern Learning", desc: "Technology-enhanced classrooms" },
+                    { icon: Award, title: "Quality Education", desc: "Experienced and dedicated teachers" },
+                    { icon: Heart, title: "Holistic Development", desc: "Academic, social & emotional growth" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-4 p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors">
+                      <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <item.icon className="h-6 w-6 text-primary" />
                       </div>
-                    ))}
-                  </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground">{item.title}</h4>
+                        <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
