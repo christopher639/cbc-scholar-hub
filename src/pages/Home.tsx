@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import heroSchoolBg from "@/assets/hero-school-bg.jpg";
+
 import {
   GraduationCap,
   Users,
@@ -263,9 +263,6 @@ export default function Home() {
     },
   ];
 
-  const heroBackground = heroBackgrounds.length > 0 
-    ? heroBackgrounds[currentBgIndex] 
-    : (schoolInfo?.hero_background_url || heroSchoolBg);
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -361,7 +358,7 @@ export default function Home() {
       {/* Hero Section - Two Column Layout */}
       <section id="home" className="min-h-[90vh] pt-20 md:pt-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(90vh-6rem)]">
+          <div className={`grid ${heroBackgrounds.length > 0 ? 'lg:grid-cols-2' : ''} gap-8 lg:gap-12 items-center min-h-[calc(90vh-6rem)]`}>
             {/* Left Column - Text Content */}
             <div className="flex flex-col justify-center py-8 lg:py-0">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
@@ -375,46 +372,27 @@ export default function Home() {
                 {schoolInfo?.motto || "Nurturing minds, building futures"}
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <a href="#contact">
                   <Button size="lg" className="gap-2 h-11 px-5">
                     Get in Touch
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </a>
-                <a href="#about">
-                  <Button variant="outline" size="lg" className="gap-2 h-11 px-5">
-                    <Play className="h-4 w-4" />
-                    Learn More
-                  </Button>
-                </a>
-              </div>
-
-              {/* Why Choose Us Cards */}
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: Shield, title: "Safe Environment", color: "text-green-600" },
-                  { icon: Zap, title: "Modern Facilities", color: "text-yellow-600" },
-                  { icon: Award, title: "Quality Education", color: "text-blue-600" },
-                  { icon: Heart, title: "Caring Teachers", color: "text-pink-600" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl border border-border/50">
-                    <item.icon className={`h-5 w-5 ${item.color} flex-shrink-0`} />
-                    <span className="text-xs sm:text-sm font-medium text-foreground">{item.title}</span>
-                  </div>
-                ))}
               </div>
             </div>
 
-            {/* Right Column - Rotating Images */}
-            <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[500px] xl:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
-              <img 
-                key={currentBgIndex}
-                src={heroBackground} 
-                alt="School Campus" 
-                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
-              />
-            </div>
+            {/* Right Column - Rotating Images (only if images exist) */}
+            {heroBackgrounds.length > 0 && (
+              <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[500px] xl:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
+                <img 
+                  key={currentBgIndex}
+                  src={heroBackgrounds[currentBgIndex]} 
+                  alt="School Campus" 
+                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
+                />
+              </div>
+            )}
           </div>
         </div>
       </section>
