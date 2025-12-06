@@ -16,6 +16,7 @@ import { useAdmissionNumberSettings } from "@/hooks/useAdmissionNumberSettings";
 import { useToast } from "@/hooks/use-toast";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const [discountDialogOpen, setDiscountDialogOpen] = useState(false);
@@ -233,20 +234,55 @@ const Settings = () => {
                   <ImageIcon className="h-5 w-5" />
                   Homepage Hero Background
                 </CardTitle>
-                <CardDescription>Set the background image for the public website hero section</CardDescription>
+                <CardDescription>Upload or set the background image for the public website hero section</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="heroBackground">Background Image URL</Label>
+                  <Label htmlFor="heroBackgroundUpload">Upload Background Image</Label>
+                  <Input
+                    id="heroBackgroundUpload"
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      setSavingBackground(true);
+                      try {
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `hero-background-${Date.now()}.${fileExt}`;
+                        
+                        const { data, error } = await supabase.storage
+                          .from('avatars')
+                          .upload(fileName, file, { upsert: true });
+                        
+                        if (error) throw error;
+                        
+                        const { data: { publicUrl } } = supabase.storage
+                          .from('avatars')
+                          .getPublicUrl(fileName);
+                        
+                        setHeroBackgroundUrl(publicUrl);
+                        toast({ title: "Image uploaded", description: "Click 'Save Background Image' to apply changes" });
+                      } catch (error: any) {
+                        toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+                      } finally {
+                        setSavingBackground(false);
+                      }
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Upload an image or enter a URL below. Recommended size: 1920x1080px
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="heroBackground">Or enter Image URL</Label>
                   <Input
                     id="heroBackground"
                     value={heroBackgroundUrl}
                     onChange={(e) => setHeroBackgroundUrl(e.target.value)}
                     placeholder="https://example.com/hero-image.jpg"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Enter a URL for the hero section background image. Recommended size: 1920x1080px
-                  </p>
                 </div>
                 {heroBackgroundUrl && (
                   <div className="relative">

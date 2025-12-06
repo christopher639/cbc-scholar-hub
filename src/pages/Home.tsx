@@ -42,8 +42,19 @@ interface Blog {
   title: string;
   description: string;
   image_url: string | null;
+  likes_count: number;
   created_at: string;
 }
+
+// Generate or get visitor ID
+const getVisitorId = (): string => {
+  let visitorId = localStorage.getItem('visitor_id');
+  if (!visitorId) {
+    visitorId = 'v_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+    localStorage.setItem('visitor_id', visitorId);
+  }
+  return visitorId;
+};
 
 export default function Home() {
   const { schoolInfo, loading } = useSchoolInfo();
@@ -53,6 +64,8 @@ export default function Home() {
   const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [likedBlogs, setLikedBlogs] = useState<Set<string>>(new Set());
+  const [likingBlog, setLikingBlog] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -62,18 +75,86 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Track page visit
+  useEffect(() => {
+    const trackVisit = async () => {
+      const visitorId = getVisitorId();
+      try {
+        await supabase.from("page_visits").insert({
+          visitor_id: visitorId,
+          page_path: '/',
+          user_agent: navigator.userAgent,
+        });
+      } catch (error) {
+        // Ignore duplicate visit errors
+        console.log("Visit tracking:", error);
+      }
+    };
+    trackVisit();
+  }, []);
+
   useEffect(() => {
     const fetchBlogs = async () => {
       const { data } = await supabase
         .from("blogs")
-        .select("id, title, description, image_url, created_at")
+        .select("id, title, description, image_url, likes_count, created_at")
         .eq("is_published", true)
-        .order("created_at", { ascending: false })
+        .order("likes_count", { ascending: false })
         .limit(4);
       setBlogs(data || []);
     };
     fetchBlogs();
+
+    // Load liked blogs from localStorage
+    const storedLikes = localStorage.getItem('liked_blogs');
+    if (storedLikes) {
+      setLikedBlogs(new Set(JSON.parse(storedLikes)));
+    }
   }, []);
+
+  const handleLikeBlog = async (blogId: string) => {
+    const visitorId = getVisitorId();
+    setLikingBlog(blogId);
+
+    try {
+      if (likedBlogs.has(blogId)) {
+        // Unlike
+        await supabase
+          .from("blog_likes")
+          .delete()
+          .eq("blog_id", blogId)
+          .eq("visitor_id", visitorId);
+
+        const newLikedBlogs = new Set(likedBlogs);
+        newLikedBlogs.delete(blogId);
+        setLikedBlogs(newLikedBlogs);
+        localStorage.setItem('liked_blogs', JSON.stringify([...newLikedBlogs]));
+
+        setBlogs(blogs.map(b => 
+          b.id === blogId ? { ...b, likes_count: Math.max(0, b.likes_count - 1) } : b
+        ));
+      } else {
+        // Like
+        await supabase.from("blog_likes").insert({
+          blog_id: blogId,
+          visitor_id: visitorId,
+        });
+
+        const newLikedBlogs = new Set(likedBlogs);
+        newLikedBlogs.add(blogId);
+        setLikedBlogs(newLikedBlogs);
+        localStorage.setItem('liked_blogs', JSON.stringify([...newLikedBlogs]));
+
+        setBlogs(blogs.map(b => 
+          b.id === blogId ? { ...b, likes_count: b.likes_count + 1 } : b
+        ));
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: "Failed to update like", variant: "destructive" });
+    } finally {
+      setLikingBlog(null);
+    }
+  };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,13 +398,27 @@ export default function Home() {
                     </div>
                   )}
                   <CardContent className="p-5">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(blog.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(blog.created_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </div>
+                      <button
+                        onClick={() => handleLikeBlog(blog.id)}
+                        disabled={likingBlog === blog.id}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all ${
+                          likedBlogs.has(blog.id)
+                            ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                            : "bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-600"
+                        }`}
+                      >
+                        <Heart className={`h-3 w-3 ${likedBlogs.has(blog.id) ? "fill-current" : ""}`} />
+                        {blog.likes_count}
+                      </button>
                     </div>
                     <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-2">
                       {blog.title}
@@ -431,24 +526,56 @@ export default function Home() {
               Our Programs
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Comprehensive educational programs designed to nurture every aspect of student development.
+              Comprehensive educational programs designed to nurture every aspect of your child's development.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { icon: BookOpen, title: "Academic Excellence", desc: "Rigorous curriculum aligned with national standards" },
-              { icon: Shield, title: "Safe Environment", desc: "Secure and nurturing learning atmosphere" },
-              { icon: Award, title: "Co-curricular", desc: "Sports, arts, and club activities" },
-              { icon: Zap, title: "Modern Learning", desc: "Technology-enhanced education" },
+              {
+                icon: BookOpen,
+                title: "Early Years",
+                description: "Foundation learning through play-based activities for ages 3-6 years.",
+                color: "bg-blue-500/10 text-blue-600",
+              },
+              {
+                icon: GraduationCap,
+                title: "Primary Education",
+                description: "Comprehensive CBC curriculum covering all learning areas for grades 1-6.",
+                color: "bg-green-500/10 text-green-600",
+              },
+              {
+                icon: Award,
+                title: "Junior Secondary",
+                description: "Advanced learning preparing students for senior secondary education.",
+                color: "bg-purple-500/10 text-purple-600",
+              },
+              {
+                icon: Users,
+                title: "Extra-Curricular",
+                description: "Sports, music, art, and clubs for holistic development.",
+                color: "bg-orange-500/10 text-orange-600",
+              },
+              {
+                icon: Lightbulb,
+                title: "STEM Programs",
+                description: "Science, technology, engineering, and mathematics focus.",
+                color: "bg-cyan-500/10 text-cyan-600",
+              },
+              {
+                icon: Heart,
+                title: "Character Building",
+                description: "Values-based education fostering responsible citizenship.",
+                color: "bg-pink-500/10 text-pink-600",
+              },
             ].map((program, i) => (
-              <Card key={i} className="border bg-card hover:shadow-md transition-shadow">
-                <CardContent className="p-5">
-                  <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                    <program.icon className="h-5 w-5 text-primary" />
+              <Card key={i} className="border bg-card hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${program.color}`}>
+                    <program.icon className="h-6 w-6" />
                   </div>
-                  <h3 className="font-bold text-foreground mb-2">{program.title}</h3>
-                  <p className="text-muted-foreground text-sm">{program.desc}</p>
+                  <h3 className="text-lg font-bold text-foreground mb-2">{program.title}</h3>
+                  <p className="text-muted-foreground text-sm">{program.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -465,7 +592,7 @@ export default function Home() {
               What Parents Say
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Hear from parents who have entrusted us with their children's education.
+              Hear from our community of satisfied parents and guardians.
             </p>
           </div>
 
@@ -474,15 +601,15 @@ export default function Home() {
               <Card key={i} className="border bg-card">
                 <CardContent className="p-6">
                   <Quote className="h-8 w-8 text-primary/30 mb-4" />
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
+                  <p className="text-muted-foreground mb-6 italic leading-relaxed">
                     "{testimonial.content}"
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-sm">
-                      {testimonial.avatar}
+                    <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      <span className="text-primary font-bold text-sm">{testimonial.avatar}</span>
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>
+                      <p className="font-bold text-foreground text-sm">{testimonial.name}</p>
                       <p className="text-muted-foreground text-xs">{testimonial.role}</p>
                     </div>
                   </div>
@@ -496,187 +623,116 @@ export default function Home() {
       {/* Contact Section */}
       <section id="contact" className="py-16 md:py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <p className="text-primary text-sm font-medium mb-2">Get in Touch</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Contact Us
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-            </p>
-          </div>
+          <div className="grid lg:grid-cols-2 gap-12">
+            <div>
+              <p className="text-primary text-sm font-medium mb-2">Get in Touch</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Contact Us
+              </h2>
+              <p className="text-muted-foreground mb-8">
+                Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+              </p>
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Contact Form */}
-            <Card className="border bg-card">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-bold text-foreground mb-4">Send us a Message</h3>
-                <form onSubmit={handleContactSubmit} className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name *</Label>
-                      <Input
-                        id="name"
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                        required
-                        maxLength={100}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                        required
-                        maxLength={255}
-                      />
+              <div className="space-y-4">
+                {schoolInfo?.address && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-primary mt-1" />
+                    <div>
+                      <p className="font-medium text-foreground">Address</p>
+                      <p className="text-muted-foreground text-sm">{schoolInfo.address}</p>
                     </div>
                   </div>
+                )}
+                {schoolInfo?.phone && (
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-5 w-5 text-primary mt-1" />
+                    <div>
+                      <p className="font-medium text-foreground">Phone</p>
+                      <p className="text-muted-foreground text-sm">{schoolInfo.phone}</p>
+                    </div>
+                  </div>
+                )}
+                {schoolInfo?.email && (
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-primary mt-1" />
+                    <div>
+                      <p className="font-medium text-foreground">Email</p>
+                      <p className="text-muted-foreground text-sm">{schoolInfo.email}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Card className="border bg-card">
+              <CardContent className="p-6">
+                <form onSubmit={handleContactSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number (optional)</Label>
+                    <Label htmlFor="name">Name *</Label>
+                    <Input
+                      id="name"
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone (Optional)</Label>
                     <Input
                       id="phone"
-                      type="tel"
                       value={contactForm.phone}
                       onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                      maxLength={20}
+                      placeholder="+254 7XX XXX XXX"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="message">Message *</Label>
                     <Textarea
                       id="message"
-                      rows={4}
                       value={contactForm.message}
                       onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                      required
-                      maxLength={1000}
+                      placeholder="How can we help you?"
+                      rows={4}
                     />
                   </div>
                   <Button type="submit" className="w-full gap-2" disabled={submitting}>
                     {submitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Sending...
-                      </>
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <>
-                        <Send className="h-4 w-4" />
-                        Send Message
-                      </>
+                      <Send className="h-4 w-4" />
                     )}
+                    Send Message
                   </Button>
                 </form>
               </CardContent>
             </Card>
-
-            {/* Contact Info */}
-            <div className="space-y-4">
-              {[
-                { icon: MapPin, title: "Address", content: schoolInfo?.address || "School Address, City, Country" },
-                { icon: Phone, title: "Phone", content: schoolInfo?.phone || "+254 XXX XXX XXX" },
-                { icon: Mail, title: "Email", content: schoolInfo?.email || "info@school.com" },
-              ].map((item, i) => (
-                <Card key={i} className="border bg-card">
-                  <CardContent className="p-5 flex items-center gap-4">
-                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <item.icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{item.title}</h3>
-                      <p className="text-muted-foreground text-sm">{item.content}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {/* Admissions CTA */}
-              <Card className="border bg-primary text-primary-foreground">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold mb-2">Ready to Enroll?</h3>
-                  <p className="text-primary-foreground/80 text-sm mb-4">
-                    Join our school community. Admissions open throughout the year.
-                  </p>
-                  <div className="space-y-2 mb-4">
-                    {[
-                      "Completed application form",
-                      "Birth certificate copy",
-                      "Previous school records",
-                    ].map((req, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="h-4 w-4" />
-                        <span>{req}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <Link to="/auth">
-                    <Button variant="secondary" className="w-full gap-2">
-                      Start Application
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-foreground text-background py-12">
+      <footer className="bg-card border-t border-border py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-            <div className="sm:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                {schoolInfo?.logo_url ? (
-                  <img
-                    src={schoolInfo.logo_url}
-                    alt="School Logo"
-                    className="h-10 w-10 object-contain rounded-xl bg-background/10 p-1"
-                  />
-                ) : (
-                  <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center">
-                    <GraduationCap className="h-5 w-5 text-primary-foreground" />
-                  </div>
-                )}
-                <h3 className="text-lg font-bold">
-                  {schoolInfo?.school_name || "SAGME School"}
-                </h3>
-              </div>
-              <p className="text-background/70 max-w-sm text-sm leading-relaxed">
-                {schoolInfo?.motto || "Nurturing minds, building futures."}
-              </p>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              {schoolInfo?.logo_url ? (
+                <img src={schoolInfo.logo_url} alt="Logo" className="h-8 w-8 object-contain" />
+              ) : (
+                <GraduationCap className="h-6 w-6 text-primary" />
+              )}
+              <span className="font-bold text-foreground">{schoolInfo?.school_name || "SAGME School"}</span>
             </div>
-            <div>
-              <h4 className="font-bold mb-4 text-sm">Quick Links</h4>
-              <ul className="space-y-2">
-                {navLinks.map((link) => (
-                  <li key={link.name}>
-                    <a href={link.href} className="text-background/70 hover:text-background transition-colors text-sm">
-                      {link.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-sm">Portal Access</h4>
-              <ul className="space-y-2">
-                {["Student Portal", "Teacher Portal", "Admin Login"].map((item) => (
-                  <li key={item}>
-                    <Link to="/auth" className="text-background/70 hover:text-background transition-colors text-sm">
-                      {item}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-background/20 pt-6 text-center">
-            <p className="text-background/60 text-xs">
+            <p className="text-muted-foreground text-sm text-center">
               © {new Date().getFullYear()} {schoolInfo?.school_name || "SAGME School"}. All rights reserved.
             </p>
           </div>

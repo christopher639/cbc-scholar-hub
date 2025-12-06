@@ -376,6 +376,35 @@ export type Database = {
           },
         ]
       }
+      blog_likes: {
+        Row: {
+          blog_id: string
+          created_at: string
+          id: string
+          visitor_id: string
+        }
+        Insert: {
+          blog_id: string
+          created_at?: string
+          id?: string
+          visitor_id: string
+        }
+        Update: {
+          blog_id?: string
+          created_at?: string
+          id?: string
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_likes_blog_id_fkey"
+            columns: ["blog_id"]
+            isOneToOne: false
+            referencedRelation: "blogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blogs: {
         Row: {
           created_at: string
@@ -383,6 +412,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_published: boolean | null
+          likes_count: number
           title: string
           updated_at: string
         }
@@ -392,6 +422,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_published?: boolean | null
+          likes_count?: number
           title: string
           updated_at?: string
         }
@@ -401,6 +432,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_published?: boolean | null
+          likes_count?: number
           title?: string
           updated_at?: string
         }
@@ -1271,6 +1303,33 @@ export type Database = {
         }
         Relationships: []
       }
+      page_visits: {
+        Row: {
+          created_at: string
+          id: string
+          page_path: string
+          user_agent: string | null
+          visit_date: string
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_path?: string
+          user_agent?: string | null
+          visit_date?: string
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_path?: string
+          user_agent?: string | null
+          visit_date?: string
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       parent_sessions: {
         Row: {
           created_at: string
@@ -1965,6 +2024,7 @@ export type Database = {
       }
       generate_transaction_number: { Args: never; Returns: string }
       get_active_learner_count: { Args: never; Returns: number }
+      get_unique_visitor_count: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
