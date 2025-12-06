@@ -70,49 +70,31 @@ export default function LearnerPortalLayout() {
         setLoading(true);
       }
 
-      const { data: learnerData, error: learnerError } = await supabase
-        .from("learners")
-        .select(`
-          *,
-          current_grade:grades(name),
-          current_stream:streams(name)
-        `)
-        .eq("id", learner.id)
-        .maybeSingle();
+      // Use learner data from auth context - it was already validated during login
+      // and fetch grade/stream names separately
+      const [gradeResult, streamResult, schoolResult] = await Promise.all([
+        learner.current_grade_id 
+          ? supabase.from("grades").select("name").eq("id", learner.current_grade_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        learner.current_stream_id 
+          ? supabase.from("streams").select("name").eq("id", learner.current_stream_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        supabase.from("school_info").select("*").single()
+      ]);
 
-      if (learnerError) {
-        console.error("Error fetching learner details:", learnerError);
-        if (!cachedLearner) {
-          toast({
-            title: "Error",
-            description: "Could not load learner details. Please try logging in again.",
-            variant: "destructive",
-          });
-        }
-        return;
-      }
-
-      if (!learnerData) {
-        if (!cachedLearner) {
-          toast({
-            title: "Error",
-            description: "Learner profile not found. Please contact administration.",
-            variant: "destructive",
-          });
-        }
-        return;
-      }
-
-      const { data: schoolData } = await supabase
-        .from("school_info")
-        .select("*")
-        .single();
+      // Build learner details from auth context data + fetched grade/stream names
+      const learnerData = {
+        ...learner,
+        current_grade: gradeResult.data,
+        current_stream: streamResult.data
+      };
 
       // Update state and cache
       setLearnerDetails(learnerData);
-      setSchoolInfo(schoolData);
-      await updateCache(learnerData, schoolData);
+      setSchoolInfo(schoolResult.data);
+      await updateCache(learnerData, schoolResult.data);
     } catch (error: any) {
+      console.error("Error fetching data:", error);
       if (!cachedLearner) {
         toast({
           title: "Error",
