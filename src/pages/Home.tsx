@@ -34,7 +34,16 @@ import {
   Quote,
   Send,
   Loader2,
+  FileText,
 } from "lucide-react";
+
+interface Blog {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string | null;
+  created_at: string;
+}
 
 export default function Home() {
   const { schoolInfo, loading } = useSchoolInfo();
@@ -43,6 +52,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,6 +60,19 @@ export default function Home() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      const { data } = await supabase
+        .from("blogs")
+        .select("id, title, description, image_url, created_at")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(4);
+      setBlogs(data || []);
+    };
+    fetchBlogs();
   }, []);
 
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -83,6 +106,7 @@ export default function Home() {
   const navLinks = [
     { name: "Home", href: "#home" },
     { name: "About", href: "#about" },
+    { name: "Blog", href: "#blog" },
     { name: "Programs", href: "#programs" },
     { name: "Testimonials", href: "#testimonials" },
     { name: "Contact", href: "#contact" },
@@ -108,6 +132,8 @@ export default function Home() {
       avatar: "GM",
     },
   ];
+
+  const heroBackground = schoolInfo?.hero_background_url || heroSchoolBg;
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -204,7 +230,7 @@ export default function Home() {
       <section id="home" className="relative min-h-[90vh] flex items-center">
         <div className="absolute inset-0">
           <img 
-            src={heroSchoolBg} 
+            src={heroBackground} 
             alt="School Campus" 
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -263,6 +289,55 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Blog Section */}
+      {blogs.length > 0 && (
+        <section id="blog" className="py-16 md:py-24 bg-muted/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <p className="text-primary text-sm font-medium mb-2">Latest Updates</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+                News & Blog
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Stay updated with the latest news, events, and stories from our school community.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-6">
+              {blogs.map((blog) => (
+                <Card key={blog.id} className="overflow-hidden border bg-card hover:shadow-lg transition-shadow group">
+                  {blog.image_url && (
+                    <div className="h-48 overflow-hidden">
+                      <img
+                        src={blog.image_url}
+                        alt={blog.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  )}
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(blog.created_at).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </div>
+                    <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-2">
+                      {blog.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm line-clamp-3">
+                      {blog.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* About Section */}
       <section id="about" className="py-16 md:py-24 relative">
