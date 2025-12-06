@@ -355,35 +355,33 @@ export default function Home() {
         )}
       </header>
 
-      {/* Hero Section - Two Column Layout */}
-      <section id="home" className="min-h-[90vh] pt-20 md:pt-24 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-          <div className={`grid ${(heroBackgrounds.length > 0 || schoolInfo?.hero_background_url) ? 'lg:grid-cols-2' : ''} gap-8 lg:gap-12 items-center min-h-[calc(90vh-6rem)]`}>
-            {/* Left Column - Text Content */}
-            <div className="flex flex-col justify-center py-8 lg:py-0">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
+      {/* Hero Section - Full Background */}
+      <section id="home" className="relative min-h-[70vh] flex items-center">
+        {/* Background Image */}
+        {(heroBackgrounds.length > 0 || schoolInfo?.hero_background_url) && (
+          <img 
+            key={currentBgIndex}
+            src={heroBackgrounds.length > 0 ? heroBackgrounds[currentBgIndex] : schoolInfo?.hero_background_url} 
+            alt="School Campus" 
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/50 to-background/30" />
+        
+        <div className="relative w-full pt-24 pb-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground leading-tight mb-3">
                 Welcome to{" "}
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   {schoolInfo?.school_name || "SAGME School"}
                 </span>
               </h1>
               
-              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground font-medium">
+              <p className="text-sm sm:text-base md:text-lg text-foreground/80 font-medium">
                 {schoolInfo?.motto || "Nurturing minds, building futures"}
               </p>
             </div>
-
-            {/* Right Column - Rotating Images or fallback background */}
-            {(heroBackgrounds.length > 0 || schoolInfo?.hero_background_url) && (
-              <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[500px] xl:h-[600px] rounded-2xl overflow-hidden shadow-2xl">
-                <img 
-                  key={currentBgIndex}
-                  src={heroBackgrounds.length > 0 ? heroBackgrounds[currentBgIndex] : schoolInfo?.hero_background_url} 
-                  alt="School Campus" 
-                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
-                />
-              </div>
-            )}
           </div>
         </div>
       </section>
