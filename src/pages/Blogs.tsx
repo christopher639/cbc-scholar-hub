@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Image as ImageIcon, Loader2, Heart, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -32,6 +32,7 @@ interface Blog {
   description: string;
   image_url: string | null;
   is_published: boolean;
+  likes_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -42,6 +43,7 @@ const Blogs = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -56,7 +58,7 @@ const Blogs = () => {
       const { data, error } = await supabase
         .from("blogs")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("likes_count", { ascending: false });
 
       if (error) throw error;
       setBlogs(data || []);
@@ -85,6 +87,34 @@ const Blogs = () => {
       setFormData({ title: "", description: "", image_url: "", is_published: true });
     }
     setDialogOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `blog-${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      toast({ title: "Image uploaded successfully" });
+    } catch (error: any) {
+      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -202,17 +232,40 @@ const Blogs = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="image_url">Image URL</Label>
+                  <Label>Blog Image</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="flex-1"
+                    />
+                    {uploading && <Loader2 className="h-5 w-5 animate-spin" />}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Upload an image or enter URL below</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="image_url">Or Image URL</Label>
                   <Input
                     id="image_url"
                     value={formData.image_url}
                     onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                     placeholder="https://example.com/image.jpg"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Enter a URL for the blog cover image
-                  </p>
                 </div>
+                {formData.image_url && (
+                  <div className="relative">
+                    <p className="text-sm font-medium mb-2">Preview:</p>
+                    <img
+                      src={formData.image_url}
+                      alt="Blog Preview"
+                      className="w-full h-32 object-cover rounded-lg border border-border"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
                 <div className="flex items-center gap-3">
                   <Switch
                     id="is_published"
@@ -225,7 +278,7 @@ const Blogs = () => {
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={submitting}>
+                  <Button type="submit" disabled={submitting || uploading}>
                     {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     {editingBlog ? "Update" : "Create"} Blog
                   </Button>
@@ -253,6 +306,7 @@ const Blogs = () => {
                     <TableRow>
                       <TableHead>Image</TableHead>
                       <TableHead>Title</TableHead>
+                      <TableHead>Likes</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -276,6 +330,12 @@ const Blogs = () => {
                         </TableCell>
                         <TableCell className="font-medium max-w-[200px] truncate">
                           {blog.title}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Heart className="h-4 w-4" />
+                            {blog.likes_count}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <button

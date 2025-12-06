@@ -17,7 +17,8 @@ import {
   FileText,
   Users,
   TrendingUp,
-  LogIn
+  LogIn,
+  Eye
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -27,11 +28,23 @@ const Activities = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterAction, setFilterAction] = useState("all");
+  const [visitorCount, setVisitorCount] = useState<number>(0);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchActivities();
+    fetchVisitorCount();
   }, []);
+
+  const fetchVisitorCount = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_unique_visitor_count');
+      if (error) throw error;
+      setVisitorCount(data || 0);
+    } catch (error) {
+      console.error("Error fetching visitor count:", error);
+    }
+  };
 
   const fetchActivities = async () => {
     try {
@@ -170,9 +183,22 @@ const Activities = () => {
     <DashboardLayout>
       <div className="space-y-4 md:space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-xl md:text-3xl font-bold text-foreground">System Activities</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Track all actions performed in the system</p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-xl md:text-3xl font-bold text-foreground">System Activities</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Track all actions performed in the system</p>
+          </div>
+          <Card className="w-fit">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Eye className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Homepage Visitors</p>
+                <p className="text-2xl font-bold text-foreground">{visitorCount.toLocaleString()}</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Trend Charts */}
