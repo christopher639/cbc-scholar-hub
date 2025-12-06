@@ -71,29 +71,30 @@ export default function Home() {
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Navigation */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-background/95 backdrop-blur-xl shadow-sm border-b border-border/50" : "bg-transparent"
+        scrolled ? "bg-background/95 backdrop-blur-xl shadow-lg border-b border-border/50" : "bg-background/20 backdrop-blur-md"
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
+            {/* Logo + School Name (visible on all screens) */}
+            <div className="flex items-center gap-2 sm:gap-3">
               {schoolInfo?.logo_url ? (
                 <img
                   src={schoolInfo.logo_url}
                   alt="School Logo"
-                  className="h-10 w-10 md:h-12 md:w-12 object-contain rounded-xl"
+                  className="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 object-contain rounded-xl shadow-md"
                 />
               ) : (
-                <div className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center">
-                  <GraduationCap className="h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
+                <div className="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-md">
+                  <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary-foreground" />
                 </div>
               )}
-              <div className="hidden sm:block">
-                <h1 className="text-base md:text-lg font-bold text-foreground leading-tight">
+              {/* School name visible on ALL screens */}
+              <div>
+                <h1 className="text-sm sm:text-base md:text-lg font-bold text-foreground leading-tight line-clamp-1">
                   {schoolInfo?.school_name || "SAGME School"}
                 </h1>
                 {schoolInfo?.motto && (
-                  <p className="text-[10px] md:text-xs text-muted-foreground">{schoolInfo.motto}</p>
+                  <p className="hidden sm:block text-[10px] md:text-xs text-muted-foreground line-clamp-1">{schoolInfo.motto}</p>
                 )}
               </div>
             </div>
@@ -104,28 +105,25 @@ export default function Home() {
                 <a
                   key={link.name}
                   href={link.href}
-                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
                 >
                   {link.name}
                 </a>
               ))}
             </nav>
 
-            {/* Login Button */}
-            <div className="flex items-center gap-2">
+            {/* Right side actions */}
+            <div className="flex items-center gap-1 sm:gap-2">
               <Link to="/auth">
                 <Button 
-                  variant={scrolled ? "outline" : "ghost"} 
                   size="sm" 
-                  className="hidden sm:flex gap-2"
+                  className="hidden sm:flex gap-2 shadow-md"
                 >
                   <LogIn className="h-4 w-4" />
                   Login
                 </Button>
-              </Link>
-              <Link to="/auth" className="sm:hidden">
-                <Button size="icon" variant="ghost">
-                  <LogIn className="h-5 w-5" />
+                <Button size="icon" variant="ghost" className="sm:hidden h-9 w-9">
+                  <LogIn className="h-4 w-4" />
                 </Button>
               </Link>
 
@@ -133,7 +131,7 @@ export default function Home() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden"
+                className="lg:hidden h-9 w-9"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -157,10 +155,7 @@ export default function Home() {
                 </a>
               ))}
               <div className="pt-4 border-t border-border mt-2">
-                <Link
-                  to="/auth"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full gap-2">
                     <LogIn className="h-4 w-4" />
                     Login to Portal
@@ -172,74 +167,76 @@ export default function Home() {
         )}
       </header>
 
-      {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center pt-20 lg:pt-24">
-        {/* Background Image */}
-        <div className="absolute inset-0 overflow-hidden">
+      {/* Hero Section - Beautiful Redesign */}
+      <section id="home" className="relative min-h-screen flex items-center">
+        {/* Background Image with overlay */}
+        <div className="absolute inset-0">
           <img 
             src={heroSchoolBg} 
             alt="School Campus" 
             className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+          {/* Gradient overlays for readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background" />
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_1px_1px,hsl(var(--foreground)/0.1)_1px,transparent_0)] bg-[size:24px_24px]" />
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 w-full">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left Side - School Info */}
-            <div className="text-center lg:text-left">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 backdrop-blur-sm rounded-full text-primary text-xs sm:text-sm font-medium mb-6 border border-primary/20 animate-fade-in">
-                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <div className="relative w-full pt-24 pb-16 md:pt-32 md:pb-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              {/* Excellence Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/15 backdrop-blur-sm rounded-full text-primary text-xs sm:text-sm font-semibold mb-6 border border-primary/30 shadow-lg animate-fade-in">
+                <Sparkles className="h-4 w-4" />
                 <span>Excellence in Education</span>
               </div>
               
               {/* Main Heading - 2 lines */}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] tracking-tight mb-2 animate-fade-in">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-foreground leading-[1.05] tracking-tight mb-3 animate-fade-in">
                 Welcome to
               </h1>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight mb-4 md:mb-6 animate-fade-in">
-                <span className="bg-gradient-to-r from-primary via-primary/90 to-secondary bg-clip-text text-transparent">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight mb-6 animate-fade-in">
+                <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent drop-shadow-sm">
                   {schoolInfo?.school_name || "SAGME School"}
                 </span>
               </h1>
               
               {/* Motto */}
-              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-6 font-medium animate-fade-in">
+              <p className="text-xl sm:text-2xl md:text-3xl text-foreground/80 mb-8 font-medium animate-fade-in">
                 {schoolInfo?.motto || "Nurturing minds, building futures"}
               </p>
 
-              {/* Stats - Below welcome on small screens, left side on all */}
-              <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-6 animate-fade-in">
-                <div className="flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm rounded-xl border border-border/50">
-                  <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Users className="h-5 w-5 text-primary" />
+              {/* Stats Row */}
+              <div className="flex flex-wrap gap-4 mb-8 animate-fade-in">
+                <div className="flex items-center gap-3 px-5 py-3 bg-card/90 backdrop-blur-md rounded-2xl border border-border/60 shadow-xl">
+                  <div className="h-12 w-12 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center">
+                    <Users className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xl sm:text-2xl font-bold text-foreground">{stats.learners}</p>
-                    <p className="text-xs text-muted-foreground">Learners</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.learners}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium">Active Learners</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-sm rounded-xl border border-border/50">
-                  <div className="h-10 w-10 bg-secondary/10 rounded-lg flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 text-secondary" />
+                <div className="flex items-center gap-3 px-5 py-3 bg-card/90 backdrop-blur-md rounded-2xl border border-border/60 shadow-xl">
+                  <div className="h-12 w-12 bg-gradient-to-br from-secondary/20 to-secondary/5 rounded-xl flex items-center justify-center">
+                    <BookOpen className="h-6 w-6 text-secondary" />
                   </div>
                   <div>
-                    <p className="text-xl sm:text-2xl font-bold text-foreground">{grades.length}</p>
-                    <p className="text-xs text-muted-foreground">Grades</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-foreground">{grades.length}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium">Grade Levels</p>
                   </div>
                 </div>
               </div>
 
-              {/* Grades List */}
+              {/* Grades Pills */}
               {grades.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center lg:justify-start mb-6 animate-fade-in">
+                <div className="flex flex-wrap gap-2 mb-8 animate-fade-in">
                   {grades.map((grade, i) => (
                     <span
                       key={i}
-                      className="px-3 py-1.5 bg-muted/60 backdrop-blur-sm text-foreground text-xs sm:text-sm font-medium rounded-lg border border-border/50"
+                      className="px-4 py-2 bg-foreground/5 backdrop-blur-sm text-foreground text-sm font-medium rounded-full border border-foreground/10 hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all cursor-default"
                     >
                       {grade}
                     </span>
@@ -247,62 +244,58 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Description Paragraph */}
-              <p className="text-sm sm:text-base text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in">
-                We are a Center of Excellence committed to nurturing young minds through innovative teaching methods, 
-                a supportive learning environment, and a curriculum designed to develop well-rounded individuals. 
-                Our dedicated educators inspire curiosity, creativity, and critical thinking in every learner.
+              {/* Description */}
+              <p className="text-base sm:text-lg text-muted-foreground mb-10 max-w-2xl leading-relaxed animate-fade-in">
+                We are a Center of Excellence committed to nurturing young minds through innovative teaching, 
+                a supportive environment, and a curriculum that develops well-rounded individuals ready for success.
               </p>
               
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-fade-in">
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 animate-fade-in">
                 <a href="#admissions">
-                  <Button size="lg" className="w-full sm:w-auto gap-2 h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+                  <Button size="lg" className="w-full sm:w-auto gap-2 h-14 px-8 text-base font-semibold shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] transition-all">
                     Apply Now
-                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <ArrowRight className="h-5 w-5" />
                   </Button>
                 </a>
                 <a href="#about">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto gap-2 h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base bg-background/50 backdrop-blur-sm">
-                    <Play className="h-4 w-4" />
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto gap-2 h-14 px-8 text-base font-semibold bg-background/60 backdrop-blur-sm border-2 hover:bg-background/80 hover:scale-[1.02] transition-all">
+                    <Play className="h-5 w-5" />
                     Learn More
                   </Button>
                 </a>
               </div>
             </div>
 
-            {/* Right Side - Features Card (Large screens only) */}
-            <div className="hidden lg:block animate-fade-in">
-              <div className="bg-card/60 backdrop-blur-xl rounded-3xl border border-border/50 p-8 shadow-2xl">
-                <h3 className="text-xl font-bold text-foreground mb-6 text-center">Why Choose Us?</h3>
-                
-                <div className="space-y-4">
-                  {[
-                    { icon: Shield, title: "Safe Environment", desc: "Secure campus with caring staff" },
-                    { icon: Zap, title: "Modern Learning", desc: "Technology-enhanced classrooms" },
-                    { icon: Award, title: "Quality Education", desc: "Experienced and dedicated teachers" },
-                    { icon: Heart, title: "Holistic Development", desc: "Academic, social & emotional growth" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-start gap-4 p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors">
-                      <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <item.icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-foreground">{item.title}</h4>
-                        <p className="text-sm text-muted-foreground">{item.desc}</p>
-                      </div>
+            {/* Feature Cards - Floating on right (Large screens) */}
+            <div className="hidden xl:block absolute right-8 top-1/2 -translate-y-1/2 w-80">
+              <div className="space-y-4 animate-fade-in">
+                {[
+                  { icon: Shield, title: "Safe & Secure", desc: "Protected learning environment", color: "from-green-500/20 to-green-500/5" },
+                  { icon: Zap, title: "Modern Facilities", desc: "Tech-enhanced classrooms", color: "from-yellow-500/20 to-yellow-500/5" },
+                  { icon: Award, title: "Excellence", desc: "Quality education standards", color: "from-blue-500/20 to-blue-500/5" },
+                  { icon: Heart, title: "Caring Community", desc: "Supportive staff & peers", color: "from-pink-500/20 to-pink-500/5" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 bg-card/80 backdrop-blur-xl rounded-2xl border border-border/50 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all">
+                    <div className={`h-12 w-12 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                      <item.icon className="h-6 w-6 text-foreground" />
                     </div>
-                  ))}
-                </div>
+                    <div>
+                      <h4 className="font-bold text-foreground text-sm">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce hidden md:block">
-          <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center">
-            <div className="w-1.5 h-3 bg-muted-foreground/50 rounded-full mt-2 animate-pulse" />
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce hidden md:flex flex-col items-center gap-2">
+          <span className="text-xs text-muted-foreground font-medium">Scroll to explore</span>
+          <div className="w-6 h-10 rounded-full border-2 border-foreground/20 flex justify-center bg-background/30 backdrop-blur-sm">
+            <div className="w-1.5 h-3 bg-primary rounded-full mt-2 animate-pulse" />
           </div>
         </div>
       </section>
