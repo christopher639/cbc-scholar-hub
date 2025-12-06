@@ -109,6 +109,8 @@ function ThemeToggle() {
   );
 }
 
+import { Newspaper } from "lucide-react";
+
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] },
   { name: "Public Website", href: "/", icon: School, roles: ["admin"], external: true },
@@ -122,6 +124,7 @@ const navigation = [
   { name: "Invoices", href: "/invoices", icon: FileText, roles: ["admin"] },
   { name: "Fee Structures", href: "/fee-structures", icon: Coins, roles: ["admin"] },
   { name: "Academic Settings", href: "/academic-settings", icon: Settings, roles: ["admin"] },
+  { name: "Blogs", href: "/blogs", icon: Newspaper, roles: ["admin"] },
   { name: "Communication", href: "/communication", icon: MessageSquare, roles: ["admin"] },
   { name: "Admissions", href: "/admissions", icon: UserCheck, roles: ["admin"] },
   { name: "Alumni", href: "/alumni", icon: GraduationCap, roles: ["admin", "teacher"] },
