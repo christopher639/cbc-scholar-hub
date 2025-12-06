@@ -214,8 +214,8 @@ export default function Home() {
                     <Users className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.learners}</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground font-medium">Active Learners</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.learners}+</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium">Learners</p>
                   </div>
                 </div>
                 
@@ -265,9 +265,32 @@ export default function Home() {
                   </Button>
                 </a>
               </div>
+
+              {/* Why Choose Us - Mobile/Tablet (shown below CTA on small screens) */}
+              <div className="xl:hidden mt-10 animate-fade-in">
+                <h3 className="text-lg font-bold text-foreground mb-4">Why Choose Us?</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { icon: Shield, title: "Safe & Secure", desc: "Protected environment", color: "from-green-500/20 to-green-500/5" },
+                    { icon: Zap, title: "Modern Facilities", desc: "Tech classrooms", color: "from-yellow-500/20 to-yellow-500/5" },
+                    { icon: Award, title: "Excellence", desc: "Quality education", color: "from-blue-500/20 to-blue-500/5" },
+                    { icon: Heart, title: "Caring Community", desc: "Supportive staff", color: "from-pink-500/20 to-pink-500/5" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 bg-card/80 backdrop-blur-md rounded-xl border border-border/50 shadow-md">
+                      <div className={`h-10 w-10 bg-gradient-to-br ${item.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                        <item.icon className="h-5 w-5 text-foreground" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground text-xs">{item.title}</h4>
+                        <p className="text-[10px] text-muted-foreground">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {/* Feature Cards - Floating on right (Large screens) */}
+            {/* Feature Cards - Floating on right (XL screens only) */}
             <div className="hidden xl:block absolute right-8 top-1/2 -translate-y-1/2 w-80">
               <div className="space-y-4 animate-fade-in">
                 {[
