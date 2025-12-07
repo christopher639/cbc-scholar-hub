@@ -57,13 +57,24 @@ export default function Auth() {
             .eq("id", session.user.id)
             .single();
           
+          const userName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User";
+          
           if (!profile) {
             // Create profile for new Google user
             await supabase.from("profiles").upsert({
               id: session.user.id,
-              full_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
+              full_name: userName,
               is_activated: false,
               activation_status: "pending",
+            });
+            
+            // Notify admins about the new user request
+            await supabase.rpc("notify_admins", {
+              p_title: "New User Registration Request",
+              p_message: `${userName} has requested to become a system user. Please assign a role or deny the request.`,
+              p_type: "user_request",
+              p_entity_type: "user",
+              p_entity_id: session.user.id,
             });
           }
           

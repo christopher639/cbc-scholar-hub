@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCheck, Trash2, DollarSign, UserPlus, Users, AlertTriangle } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, DollarSign, UserPlus, Users, AlertTriangle, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -27,6 +27,8 @@ export function NotificationsDropdown() {
         return <UserPlus className="h-4 w-4 text-blue-500" />;
       case 'new_staff':
         return <Users className="h-4 w-4 text-purple-500" />;
+      case 'user_request':
+        return <UserCheck className="h-4 w-4 text-orange-500" />;
       default:
         return <Bell className="h-4 w-4" />;
     }
@@ -44,6 +46,8 @@ export function NotificationsDropdown() {
       navigate('/invoices');
     } else if (notification.entity_type === 'fee_transaction') {
       navigate('/fees');
+    } else if (notification.entity_type === 'user') {
+      navigate('/users');
     }
   };
 
