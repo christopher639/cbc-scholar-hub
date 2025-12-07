@@ -109,7 +109,7 @@ export default function LearnerPortalLayout() {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/auth", { replace: true });
+    navigate("/", { replace: true });
   };
 
   // Show loading skeleton only on first load without cache

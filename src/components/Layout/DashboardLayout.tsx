@@ -283,7 +283,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       title: "Logged out",
       description: "You have been successfully logged out.",
     });
-    navigate("/auth");
+    navigate("/");
   };
 
   useEffect(() => {

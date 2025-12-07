@@ -10,7 +10,8 @@ export default function Signout() {
       await supabase.auth.signOut();
       localStorage.removeItem("teacher_auth");
       localStorage.removeItem("learner_auth");
-      navigate("/auth", { replace: true });
+      localStorage.removeItem("remembered_username");
+      navigate("/", { replace: true });
     };
 
     signOut();
