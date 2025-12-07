@@ -20,7 +20,7 @@ import {
   ChevronRight,
   Menu,
   X,
-  LogIn,
+  User,
   Calendar,
   Clock,
   Heart,
@@ -308,12 +308,8 @@ export default function Home() {
 
             <div className="flex items-center gap-1 sm:gap-2">
               <Link to="/auth">
-                <Button size="sm" className="hidden sm:flex gap-2 shadow-md">
-                  <LogIn className="h-4 w-4" />
-                  Login
-                </Button>
-                <Button size="icon" variant="ghost" className="sm:hidden h-9 w-9">
-                  <LogIn className="h-4 w-4" />
+                <Button size="icon" variant="ghost" className="h-9 w-9 rounded-full hover:bg-primary/10">
+                  <User className="h-5 w-5" />
                 </Button>
               </Link>
 
@@ -345,8 +341,8 @@ export default function Home() {
               <div className="pt-4 border-t border-border mt-2">
                 <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full gap-2">
-                    <LogIn className="h-4 w-4" />
-                    Login to Portal
+                    <User className="h-4 w-4" />
+                    Sign In / Sign Up
                   </Button>
                 </Link>
               </div>
