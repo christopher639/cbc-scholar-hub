@@ -109,7 +109,7 @@ function ThemeToggle() {
   );
 }
 
-import { Newspaper, Images } from "lucide-react";
+import { Newspaper, Images, BookOpen } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] },
@@ -123,6 +123,7 @@ const navigation = [
   { name: "Invoices", href: "/invoices", icon: FileText, roles: ["admin"] },
   { name: "Fee Structures", href: "/fee-structures", icon: Coins, roles: ["admin"] },
   { name: "Academic Settings", href: "/academic-settings", icon: Settings, roles: ["admin"] },
+  { name: "Programs", href: "/programs", icon: BookOpen, roles: ["admin"] },
   { name: "Blogs", href: "/blogs", icon: Newspaper, roles: ["admin"] },
   { name: "Gallery", href: "/gallery", icon: Images, roles: ["admin"] },
   { name: "Communication", href: "/communication", icon: MessageSquare, roles: ["admin"] },
