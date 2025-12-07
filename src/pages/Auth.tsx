@@ -25,6 +25,63 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkingGoogleAuth, setCheckingGoogleAuth] = useState(true);
+
+  // Check for Google OAuth callback and handle user verification
+  useEffect(() => {
+    const handleGoogleAuthCallback = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // Check if user has a role assigned
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .single();
+        
+        if (roleData?.role) {
+          // User is verified and has a role - redirect to appropriate dashboard
+          if (roleData.role === "learner") {
+            navigate("/learner-portal", { replace: true });
+          } else if (roleData.role === "teacher") {
+            navigate("/teacher-portal", { replace: true });
+          } else {
+            navigate("/dashboard", { replace: true });
+          }
+        } else {
+          // User doesn't have a role - create profile if needed and show message
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("id", session.user.id)
+            .single();
+          
+          if (!profile) {
+            // Create profile for new Google user
+            await supabase.from("profiles").upsert({
+              id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
+              is_activated: false,
+              activation_status: "pending",
+            });
+          }
+          
+          // Sign out and show message
+          await supabase.auth.signOut();
+          toast({
+            title: "Account Pending Verification",
+            description: "Your account has not been verified. Please contact the admin for activation.",
+            variant: "destructive",
+          });
+          navigate("/", { replace: true });
+        }
+      }
+      setCheckingGoogleAuth(false);
+    };
+    
+    handleGoogleAuthCallback();
+  }, [navigate, toast]);
 
   useEffect(() => {
     const rememberedUsername = localStorage.getItem("remembered_username");
@@ -169,7 +226,7 @@ export default function Auth() {
     alert("Please contact the school administrator to reset your password.");
   };
 
-  if (loading || schoolLoading) {
+  if (loading || schoolLoading || checkingGoogleAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <div className="flex flex-col items-center gap-3">
