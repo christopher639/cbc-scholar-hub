@@ -94,25 +94,38 @@ Deno.serve(async (req) => {
     }
 
     // First, delete related records manually to avoid FK issues
+    console.log('Deleting related records for user:', userId)
+    
     // Delete user roles
-    await supabaseAdmin
+    const { error: rolesError } = await supabaseAdmin
       .from('user_roles')
       .delete()
       .eq('user_id', userId)
+    if (rolesError) console.log('Error deleting user_roles:', rolesError)
 
     // Delete notifications
-    await supabaseAdmin
+    const { error: notificationsError } = await supabaseAdmin
       .from('notifications')
       .delete()
       .eq('user_id', userId)
+    if (notificationsError) console.log('Error deleting notifications:', notificationsError)
+
+    // Delete activity logs
+    const { error: activityError } = await supabaseAdmin
+      .from('activity_logs')
+      .delete()
+      .eq('user_id', userId)
+    if (activityError) console.log('Error deleting activity_logs:', activityError)
 
     // Delete profile
-    await supabaseAdmin
+    const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .delete()
       .eq('id', userId)
+    if (profileError) console.log('Error deleting profiles:', profileError)
 
     // Delete the user from auth.users
+    console.log('Deleting user from auth.users:', userId)
     const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (error) {
