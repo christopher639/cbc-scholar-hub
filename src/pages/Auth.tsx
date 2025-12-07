@@ -84,36 +84,36 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-sm">
         {/* Logo and Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-6">
+        <div className="text-center mb-4">
+          <div className="flex justify-center mb-2">
             {schoolInfo?.logo_url ? (
               <img 
                 src={schoolInfo.logo_url} 
                 alt="School Logo" 
-                className="h-20 w-20 object-contain rounded-full shadow-lg ring-4 ring-primary/20"
+                className="h-14 w-14 object-contain rounded-full ring-2 ring-primary/20"
               />
             ) : (
-              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center shadow-lg ring-4 ring-primary/20">
-                <School className="h-10 w-10 text-primary" />
+              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
+                <School className="h-7 w-7 text-primary" />
               </div>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">
+          <h1 className="text-xl font-bold text-foreground mb-0.5">
             {schoolInfo?.school_name || "School Portal"}
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-xs">
             Sign in to access your account
           </p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-card rounded-2xl shadow-xl p-8 border border-border/50">
-          <form onSubmit={handleLogin} className="space-y-5">
+        <div className="bg-card rounded-xl p-5 border border-border/50">
+          <form onSubmit={handleLogin} className="space-y-3">
             {/* Username Field */}
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium">
+            <div className="space-y-1">
+              <Label htmlFor="username" className="text-xs font-medium">
                 Username
               </Label>
               <Input
@@ -122,16 +122,16 @@ export default function Auth() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 autoComplete="username"
-                className="h-12 rounded-xl border-border/60 focus:border-primary focus:ring-primary/20 transition-all"
+                className="h-10 rounded-lg border-border/60 focus:border-primary focus:ring-primary/20 transition-all text-sm"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] text-muted-foreground">
                 Admission number, employee number, or email
               </p>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
+            <div className="space-y-1">
+              <Label htmlFor="password" className="text-xs font-medium">
                 Password
               </Label>
               <div className="relative">
@@ -142,37 +142,37 @@ export default function Auth() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="h-12 rounded-xl border-border/60 focus:border-primary focus:ring-primary/20 transition-all pr-12"
+                  className="h-10 rounded-lg border-border/60 focus:border-primary focus:ring-primary/20 transition-all pr-10 text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] text-muted-foreground">
                 Birth certificate number, ID number, or password
               </p>
             </div>
 
             {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center space-x-1.5">
                 <Checkbox
                   id="remember"
                   checked={rememberMe}
                   onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                  className="rounded"
+                  className="rounded h-3.5 w-3.5"
                 />
                 <Label 
                   htmlFor="remember" 
-                  className="text-sm font-normal text-muted-foreground cursor-pointer"
+                  className="text-xs font-normal text-muted-foreground cursor-pointer"
                 >
                   Remember me
                 </Label>
@@ -180,7 +180,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
               >
                 Forgot password?
               </button>
@@ -189,17 +189,17 @@ export default function Auth() {
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full h-12 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
+              className="w-full h-10 rounded-lg text-sm font-semibold transition-all mt-2" 
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing in...
                 </>
               ) : (
                 <>
-                  <LogIn className="mr-2 h-5 w-5" />
+                  <LogIn className="mr-2 h-4 w-4" />
                   Sign In
                 </>
               )}
@@ -208,7 +208,7 @@ export default function Auth() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-[10px] text-muted-foreground mt-3">
           Need help? Contact your school administrator
         </p>
       </div>
