@@ -23,7 +23,7 @@ export default function TeacherSettings() {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/auth", { replace: true });
+      navigate("/", { replace: true });
     } catch (error: any) {
       toast({
         title: "Error",
