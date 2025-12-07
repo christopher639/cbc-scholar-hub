@@ -96,6 +96,13 @@ Deno.serve(async (req) => {
     // First, delete related records manually to avoid FK issues
     console.log('Deleting related records for user:', userId)
     
+    // Delete bulk messages sent by this user
+    const { error: bulkMsgError } = await supabaseAdmin
+      .from('bulk_messages')
+      .delete()
+      .eq('sender_id', userId)
+    if (bulkMsgError) console.log('Error deleting bulk_messages:', bulkMsgError)
+
     // Delete user roles
     const { error: rolesError } = await supabaseAdmin
       .from('user_roles')
