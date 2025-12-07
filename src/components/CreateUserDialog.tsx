@@ -57,12 +57,11 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
       if (authError) throw authError;
 
       if (authData.user) {
-        // Assign role
+        // Assign role using SECURITY DEFINER function to bypass RLS
         const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert({
-            user_id: authData.user.id,
-            role: formData.role as any,
+          .rpc('assign_user_role', {
+            p_user_id: authData.user.id,
+            p_role: formData.role as any,
           });
 
         if (roleError) throw roleError;

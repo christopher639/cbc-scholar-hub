@@ -205,23 +205,6 @@ const Users = () => {
         </div>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <Shield className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-semibold mb-1">User Roles Information</h3>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• The first registered user is automatically assigned as Admin</li>
-                  <li>• Admins can promote other users to Admin or assign roles</li>
-                  <li>• Admin users have full system access and can manage all data</li>
-                  <li>• Normal users have limited permissions based on their role</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
           <CardHeader>
             <CardTitle>All Users</CardTitle>
             <CardDescription>View and manage user roles</CardDescription>
