@@ -18,7 +18,12 @@ import {
   Users,
   TrendingUp,
   LogIn,
-  Eye
+  Eye,
+  Database,
+  CreditCard,
+  BookOpen,
+  Settings,
+  Bell
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -50,7 +55,6 @@ const Activities = () => {
     try {
       setLoading(true);
       
-      // Calculate date 30 days ago
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
@@ -77,15 +81,15 @@ const Activities = () => {
     switch (action.toLowerCase()) {
       case "created":
       case "added":
-        return <UserPlus className="h-4 w-4" />;
+        return <UserPlus className="h-3 w-3" />;
       case "deleted":
       case "removed":
-        return <UserMinus className="h-4 w-4" />;
+        return <Trash2 className="h-3 w-3" />;
       case "updated":
       case "edited":
-        return <Edit className="h-4 w-4" />;
+        return <Edit className="h-3 w-3" />;
       default:
-        return <Activity className="h-4 w-4" />;
+        return <Activity className="h-3 w-3" />;
     }
   };
 
@@ -107,24 +111,49 @@ const Activities = () => {
 
   const getEntityIcon = (entityType: string) => {
     switch (entityType.toLowerCase()) {
+      case "learners":
       case "learner":
       case "student":
-        return <Users className="h-4 w-4" />;
+        return <Users className="h-3 w-3" />;
+      case "teachers":
       case "teacher":
-        return <Users className="h-4 w-4" />;
+        return <Users className="h-3 w-3" />;
+      case "grades":
       case "grade":
+      case "streams":
       case "stream":
-        return <FileText className="h-4 w-4" />;
+        return <FileText className="h-3 w-3" />;
+      case "fee_transactions":
+      case "fee_payments":
+      case "student_invoices":
+      case "fee_structures":
+        return <CreditCard className="h-3 w-3" />;
+      case "performance_records":
+      case "assignments":
+      case "learning_areas":
+        return <BookOpen className="h-3 w-3" />;
+      case "notifications":
+        return <Bell className="h-3 w-3" />;
+      case "school_info":
+      case "academic_years":
+      case "academic_periods":
+      case "discount_settings":
+        return <Settings className="h-3 w-3" />;
       default:
-        return <Activity className="h-4 w-4" />;
+        return <Database className="h-3 w-3" />;
     }
+  };
+
+  const formatEntityType = (entityType: string) => {
+    return entityType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   const filteredActivities = activities.filter(activity => {
     const matchesSearch = 
       activity.entity_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       activity.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      activity.action?.toLowerCase().includes(searchQuery.toLowerCase());
+      activity.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      activity.entity_type?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesType = filterType === "all" || activity.entity_type === filterType;
     const matchesAction = filterAction === "all" || activity.action === filterAction;
@@ -132,14 +161,12 @@ const Activities = () => {
     return matchesSearch && matchesType && matchesAction;
   });
 
-  const entityTypes = Array.from(new Set(activities.map(a => a.entity_type))).filter(Boolean);
-  const actions = Array.from(new Set(activities.map(a => a.action))).filter(Boolean);
+  const entityTypes = Array.from(new Set(activities.map(a => a.entity_type))).filter(Boolean).sort();
+  const actions = Array.from(new Set(activities.map(a => a.action))).filter(Boolean).sort();
 
-  // Prepare chart data - show all 30 days
   const chartData = useMemo(() => {
     const dailyStats: { [key: string]: { logins: number; actions: number; date: Date } } = {};
     
-    // Initialize all 30 days with zero counts
     for (let i = 29; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -148,7 +175,6 @@ const Activities = () => {
       dailyStats[dateStr] = { logins: 0, actions: 0, date };
     }
     
-    // Count activities for each day
     activities.forEach(activity => {
       const activityDate = new Date(activity.created_at);
       activityDate.setHours(0, 0, 0, 0);
@@ -176,76 +202,73 @@ const Activities = () => {
       });
   }, [activities]);
 
-  // Get only last 20 activities for the table
-  const recentActivities = filteredActivities.slice(0, 20);
+  const recentActivities = filteredActivities.slice(0, 50);
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-3">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <h1 className="text-xl md:text-3xl font-bold text-foreground">System Activities</h1>
-            <p className="text-sm md:text-base text-muted-foreground">Track all actions performed in the system</p>
+            <h1 className="text-base md:text-xl font-bold text-foreground">System Activities</h1>
+            <p className="text-[10px] md:text-xs text-muted-foreground">Track all CRUD operations across the system</p>
           </div>
           <Card className="w-fit">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Eye className="h-5 w-5 text-primary" />
+            <CardContent className="p-2 flex items-center gap-2">
+              <div className="h-7 w-7 bg-primary/10 rounded flex items-center justify-center">
+                <Eye className="h-3.5 w-3.5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Homepage Visitors</p>
-                <p className="text-2xl font-bold text-foreground">{visitorCount.toLocaleString()}</p>
+                <p className="text-[10px] text-muted-foreground">Visitors</p>
+                <p className="text-sm font-bold text-foreground">{visitorCount.toLocaleString()}</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Trend Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <Card>
-            <CardHeader className="p-3 md:p-6">
-              <div className="flex items-center gap-2">
-                <LogIn className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-                <CardTitle className="text-sm md:text-base">Login Trends</CardTitle>
+            <CardHeader className="p-2 md:p-3">
+              <div className="flex items-center gap-1.5">
+                <LogIn className="h-3.5 w-3.5 text-primary" />
+                <CardTitle className="text-xs md:text-sm">Login Trends</CardTitle>
               </div>
-              <CardDescription className="text-xs md:text-sm">Daily login activity over the last 30 days</CardDescription>
+              <CardDescription className="text-[10px]">Daily logins (30 days)</CardDescription>
             </CardHeader>
-            <CardContent className="p-2 md:p-6">
+            <CardContent className="p-1 md:p-2">
               {loading ? (
-                <Skeleton className="h-[200px] md:h-[300px] w-full" />
+                <Skeleton className="h-[150px] md:h-[180px] w-full" />
               ) : (
-                <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 200 : 300}>
+                <ResponsiveContainer width="100%" height={150}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="date" 
-                      className="text-[10px] md:text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: window.innerWidth < 768 ? 8 : 12 }}
-                      interval={window.innerWidth < 768 ? 6 : 2}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 8 }}
+                      interval={7}
                       angle={-45}
                       textAnchor="end"
-                      height={50}
+                      height={40}
                     />
                     <YAxis 
-                      className="text-[10px] md:text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: window.innerWidth < 768 ? 8 : 12 }}
-                      width={30}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 8 }}
+                      width={25}
                     />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '0.5rem',
-                        fontSize: '12px'
+                        borderRadius: '0.25rem',
+                        fontSize: '10px',
+                        padding: '4px 8px'
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Line 
                       type="monotone" 
                       dataKey="logins" 
                       stroke="hsl(var(--primary))" 
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       name="Logins"
                       dot={false}
                     />
@@ -256,49 +279,47 @@ const Activities = () => {
           </Card>
 
           <Card>
-            <CardHeader className="p-3 md:p-6">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />
-                <CardTitle className="text-sm md:text-base">Activity Trends</CardTitle>
+            <CardHeader className="p-2 md:p-3">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5 text-success" />
+                <CardTitle className="text-xs md:text-sm">Activity Trends</CardTitle>
               </div>
-              <CardDescription className="text-xs md:text-sm">All system actions over the last 30 days</CardDescription>
+              <CardDescription className="text-[10px]">All system actions (30 days)</CardDescription>
             </CardHeader>
-            <CardContent className="p-2 md:p-6">
+            <CardContent className="p-1 md:p-2">
               {loading ? (
-                <Skeleton className="h-[200px] md:h-[300px] w-full" />
+                <Skeleton className="h-[150px] md:h-[180px] w-full" />
               ) : (
-                <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 200 : 300}>
+                <ResponsiveContainer width="100%" height={150}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="date" 
-                      className="text-[10px] md:text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: window.innerWidth < 768 ? 8 : 12 }}
-                      interval={window.innerWidth < 768 ? 6 : 2}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 8 }}
+                      interval={7}
                       angle={-45}
                       textAnchor="end"
-                      height={50}
+                      height={40}
                     />
                     <YAxis 
-                      className="text-[10px] md:text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: window.innerWidth < 768 ? 8 : 12 }}
-                      width={30}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 8 }}
+                      width={25}
                     />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '0.5rem',
-                        fontSize: '12px'
+                        borderRadius: '0.25rem',
+                        fontSize: '10px',
+                        padding: '4px 8px'
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Line 
                       type="monotone" 
                       dataKey="actions" 
                       stroke="hsl(var(--success))" 
-                      strokeWidth={2}
-                      name="Total Actions"
+                      strokeWidth={1.5}
+                      name="Actions"
                       dot={false}
                     />
                   </LineChart>
@@ -310,40 +331,41 @@ const Activities = () => {
 
         {/* Filters */}
         <Card>
-          <CardHeader className="p-3 md:p-6">
-            <CardTitle className="text-sm md:text-base">Filter Activities</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
-            <div className="flex flex-col gap-3 md:flex-row md:gap-4">
+          <CardContent className="p-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search..."
+                  placeholder="Search activities..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 text-sm"
+                  className="pl-7 h-7 text-xs"
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="flex-1 md:w-[150px] text-sm">
+                  <SelectTrigger className="flex-1 sm:w-[120px] h-7 text-[10px]">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="all" className="text-xs">All Types</SelectItem>
                     {entityTypes.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                      <SelectItem key={type} value={type} className="text-xs">
+                        {formatEntityType(type)}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Select value={filterAction} onValueChange={setFilterAction}>
-                  <SelectTrigger className="flex-1 md:w-[150px] text-sm">
+                  <SelectTrigger className="flex-1 sm:w-[100px] h-7 text-[10px]">
                     <SelectValue placeholder="Action" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Actions</SelectItem>
+                    <SelectItem value="all" className="text-xs">All Actions</SelectItem>
                     {actions.map(action => (
-                      <SelectItem key={action} value={action}>{action}</SelectItem>
+                      <SelectItem key={action} value={action} className="text-xs capitalize">
+                        {action}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -352,68 +374,67 @@ const Activities = () => {
           </CardContent>
         </Card>
 
-        {/* Activities List - Last 20 */}
+        {/* Activities List */}
         <Card>
-          <CardHeader className="p-3 md:p-6">
-            <CardTitle className="text-sm md:text-base">Recent Activities</CardTitle>
-            <CardDescription className="text-xs md:text-sm">
-              Showing last {recentActivities.length} of {filteredActivities.length} activities
-            </CardDescription>
+          <CardHeader className="p-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xs">Recent Activities</CardTitle>
+              <CardDescription className="text-[10px]">
+                {recentActivities.length} of {filteredActivities.length}
+              </CardDescription>
+            </div>
           </CardHeader>
-          <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+          <CardContent className="p-2 pt-0">
             {loading ? (
-              <div className="space-y-3">
+              <div className="space-y-1.5">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
+                  <Skeleton key={i} className="h-10 w-full" />
                 ))}
               </div>
             ) : recentActivities.length === 0 ? (
-              <div className="text-center py-8">
-                <Activity className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">No activities found</p>
+              <div className="text-center py-4">
+                <Activity className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                <p className="text-[10px] text-muted-foreground">No activities found</p>
               </div>
             ) : (
-              <div className="space-y-2 md:space-y-3">
+              <div className="space-y-1">
                 {recentActivities.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex items-start gap-2 md:gap-4 p-2 md:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                    className="flex items-center gap-1.5 p-1.5 border border-border rounded hover:bg-muted/50 transition-colors"
                   >
-                    <div className={`p-1.5 md:p-2 rounded-full shrink-0 ${getActionColor(activity.action)}`}>
+                    <div className={`p-1 rounded-full shrink-0 ${getActionColor(activity.action)}`}>
                       {getActionIcon(activity.action)}
                     </div>
                     
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-1 md:gap-2 mb-0.5 md:mb-1">
-                        <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                          <span className="font-medium text-foreground text-xs md:text-sm truncate max-w-[100px] md:max-w-none">
-                            {activity.user_name || "System"}
-                          </span>
-                          <Badge variant="outline" className="text-[10px] md:text-xs px-1 md:px-2">
-                            {activity.user_role || "system"}
-                          </Badge>
-                        </div>
-                        <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap shrink-0">
-                          {new Date(activity.created_at).toLocaleDateString()}
+                    <div className="flex-1 min-w-0 flex items-center gap-1 flex-wrap">
+                      <span className="font-medium text-foreground text-[10px] truncate max-w-[60px] sm:max-w-[100px]">
+                        {activity.user_name || "System"}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground capitalize">{activity.action}</span>
+                      <div className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                        {getEntityIcon(activity.entity_type)}
+                        <span className="hidden sm:inline">{formatEntityType(activity.entity_type)}</span>
+                      </div>
+                      {activity.entity_name && (
+                        <span className="text-[10px] font-medium text-foreground truncate max-w-[80px] sm:max-w-[150px]">
+                          "{activity.entity_name}"
                         </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-sm text-muted-foreground flex-wrap">
-                        <span className="capitalize">{activity.action}</span>
-                        <span>•</span>
-                        <div className="flex items-center gap-0.5 md:gap-1">
-                          {getEntityIcon(activity.entity_type)}
-                          <span className="capitalize">{activity.entity_type}</span>
-                        </div>
-                        {activity.entity_name && (
-                          <>
-                            <span className="hidden md:inline">•</span>
-                            <span className="font-medium text-foreground hidden md:inline truncate max-w-[150px]">
-                              {activity.entity_name}
-                            </span>
-                          </>
-                        )}
-                      </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Badge variant="outline" className="text-[8px] px-1 py-0 h-4">
+                        {activity.user_role || "sys"}
+                      </Badge>
+                      <span className="text-[8px] text-muted-foreground whitespace-nowrap">
+                        {new Date(activity.created_at).toLocaleString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
                     </div>
                   </div>
                 ))}
