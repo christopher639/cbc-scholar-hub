@@ -60,69 +60,41 @@ export default function Auth() {
             navigate("/dashboard", { replace: true });
           }
         } else {
-          // Check if this is the first user in the system (no admins exist)
-          const { data: adminCount } = await supabase.rpc("count_admin_users");
-          
+          // No role assigned - create profile and require admin activation
           const userName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User";
           
-          if (adminCount === 0) {
-            // First user - make them admin automatically
-            // Create/update profile
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("id", session.user.id)
+            .single();
+          
+          if (!profile) {
+            // Create profile for new Google user with pending status
             await supabase.from("profiles").upsert({
               id: session.user.id,
               full_name: userName,
-              is_activated: true,
-              activation_status: "activated",
+              is_activated: false,
+              activation_status: "pending",
             });
             
-            // Assign admin role
-            await supabase.rpc("assign_user_role", {
-              p_user_id: session.user.id,
-              p_role: "admin",
+            // Notify admins about the new user request
+            await supabase.rpc("notify_admins", {
+              p_title: "New User Registration Request",
+              p_message: `${userName} has requested to become a system user. Please assign a role or deny the request.`,
+              p_type: "user_request",
+              p_entity_type: "user",
+              p_entity_id: session.user.id,
             });
-            
-            toast({
-              title: "Welcome, Admin!",
-              description: "You are the first user. You have been assigned as an administrator.",
-            });
-            
-            navigate("/dashboard", { replace: true });
-          } else {
-            // Not the first user - create profile and notify admins
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("id")
-              .eq("id", session.user.id)
-              .single();
-            
-            if (!profile) {
-              // Create profile for new Google user
-              await supabase.from("profiles").upsert({
-                id: session.user.id,
-                full_name: userName,
-                is_activated: false,
-                activation_status: "pending",
-              });
-              
-              // Notify admins about the new user request
-              await supabase.rpc("notify_admins", {
-                p_title: "New User Registration Request",
-                p_message: `${userName} has requested to become a system user. Please assign a role or deny the request.`,
-                p_type: "user_request",
-                p_entity_type: "user",
-                p_entity_id: session.user.id,
-              });
-            }
-            
-            // Sign out and show message
-            await supabase.auth.signOut();
-            toast({
-              title: "Account Pending Verification",
-              description: "Your account has not been verified. Please contact the admin for activation.",
-              variant: "destructive",
-            });
-            navigate("/", { replace: true });
           }
+          
+          // Sign out and show message - all new users need admin activation
+          await supabase.auth.signOut();
+          toast({
+            title: "Account Pending Verification",
+            description: "Your account has been created and is pending admin approval. You'll be notified once activated.",
+          });
+          navigate("/", { replace: true });
         }
       }
       setCheckingGoogleAuth(false);
