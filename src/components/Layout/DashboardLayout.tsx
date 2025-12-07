@@ -113,7 +113,6 @@ import { Newspaper, Images } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] },
-  { name: "Public Website", href: "/", icon: School, roles: ["admin"], external: true },
   { name: "Learners", href: "/learners", icon: Users, roles: ["admin", "teacher"] },
   { name: "Grades & Streams", href: "/grades", icon: GraduationCap, roles: ["admin", "teacher"] },
   { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher"] },
@@ -137,6 +136,9 @@ const navigation = [
   { name: "Offline Storage", href: "/offline-storage", icon: HardDrive, roles: ["admin"] },
   { name: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
+
+// Separate item for Public Website at bottom
+const publicWebsiteLink = { name: "Public Website", href: "/", icon: School, roles: ["admin"], external: true };
 
 function AppSidebar() {
   const location = useLocation();
@@ -185,7 +187,7 @@ function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredNav.map((item) => {
-                const isActive = item.external ? false : location.pathname === item.href;
+                const isActive = location.pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.name}>
                     <TooltipProvider>
@@ -199,17 +201,10 @@ function AppSidebar() {
                               isActive && "bg-primary text-primary-foreground"
                             )}
                           >
-                            {item.external ? (
-                              <a href={item.href} target="_blank" rel="noopener noreferrer">
-                                <item.icon className="h-5 w-5" />
-                                <span>{item.name}</span>
-                              </a>
-                            ) : (
-                              <Link to={item.href}>
-                                <item.icon className="h-5 w-5" />
-                                <span>{item.name}</span>
-                              </Link>
-                            )}
+                            <Link to={item.href}>
+                              <item.icon className="h-5 w-5" />
+                              <span>{item.name}</span>
+                            </Link>
                           </SidebarMenuButton>
                         </TooltipTrigger>
                         {collapsed && (
@@ -226,7 +221,30 @@ function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto border-t border-border p-2">
+        <div className="mt-auto border-t border-border p-2 space-y-1">
+          {/* Public Website Link at bottom */}
+          {user?.role === "admin" && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <a
+                    href={publicWebsiteLink.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
+                  >
+                    <publicWebsiteLink.icon className="h-5 w-5" />
+                    {!collapsed && <span>{publicWebsiteLink.name}</span>}
+                  </a>
+                </TooltipTrigger>
+                {collapsed && (
+                  <TooltipContent side="right">
+                    {publicWebsiteLink.name}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          )}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

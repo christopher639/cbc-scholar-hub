@@ -385,7 +385,7 @@ export default function Home() {
 
       {/* Blog Section */}
       {blogs.length > 0 && (
-        <section id="blog" className="py-16 md:py-24 bg-muted/30">
+        <section id="blog" className="py-8 md:py-12 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <p className="text-primary text-sm font-medium mb-2">Latest Updates</p>
@@ -448,7 +448,7 @@ export default function Home() {
 
       {/* Photo Gallery Section */}
       {galleryImages.length > 0 && (
-        <section id="gallery" className="py-16 md:py-24">
+        <section id="gallery" className="py-8 md:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <p className="text-primary text-sm font-medium mb-2">Our School</p>
@@ -513,7 +513,7 @@ export default function Home() {
         </div>
       )}
 
-      <section id="about" className="py-16 md:py-24 relative">
+      <section id="about" className="py-8 md:py-12 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <p className="text-primary text-sm font-medium mb-2">About Us</p>
@@ -596,7 +596,7 @@ export default function Home() {
       </section>
 
       {/* Programs Section */}
-      <section id="programs" className="py-16 md:py-24 bg-muted/30">
+      <section id="programs" className="py-8 md:py-12 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <p className="text-primary text-sm font-medium mb-2">What We Offer</p>
@@ -662,7 +662,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-16 md:py-24">
+      <section id="testimonials" className="py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <p className="text-primary text-sm font-medium mb-2">Testimonials</p>
@@ -699,7 +699,7 @@ export default function Home() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-16 md:py-24 bg-muted/30">
+      <section id="contact" className="py-8 md:py-12 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12">
             <div>
