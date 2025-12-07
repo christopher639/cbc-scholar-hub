@@ -36,44 +36,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Create Supabase client with user's auth token
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    )
-
-    // Verify the caller is an admin
-    const { data: { user: caller } } = await supabaseClient.auth.getUser()
-    
-    if (!caller) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          status: 401,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-        }
-      )
-    }
-
-    // Check if caller has admin role
-    const { data: roleData } = await supabaseClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', caller.id)
-      .single()
-
-    if (!roleData || roleData.role !== 'admin') {
-      return new Response(
-        JSON.stringify({ error: 'Forbidden: Admin access required' }),
-        { 
-          status: 403,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-        }
-      )
-    }
-
-    // Create admin client to delete user
+    // Create admin client directly for verification and deletion
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -85,10 +48,75 @@ Deno.serve(async (req) => {
       }
     )
 
-    // Delete the user from auth.users (cascade will handle related records)
+    // Extract the token and verify the caller
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    
+    if (authError || !caller) {
+      console.error('Auth error:', authError)
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        }
+      )
+    }
+
+    // Check if caller has admin role using the admin client
+    const { data: roleData, error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', caller.id)
+      .eq('role', 'admin')
+      .single()
+
+    if (roleError || !roleData) {
+      console.error('Role check error:', roleError)
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: Admin access required' }),
+        { 
+          status: 403,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        }
+      )
+    }
+
+    // Prevent deleting yourself
+    if (userId === caller.id) {
+      return new Response(
+        JSON.stringify({ error: 'Cannot delete your own account' }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        }
+      )
+    }
+
+    // First, delete related records manually to avoid FK issues
+    // Delete user roles
+    await supabaseAdmin
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId)
+
+    // Delete notifications
+    await supabaseAdmin
+      .from('notifications')
+      .delete()
+      .eq('user_id', userId)
+
+    // Delete profile
+    await supabaseAdmin
+      .from('profiles')
+      .delete()
+      .eq('id', userId)
+
+    // Delete the user from auth.users
     const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (error) {
+      console.error('Delete user error:', error)
       throw error
     }
 

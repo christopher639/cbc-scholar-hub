@@ -1597,6 +1597,42 @@ export type Database = {
         }
         Relationships: []
       }
+      programs: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       promotion_history: {
         Row: {
           academic_year: string
@@ -2086,6 +2122,7 @@ export type Database = {
         Args: { stream_id: string }
         Returns: boolean
       }
+      count_admin_users: { Args: never; Returns: number }
       generate_admission_number: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
       generate_learner_invoice: {

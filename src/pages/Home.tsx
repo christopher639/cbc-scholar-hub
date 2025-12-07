@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,24 +17,21 @@ import {
   Phone,
   Mail,
   MapPin,
-  ChevronRight,
   Menu,
   X,
   User,
   Calendar,
-  Clock,
   Heart,
   Target,
   Lightbulb,
-  ArrowRight,
-  CheckCircle2,
-  Play,
-  Shield,
-  Zap,
   Quote,
   Send,
   Loader2,
-  FileText,
+  Star,
+  Palette,
+  Music,
+  Trophy,
+  Cpu,
 } from "lucide-react";
 
 interface Blog {
@@ -54,6 +51,14 @@ interface GalleryImage {
   category: string;
 }
 
+interface Program {
+  id: string;
+  title: string;
+  description: string | null;
+  icon: string;
+  color: string;
+}
+
 // Generate or get visitor ID
 const getVisitorId = (): string => {
   let visitorId = localStorage.getItem('visitor_id');
@@ -64,15 +69,31 @@ const getVisitorId = (): string => {
   return visitorId;
 };
 
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  BookOpen,
+  GraduationCap,
+  Award,
+  Users,
+  Lightbulb,
+  Heart,
+  Star,
+  Palette,
+  Music,
+  Trophy,
+  Cpu,
+};
+
 export default function Home() {
   const { schoolInfo, loading } = useSchoolInfo();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [likedBlogs, setLikedBlogs] = useState<Set<string>>(new Set());
   const [likingBlog, setLikingBlog] = useState<string | null>(null);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState<GalleryImage | null>(null);
@@ -135,6 +156,19 @@ export default function Home() {
       setGalleryImages(data || []);
     };
     fetchGallery();
+  }, []);
+
+  // Fetch programs
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      const { data } = await supabase
+        .from("programs")
+        .select("id, title, description, icon, color")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      setPrograms(data || []);
+    };
+    fetchPrograms();
   }, []);
 
   // Fetch hero backgrounds
@@ -395,7 +429,11 @@ export default function Home() {
 
             <div className="grid sm:grid-cols-2 gap-6">
               {blogs.map((blog) => (
-                <Card key={blog.id} className="overflow-hidden border bg-card hover:shadow-lg transition-shadow group">
+                <Card 
+                  key={blog.id} 
+                  className="overflow-hidden border bg-card hover:shadow-lg transition-shadow group cursor-pointer"
+                  onClick={() => navigate(`/blog/${blog.id}`)}
+                >
                   {blog.image_url && (
                     <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
                       <img
@@ -416,7 +454,10 @@ export default function Home() {
                         })}
                       </div>
                       <button
-                        onClick={() => handleLikeBlog(blog.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLikeBlog(blog.id);
+                        }}
                         disabled={likingBlog === blog.id}
                         className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all ${
                           likedBlogs.has(blog.id)
@@ -428,7 +469,7 @@ export default function Home() {
                         {blog.likes_count}
                       </button>
                     </div>
-                    <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-2">
+                    <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                       {blog.title}
                     </h3>
                     <p className="text-muted-foreground text-sm line-clamp-3">
@@ -521,35 +562,43 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {[
-              { 
-                icon: Target, 
-                title: "Our Mission", 
-                content: schoolInfo?.mission || "To provide a nurturing environment where every learner can discover their potential and develop into responsible citizens.",
-              },
-              { 
-                icon: Lightbulb, 
-                title: "Our Vision", 
-                content: schoolInfo?.vision || "To be a center of academic excellence, producing well-rounded individuals who contribute positively to society.",
-              },
-              { 
-                icon: Heart, 
-                title: "Core Values", 
-                content: schoolInfo?.core_values || "Integrity, excellence, respect, and compassion guide everything we do in shaping young minds.",
-              },
-            ].map((item, i) => (
-              <Card key={i} className="border bg-card">
-                <CardContent className="p-6 text-center">
-                  <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <item.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-bold text-foreground mb-3">{item.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{item.content}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {(schoolInfo?.mission || schoolInfo?.vision || schoolInfo?.core_values) && (
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              {schoolInfo?.mission && (
+                <Card className="border bg-card">
+                  <CardContent className="p-6 text-center">
+                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <Target className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground mb-3">Our Mission</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{schoolInfo.mission}</p>
+                  </CardContent>
+                </Card>
+              )}
+              {schoolInfo?.vision && (
+                <Card className="border bg-card">
+                  <CardContent className="p-6 text-center">
+                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <Lightbulb className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground mb-3">Our Vision</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{schoolInfo.vision}</p>
+                  </CardContent>
+                </Card>
+              )}
+              {schoolInfo?.core_values && (
+                <Card className="border bg-card">
+                  <CardContent className="p-6 text-center">
+                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <Heart className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground mb-3">Core Values</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{schoolInfo.core_values}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
 
           {/* Director Message */}
           {schoolInfo?.director_name && (
@@ -592,70 +641,38 @@ export default function Home() {
       </section>
 
       {/* Programs Section */}
-      <section id="programs" className="py-8 md:py-12 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <p className="text-primary text-sm font-medium mb-2">What We Offer</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Our Programs
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Comprehensive educational programs designed to nurture every aspect of your child's development.
-            </p>
-          </div>
+      {programs.length > 0 && (
+        <section id="programs" className="py-8 md:py-12 bg-muted/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <p className="text-primary text-sm font-medium mb-2">What We Offer</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Our Programs
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Comprehensive educational programs designed to nurture every aspect of your child's development.
+              </p>
+            </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: BookOpen,
-                title: "Early Years",
-                description: "Foundation learning through play-based activities for ages 3-6 years.",
-                color: "bg-blue-500/10 text-blue-600",
-              },
-              {
-                icon: GraduationCap,
-                title: "Primary Education",
-                description: "Comprehensive CBC curriculum covering all learning areas for grades 1-6.",
-                color: "bg-green-500/10 text-green-600",
-              },
-              {
-                icon: Award,
-                title: "Junior Secondary",
-                description: "Advanced learning preparing students for senior secondary education.",
-                color: "bg-purple-500/10 text-purple-600",
-              },
-              {
-                icon: Users,
-                title: "Extra-Curricular",
-                description: "Sports, music, art, and clubs for holistic development.",
-                color: "bg-orange-500/10 text-orange-600",
-              },
-              {
-                icon: Lightbulb,
-                title: "STEM Programs",
-                description: "Science, technology, engineering, and mathematics focus.",
-                color: "bg-cyan-500/10 text-cyan-600",
-              },
-              {
-                icon: Heart,
-                title: "Character Building",
-                description: "Values-based education fostering responsible citizenship.",
-                color: "bg-pink-500/10 text-pink-600",
-              },
-            ].map((program, i) => (
-              <Card key={i} className="border bg-card hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${program.color}`}>
-                    <program.icon className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-lg font-bold text-foreground mb-2">{program.title}</h3>
-                  <p className="text-muted-foreground text-sm">{program.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {programs.map((program) => {
+                const IconComponent = iconMap[program.icon] || BookOpen;
+                return (
+                  <Card key={program.id} className="border bg-card hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6">
+                      <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${program.color}`}>
+                        <IconComponent className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-lg font-bold text-foreground mb-2">{program.title}</h3>
+                      <p className="text-muted-foreground text-sm">{program.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Testimonials Section */}
       <section id="testimonials" className="py-8 md:py-12">

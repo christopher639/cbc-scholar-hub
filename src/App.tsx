@@ -51,7 +51,9 @@ import LearnerFeesPortal from "./pages/LearnerFeesPortal";
 import Signout from "./pages/Signout";
 import Notifications from "./pages/Notifications";
 import Blogs from "./pages/Blogs";
+import BlogDetail from "./pages/BlogDetail";
 import Gallery from "./pages/Gallery";
+import Programs from "./pages/Programs";
 import { TeacherPortalLayout } from "./components/TeacherPortalLayout";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import TeacherMarks from "./pages/TeacherMarks";
@@ -86,8 +88,9 @@ const App = () => (
           <BrowserRouter>
             <SessionTimeoutWrapper>
             <Routes>
-            {/* Public School Website */}
+{/* Public School Website */}
             <Route path="/" element={<Home />} />
+            <Route path="/blog/:id" element={<BlogDetail />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signout" element={<Signout />} />
             
@@ -140,6 +143,7 @@ const App = () => (
             <Route path="/learner-fees" element={<ProtectedRoute><AdminRoute><LearnerFeesPortal /></AdminRoute></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="/blogs" element={<ProtectedRoute><AdminRoute><Blogs /></AdminRoute></ProtectedRoute>} />
+            <Route path="/programs" element={<ProtectedRoute><AdminRoute><Programs /></AdminRoute></ProtectedRoute>} />
             <Route path="/gallery" element={<ProtectedRoute><AdminRoute><Gallery /></AdminRoute></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
