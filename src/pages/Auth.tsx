@@ -30,6 +30,16 @@ export default function Auth() {
   // Check for Google OAuth callback and handle user verification
   useEffect(() => {
     const handleGoogleAuthCallback = async () => {
+      // Only process if this is an OAuth callback (URL has hash or code parameter)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const urlParams = new URLSearchParams(window.location.search);
+      const isOAuthCallback = hashParams.has('access_token') || urlParams.has('code');
+      
+      if (!isOAuthCallback) {
+        setCheckingGoogleAuth(false);
+        return;
+      }
+      
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
