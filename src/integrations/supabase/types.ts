@@ -1566,26 +1566,32 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activation_status: string | null
           avatar_url: string | null
           created_at: string
           full_name: string
           id: string
+          is_activated: boolean | null
           phone_number: string | null
           updated_at: string
         }
         Insert: {
+          activation_status?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name: string
           id: string
+          is_activated?: boolean | null
           phone_number?: string | null
           updated_at?: string
         }
         Update: {
+          activation_status?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string
           id?: string
+          is_activated?: boolean | null
           phone_number?: string | null
           updated_at?: string
         }

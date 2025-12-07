@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit, Trash2 } from "lucide-react";
+import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit, Trash2, Check, X, Clock, UserCheck, UserX } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -43,10 +44,13 @@ interface UserProfile {
   email: string;
   created_at: string;
   role: AppRole;
+  is_activated: boolean;
+  activation_status: string;
 }
 
 const Users = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -54,6 +58,7 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
   const [userToDelete, setUserToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState("active");
   const { toast } = useToast();
 
   const fetchUsers = async () => {
@@ -62,7 +67,7 @@ const Users = () => {
       
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, created_at");
+        .select("id, full_name, created_at, is_activated, activation_status");
 
       if (profilesError) throw profilesError;
 
@@ -72,7 +77,7 @@ const Users = () => {
 
       if (rolesError) throw rolesError;
 
-      const usersWithRoles = profiles?.map((profile) => {
+      const allUsers = profiles?.map((profile) => {
         const userRole = roles?.find((r) => r.user_id === profile.id);
         
         return {
@@ -81,10 +86,17 @@ const Users = () => {
           email: "Loading...",
           created_at: profile.created_at,
           role: (userRole?.role || "learner") as AppRole,
+          is_activated: profile.is_activated ?? false,
+          activation_status: profile.activation_status ?? "pending",
         };
       }) || [];
 
-      setUsers(usersWithRoles);
+      // Separate active and pending users
+      const active = allUsers.filter(u => u.is_activated || u.activation_status === "activated");
+      const pending = allUsers.filter(u => !u.is_activated && u.activation_status === "pending");
+      
+      setUsers(active);
+      setPendingUsers(pending);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -102,26 +114,13 @@ const Users = () => {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      const { data: existingRole } = await supabase
-        .from("user_roles")
-        .select("id")
-        .eq("user_id", userId)
-        .maybeSingle();
+      // Use the assign_user_role function to bypass RLS
+      const { error } = await supabase.rpc("assign_user_role", {
+        p_user_id: userId,
+        p_role: newRole as AppRole,
+      });
 
-      if (existingRole) {
-        const { error } = await supabase
-          .from("user_roles")
-          .update({ role: newRole as AppRole })
-          .eq("user_id", userId);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("user_roles")
-          .insert({ user_id: userId, role: newRole as AppRole });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -133,6 +132,69 @@ const Users = () => {
       toast({
         title: "Error",
         description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const activateUser = async (userId: string, role: AppRole) => {
+    try {
+      // Update profile activation status
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ 
+          is_activated: true, 
+          activation_status: "activated" 
+        })
+        .eq("id", userId);
+
+      if (profileError) throw profileError;
+
+      // Assign role using the function
+      const { error: roleError } = await supabase.rpc("assign_user_role", {
+        p_user_id: userId,
+        p_role: role,
+      });
+
+      if (roleError) throw roleError;
+
+      toast({
+        title: "User Activated",
+        description: `User has been activated with ${role} role`,
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to activate user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const denyUser = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ 
+          is_activated: false, 
+          activation_status: "denied" 
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "User Denied",
+        description: "User access has been denied",
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to deny user",
         variant: "destructive",
       });
     }
@@ -184,6 +246,121 @@ const Users = () => {
     }
   };
 
+  const UserTable = ({ userList, showActivation = false }: { userList: UserProfile[], showActivation?: boolean }) => (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>{showActivation ? "Status" : "Current Role"}</TableHead>
+            <TableHead>Joined Date</TableHead>
+            <TableHead>{showActivation ? "Assign Role & Activate" : "Change Role"}</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {userList.map((user) => (
+            <TableRow key={user.id}>
+              <TableCell className="font-medium">{user.name}</TableCell>
+              <TableCell>
+                {showActivation ? (
+                  <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
+                    <Clock className="h-3 w-3" />
+                    Pending
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant={user.role === "admin" ? "default" : "secondary"}
+                    className="gap-1"
+                  >
+                    {user.role === "admin" && <ShieldCheck className="h-3 w-3" />}
+                    {user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}
+                  </Badge>
+                )}
+              </TableCell>
+              <TableCell>
+                {new Date(user.created_at).toLocaleDateString()}
+              </TableCell>
+              <TableCell>
+                {showActivation ? (
+                  <div className="flex items-center gap-2">
+                    <Select onValueChange={(value) => activateUser(user.id, value as AppRole)}>
+                      <SelectTrigger className="w-28">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="teacher">Teacher</SelectItem>
+                        <SelectItem value="parent">Parent</SelectItem>
+                        <SelectItem value="learner">Learner</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <Select
+                    value={user.role}
+                    onValueChange={(value) => updateUserRole(user.id, value)}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="teacher">Teacher</SelectItem>
+                      <SelectItem value="parent">Parent</SelectItem>
+                      <SelectItem value="learner">Learner</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  {showActivation ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => denyUser(user.id)}
+                    >
+                      <UserX className="h-4 w-4 mr-1" />
+                      Deny
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedUser({ id: user.id, name: user.name });
+                          setEditDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => {
+                          setUserToDelete({ id: user.id, name: user.name });
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -197,102 +374,67 @@ const Users = () => {
               <Plus className="h-4 w-4" />
               Create User
             </Button>
+            {pendingUsers.length > 0 && (
+              <Badge variant="destructive" className="gap-1">
+                <Clock className="h-3 w-3" />
+                {pendingUsers.length} Pending
+              </Badge>
+            )}
             <Badge variant="secondary" className="gap-2">
               <UsersIcon className="h-4 w-4" />
-              {users.length} Total Users
+              {users.length} Active
             </Badge>
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>All Users</CardTitle>
-            <CardDescription>View and manage user roles</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading users...</div>
-            ) : users.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">No users found</div>
-            ) : (
-              <div className="overflow-x-auto">
-                  <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Current Role</TableHead>
-                      <TableHead>Joined Date</TableHead>
-                      <TableHead>Change Role</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={user.role === "admin" ? "default" : "secondary"}
-                            className="gap-1"
-                          >
-                            {user.role === "admin" && <ShieldCheck className="h-3 w-3" />}
-                            {user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <Select
-                            value={user.role}
-                            onValueChange={(value) => updateUserRole(user.id, value)}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="teacher">Teacher</SelectItem>
-                              <SelectItem value="parent">Parent</SelectItem>
-                              <SelectItem value="learner">Learner</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedUser({ id: user.id, name: user.name });
-                                setEditDialogOpen(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => {
-                                setUserToDelete({ id: user.id, name: user.name });
-                                setDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="active" className="gap-2">
+              <UserCheck className="h-4 w-4" />
+              Active Users ({users.length})
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="gap-2">
+              <Clock className="h-4 w-4" />
+              Pending Approval ({pendingUsers.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="active">
+            <Card>
+              <CardHeader>
+                <CardTitle>Active Users</CardTitle>
+                <CardDescription>View and manage activated user roles</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">Loading users...</div>
+                ) : users.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">No active users found</div>
+                ) : (
+                  <UserTable userList={users} />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="pending">
+            <Card>
+              <CardHeader>
+                <CardTitle>Pending Approval</CardTitle>
+                <CardDescription>Users who signed up and are waiting for activation</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                ) : pendingUsers.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">No pending users</div>
+                ) : (
+                  <UserTable userList={pendingUsers} showActivation />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
       
       <CreateUserDialog
