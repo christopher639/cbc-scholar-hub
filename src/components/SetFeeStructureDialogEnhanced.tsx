@@ -277,7 +277,7 @@ export function SetFeeStructureDialogEnhanced({
             {termLabel}
           </span>
           <span className="text-primary font-mono">
-            Total: ${calculateTermTotal(term).toFixed(2)}
+            Total: KSh {calculateTermTotal(term).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </CardTitle>
       </CardHeader>
@@ -419,8 +419,8 @@ export function SetFeeStructureDialogEnhanced({
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">TOTAL ANNUAL FEES</span>
-                  <span className="text-3xl font-bold text-primary font-mono">
-                    ${(calculateTermTotal("term_1") + calculateTermTotal("term_2") + calculateTermTotal("term_3")).toFixed(2)}
+                  <span className="text-2xl font-bold text-primary font-mono">
+                    KSh {(calculateTermTotal("term_1") + calculateTermTotal("term_2") + calculateTermTotal("term_3")).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </CardContent>
