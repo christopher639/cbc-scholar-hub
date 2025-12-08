@@ -571,14 +571,14 @@ export default function Invoices() {
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Recent Invoices (30 days)</CardDescription>
-              <CardTitle className="text-2xl sm:text-3xl">{recentInvoicesStats.count}</CardTitle>
+              <CardTitle className="text-lg">{recentInvoicesStats.count}</CardTitle>
             </CardHeader>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Recent Total Amount</CardDescription>
-              <CardTitle className="text-2xl sm:text-3xl">
+              <CardTitle className="text-lg">
                 {formatCurrency(recentInvoicesStats.totalAmount)}
               </CardTitle>
             </CardHeader>
@@ -587,7 +587,7 @@ export default function Invoices() {
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Recent Paid</CardDescription>
-              <CardTitle className="text-2xl sm:text-3xl text-green-600">
+              <CardTitle className="text-lg text-green-600">
                 {formatCurrency(recentInvoicesStats.totalPaid)}
               </CardTitle>
             </CardHeader>
@@ -596,7 +596,7 @@ export default function Invoices() {
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Recent Outstanding</CardDescription>
-              <CardTitle className="text-2xl sm:text-3xl text-red-600">
+              <CardTitle className="text-lg text-red-600">
                 {formatCurrency(recentInvoicesStats.totalBalance)}
               </CardTitle>
             </CardHeader>
