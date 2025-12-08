@@ -95,11 +95,11 @@ export default function Profile() {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      // Check file size (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
         toast({
           title: "Error",
-          description: "File size must be less than 2MB",
+          description: "File size must be less than 10MB",
           variant: "destructive",
         });
         return;
@@ -247,7 +247,7 @@ export default function Profile() {
                     />
                   </Label>
                   <p className="text-xs text-muted-foreground mt-2 text-center">
-                    PNG, JPG up to 2MB
+                    PNG, JPG up to 10MB
                   </p>
                 </div>
               </div>
