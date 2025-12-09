@@ -203,28 +203,115 @@ export default function Profile() {
       .slice(0, 2);
   };
 
-  const getRoleBadge = () => {
+  const getRoleInfo = () => {
     const role = user?.role;
-    if (!role) return null;
+    if (!role) return { badge: null, description: "", permissions: [] };
     
-    const roleConfig: Record<string, { icon: React.ReactNode; className: string }> = {
-      admin: { icon: <ShieldCheck className="h-3 w-3" />, className: "bg-primary text-primary-foreground" },
-      finance: { icon: <DollarSign className="h-3 w-3" />, className: "border-green-500 text-green-600 bg-green-50 dark:bg-green-950" },
-      teacher: { icon: <GraduationCap className="h-3 w-3" />, className: "border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950" },
-      visitor: { icon: <Eye className="h-3 w-3" />, className: "border-purple-500 text-purple-600 bg-purple-50 dark:bg-purple-950" },
-      learner: { icon: <User className="h-3 w-3" />, className: "border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-950" },
-      parent: { icon: <User className="h-3 w-3" />, className: "border-teal-500 text-teal-600 bg-teal-50 dark:bg-teal-950" },
+    const roleConfig: Record<string, { 
+      icon: React.ReactNode; 
+      className: string;
+      label: string;
+      description: string;
+      permissions: string[];
+    }> = {
+      admin: { 
+        icon: <ShieldCheck className="h-3 w-3" />, 
+        className: "bg-primary text-primary-foreground",
+        label: "Administrator",
+        description: "Full system access with complete control over all features and data.",
+        permissions: [
+          "Manage all users, learners, teachers, and staff",
+          "Configure system settings and school information",
+          "Full access to financial data and reports",
+          "Create, edit, and delete all records",
+          "View all analytics and activity logs"
+        ]
+      },
+      finance: { 
+        icon: <DollarSign className="h-3 w-3" />, 
+        className: "border-green-500 text-green-600 bg-green-50 dark:bg-green-950",
+        label: "Finance Manager",
+        description: "Access to financial management features only.",
+        permissions: [
+          "Manage fee structures and payments",
+          "Generate and manage invoices",
+          "Record fee transactions",
+          "View learner financial data",
+          "Access financial reports"
+        ]
+      },
+      teacher: { 
+        icon: <GraduationCap className="h-3 w-3" />, 
+        className: "border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950",
+        label: "Teacher",
+        description: "Access to teaching and performance management features.",
+        permissions: [
+          "Record learner performance marks",
+          "Manage assigned learning areas",
+          "Create and manage assignments",
+          "View learner academic data",
+          "Access teacher portal"
+        ]
+      },
+      visitor: { 
+        icon: <Eye className="h-3 w-3" />, 
+        className: "border-purple-500 text-purple-600 bg-purple-50 dark:bg-purple-950",
+        label: "Visitor (Read-Only)",
+        description: "View-only access to all system data. Cannot create, edit, or delete any records.",
+        permissions: [
+          "View all system data and records",
+          "Access all pages and reports",
+          "Cannot create, edit, or delete any data",
+          "Read-only access to all features",
+          "View analytics and activity logs"
+        ]
+      },
+      learner: { 
+        icon: <User className="h-3 w-3" />, 
+        className: "border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-950",
+        label: "Learner",
+        description: "Access to personal academic and fee information.",
+        permissions: [
+          "View own performance records",
+          "Access personal fee information",
+          "View assignments and submissions",
+          "Access AI tutor for learning",
+          "Update own profile"
+        ]
+      },
+      parent: { 
+        icon: <User className="h-3 w-3" />, 
+        className: "border-teal-500 text-teal-600 bg-teal-50 dark:bg-teal-950",
+        label: "Parent/Guardian",
+        description: "Access to children's academic and fee information.",
+        permissions: [
+          "View children's performance records",
+          "Access children's fee information",
+          "Communicate with school",
+          "View children's assignments",
+          "Update own profile"
+        ]
+      },
     };
     
     const config = roleConfig[role] || roleConfig.learner;
     
-    return (
-      <Badge variant="outline" className={`gap-1 ${config.className}`}>
-        {config.icon}
-        {role.charAt(0).toUpperCase() + role.slice(1)}
-      </Badge>
-    );
+    return {
+      badge: (
+        <Badge variant="outline" className={`gap-1 ${config.className}`}>
+          {config.icon}
+          {config.label}
+        </Badge>
+      ),
+      description: config.description,
+      permissions: config.permissions,
+      icon: config.icon,
+      className: config.className,
+      label: config.label
+    };
   };
+
+  const roleInfo = getRoleInfo();
 
   return (
     <DashboardLayout>
@@ -234,7 +321,7 @@ export default function Profile() {
             <h1 className="text-3xl font-bold text-foreground">My Profile</h1>
             <p className="text-muted-foreground">Manage your personal information</p>
           </div>
-          {getRoleBadge()}
+          {roleInfo.badge}
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
@@ -337,6 +424,37 @@ export default function Profile() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Access & Permissions Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5" />
+              Access & Permissions
+            </CardTitle>
+            <CardDescription>
+              Your role and what you can do in the system
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground">Your Role:</span>
+              {roleInfo.badge}
+            </div>
+            <p className="text-sm text-muted-foreground">{roleInfo.description}</p>
+            <div className="space-y-2">
+              <span className="text-sm font-medium">What you can do:</span>
+              <ul className="space-y-1">
+                {roleInfo.permissions.map((permission, index) => (
+                  <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    {permission}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
