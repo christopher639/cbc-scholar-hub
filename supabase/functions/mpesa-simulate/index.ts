@@ -47,7 +47,7 @@ serve(async (req) => {
       throw new Error('Missing required fields: phoneNumber, amount, accountReference');
     }
 
-    const shortcode = Deno.env.get('MPESA_SHORTCODE') || '600000';
+    const shortcode = Deno.env.get('MPESA_SHORTCODE') || '174379';
     const accessToken = await getAccessToken();
 
     console.log('Simulating C2B transaction:', { phoneNumber, amount, accountReference });
