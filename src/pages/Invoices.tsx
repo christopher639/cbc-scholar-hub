@@ -404,55 +404,55 @@ export default function Invoices() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Receipt className="h-5 w-5 text-primary" />
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
+                  <Receipt className="h-4 w-4 text-primary" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Invoices (30d)</p>
-                  <p className="text-xl font-bold">{recentInvoicesStats.count}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Invoices (30d)</p>
+                  <p className="text-base font-bold">{recentInvoicesStats.count}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg shrink-0">
+                  <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Total Billed</p>
-                  <p className="text-lg font-bold">{formatCurrency(recentInvoicesStats.totalAmount)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <Wallet className="h-5 w-5 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Collected</p>
-                  <p className="text-lg font-bold text-green-600">{formatCurrency(recentInvoicesStats.totalPaid)}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Total Billed</p>
+                  <p className="text-xs font-bold truncate">{formatCurrency(recentInvoicesStats.totalAmount)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                  <Clock className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg shrink-0">
+                  <Wallet className="h-4 w-4 text-green-600 dark:text-green-400" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Outstanding</p>
-                  <p className="text-lg font-bold text-red-600">{formatCurrency(recentInvoicesStats.totalBalance)}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Collected</p>
+                  <p className="text-xs font-bold text-green-600 truncate">{formatCurrency(recentInvoicesStats.totalPaid)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-red-100 dark:bg-red-900/30 rounded-lg shrink-0">
+                  <Clock className="h-4 w-4 text-red-600 dark:text-red-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate">Outstanding</p>
+                  <p className="text-xs font-bold text-red-600 truncate">{formatCurrency(recentInvoicesStats.totalBalance)}</p>
                 </div>
               </div>
             </CardContent>
