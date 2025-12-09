@@ -14,6 +14,7 @@ import { useLearners } from "@/hooks/useLearners";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { learnerSchema } from "@/lib/validations/learner";
+import { useVisitorAccess } from "@/hooks/useVisitorAccess";
 
 interface AddLearnerDialogProps {
   open: boolean;
@@ -95,6 +96,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
   const { streams, loading: streamsLoading } = useStreams();
   const { addLearner, fetchLearners } = useLearners();
   const { toast } = useToast();
+  const { checkAccess } = useVisitorAccess();
 
   // Filter streams based on selected grade
   const filteredStreams = formData.gradeId
@@ -191,6 +193,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!checkAccess("add learners")) return;
     // Validate staff employee number if staff child is checked
     if (formData.isStaffChild) {
       if (!formData.staffEmployeeNumber.trim()) {

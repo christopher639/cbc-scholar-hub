@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { userSchema } from "@/lib/validations/user";
+import { useVisitorAccess } from "@/hooks/useVisitorAccess";
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface CreateUserDialogProps {
 
 export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDialogProps) {
   const { toast } = useToast();
+  const { checkAccess } = useVisitorAccess();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -26,6 +28,8 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!checkAccess("create users")) return;
     
     // Validate form data using Zod schema
     const validationResult = userSchema.safeParse(formData);

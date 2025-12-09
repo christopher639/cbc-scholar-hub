@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useVisitorAccess } from "@/hooks/useVisitorAccess";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -61,6 +62,7 @@ const Users = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
   const { toast } = useToast();
+  const { checkAccess, isVisitor } = useVisitorAccess();
 
   const fetchUsers = async () => {
     try {
@@ -149,6 +151,7 @@ const Users = () => {
   };
 
   const activateUser = async (userId: string, role: AppRole) => {
+    if (!checkAccess("activate users")) return;
     try {
       // Update profile activation status
       const { error: profileError } = await supabase
@@ -185,6 +188,7 @@ const Users = () => {
   };
 
   const denyUser = async (userId: string) => {
+    if (!checkAccess("deny users")) return;
     try {
       const { error } = await supabase
         .from("profiles")
@@ -212,6 +216,7 @@ const Users = () => {
   };
 
   const handleDeleteUser = async () => {
+    if (!checkAccess("delete users")) return;
     if (!userToDelete) return;
 
     try {
