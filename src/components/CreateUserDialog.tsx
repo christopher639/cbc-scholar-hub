@@ -21,7 +21,7 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
     fullName: "",
     email: "",
     password: "",
-    role: "learner",
+    role: "admin",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,16 +66,29 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
 
         if (roleError) throw roleError;
 
+        // Auto-activate the user since admin is creating them
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            is_activated: true,
+            activation_status: 'active',
+          })
+          .eq('id', authData.user.id);
+
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+        }
+
         toast({
           title: "Success",
-          description: "User created successfully",
+          description: "User created and activated successfully",
         });
 
         setFormData({
           fullName: "",
           email: "",
           password: "",
-          role: "learner",
+          role: "admin",
         });
 
         onSuccess();
