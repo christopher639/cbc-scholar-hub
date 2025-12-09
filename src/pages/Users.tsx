@@ -115,7 +115,17 @@ const Users = () => {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      // Use the assign_user_role function to bypass RLS
+      // First delete existing role
+      const { error: deleteError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId);
+
+      if (deleteError) {
+        console.error("Delete error:", deleteError);
+      }
+
+      // Then insert the new role using the assign_user_role function to bypass RLS
       const { error } = await supabase.rpc("assign_user_role", {
         p_user_id: userId,
         p_role: newRole as AppRole,
@@ -125,7 +135,7 @@ const Users = () => {
 
       toast({
         title: "Success",
-        description: "User role updated successfully",
+        description: `User role updated to ${newRole}`,
       });
 
       fetchUsers();

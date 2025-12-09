@@ -56,6 +56,8 @@ export default function Auth() {
             navigate("/learner-portal", { replace: true });
           } else if (roleData.role === "teacher") {
             navigate("/teacher-portal", { replace: true });
+          } else if (roleData.role === "admin" || roleData.role === "finance" || roleData.role === "visitor") {
+            navigate("/dashboard", { replace: true });
           } else {
             navigate("/dashboard", { replace: true });
           }
@@ -113,11 +115,13 @@ export default function Auth() {
 
   useEffect(() => {
     if (user && !loading) {
-      // Check if user is activated
+      // Check if user is activated and redirect based on role
       if (user.role === "learner") {
         navigate("/learner-portal", { replace: true });
       } else if (user.role === "teacher") {
         navigate("/teacher-portal", { replace: true });
+      } else if (user.role === "admin" || user.role === "finance" || user.role === "visitor") {
+        navigate("/dashboard", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
@@ -141,6 +145,8 @@ export default function Auth() {
         navigate("/learner-portal", { replace: true });
       } else if (result.role === "teacher") {
         navigate("/teacher-portal", { replace: true });
+      } else if (result.role === "admin" || result.role === "finance" || result.role === "visitor") {
+        navigate("/dashboard", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
