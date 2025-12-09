@@ -401,7 +401,7 @@ const Activities = () => {
                 {recentActivities.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex items-center gap-2 p-2 border border-border rounded-md hover:bg-muted/50 transition-colors"
+                    className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 transition-colors"
                   >
                     <div className={`p-1.5 rounded-full shrink-0 ${getActionColor(activity.action)}`}>
                       {getActionIcon(activity.action)}
