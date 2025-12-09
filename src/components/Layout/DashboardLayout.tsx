@@ -163,8 +163,8 @@ function AppSidebar() {
   );
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border bg-card">
-      <div className="flex h-16 items-center justify-between border-b border-border px-4">
+    <Sidebar collapsible="icon" className="bg-card">
+      <div className="flex h-16 items-center justify-between px-4">
         {!collapsed && (
           <div className="flex items-center gap-2">
             {schoolInfo?.logo_url ? (
@@ -221,7 +221,7 @@ function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto border-t border-border p-2 space-y-1">
+        <div className="mt-auto p-2 space-y-1">
           {/* Public Website Link at bottom */}
           {(user?.role === "admin" || user?.role === "visitor") && (
             <TooltipProvider>
@@ -270,14 +270,21 @@ function AppSidebar() {
   );
 }
 
+// Global cache for user profile to prevent re-fetching on every route change
+let profileCache: { full_name: string; avatar_url: string | null } | null = null;
+let profileCacheUserId: string | null = null;
+
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(profileCache);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const { schoolInfo } = useSchoolInfo();
 
   const handleLogout = async () => {
+    // Clear profile cache on logout
+    profileCache = null;
+    profileCacheUserId = null;
     await logout();
     toast({
       title: "Logged out",
@@ -287,8 +294,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && user.id !== profileCacheUserId) {
       loadProfile();
+    } else if (user && profileCache) {
+      setProfile(profileCache);
     }
   }, [user]);
 
@@ -301,37 +310,41 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           .eq("id", user?.id)
           .maybeSingle();
         
-        if (!error) {
-          // Use profile data or fallback to user email
-          setProfile({
-            full_name: data?.full_name || user?.data?.email || "User",
-            avatar_url: data?.avatar_url || null,
-          });
-        } else {
-          // Fallback if profile doesn't exist
-          setProfile({
-            full_name: user?.data?.email || "User",
-            avatar_url: null,
-          });
-        }
+        const profileData = {
+          full_name: data?.full_name || user?.data?.email || "User",
+          avatar_url: data?.avatar_url || null,
+        };
+        
+        // Update cache
+        profileCache = profileData;
+        profileCacheUserId = user?.id || null;
+        setProfile(profileData);
       } else if (user?.role === "teacher") {
-        setProfile({
+        const profileData = {
           full_name: `${user.data.first_name} ${user.data.last_name}`,
           avatar_url: null,
-        });
+        };
+        profileCache = profileData;
+        profileCacheUserId = user?.id || null;
+        setProfile(profileData);
       } else if (user?.role === "learner") {
-        setProfile({
+        const profileData = {
           full_name: `${user.data.first_name} ${user.data.last_name}`,
           avatar_url: user.data.photo_url,
-        });
+        };
+        profileCache = profileData;
+        profileCacheUserId = user?.id || null;
+        setProfile(profileData);
       }
     } catch (error) {
       console.error("Error loading profile:", error);
-      // Set fallback profile on error
-      setProfile({
+      const fallbackProfile = {
         full_name: user?.data?.email || "User",
         avatar_url: null,
-      });
+      };
+      profileCache = fallbackProfile;
+      profileCacheUserId = user?.id || null;
+      setProfile(fallbackProfile);
     }
   };
 
@@ -357,7 +370,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <AppSidebar />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card px-3 sm:px-6">
+          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 bg-card px-3 sm:px-6">
             <SidebarTrigger className="lg:hidden">
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
@@ -448,7 +461,7 @@ function BottomNavigation() {
   ];
   
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden h-16 items-center justify-around border-t border-border bg-card px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden h-16 items-center justify-around bg-card px-2">
       {bottomNavItems.map((item) => {
         const isActive = location.pathname === item.href;
         return (
