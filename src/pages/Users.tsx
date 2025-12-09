@@ -62,7 +62,7 @@ const Users = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState("active");
   const { toast } = useToast();
-  const { checkAccess, isVisitor } = useVisitorAccess();
+  const { checkAccess, isVisitor, isFinance, checkFinanceAccess } = useVisitorAccess();
 
   const fetchUsers = async () => {
     try {
@@ -116,6 +116,7 @@ const Users = () => {
   }, []);
 
   const updateUserRole = async (userId: string, newRole: string) => {
+    if (!checkFinanceAccess("change user roles", false)) return;
     try {
       // First delete existing role
       const { error: deleteError } = await supabase
@@ -151,7 +152,7 @@ const Users = () => {
   };
 
   const activateUser = async (userId: string, role: AppRole) => {
-    if (!checkAccess("activate users")) return;
+    if (!checkFinanceAccess("activate users", false)) return;
     try {
       // Update profile activation status
       const { error: profileError } = await supabase
@@ -188,7 +189,7 @@ const Users = () => {
   };
 
   const denyUser = async (userId: string) => {
-    if (!checkAccess("deny users")) return;
+    if (!checkFinanceAccess("deny users", false)) return;
     try {
       const { error } = await supabase
         .from("profiles")
@@ -216,7 +217,7 @@ const Users = () => {
   };
 
   const handleDeleteUser = async () => {
-    if (!checkAccess("delete users")) return;
+    if (!checkFinanceAccess("delete users", false)) return;
     if (!userToDelete) return;
 
     try {
@@ -276,9 +277,9 @@ const Users = () => {
         </TableHeader>
         <TableBody>
           {userList.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.name}</TableCell>
-              <TableCell>
+            <TableRow key={user.id} className="h-10">
+              <TableCell className="font-medium py-2">{user.name}</TableCell>
+              <TableCell className="py-2">
                 {showActivation ? (
                   <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
                     <Clock className="h-3 w-3" />
@@ -299,13 +300,13 @@ const Users = () => {
                   </Badge>
                 )}
               </TableCell>
-              <TableCell>
+              <TableCell className="py-2">
                 {new Date(user.created_at).toLocaleDateString()}
               </TableCell>
-              <TableCell>
+              <TableCell className="py-2">
                 {showActivation ? (
                   <div className="flex items-center gap-2">
-                    <Select onValueChange={(value) => activateUser(user.id, value as AppRole)}>
+                    <Select onValueChange={(value) => activateUser(user.id, value as AppRole)} disabled={isVisitor || isFinance}>
                       <SelectTrigger className="w-32">
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
@@ -323,6 +324,7 @@ const Users = () => {
                   <Select
                     value={user.role}
                     onValueChange={(value) => updateUserRole(user.id, value)}
+                    disabled={isVisitor || isFinance}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />
@@ -338,13 +340,14 @@ const Users = () => {
                   </Select>
                 )}
               </TableCell>
-              <TableCell>
+              <TableCell className="py-2">
                 <div className="flex gap-2">
                   {showActivation ? (
                     <Button
                       variant="outline"
                       size="sm"
                       className="text-destructive hover:text-destructive"
+                      disabled={isVisitor || isFinance}
                       onClick={() => denyUser(user.id)}
                     >
                       <UserX className="h-4 w-4 mr-1" />
@@ -355,9 +358,12 @@ const Users = () => {
                       <Button
                         variant="outline"
                         size="sm"
+                        disabled={isVisitor || isFinance}
                         onClick={() => {
-                          setSelectedUser({ id: user.id, name: user.name });
-                          setEditDialogOpen(true);
+                          if (checkFinanceAccess("edit users", false)) {
+                            setSelectedUser({ id: user.id, name: user.name });
+                            setEditDialogOpen(true);
+                          }
                         }}
                       >
                         <Edit className="h-4 w-4 mr-1" />
@@ -367,9 +373,12 @@ const Users = () => {
                         variant="outline"
                         size="sm"
                         className="text-destructive hover:text-destructive"
+                        disabled={isVisitor || isFinance}
                         onClick={() => {
-                          setUserToDelete({ id: user.id, name: user.name });
-                          setDeleteDialogOpen(true);
+                          if (checkFinanceAccess("delete users", false)) {
+                            setUserToDelete({ id: user.id, name: user.name });
+                            setDeleteDialogOpen(true);
+                          }
                         }}
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
@@ -395,7 +404,15 @@ const Users = () => {
             <p className="text-muted-foreground">Manage user access and permissions</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+            <Button 
+              onClick={() => {
+                if (checkFinanceAccess("create users", false)) {
+                  setCreateDialogOpen(true);
+                }
+              }} 
+              className="gap-2"
+              disabled={isVisitor || isFinance}
+            >
               <Plus className="h-4 w-4" />
               Create User
             </Button>
