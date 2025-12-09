@@ -418,7 +418,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto p-4 sm:p-6 pb-20 lg:pb-6">
+          <div className="flex-1 overflow-auto p-4 sm:p-6 pb-24 lg:pb-6">
             {children}
           </div>
           

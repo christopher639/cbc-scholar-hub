@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Upload, User } from "lucide-react";
+import { Loader2, Upload, User, ShieldCheck, DollarSign, GraduationCap, Eye } from "lucide-react";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -202,12 +203,38 @@ export default function Profile() {
       .slice(0, 2);
   };
 
+  const getRoleBadge = () => {
+    const role = user?.role;
+    if (!role) return null;
+    
+    const roleConfig: Record<string, { icon: React.ReactNode; className: string }> = {
+      admin: { icon: <ShieldCheck className="h-3 w-3" />, className: "bg-primary text-primary-foreground" },
+      finance: { icon: <DollarSign className="h-3 w-3" />, className: "border-green-500 text-green-600 bg-green-50 dark:bg-green-950" },
+      teacher: { icon: <GraduationCap className="h-3 w-3" />, className: "border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950" },
+      visitor: { icon: <Eye className="h-3 w-3" />, className: "border-purple-500 text-purple-600 bg-purple-50 dark:bg-purple-950" },
+      learner: { icon: <User className="h-3 w-3" />, className: "border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-950" },
+      parent: { icon: <User className="h-3 w-3" />, className: "border-teal-500 text-teal-600 bg-teal-50 dark:bg-teal-950" },
+    };
+    
+    const config = roleConfig[role] || roleConfig.learner;
+    
+    return (
+      <Badge variant="outline" className={`gap-1 ${config.className}`}>
+        {config.icon}
+        {role.charAt(0).toUpperCase() + role.slice(1)}
+      </Badge>
+    );
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">My Profile</h1>
-          <p className="text-muted-foreground">Manage your personal information</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">My Profile</h1>
+            <p className="text-muted-foreground">Manage your personal information</p>
+          </div>
+          {getRoleBadge()}
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
