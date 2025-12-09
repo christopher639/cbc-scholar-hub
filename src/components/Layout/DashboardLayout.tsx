@@ -112,33 +112,33 @@ function ThemeToggle() {
 import { Newspaper, Images, BookOpen } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] },
-  { name: "Learners", href: "/learners", icon: Users, roles: ["admin", "teacher"] },
-  { name: "Grades & Streams", href: "/grades", icon: GraduationCap, roles: ["admin", "teacher"] },
-  { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher"] },
-  { name: "Teachers", href: "/teachers", icon: UserCog, roles: ["admin"] },
-  { name: "Non-Teaching Staff", href: "/non-teaching-staff", icon: Users, roles: ["admin"] },
-  { name: "Fee Management", href: "/fees", icon: DollarSign, roles: ["admin", "finance"] },
-  { name: "Learner Fees", href: "/learner-fees", icon: DollarSign, roles: ["admin", "finance"] },
-  { name: "Invoices", href: "/invoices", icon: FileText, roles: ["admin", "finance"] },
-  { name: "Fee Structures", href: "/fee-structures", icon: Coins, roles: ["admin", "finance"] },
-  { name: "Academic Settings", href: "/academic-settings", icon: Settings, roles: ["admin"] },
-  { name: "Programs", href: "/programs", icon: BookOpen, roles: ["admin"] },
-  { name: "Blogs", href: "/blogs", icon: Newspaper, roles: ["admin"] },
-  { name: "Gallery", href: "/gallery", icon: Images, roles: ["admin"] },
-  { name: "Communication", href: "/communication", icon: MessageSquare, roles: ["admin"] },
-  { name: "Admissions", href: "/admissions", icon: UserCheck, roles: ["admin"] },
-  { name: "Alumni", href: "/alumni", icon: GraduationCap, roles: ["admin", "teacher"] },
-  { name: "Reports", href: "/reports", icon: FileText, roles: ["admin", "teacher"] },
-  { name: "Learner Reports", href: "/bulk-learner-reports", icon: FileText, roles: ["admin"] },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "visitor"] },
+  { name: "Learners", href: "/learners", icon: Users, roles: ["admin", "teacher", "visitor"] },
+  { name: "Grades & Streams", href: "/grades", icon: GraduationCap, roles: ["admin", "teacher", "visitor"] },
+  { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher", "visitor"] },
+  { name: "Teachers", href: "/teachers", icon: UserCog, roles: ["admin", "visitor"] },
+  { name: "Non-Teaching Staff", href: "/non-teaching-staff", icon: Users, roles: ["admin", "visitor"] },
+  { name: "Fee Management", href: "/fees", icon: DollarSign, roles: ["admin", "finance", "visitor"] },
+  { name: "Learner Fees", href: "/learner-fees", icon: DollarSign, roles: ["admin", "finance", "visitor"] },
+  { name: "Invoices", href: "/invoices", icon: FileText, roles: ["admin", "finance", "visitor"] },
+  { name: "Fee Structures", href: "/fee-structures", icon: Coins, roles: ["admin", "finance", "visitor"] },
+  { name: "Academic Settings", href: "/academic-settings", icon: Settings, roles: ["admin", "visitor"] },
+  { name: "Programs", href: "/programs", icon: BookOpen, roles: ["admin", "visitor"] },
+  { name: "Blogs", href: "/blogs", icon: Newspaper, roles: ["admin", "visitor"] },
+  { name: "Gallery", href: "/gallery", icon: Images, roles: ["admin", "visitor"] },
+  { name: "Communication", href: "/communication", icon: MessageSquare, roles: ["admin", "visitor"] },
+  { name: "Admissions", href: "/admissions", icon: UserCheck, roles: ["admin", "visitor"] },
+  { name: "Alumni", href: "/alumni", icon: GraduationCap, roles: ["admin", "teacher", "visitor"] },
+  { name: "Reports", href: "/reports", icon: FileText, roles: ["admin", "teacher", "visitor"] },
+  { name: "Learner Reports", href: "/bulk-learner-reports", icon: FileText, roles: ["admin", "visitor"] },
   { name: "Users & Roles", href: "/users", icon: ShieldCheck, roles: ["admin"] },
-  { name: "Activities", href: "/activities", icon: FileText, roles: ["admin"] },
+  { name: "Activities", href: "/activities", icon: FileText, roles: ["admin", "visitor"] },
   { name: "Offline Storage", href: "/offline-storage", icon: HardDrive, roles: ["admin"] },
   { name: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
 
 // Separate item for Public Website at bottom
-const publicWebsiteLink = { name: "Public Website", href: "/", icon: School, roles: ["admin"], external: true };
+const publicWebsiteLink = { name: "Public Website", href: "/", icon: School, roles: ["admin", "visitor"], external: true };
 
 function AppSidebar() {
   const location = useLocation();
@@ -223,7 +223,7 @@ function AppSidebar() {
 
         <div className="mt-auto border-t border-border p-2 space-y-1">
           {/* Public Website Link at bottom */}
-          {user?.role === "admin" && (
+          {(user?.role === "admin" || user?.role === "visitor") && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -294,7 +294,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const loadProfile = async () => {
     try {
-      if (user?.role === "admin") {
+      if (user?.role === "admin" || user?.role === "finance" || user?.role === "visitor") {
         const { data, error } = await supabase
           .from("profiles")
           .select("full_name, avatar_url")
@@ -304,13 +304,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         if (!error) {
           // Use profile data or fallback to user email
           setProfile({
-            full_name: data?.full_name || user?.data?.email || "Admin User",
+            full_name: data?.full_name || user?.data?.email || "User",
             avatar_url: data?.avatar_url || null,
           });
         } else {
           // Fallback if profile doesn't exist
           setProfile({
-            full_name: user?.data?.email || "Admin User",
+            full_name: user?.data?.email || "User",
             avatar_url: null,
           });
         }
@@ -436,8 +436,8 @@ function BottomNavigation() {
   const location = useLocation();
   const { user } = useAuth();
   
-  // Only show for admin on small screens
-  if (user?.role !== "admin") return null;
+  // Only show for admin, finance, and visitor on small screens
+  if (!["admin", "finance", "visitor"].includes(user?.role || "")) return null;
   
   const bottomNavItems = [
     { name: "Home", href: "/dashboard", icon: LayoutDashboard },
