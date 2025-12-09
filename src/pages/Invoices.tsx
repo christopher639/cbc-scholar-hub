@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { FileText, Search, Plus, Download, Filter, Printer, XCircle, Edit, Smartphone } from "lucide-react";
+import { FileText, Search, Plus, Download, Filter, Printer, XCircle, Edit, Smartphone, ChevronDown, ChevronUp } from "lucide-react";
 import { useInvoices } from "@/hooks/useInvoices";
 import { GenerateInvoicesDialog } from "@/components/GenerateInvoicesDialog";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
@@ -54,6 +54,24 @@ export default function Invoices() {
   const [bulkCancelReason, setBulkCancelReason] = useState("");
   const [mpesaDialogOpen, setMpesaDialogOpen] = useState(false);
   const [mpesaInvoice, setMpesaInvoice] = useState<any>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroupExpansion = (groupKey: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupKey)) {
+        newSet.delete(groupKey);
+      } else {
+        newSet.add(groupKey);
+      }
+      return newSet;
+    });
+  };
+
+  const handleMpesaPayment = (invoice: any) => {
+    setMpesaInvoice(invoice);
+    setMpesaDialogOpen(true);
+  };
   
   const { balances, loading: balancesLoading } = useFeeBalances({
     gradeId: selectedGradeForReport,
@@ -665,8 +683,11 @@ export default function Invoices() {
               </div>
             ) : (
               <div className="space-y-6">
-                {groupedInvoices.map((group: any) => (
-                  <Card key={`${group.gradeId}-${group.term}-${group.academicYear}`} className="overflow-hidden">
+                {groupedInvoices.map((group: any) => {
+                  const groupKey = `${group.gradeId}-${group.term}-${group.academicYear}`;
+                  const isExpanded = expandedGroups.has(groupKey);
+                  return (
+                  <Card key={groupKey} className="overflow-hidden">
                     <CardHeader className="bg-muted/50">
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="flex-1">
@@ -696,6 +717,15 @@ export default function Invoices() {
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleGroupExpansion(groupKey)}
+                              className="flex-1 sm:flex-none"
+                            >
+                              {isExpanded ? <ChevronUp className="mr-2 h-4 w-4" /> : <ChevronDown className="mr-2 h-4 w-4" />}
+                              {isExpanded ? 'Hide' : 'View'} Invoices
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
@@ -730,8 +760,80 @@ export default function Invoices() {
                         </div>
                       </div>
                     </CardHeader>
+                    {isExpanded && (
+                      <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted/30 border-b">
+                              <tr>
+                                <th className="text-left p-3 font-medium">Invoice #</th>
+                                <th className="text-left p-3 font-medium">Learner</th>
+                                <th className="text-left p-3 font-medium">Admission No</th>
+                                <th className="text-right p-3 font-medium">Total</th>
+                                <th className="text-right p-3 font-medium">Paid</th>
+                                <th className="text-right p-3 font-medium">Balance</th>
+                                <th className="text-center p-3 font-medium">Status</th>
+                                <th className="text-center p-3 font-medium">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {group.invoices.map((invoice: any) => (
+                                <tr key={invoice.id} className="border-b hover:bg-muted/20">
+                                  <td className="p-3">{invoice.invoice_number}</td>
+                                  <td className="p-3">{invoice.learner?.first_name} {invoice.learner?.last_name}</td>
+                                  <td className="p-3">{invoice.learner?.admission_number}</td>
+                                  <td className="p-3 text-right">{formatCurrency(invoice.total_amount)}</td>
+                                  <td className="p-3 text-right text-green-600">{formatCurrency(invoice.amount_paid)}</td>
+                                  <td className="p-3 text-right text-red-600">{formatCurrency(invoice.balance_due)}</td>
+                                  <td className="p-3 text-center">
+                                    <Badge className={getStatusColor(invoice.status)}>
+                                      {invoice.status}
+                                    </Badge>
+                                  </td>
+                                  <td className="p-3 text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                      {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                                        <>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleRecordPayment(invoice)}
+                                            title="Record Payment"
+                                          >
+                                            <Plus className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleMpesaPayment(invoice)}
+                                            title="Pay via M-Pesa"
+                                            className="text-green-600 hover:text-green-700"
+                                          >
+                                            <Smartphone className="h-4 w-4" />
+                                          </Button>
+                                        </>
+                                      )}
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleCancelInvoice(invoice)}
+                                        title="Cancel Invoice"
+                                        disabled={invoice.status === 'cancelled'}
+                                      >
+                                        <XCircle className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    )}
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
