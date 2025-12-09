@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { FileText, Search, Plus, Download, Filter, Printer, XCircle, Edit } from "lucide-react";
+import { FileText, Search, Plus, Download, Filter, Printer, XCircle, Edit, Smartphone } from "lucide-react";
 import { useInvoices } from "@/hooks/useInvoices";
 import { GenerateInvoicesDialog } from "@/components/GenerateInvoicesDialog";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
+import { MpesaPaymentDialog } from "@/components/MpesaPaymentDialog";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/currency";
@@ -51,6 +52,8 @@ export default function Invoices() {
   const [bulkCancelDialogOpen, setBulkCancelDialogOpen] = useState(false);
   const [groupToCancel, setGroupToCancel] = useState<any>(null);
   const [bulkCancelReason, setBulkCancelReason] = useState("");
+  const [mpesaDialogOpen, setMpesaDialogOpen] = useState(false);
+  const [mpesaInvoice, setMpesaInvoice] = useState<any>(null);
   
   const { balances, loading: balancesLoading } = useFeeBalances({
     gradeId: selectedGradeForReport,
@@ -827,6 +830,17 @@ export default function Invoices() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <MpesaPaymentDialog
+        open={mpesaDialogOpen}
+        onOpenChange={setMpesaDialogOpen}
+        learnerId={mpesaInvoice?.learner_id}
+        learnerName={mpesaInvoice?.learner ? `${mpesaInvoice.learner.first_name} ${mpesaInvoice.learner.last_name}` : ""}
+        admissionNumber={mpesaInvoice?.learner?.admission_number}
+        invoiceId={mpesaInvoice?.id}
+        amount={mpesaInvoice?.balance_due}
+        onSuccess={fetchInvoices}
+      />
       </div>
     </DashboardLayout>
   );

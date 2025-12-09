@@ -1,1 +1,22 @@
 project_id = "owgcyhmdynpwtbrwdrao"
+
+[functions.mpesa-auth]
+verify_jwt = true
+
+[functions.mpesa-stk-push]
+verify_jwt = true
+
+[functions.mpesa-callback]
+verify_jwt = false
+
+[functions.mpesa-c2b-register]
+verify_jwt = true
+
+[functions.mpesa-c2b-validation]
+verify_jwt = false
+
+[functions.mpesa-c2b-confirmation]
+verify_jwt = false
+
+[functions.mpesa-simulate]
+verify_jwt = true

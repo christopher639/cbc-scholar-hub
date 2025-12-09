@@ -1261,6 +1261,84 @@ export type Database = {
           },
         ]
       }
+      mpesa_transactions: {
+        Row: {
+          account_reference: string
+          amount: number
+          checkout_request_id: string | null
+          created_at: string
+          id: string
+          invoice_id: string | null
+          learner_id: string | null
+          merchant_request_id: string | null
+          mpesa_receipt_number: string | null
+          payer_name: string | null
+          phone_number: string
+          result_code: number | null
+          result_desc: string | null
+          status: string
+          transaction_date: string | null
+          transaction_id: string | null
+          transaction_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_reference: string
+          amount: number
+          checkout_request_id?: string | null
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          learner_id?: string | null
+          merchant_request_id?: string | null
+          mpesa_receipt_number?: string | null
+          payer_name?: string | null
+          phone_number: string
+          result_code?: number | null
+          result_desc?: string | null
+          status?: string
+          transaction_date?: string | null
+          transaction_id?: string | null
+          transaction_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_reference?: string
+          amount?: number
+          checkout_request_id?: string | null
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          learner_id?: string | null
+          merchant_request_id?: string | null
+          mpesa_receipt_number?: string | null
+          payer_name?: string | null
+          phone_number?: string
+          result_code?: number | null
+          result_desc?: string | null
+          status?: string
+          transaction_date?: string | null
+          transaction_id?: string | null
+          transaction_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mpesa_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "student_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mpesa_transactions_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: false
+            referencedRelation: "learners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       non_teaching_staff: {
         Row: {
           address: string | null
