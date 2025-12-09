@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { School, Users, Bell, Shield, DollarSign, Moon, Sun, Image as ImageIcon, Loader2, X, Plus } from "lucide-react";
+import { School, Users, Bell, Shield, DollarSign, Moon, Sun, Image as ImageIcon, Loader2, X, Plus, Upload, Save, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
@@ -36,12 +36,37 @@ const Settings = () => {
   
   const [admissionPrefix, setAdmissionPrefix] = useState("");
   const [admissionNumber, setAdmissionNumber] = useState("");
-  
-  // School mission, vision, values state
-  const [mission, setMission] = useState("");
-  const [vision, setVision] = useState("");
-  const [coreValues, setCoreValues] = useState("");
   const [admissionPadding, setAdmissionPadding] = useState("4");
+  
+  // School info form state
+  const [savingSchoolInfo, setSavingSchoolInfo] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string>("/placeholder.svg");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [directorPhotoPreview, setDirectorPhotoPreview] = useState<string>("/placeholder.svg");
+  const [directorPhotoFile, setDirectorPhotoFile] = useState<File | null>(null);
+  
+  const [schoolFormData, setSchoolFormData] = useState({
+    school_name: "",
+    motto: "",
+    email: "",
+    phone: "",
+    address: "",
+    director_name: "",
+    director_email: "",
+    director_phone: "",
+    director_qualification: "",
+    director_message: "",
+    bank_name: "",
+    bank_account_name: "",
+    bank_account_number: "",
+    bank_branch: "",
+    mpesa_paybill: "",
+    mpesa_account_name: "",
+    payment_instructions: "",
+    mission: "",
+    vision: "",
+    core_values: "",
+  });
   
   // Hero background images state
   const [heroBackgrounds, setHeroBackgrounds] = useState<HeroBackground[]>([]);
@@ -66,9 +91,34 @@ const Settings = () => {
   // Update local state when school info loads
   useEffect(() => {
     if (schoolInfo) {
-      setMission(schoolInfo.mission || "");
-      setVision(schoolInfo.vision || "");
-      setCoreValues(schoolInfo.core_values || "");
+      setSchoolFormData({
+        school_name: schoolInfo.school_name || "",
+        motto: schoolInfo.motto || "",
+        email: schoolInfo.email || "",
+        phone: schoolInfo.phone || "",
+        address: schoolInfo.address || "",
+        director_name: schoolInfo.director_name || "",
+        director_email: schoolInfo.director_email || "",
+        director_phone: schoolInfo.director_phone || "",
+        director_qualification: schoolInfo.director_qualification || "",
+        director_message: schoolInfo.director_message || "",
+        bank_name: schoolInfo.bank_name || "",
+        bank_account_name: schoolInfo.bank_account_name || "",
+        bank_account_number: schoolInfo.bank_account_number || "",
+        bank_branch: schoolInfo.bank_branch || "",
+        mpesa_paybill: schoolInfo.mpesa_paybill || "",
+        mpesa_account_name: schoolInfo.mpesa_account_name || "",
+        payment_instructions: schoolInfo.payment_instructions || "",
+        mission: schoolInfo.mission || "",
+        vision: schoolInfo.vision || "",
+        core_values: schoolInfo.core_values || "",
+      });
+      if (schoolInfo.logo_url) {
+        setLogoPreview(schoolInfo.logo_url);
+      }
+      if (schoolInfo.director_photo_url) {
+        setDirectorPhotoPreview(schoolInfo.director_photo_url);
+      }
     }
   }, [schoolInfo]);
 
@@ -92,6 +142,121 @@ const Settings = () => {
     };
     fetchHeroBackgrounds();
   }, []);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDirectorPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setDirectorPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDirectorPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveSchoolInfo = async () => {
+    setSavingSchoolInfo(true);
+    
+    try {
+      let logoUrl = schoolInfo?.logo_url;
+      let directorPhotoUrl = schoolInfo?.director_photo_url;
+
+      if (logoFile) {
+        const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+        if (!validTypes.includes(logoFile.type)) {
+          throw new Error('Please upload a PNG, JPG, or JPEG file');
+        }
+
+        if (logoFile.size > 5 * 1024 * 1024) {
+          throw new Error('File size must be less than 5MB');
+        }
+
+        const fileExt = logoFile.name.split('.').pop();
+        const fileName = `school-logo-${Date.now()}.${fileExt}`;
+        const filePath = `logos/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, logoFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+        
+        logoUrl = publicUrl;
+      }
+
+      if (directorPhotoFile) {
+        const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+        if (!validTypes.includes(directorPhotoFile.type)) {
+          throw new Error('Please upload a PNG, JPG, or JPEG file for director photo');
+        }
+
+        if (directorPhotoFile.size > 5 * 1024 * 1024) {
+          throw new Error('Director photo size must be less than 5MB');
+        }
+
+        const fileExt = directorPhotoFile.name.split('.').pop();
+        const fileName = `director-photo-${Date.now()}.${fileExt}`;
+        const filePath = `director/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, directorPhotoFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+        
+        directorPhotoUrl = publicUrl;
+      }
+      
+      await updateSchoolInfo({
+        ...schoolFormData,
+        logo_url: logoUrl,
+        director_photo_url: directorPhotoUrl,
+      });
+      
+      setLogoFile(null);
+      setDirectorPhotoFile(null);
+      
+      toast({
+        title: "Success",
+        description: "School information updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSavingSchoolInfo(false);
+    }
+  };
 
   const handleUploadHeroImage = async (file: File) => {
     if (heroBackgrounds.length >= 4) {
@@ -118,7 +283,6 @@ const Settings = () => {
         .from('avatars')
         .getPublicUrl(fileName);
       
-      // Insert into hero_backgrounds table
       const { data: newBackground, error: insertError } = await supabase
         .from("hero_backgrounds")
         .insert({
@@ -156,12 +320,14 @@ const Settings = () => {
     }
   };
 
-  const handleSaveSchoolValues = async () => {
-    await updateSchoolInfo({
-      mission,
-      vision,
-      core_values: coreValues,
-    });
+  const handleToggleHeroActive = async (id: string, isActive: boolean) => {
+    try {
+      const { error } = await supabase.from("hero_backgrounds").update({ is_active: isActive }).eq("id", id);
+      if (error) throw error;
+      setHeroBackgrounds(heroBackgrounds.map((bg) => bg.id === id ? { ...bg, is_active: isActive } : bg));
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   const handleToggleDiscount = async (discountType: string, currentEnabled: boolean) => {
@@ -189,15 +355,27 @@ const Settings = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Manage system configuration and preferences</p>
+          <p className="text-muted-foreground">Manage system configuration, school information, and preferences</p>
         </div>
 
         {/* Settings Tabs */}
-        <Tabs defaultValue="school" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="school" className="gap-2">
+        <Tabs defaultValue="school-info" className="space-y-4">
+          <TabsList className="flex-wrap h-auto gap-1">
+            <TabsTrigger value="school-info" className="gap-2">
               <School className="h-4 w-4" />
-              School
+              School Info
+            </TabsTrigger>
+            <TabsTrigger value="director" className="gap-2">
+              <User className="h-4 w-4" />
+              Director
+            </TabsTrigger>
+            <TabsTrigger value="hero-images" className="gap-2">
+              <ImageIcon className="h-4 w-4" />
+              Hero Images
+            </TabsTrigger>
+            <TabsTrigger value="payment" className="gap-2">
+              <DollarSign className="h-4 w-4" />
+              Payment
             </TabsTrigger>
             <TabsTrigger value="admissions" className="gap-2">
               <Users className="h-4 w-4" />
@@ -211,6 +389,10 @@ const Settings = () => {
               <DollarSign className="h-4 w-4" />
               Fees
             </TabsTrigger>
+            <TabsTrigger value="appearance" className="gap-2">
+              <Sun className="h-4 w-4" />
+              Appearance
+            </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2">
               <Bell className="h-4 w-4" />
               Notifications
@@ -221,92 +403,263 @@ const Settings = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* School Settings */}
-          <TabsContent value="school" className="space-y-4">
+          {/* School Info Tab */}
+          <TabsContent value="school-info" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>School Information</CardTitle>
-                <CardDescription>Basic school details and configuration</CardDescription>
+                <CardTitle>Basic Information</CardTitle>
+                <CardDescription>Update your school's basic details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="schoolName">School Name</Label>
-                    <Input id="schoolName" placeholder="Enter school name" defaultValue="CBC Primary School" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="schoolCode">School Code</Label>
-                    <Input id="schoolCode" placeholder="Enter school code" defaultValue="CBC001" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="county">County</Label>
-                    <Input id="county" placeholder="Enter county" defaultValue="Nairobi" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="subCounty">Sub-County</Label>
-                    <Input id="subCounty" placeholder="Enter sub-county" defaultValue="Westlands" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" placeholder="Enter phone number" defaultValue="+254 712 345 678" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" type="email" placeholder="Enter email" defaultValue="info@cbcschool.ac.ke" />
-                  </div>
-                </div>
-                <Separator />
                 <div className="space-y-2">
-                  <Label htmlFor="address">Physical Address</Label>
-                  <Input id="address" placeholder="Enter physical address" defaultValue="123 Education Road, Nairobi" />
+                  <Label htmlFor="school_name">School Name *</Label>
+                  <Input
+                    id="school_name"
+                    value={schoolFormData.school_name}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, school_name: e.target.value })}
+                    placeholder="Enter school name"
+                  />
                 </div>
-                <Button>Save School Information</Button>
+
+                <div className="space-y-2">
+                  <Label htmlFor="motto">School Motto</Label>
+                  <Input
+                    id="motto"
+                    value={schoolFormData.motto}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, motto: e.target.value })}
+                    placeholder="Enter school motto"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={schoolFormData.email}
+                      onChange={(e) => setSchoolFormData({ ...schoolFormData, email: e.target.value })}
+                      placeholder="school@example.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={schoolFormData.phone}
+                      onChange={(e) => setSchoolFormData({ ...schoolFormData, phone: e.target.value })}
+                      placeholder="+254 XXX XXX XXX"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Textarea
+                    id="address"
+                    value={schoolFormData.address}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, address: e.target.value })}
+                    placeholder="Enter school address"
+                    rows={3}
+                  />
+                </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Appearance</CardTitle>
-                <CardDescription>Customize the look and feel</CardDescription>
+                <CardTitle>School Logo</CardTitle>
+                <CardDescription>Upload your school's logo (PNG, JPG, or JPEG - Max 5MB)</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Theme</Label>
+                <div className="flex items-center gap-6">
+                  <div className="flex-shrink-0">
+                    <img 
+                      src={logoPreview} 
+                      alt="School Logo" 
+                      className="h-32 w-32 rounded-lg object-contain border border-border"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="logo" className="cursor-pointer">
+                      <div className="flex items-center gap-2 text-primary hover:text-primary/80">
+                        <Upload className="h-4 w-4" />
+                        <span>Choose Logo</span>
+                      </div>
+                    </Label>
+                    <Input
+                      id="logo"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={handleLogoChange}
+                      className="hidden"
+                    />
                     <p className="text-sm text-muted-foreground">
-                      Choose your preferred theme
+                      Recommended size: 200x200px
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={theme === "light" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setTheme("light")}
-                    >
-                      <Sun className="h-4 w-4 mr-2" />
-                      Light
-                    </Button>
-                    <Button
-                      variant={theme === "dark" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setTheme("dark")}
-                    >
-                      <Moon className="h-4 w-4 mr-2" />
-                      Dark
-                    </Button>
-                    <Button
-                      variant={theme === "system" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setTheme("system")}
-                    >
-                      System
-                    </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Mission, Vision & Core Values</CardTitle>
+                <CardDescription>Set your school's mission, vision, and core values for the public website</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="mission">Mission Statement</Label>
+                  <Textarea 
+                    id="mission" 
+                    placeholder="Enter your school's mission statement..."
+                    value={schoolFormData.mission}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, mission: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="vision">Vision Statement</Label>
+                  <Textarea 
+                    id="vision" 
+                    placeholder="Enter your school's vision statement..."
+                    value={schoolFormData.vision}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, vision: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="coreValues">Core Values</Label>
+                  <Textarea 
+                    id="coreValues" 
+                    placeholder="Enter your school's core values..."
+                    value={schoolFormData.core_values}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, core_values: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end">
+              <Button onClick={handleSaveSchoolInfo} disabled={savingSchoolInfo} className="gap-2">
+                <Save className="h-4 w-4" />
+                {savingSchoolInfo ? "Saving..." : "Save School Information"}
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Director Tab */}
+          <TabsContent value="director" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Director Information</CardTitle>
+                <CardDescription>Manage school director's details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="director_name">Director Name</Label>
+                  <Input
+                    id="director_name"
+                    value={schoolFormData.director_name}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, director_name: e.target.value })}
+                    placeholder="Enter director's full name"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="director_email">Director Email</Label>
+                    <Input
+                      id="director_email"
+                      type="email"
+                      value={schoolFormData.director_email}
+                      onChange={(e) => setSchoolFormData({ ...schoolFormData, director_email: e.target.value })}
+                      placeholder="director@example.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="director_phone">Director Phone</Label>
+                    <Input
+                      id="director_phone"
+                      value={schoolFormData.director_phone}
+                      onChange={(e) => setSchoolFormData({ ...schoolFormData, director_phone: e.target.value })}
+                      placeholder="+254 XXX XXX XXX"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="director_qualification">Qualifications</Label>
+                  <Input
+                    id="director_qualification"
+                    value={schoolFormData.director_qualification}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, director_qualification: e.target.value })}
+                    placeholder="e.g., PhD in Education, M.Ed."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="director_message">Director's Message</Label>
+                  <Textarea
+                    id="director_message"
+                    value={schoolFormData.director_message}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, director_message: e.target.value })}
+                    placeholder="Welcome message from the director..."
+                    rows={4}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Director Photo</CardTitle>
+                <CardDescription>Upload director's photo (PNG, JPG, or JPEG - Max 5MB)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-6">
+                  <div className="flex-shrink-0">
+                    <img 
+                      src={directorPhotoPreview} 
+                      alt="Director Photo" 
+                      className="h-32 w-32 rounded-full object-cover border border-border"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="director_photo" className="cursor-pointer">
+                      <div className="flex items-center gap-2 text-primary hover:text-primary/80">
+                        <Upload className="h-4 w-4" />
+                        <span>Choose Photo</span>
+                      </div>
+                    </Label>
+                    <Input
+                      id="director_photo"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={handleDirectorPhotoChange}
+                      className="hidden"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Professional headshot recommended
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Hero Background Images Card */}
+            <div className="flex justify-end">
+              <Button onClick={handleSaveSchoolInfo} disabled={savingSchoolInfo} className="gap-2">
+                <Save className="h-4 w-4" />
+                {savingSchoolInfo ? "Saving..." : "Save Director Information"}
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Hero Images Tab */}
+          <TabsContent value="hero-images" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -325,7 +678,6 @@ const Settings = () => {
                   </div>
                 ) : (
                   <>
-                    {/* Current Images Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {heroBackgrounds.map((bg, index) => (
                         <div key={bg.id} className="relative group">
@@ -345,10 +697,17 @@ const Settings = () => {
                           <span className="absolute bottom-1 left-1 bg-background/80 text-xs px-1.5 py-0.5 rounded">
                             #{index + 1}
                           </span>
+                          <div className="absolute top-1 left-1 flex items-center gap-1 bg-background/80 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px]">{bg.is_active ? "Active" : "Off"}</span>
+                            <Switch
+                              checked={bg.is_active}
+                              onCheckedChange={(checked) => handleToggleHeroActive(bg.id, checked)}
+                              className="scale-75"
+                            />
+                          </div>
                         </div>
                       ))}
                       
-                      {/* Add Image Button */}
                       {heroBackgrounds.length < 4 && (
                         <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-muted-foreground/30 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
                           {uploadingBackground ? (
@@ -381,84 +740,110 @@ const Settings = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Mission, Vision, Values Card */}
+          {/* Payment Tab */}
+          <TabsContent value="payment" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>School Mission, Vision & Values</CardTitle>
-                <CardDescription>Set your school's mission, vision, and core values for the public website</CardDescription>
+                <CardTitle>Bank Account Details</CardTitle>
+                <CardDescription>Configure bank payment information for invoices</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {schoolInfoLoading ? (
-                  <p className="text-sm text-muted-foreground">Loading school information...</p>
-                ) : (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="mission">Mission Statement</Label>
-                      <Textarea 
-                        id="mission" 
-                        placeholder="Enter your school's mission statement..."
-                        value={mission}
-                        onChange={(e) => setMission(e.target.value)}
-                        rows={3}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Describe what your school aims to achieve
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vision">Vision Statement</Label>
-                      <Textarea 
-                        id="vision" 
-                        placeholder="Enter your school's vision statement..."
-                        value={vision}
-                        onChange={(e) => setVision(e.target.value)}
-                        rows={3}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Describe what your school aspires to become
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="coreValues">Core Values</Label>
-                      <Textarea 
-                        id="coreValues" 
-                        placeholder="Enter your school's core values..."
-                        value={coreValues}
-                        onChange={(e) => setCoreValues(e.target.value)}
-                        rows={3}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        List the values that guide your school community
-                      </p>
-                    </div>
-                    <Button onClick={handleSaveSchoolValues}>
-                      Save Mission, Vision & Values
-                    </Button>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Academic Year Settings</CardTitle>
-                <CardDescription>Configure academic terms and calendar</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="currentYear">Current Academic Year</Label>
-                    <Input id="currentYear" defaultValue="2025" />
+                    <Label htmlFor="bank_name">Bank Name</Label>
+                    <Input
+                      id="bank_name"
+                      value={schoolFormData.bank_name}
+                      onChange={(e) => setSchoolFormData({ ...schoolFormData, bank_name: e.target.value })}
+                      placeholder="e.g., Equity Bank"
+                    />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="currentTerm">Current Term</Label>
-                    <Input id="currentTerm" defaultValue="Term 1" />
+                    <Label htmlFor="bank_branch">Bank Branch</Label>
+                    <Input
+                      id="bank_branch"
+                      value={schoolFormData.bank_branch}
+                      onChange={(e) => setSchoolFormData({ ...schoolFormData, bank_branch: e.target.value })}
+                      placeholder="e.g., Nairobi Branch"
+                    />
                   </div>
                 </div>
-                <Button>Update Academic Settings</Button>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bank_account_name">Account Name</Label>
+                  <Input
+                    id="bank_account_name"
+                    value={schoolFormData.bank_account_name}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, bank_account_name: e.target.value })}
+                    placeholder="Enter bank account name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bank_account_number">Account Number</Label>
+                  <Input
+                    id="bank_account_number"
+                    value={schoolFormData.bank_account_number}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, bank_account_number: e.target.value })}
+                    placeholder="Enter bank account number"
+                  />
+                </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>M-Pesa Payment Details</CardTitle>
+                <CardDescription>Configure M-Pesa payment information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="mpesa_paybill">Paybill Number</Label>
+                  <Input
+                    id="mpesa_paybill"
+                    value={schoolFormData.mpesa_paybill}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, mpesa_paybill: e.target.value })}
+                    placeholder="Enter M-Pesa paybill number"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mpesa_account_name">Account Name</Label>
+                  <Input
+                    id="mpesa_account_name"
+                    value={schoolFormData.mpesa_account_name}
+                    onChange={(e) => setSchoolFormData({ ...schoolFormData, mpesa_account_name: e.target.value })}
+                    placeholder="Enter M-Pesa account name"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment Instructions</CardTitle>
+                <CardDescription>Additional payment instructions to display on invoices</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  id="payment_instructions"
+                  value={schoolFormData.payment_instructions}
+                  onChange={(e) => setSchoolFormData({ ...schoolFormData, payment_instructions: e.target.value })}
+                  placeholder="Enter any additional payment instructions (e.g., payment deadlines, late fees policy)"
+                  rows={4}
+                />
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end">
+              <Button onClick={handleSaveSchoolInfo} disabled={savingSchoolInfo} className="gap-2">
+                <Save className="h-4 w-4" />
+                {savingSchoolInfo ? "Saving..." : "Save Payment Settings"}
+              </Button>
+            </div>
           </TabsContent>
 
           {/* Admissions Settings */}
@@ -560,10 +945,10 @@ const Settings = () => {
                     </div>
                     <Button variant="outline" size="sm">Manage</Button>
                   </div>
-                  <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-primary/5">
                     <div>
-                      <p className="font-medium">Accounts Officers</p>
-                      <p className="text-sm text-muted-foreground">Fee management access</p>
+                      <p className="font-medium">Finance Officers</p>
+                      <p className="text-sm text-muted-foreground">Fee management, invoices, and payments only</p>
                     </div>
                     <Button variant="outline" size="sm">Manage</Button>
                   </div>
@@ -667,6 +1052,51 @@ const Settings = () => {
                 <Button onClick={() => setDiscountDialogOpen(true)}>
                   Configure Discounts
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Appearance Tab */}
+          <TabsContent value="appearance" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+                <CardDescription>Customize the look and feel</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Theme</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Choose your preferred theme
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={theme === "light" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTheme("light")}
+                    >
+                      <Sun className="h-4 w-4 mr-2" />
+                      Light
+                    </Button>
+                    <Button
+                      variant={theme === "dark" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTheme("dark")}
+                    >
+                      <Moon className="h-4 w-4 mr-2" />
+                      Dark
+                    </Button>
+                    <Button
+                      variant={theme === "system" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTheme("system")}
+                    >
+                      System
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
