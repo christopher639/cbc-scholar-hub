@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit, Trash2, Check, X, Clock, UserCheck, UserX } from "lucide-react";
+import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit, Trash2, Check, X, Clock, UserCheck, UserX, DollarSign } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -270,10 +271,15 @@ const Users = () => {
                   </Badge>
                 ) : (
                   <Badge
-                    variant={user.role === "admin" ? "default" : "secondary"}
-                    className="gap-1"
+                    variant={user.role === "admin" ? "default" : user.role === "finance" ? "outline" : "secondary"}
+                    className={cn(
+                      "gap-1",
+                      user.role === "finance" && "border-green-500 text-green-600",
+                      user.role === "visitor" && "border-blue-500 text-blue-600"
+                    )}
                   >
                     {user.role === "admin" && <ShieldCheck className="h-3 w-3" />}
+                    {user.role === "finance" && <DollarSign className="h-3 w-3" />}
                     {user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}
                   </Badge>
                 )}

@@ -24,107 +24,90 @@ const Performance = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Performance Tracking</h1>
-            <p className="text-muted-foreground">Record and manage learner performance across learning areas</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Performance Tracking</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Record and manage learner performance</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {isAdmin && (
-              <Button variant="secondary" onClick={() => setIsAnalyticsOpen(true)}>
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Performance Analytics
+              <Button variant="secondary" size="sm" onClick={() => setIsAnalyticsOpen(true)}>
+                <TrendingUp className="h-3.5 w-3.5 mr-1" />
+                <span className="hidden sm:inline">Analytics</span>
               </Button>
             )}
             {isAdmin && (
-              <Button variant="outline" onClick={() => setIsManageLearningAreasOpen(true)}>
-                <BookOpen className="h-4 w-4 mr-2" />
-                Manage Learning Areas
+              <Button variant="outline" size="sm" onClick={() => setIsManageLearningAreasOpen(true)}>
+                <BookOpen className="h-3.5 w-3.5 mr-1" />
+                <span className="hidden sm:inline">Areas</span>
               </Button>
             )}
-            <Button variant="outline" onClick={() => setIsBulkEntryOpen(true)}>
-              <Users className="h-4 w-4 mr-2" />
-              Bulk Entry by Stream
+            <Button variant="outline" size="sm" onClick={() => setIsBulkEntryOpen(true)}>
+              <Users className="h-3.5 w-3.5 mr-1" />
+              <span className="hidden sm:inline">Bulk</span>
             </Button>
-            <Button onClick={() => setIsAddPerformanceOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Single Entry
+            <Button size="sm" onClick={() => setIsAddPerformanceOpen(true)}>
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              <span className="hidden sm:inline">Single</span>
             </Button>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Learning Areas</CardDescription>
-              <CardTitle className="text-3xl">{loading ? "..." : learningAreas.length}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Active subjects</p>
-            </CardContent>
+        <div className="grid gap-2 grid-cols-3">
+          <Card className="p-2 sm:p-3">
+            <div className="text-xs text-muted-foreground">Learning Areas</div>
+            <div className="text-lg sm:text-xl font-bold">{loading ? "..." : learningAreas.length}</div>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Total Assessments</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Recorded this term</p>
-            </CardContent>
+          <Card className="p-2 sm:p-3">
+            <div className="text-xs text-muted-foreground">Assessments</div>
+            <div className="text-lg sm:text-xl font-bold">0</div>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Teachers Assigned</CardDescription>
-              <CardTitle className="text-3xl">
-                {loading ? "..." : learningAreas.filter(a => a.teacher_id).length}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">With learning area assignments</p>
-            </CardContent>
+          <Card className="p-2 sm:p-3">
+            <div className="text-xs text-muted-foreground">Teachers</div>
+            <div className="text-lg sm:text-xl font-bold">{loading ? "..." : learningAreas.filter(a => a.teacher_id).length}</div>
           </Card>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Learning Areas</CardTitle>
-            <CardDescription>Subjects and assigned teachers</CardDescription>
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-base">Learning Areas</CardTitle>
+            <CardDescription className="text-xs">Subjects and assigned teachers</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-3">
             {loading ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-20 w-full" />
+                  <Skeleton key={i} className="h-12 w-full" />
                 ))}
               </div>
             ) : learningAreas.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">No learning areas found</p>
-                <Button onClick={() => setIsManageLearningAreasOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add First Learning Area
+              <div className="text-center py-4">
+                <p className="text-muted-foreground text-sm mb-2">No learning areas found</p>
+                <Button size="sm" onClick={() => setIsManageLearningAreasOpen(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Add Learning Area
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-1.5">
                 {learningAreas.map((area) => (
-                  <div key={area.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-primary" />
+                  <div key={area.id} className="flex items-center justify-between p-2 border border-border rounded-md">
+                    <div className="flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <BookOpen className="h-3.5 w-3.5 text-primary" />
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-foreground">{area.name}</h4>
-                        <p className="text-sm text-muted-foreground flex items-center gap-2">
-                          <User className="h-3 w-3" />
+                      <div className="min-w-0">
+                        <h4 className="font-medium text-sm text-foreground truncate">{area.name}</h4>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                          <User className="h-2.5 w-2.5" />
                           {area.teacher 
                             ? `${area.teacher.first_name} ${area.teacher.last_name}`
-                            : 'No teacher assigned'}
+                            : 'Not assigned'}
                         </p>
                       </div>
                     </div>
-                    <Badge variant="secondary">Code: {area.code}</Badge>
+                    <Badge variant="secondary" className="text-xs shrink-0">{area.code}</Badge>
                   </div>
                 ))}
               </div>
@@ -133,16 +116,16 @@ const Performance = () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Recent Performance Records</CardTitle>
-            <CardDescription>Latest assessment entries</CardDescription>
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-base">Recent Records</CardTitle>
+            <CardDescription className="text-xs">Latest assessment entries</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No performance records yet</p>
-              <Button onClick={() => setIsAddPerformanceOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Record First Performance
+          <CardContent className="px-4 pb-3">
+            <div className="text-center py-4">
+              <p className="text-muted-foreground text-sm mb-2">No performance records yet</p>
+              <Button size="sm" onClick={() => setIsAddPerformanceOpen(true)}>
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Record First
               </Button>
             </div>
           </CardContent>
