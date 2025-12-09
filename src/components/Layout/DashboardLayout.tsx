@@ -118,10 +118,7 @@ const navigation = [
   { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher", "finance", "visitor"] },
   { name: "Teachers", href: "/teachers", icon: UserCog, roles: ["admin", "finance", "visitor"] },
   { name: "Non-Teaching Staff", href: "/non-teaching-staff", icon: Users, roles: ["admin", "finance", "visitor"] },
-  { name: "Fee Management", href: "/fees", icon: DollarSign, roles: ["admin", "finance", "visitor"] },
-  { name: "Learner Fees", href: "/learner-fees", icon: DollarSign, roles: ["admin", "finance", "visitor"] },
-  { name: "Invoices", href: "/invoices", icon: FileText, roles: ["admin", "finance", "visitor"] },
-  { name: "Fee Structures", href: "/fee-structures", icon: Coins, roles: ["admin", "finance", "visitor"] },
+  { name: "Finance", href: "/fees", icon: DollarSign, roles: ["admin", "finance", "visitor"] },
   { name: "Academic Settings", href: "/academic-settings", icon: Settings, roles: ["admin", "finance", "visitor"] },
   { name: "Programs", href: "/programs", icon: BookOpen, roles: ["admin", "finance", "visitor"] },
   { name: "Blogs", href: "/blogs", icon: Newspaper, roles: ["admin", "finance", "visitor"] },
@@ -375,13 +372,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
             
-            {/* School Logo - visible on small screens */}
+            {/* School Logo and Name - visible on small screens */}
             <div className="flex lg:hidden items-center gap-2">
               {schoolInfo?.logo_url ? (
                 <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 object-contain rounded-full" />
               ) : (
                 <GraduationCap className="h-8 w-8 text-primary" />
               )}
+              <span className="font-semibold text-sm truncate max-w-[120px] sm:max-w-[180px]">
+                {schoolInfo?.school_name || "School"}
+              </span>
             </div>
             
             {/* Admin Search Bar - Centered between sidebar and notifications */}
