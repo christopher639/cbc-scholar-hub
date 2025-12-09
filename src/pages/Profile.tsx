@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Upload, User, ShieldCheck, DollarSign, GraduationCap, Eye } from "lucide-react";
 
 export default function Profile() {
@@ -51,13 +51,13 @@ export default function Profile() {
           .from("profiles")
           .insert({
             id: user.id,
-            full_name: user.email || "",
+            full_name: user.data?.email || "",
             phone_number: "",
             avatar_url: null,
           });
         
         if (!insertError) {
-          setFullName(user.email || "");
+          setFullName(user.data?.email || "");
           setPhoneNumber("");
           setAvatarUrl("");
         }
@@ -67,7 +67,7 @@ export default function Profile() {
         setAvatarUrl(data.avatar_url || "");
       } else {
         // Profile doesn't exist, use email as fallback
-        setFullName(user.email || "");
+        setFullName(user.data?.email || "");
       }
     } catch (error: any) {
       console.error("Profile load error:", error);
@@ -190,8 +190,8 @@ export default function Profile() {
   const getInitials = () => {
     if (!fullName) {
       // Try to use email first letter
-      if (user?.email) {
-        return user.email[0].toUpperCase();
+      if (user?.data?.email) {
+        return user.data.email[0].toUpperCase();
       }
       return "U";
     }
@@ -382,7 +382,7 @@ export default function Profile() {
                   <Input
                     id="email"
                     type="email"
-                    value={user?.email || ""}
+                    value={user?.data?.email || ""}
                     disabled
                     className="bg-muted"
                   />
