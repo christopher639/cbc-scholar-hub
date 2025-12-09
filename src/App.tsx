@@ -29,7 +29,7 @@ import NonTeachingStaff from "./pages/NonTeachingStaff";
 import Invoices from "./pages/Invoices";
 import FeeStructures from "./pages/FeeStructures";
 import Activities from "./pages/Activities";
-import SchoolInfo from "./pages/SchoolInfo";
+// SchoolInfo merged into Settings page
 import LearnerProfile from "./pages/LearnerProfile";
 import LearnerProfilePage from "./pages/LearnerProfilePage";
 import LearnerSettings from "./pages/LearnerSettings";
@@ -131,7 +131,7 @@ const App = () => (
             <Route path="/fee-structures" element={<ProtectedRoute><AdminRoute><FeeStructures /></AdminRoute></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><AdminRoute><Reports /></AdminRoute></ProtectedRoute>} />
             <Route path="/bulk-learner-reports" element={<ProtectedRoute><BulkLearnerReports /></ProtectedRoute>} />
-            <Route path="/school-info" element={<ProtectedRoute><SchoolInfo /></ProtectedRoute>} />
+            {/* School info is now part of Settings page */}
             <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
