@@ -1,10 +1,26 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { FileText, Search, Plus, Download, Filter, Printer, XCircle, Edit, Smartphone, ChevronDown, ChevronUp } from "lucide-react";
+import { 
+  FileText, 
+  Search, 
+  Plus, 
+  Download, 
+  Filter, 
+  Printer, 
+  XCircle, 
+  Edit, 
+  Smartphone, 
+  ChevronDown, 
+  ChevronRight,
+  Receipt,
+  Wallet,
+  TrendingUp,
+  Clock
+} from "lucide-react";
 import { useInvoices } from "@/hooks/useInvoices";
 import { GenerateInvoicesDialog } from "@/components/GenerateInvoicesDialog";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
@@ -12,7 +28,6 @@ import { MpesaPaymentDialog } from "@/components/MpesaPaymentDialog";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/currency";
-import { PrintableInvoice } from "@/components/PrintableInvoice";
 import { useGrades } from "@/hooks/useGrades";
 import { useFeeBalances } from "@/hooks/useFeeBalances";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
@@ -31,12 +46,26 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export default function Invoices() {
   const { invoices, loading, bulkGenerateInvoices, cancelInvoice, fetchInvoices } = useInvoices();
   const { grades } = useGrades();
   const { currentPeriod } = useAcademicPeriods();
   const { toast } = useToast();
+  
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
@@ -56,30 +85,12 @@ export default function Invoices() {
   const [mpesaInvoice, setMpesaInvoice] = useState<any>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
-  const toggleGroupExpansion = (groupKey: string) => {
-    setExpandedGroups((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(groupKey)) {
-        newSet.delete(groupKey);
-      } else {
-        newSet.add(groupKey);
-      }
-      return newSet;
-    });
-  };
-
-  const handleMpesaPayment = (invoice: any) => {
-    setMpesaInvoice(invoice);
-    setMpesaDialogOpen(true);
-  };
-  
   const { balances, loading: balancesLoading } = useFeeBalances({
     gradeId: selectedGradeForReport,
     academicYear: currentPeriod?.academic_year || "",
     term: currentPeriod?.term || "term_1",
   });
 
-  // Calculate stats for recently generated invoices (last 30 days)
   const recentInvoicesStats = useMemo(() => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -96,15 +107,14 @@ export default function Invoices() {
     };
   }, [invoices]);
 
-  // Group invoices by grade AND term
   const groupedInvoices = useMemo(() => {
     const filtered = invoices.filter((invoice) => {
       const matchesSearch =
-        invoice.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.learner?.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.learner?.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.learner?.admission_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.grade?.name.toLowerCase().includes(searchQuery.toLowerCase());
+        invoice.invoice_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.learner?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.learner?.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.learner?.admission_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.grade?.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
       const matchesGrade = gradeFilter === "all" || invoice.grade_id === gradeFilter;
@@ -137,19 +147,27 @@ export default function Invoices() {
     return Object.values(grouped);
   }, [invoices, searchQuery, statusFilter, gradeFilter]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "paid":
-        return "bg-green-500";
-      case "partial":
-        return "bg-yellow-500";
-      case "overdue":
-        return "bg-red-500";
-      case "cancelled":
-        return "bg-gray-500";
-      default:
-        return "bg-blue-500";
-    }
+  const toggleGroupExpansion = (groupKey: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupKey)) {
+        newSet.delete(groupKey);
+      } else {
+        newSet.add(groupKey);
+      }
+      return newSet;
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      paid: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      partial: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+      overdue: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+      cancelled: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+      generated: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+    };
+    return styles[status] || styles.generated;
   };
 
   const handleRecordPayment = (invoice: any) => {
@@ -157,11 +175,15 @@ export default function Invoices() {
     setPaymentDialogOpen(true);
   };
 
+  const handleMpesaPayment = (invoice: any) => {
+    setMpesaInvoice(invoice);
+    setMpesaDialogOpen(true);
+  };
+
   const handleGenerateInvoices = async (
     academicYear: string,
     term: "term_1" | "term_2" | "term_3",
-    gradeId?: string,
-    streamId?: string
+    gradeId?: string
   ) => {
     await bulkGenerateInvoices(academicYear, term, gradeId);
     setGenerateDialogOpen(false);
@@ -173,7 +195,7 @@ export default function Invoices() {
     const selectedGrade = grades.find(g => g.id === selectedGradeForReport);
     if (!selectedGrade) return;
 
-      downloadFeeBalanceReport(
+    downloadFeeBalanceReport(
       balances,
       selectedGrade.name,
       null,
@@ -186,10 +208,7 @@ export default function Invoices() {
     try {
       const { data, error } = await supabase
         .from("fee_structures")
-        .select(`
-          *,
-          fee_structure_items(*)
-        `)
+        .select(`*, fee_structure_items(*)`)
         .eq("id", feeStructureId)
         .single();
 
@@ -272,394 +291,239 @@ export default function Invoices() {
     }
   };
 
-  const handlePrintGradeInvoices = async (gradeInvoices: any[]) => {
+  const handlePrintInvoice = async (invoice: any) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    // Build the complete HTML document
+    const { data: school } = await supabase.from("school_info").select("*").single();
+
+    const getStatusClass = (status: string) => {
+      const statusMap: Record<string, string> = {
+        generated: "background-color: #fef3c7; color: #92400e;",
+        partial: "background-color: #dbeafe; color: #1e40af;",
+        paid: "background-color: #d1fae5; color: #065f46;",
+        overdue: "background-color: #fee2e2; color: #991b1b;",
+        cancelled: "background-color: #f3f4f6; color: #374151;",
+      };
+      return statusMap[status] || statusMap.generated;
+    };
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Print Grade Invoices</title>
+          <title>Invoice ${invoice.invoice_number}</title>
           <style>
-            body {
-              font-family: Arial, sans-serif;
-              padding: 20px;
-              max-width: 800px;
-              margin: 0 auto;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 30px;
-              border-bottom: 2px solid #333;
-              padding-bottom: 20px;
-            }
-            .logo {
-              max-width: 100px;
-              margin-bottom: 10px;
-            }
-            .school-name {
-              font-size: 24px;
-              font-weight: bold;
-              margin: 10px 0;
-            }
-            .school-details {
-              font-size: 12px;
-              color: #666;
-            }
-            .invoice-info {
-              display: flex;
-              justify-content: space-between;
-              margin: 20px 0;
-            }
-            .info-section {
-              flex: 1;
-            }
-            .info-label {
-              font-weight: bold;
-              color: #333;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin: 20px 0;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 12px;
-              text-align: left;
-            }
-            th {
-              background-color: #f5f5f5;
-              font-weight: bold;
-            }
-            .totals {
-              margin-top: 20px;
-              text-align: right;
-            }
-            .total-row {
-              display: flex;
-              justify-content: flex-end;
-              margin: 5px 0;
-              font-size: 14px;
-            }
-            .total-label {
-              width: 150px;
-              font-weight: bold;
-            }
-            .total-value {
-              width: 150px;
-              text-align: right;
-            }
-            .grand-total {
-              font-size: 18px;
-              border-top: 2px solid #333;
-              padding-top: 10px;
-              margin-top: 10px;
-            }
-            .footer {
-              margin-top: 40px;
-              text-align: center;
-              font-size: 12px;
-              color: #666;
-            }
-            .status-badge {
-              display: inline-block;
-              padding: 4px 12px;
-              border-radius: 4px;
-              font-size: 12px;
-              font-weight: bold;
-            }
-            .status-generated { background-color: #fef3c7; color: #92400e; }
-            .status-partial { background-color: #dbeafe; color: #1e40af; }
-            .status-paid { background-color: #d1fae5; color: #065f46; }
-            .status-overdue { background-color: #fee2e2; color: #991b1b; }
-            .status-cancelled { background-color: #f3f4f6; color: #374151; }
-            .page-break {
-              page-break-after: always;
-            }
-            @media print {
-              body { padding: 0; }
-              .no-print { display: none; }
-            }
+            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+            .logo { max-width: 80px; margin-bottom: 10px; }
+            .school-name { font-size: 22px; font-weight: bold; margin: 10px 0; }
+            .school-details { font-size: 12px; color: #666; }
+            .invoice-title { text-align: center; font-size: 20px; font-weight: bold; margin: 20px 0; }
+            .invoice-info { display: flex; justify-content: space-between; margin: 20px 0; }
+            .info-section { flex: 1; }
+            .info-label { font-weight: bold; color: #333; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+            th { background-color: #f5f5f5; font-weight: bold; }
+            .totals { margin-top: 20px; text-align: right; }
+            .total-row { display: flex; justify-content: flex-end; margin: 5px 0; }
+            .total-label { width: 150px; font-weight: bold; }
+            .total-value { width: 150px; text-align: right; }
+            .grand-total { font-size: 16px; border-top: 2px solid #333; padding-top: 10px; margin-top: 10px; }
+            .status-badge { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+            .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #666; }
+            @media print { body { padding: 20px; } }
           </style>
         </head>
         <body>
-    `);
-
-    // Get school info from the first rendered component
-    const schoolInfo = await supabase.from("school_info").select("*").single();
-    const school = schoolInfo.data;
-
-    // Render each invoice
-    gradeInvoices.forEach((invoice, index) => {
-      const getStatusClass = (status: string) => {
-        const statusMap: Record<string, string> = {
-          generated: "status-generated",
-          partial: "status-partial",
-          paid: "status-paid",
-          overdue: "status-overdue",
-          cancelled: "status-cancelled",
-        };
-        return statusMap[status] || "status-generated";
-      };
-
-      printWindow.document.write(`
-        <div>
           <div class="header">
-            ${school?.logo_url ? `<img src="${school.logo_url}" alt="School Logo" class="logo" />` : ''}
+            ${school?.logo_url ? `<img src="${school.logo_url}" alt="Logo" class="logo" />` : ''}
             <div class="school-name">${school?.school_name || "School Name"}</div>
             <div class="school-details">
               ${school?.address ? `<div>${school.address}</div>` : ''}
               ${school?.phone ? `<div>Tel: ${school.phone}</div>` : ''}
               ${school?.email ? `<div>Email: ${school.email}</div>` : ''}
-              ${school?.motto ? `<div style="font-style: italic; margin-top: 5px">${school.motto}</div>` : ''}
             </div>
           </div>
-
-          <h2 style="text-align: center; margin: 20px 0">FEE INVOICE</h2>
-
+          <div class="invoice-title">FEE INVOICE</div>
           <div class="invoice-info">
             <div class="info-section">
-              <div style="margin-bottom: 8px">
-                <span class="info-label">Invoice Number:</span> ${invoice.invoice_number}
-              </div>
-              <div style="margin-bottom: 8px">
-                <span class="info-label">Issue Date:</span> ${new Date(invoice.issue_date).toLocaleDateString()}
-              </div>
-              <div style="margin-bottom: 8px">
-                <span class="info-label">Due Date:</span> ${new Date(invoice.due_date).toLocaleDateString()}
-              </div>
-              <div>
-                <span class="info-label">Status:</span>
-                <span class="status-badge ${getStatusClass(invoice.status)}">
-                  ${invoice.status.toUpperCase()}
-                </span>
-              </div>
+              <div><span class="info-label">Invoice #:</span> ${invoice.invoice_number}</div>
+              <div><span class="info-label">Issue Date:</span> ${new Date(invoice.issue_date).toLocaleDateString()}</div>
+              <div><span class="info-label">Due Date:</span> ${new Date(invoice.due_date).toLocaleDateString()}</div>
+              <div><span class="info-label">Status:</span> <span class="status-badge" style="${getStatusClass(invoice.status)}">${invoice.status.toUpperCase()}</span></div>
             </div>
             <div class="info-section">
-              <div style="margin-bottom: 8px">
-                <span class="info-label">Learner:</span> ${invoice.learner?.first_name} ${invoice.learner?.last_name}
-              </div>
-              <div style="margin-bottom: 8px">
-                <span class="info-label">Admission No:</span> ${invoice.learner?.admission_number}
-              </div>
-              <div style="margin-bottom: 8px">
-                <span class="info-label">Grade:</span> ${invoice.grade?.name}
-              </div>
-              <div style="margin-bottom: 8px">
-                <span class="info-label">Stream:</span> ${invoice.stream?.name || 'N/A'}
-              </div>
-              <div>
-                <span class="info-label">Academic Period:</span> ${invoice.academic_year} - ${invoice.term?.replace("_", " ").toUpperCase()}
-              </div>
+              <div><span class="info-label">Learner:</span> ${invoice.learner?.first_name} ${invoice.learner?.last_name}</div>
+              <div><span class="info-label">Adm. No:</span> ${invoice.learner?.admission_number}</div>
+              <div><span class="info-label">Grade:</span> ${invoice.grade?.name}</div>
+              <div><span class="info-label">Period:</span> ${invoice.academic_year} - ${invoice.term?.replace("_", " ").toUpperCase()}</div>
             </div>
           </div>
-
           <table>
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Description</th>
-                <th style="text-align: right">Amount</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Item</th><th>Description</th><th style="text-align: right">Amount</th></tr></thead>
             <tbody>
-              ${invoice.invoice_line_items?.map((item: any) => `
-                <tr>
-                  <td>${item.item_name}</td>
-                  <td>${item.description || '-'}</td>
-                  <td style="text-align: right">${formatCurrency(item.amount)}</td>
-                </tr>
+              ${invoice.line_items?.map((item: any) => `
+                <tr><td>${item.item_name}</td><td>${item.description || '-'}</td><td style="text-align: right">${formatCurrency(item.amount)}</td></tr>
               `).join('') || '<tr><td colspan="3">No items</td></tr>'}
             </tbody>
           </table>
-
           <div class="totals">
-            <div class="total-row">
-              <div class="total-label">Subtotal:</div>
-              <div class="total-value">${formatCurrency(invoice.total_amount)}</div>
-            </div>
-            ${invoice.discount_amount > 0 ? `
-              <div class="total-row">
-                <div class="total-label">Discount:</div>
-                <div class="total-value">-${formatCurrency(invoice.discount_amount)}</div>
-              </div>
-            ` : ''}
-            <div class="total-row grand-total">
-              <div class="total-label">Total Amount:</div>
-              <div class="total-value">${formatCurrency(invoice.total_amount - (invoice.discount_amount || 0))}</div>
-            </div>
-            <div class="total-row">
-              <div class="total-label">Amount Paid:</div>
-              <div class="total-value">${formatCurrency(invoice.amount_paid)}</div>
-            </div>
-            <div class="total-row grand-total">
-              <div class="total-label">Balance Due:</div>
-              <div class="total-value">${formatCurrency(invoice.balance_due)}</div>
-            </div>
+            <div class="total-row"><div class="total-label">Subtotal:</div><div class="total-value">${formatCurrency(invoice.total_amount)}</div></div>
+            ${invoice.discount_amount > 0 ? `<div class="total-row"><div class="total-label">Discount:</div><div class="total-value">-${formatCurrency(invoice.discount_amount)}</div></div>` : ''}
+            <div class="total-row grand-total"><div class="total-label">Total:</div><div class="total-value">${formatCurrency(invoice.total_amount - (invoice.discount_amount || 0))}</div></div>
+            <div class="total-row"><div class="total-label">Paid:</div><div class="total-value">${formatCurrency(invoice.amount_paid)}</div></div>
+            <div class="total-row grand-total"><div class="total-label">Balance:</div><div class="total-value">${formatCurrency(invoice.balance_due)}</div></div>
           </div>
-
-          ${invoice.notes ? `
-            <div style="margin-top: 20px; padding: 10px; background-color: #f9fafb; border-left: 3px solid #6366f1;">
-              <strong>Notes:</strong> ${invoice.notes}
-            </div>
-          ` : ''}
-
-          <div class="footer">
-            <p>Thank you for your payment.</p>
-            <p>This is a computer-generated invoice.</p>
-          </div>
-        </div>
-        ${index < gradeInvoices.length - 1 ? '<div class="page-break"></div>' : ''}
-      `);
-    });
-
-    printWindow.document.write(`
+          <div class="footer"><p>Thank you for your payment.</p><p>This is a computer-generated invoice.</p></div>
         </body>
       </html>
     `);
 
     printWindow.document.close();
-    
-    // Wait for images and content to load before printing
     setTimeout(() => {
       printWindow.focus();
       printWindow.print();
-    }, 1000);
+    }, 500);
   };
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full w-full">
-        <div className="flex-none px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b bg-background">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">Invoice Management</h1>
-              <p className="text-muted-foreground text-sm">
-                Manage learner invoices and track payments
-              </p>
-            </div>
-            <Button onClick={() => setGenerateDialogOpen(true)} className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              Generate Invoices
-            </Button>
+      <div className="space-y-6 p-4 md:p-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Invoice Management</h1>
+            <p className="text-muted-foreground text-sm">Manage and track learner invoices</p>
           </div>
+          <Button onClick={() => setGenerateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Generate Invoices
+          </Button>
         </div>
-        <div className="flex-1 overflow-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Generate Balance Report by Grade</CardTitle>
-              <CardDescription>Download a printable fee balance report for all learners in a grade</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
-                <div className="flex-1">
-                  <label className="text-sm font-medium mb-2 block">Select Grade</label>
-                  <Select value={selectedGradeForReport} onValueChange={setSelectedGradeForReport}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select grade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                    {grades.map((grade) => (
-                      <SelectItem key={grade.id} value={grade.id}>
-                        {grade.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Receipt className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Invoices (30d)</p>
+                  <p className="text-xl font-bold">{recentInvoicesStats.count}</p>
+                </div>
               </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Billed</p>
+                  <p className="text-lg font-bold">{formatCurrency(recentInvoicesStats.totalAmount)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <Wallet className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Collected</p>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(recentInvoicesStats.totalPaid)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                  <Clock className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Outstanding</p>
+                  <p className="text-lg font-bold text-red-600">{formatCurrency(recentInvoicesStats.totalBalance)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Balance Report Card */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Download Balance Report</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Select value={selectedGradeForReport} onValueChange={setSelectedGradeForReport}>
+                <SelectTrigger className="sm:w-[200px]">
+                  <SelectValue placeholder="Select grade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {grades.map((grade) => (
+                    <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button 
                 onClick={handleDownloadBalanceReport}
                 disabled={!selectedGradeForReport || balancesLoading || !currentPeriod}
-                className="w-full sm:w-auto"
+                variant="outline"
               >
                 <Download className="mr-2 h-4 w-4" />
-                Download Balance Report
+                Download Report
               </Button>
             </div>
             {currentPeriod && (
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Report for: {currentPeriod.academic_year} - {currentPeriod.term.replace("_", " ").toUpperCase()}
               </p>
             )}
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Recent Invoices (30 days)</CardDescription>
-              <CardTitle className="text-lg">{recentInvoicesStats.count}</CardTitle>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Recent Total Amount</CardDescription>
-              <CardTitle className="text-lg">
-                {formatCurrency(recentInvoicesStats.totalAmount)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Recent Paid</CardDescription>
-              <CardTitle className="text-lg text-green-600">
-                {formatCurrency(recentInvoicesStats.totalPaid)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Recent Outstanding</CardDescription>
-              <CardTitle className="text-lg text-red-600">
-                {formatCurrency(recentInvoicesStats.totalBalance)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
-
+        {/* Invoices List */}
         <Card>
-          <CardHeader>
-            <CardTitle>Invoices by Grade</CardTitle>
-            <CardDescription>
-              View and manage invoices grouped by grade
-            </CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Invoices</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <CardContent className="space-y-4">
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by invoice number, learner, or grade..."
+                  placeholder="Search invoices..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-9"
                 />
               </div>
               <Select value={gradeFilter} onValueChange={setGradeFilter}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter by grade" />
+                <SelectTrigger className="sm:w-[150px]">
+                  <SelectValue placeholder="Grade" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Grades</SelectItem>
                   {grades.map((grade) => (
-                    <SelectItem key={grade.id} value={grade.id}>
-                      {grade.name}
-                    </SelectItem>
+                    <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter by status" />
+                <SelectTrigger className="sm:w-[150px]">
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
@@ -672,166 +536,154 @@ export default function Invoices() {
               </Select>
             </div>
 
+            {/* Invoice Groups */}
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Loading invoices...
-              </div>
+              <div className="text-center py-12 text-muted-foreground">Loading invoices...</div>
             ) : groupedInvoices.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <div className="text-center py-12 text-muted-foreground">
+                <FileText className="mx-auto h-12 w-12 mb-3 opacity-40" />
                 <p>No invoices found</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-3">
                 {groupedInvoices.map((group: any) => {
                   const groupKey = `${group.gradeId}-${group.term}-${group.academicYear}`;
                   const isExpanded = expandedGroups.has(groupKey);
+
                   return (
-                  <Card key={groupKey} className="overflow-hidden">
-                    <CardHeader className="bg-muted/50">
-                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <CardTitle className="text-lg sm:text-xl">{group.grade.name}</CardTitle>
-                            <Badge variant="outline" className="text-xs">
-                              {group.term.replace("term_", "Term ")} - {group.academicYear}
-                            </Badge>
-                          </div>
-                          <CardDescription className="text-sm">
-                            {group.invoices.length} invoice{group.invoices.length !== 1 ? 's' : ''}
-                          </CardDescription>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-3 lg:items-center">
-                          <div className="text-sm space-y-1">
-                            <div className="flex justify-between sm:justify-start sm:gap-4">
-                              <span className="text-muted-foreground">Total:</span>
-                              <span className="font-medium">{formatCurrency(group.totalAmount)}</span>
+                    <Collapsible key={groupKey} open={isExpanded} onOpenChange={() => toggleGroupExpansion(groupKey)}>
+                      <div className="border rounded-lg overflow-hidden">
+                        <CollapsibleTrigger asChild>
+                          <div className="flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors">
+                            <div className="flex items-center gap-3">
+                              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                              <div>
+                                <div className="font-medium">{group.grade?.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {group.term?.replace("term_", "Term ")} • {group.academicYear} • {group.invoices.length} invoice(s)
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex justify-between sm:justify-start sm:gap-4">
-                              <span className="text-muted-foreground">Paid:</span>
-                              <span className="font-medium text-green-600">{formatCurrency(group.totalPaid)}</span>
-                            </div>
-                            <div className="flex justify-between sm:justify-start sm:gap-4">
-                              <span className="text-muted-foreground">Balance:</span>
-                              <span className="font-medium text-red-600">{formatCurrency(group.totalBalance)}</span>
+                            <div className="flex items-center gap-4 text-sm">
+                              <div className="hidden sm:block text-right">
+                                <div className="text-muted-foreground text-xs">Balance</div>
+                                <div className="font-semibold text-red-600">{formatCurrency(group.totalBalance)}</div>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditFeeStructure(group.feeStructureId, group.gradeId, group.term, group.academicYear);
+                                  }}
+                                  title="Edit Fee Structure"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setGroupToCancel(group);
+                                    setBulkCancelDialogOpen(true);
+                                  }}
+                                  title="Cancel All"
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => toggleGroupExpansion(groupKey)}
-                              className="flex-1 sm:flex-none"
-                            >
-                              {isExpanded ? <ChevronUp className="mr-2 h-4 w-4" /> : <ChevronDown className="mr-2 h-4 w-4" />}
-                              {isExpanded ? 'Hide' : 'View'} Invoices
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditFeeStructure(group.feeStructureId, group.gradeId, group.term, group.academicYear)}
-                              className="flex-1 sm:flex-none"
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Fees
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handlePrintGradeInvoices(group.invoices)}
-                              className="flex-1 sm:flex-none"
-                            >
-                              <Printer className="mr-2 h-4 w-4" />
-                              Print All
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setGroupToCancel(group);
-                                setBulkCancelDialogOpen(true);
-                              }}
-                              className="flex-1 sm:flex-none text-destructive hover:text-destructive"
-                            >
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Cancel All
-                            </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Invoice #</TableHead>
+                                  <TableHead>Learner</TableHead>
+                                  <TableHead className="text-right">Total</TableHead>
+                                  <TableHead className="text-right">Paid</TableHead>
+                                  <TableHead className="text-right">Balance</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {group.invoices.map((invoice: any) => (
+                                  <TableRow key={invoice.id}>
+                                    <TableCell className="font-mono text-xs">{invoice.invoice_number}</TableCell>
+                                    <TableCell>
+                                      <div>
+                                        <div className="font-medium">{invoice.learner?.first_name} {invoice.learner?.last_name}</div>
+                                        <div className="text-xs text-muted-foreground">{invoice.learner?.admission_number}</div>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">{formatCurrency(invoice.total_amount)}</TableCell>
+                                    <TableCell className="text-right text-green-600">{formatCurrency(invoice.amount_paid)}</TableCell>
+                                    <TableCell className="text-right text-red-600">{formatCurrency(invoice.balance_due)}</TableCell>
+                                    <TableCell>
+                                      <Badge className={getStatusBadge(invoice.status)} variant="secondary">
+                                        {invoice.status}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center justify-end gap-1">
+                                        {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                                          <>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-8 w-8"
+                                              onClick={() => handleRecordPayment(invoice)}
+                                              title="Record Payment"
+                                            >
+                                              <Plus className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-8 w-8 text-green-600 hover:text-green-700"
+                                              onClick={() => handleMpesaPayment(invoice)}
+                                              title="Pay via M-Pesa"
+                                            >
+                                              <Smartphone className="h-4 w-4" />
+                                            </Button>
+                                          </>
+                                        )}
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={() => handlePrintInvoice(invoice)}
+                                          title="Print Invoice"
+                                        >
+                                          <Printer className="h-4 w-4" />
+                                        </Button>
+                                        {invoice.status !== 'cancelled' && (
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-destructive hover:text-destructive"
+                                            onClick={() => handleCancelInvoice(invoice)}
+                                            title="Cancel Invoice"
+                                          >
+                                            <XCircle className="h-4 w-4" />
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
                           </div>
-                        </div>
+                        </CollapsibleContent>
                       </div>
-                    </CardHeader>
-                    {isExpanded && (
-                      <CardContent className="p-0">
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                            <thead className="bg-muted/30 border-b">
-                              <tr>
-                                <th className="text-left p-3 font-medium">Invoice #</th>
-                                <th className="text-left p-3 font-medium">Learner</th>
-                                <th className="text-left p-3 font-medium">Admission No</th>
-                                <th className="text-right p-3 font-medium">Total</th>
-                                <th className="text-right p-3 font-medium">Paid</th>
-                                <th className="text-right p-3 font-medium">Balance</th>
-                                <th className="text-center p-3 font-medium">Status</th>
-                                <th className="text-center p-3 font-medium">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {group.invoices.map((invoice: any) => (
-                                <tr key={invoice.id} className="border-b hover:bg-muted/20">
-                                  <td className="p-3">{invoice.invoice_number}</td>
-                                  <td className="p-3">{invoice.learner?.first_name} {invoice.learner?.last_name}</td>
-                                  <td className="p-3">{invoice.learner?.admission_number}</td>
-                                  <td className="p-3 text-right">{formatCurrency(invoice.total_amount)}</td>
-                                  <td className="p-3 text-right text-green-600">{formatCurrency(invoice.amount_paid)}</td>
-                                  <td className="p-3 text-right text-red-600">{formatCurrency(invoice.balance_due)}</td>
-                                  <td className="p-3 text-center">
-                                    <Badge className={getStatusColor(invoice.status)}>
-                                      {invoice.status}
-                                    </Badge>
-                                  </td>
-                                  <td className="p-3 text-center">
-                                    <div className="flex items-center justify-center gap-2">
-                                      {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
-                                        <>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleRecordPayment(invoice)}
-                                            title="Record Payment"
-                                          >
-                                            <Plus className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleMpesaPayment(invoice)}
-                                            title="Pay via M-Pesa"
-                                            className="text-green-600 hover:text-green-700"
-                                          >
-                                            <Smartphone className="h-4 w-4" />
-                                          </Button>
-                                        </>
-                                      )}
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleCancelInvoice(invoice)}
-                                        title="Cancel Invoice"
-                                        disabled={invoice.status === 'cancelled'}
-                                      >
-                                        <XCircle className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </CardContent>
-                    )}
-                  </Card>
+                    </Collapsible>
                   );
                 })}
               </div>
@@ -840,6 +692,7 @@ export default function Invoices() {
         </Card>
       </div>
 
+      {/* Dialogs */}
       <GenerateInvoicesDialog
         open={generateDialogOpen}
         onOpenChange={setGenerateDialogOpen}
@@ -863,19 +716,31 @@ export default function Invoices() {
         }}
       />
 
+      <MpesaPaymentDialog
+        open={mpesaDialogOpen}
+        onOpenChange={setMpesaDialogOpen}
+        learnerId={mpesaInvoice?.learner_id}
+        learnerName={mpesaInvoice?.learner ? `${mpesaInvoice.learner.first_name} ${mpesaInvoice.learner.last_name}` : ""}
+        admissionNumber={mpesaInvoice?.learner?.admission_number}
+        invoiceId={mpesaInvoice?.id}
+        amount={mpesaInvoice?.balance_due}
+        onSuccess={fetchInvoices}
+      />
+
+      {/* Bulk Cancel Dialog */}
       <AlertDialog open={bulkCancelDialogOpen} onOpenChange={setBulkCancelDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel All Invoices</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to cancel all {groupToCancel?.invoices.length} invoices for {groupToCancel?.grade.name} - {groupToCancel?.term.replace("term_", "Term ")} ({groupToCancel?.academicYear})? This action cannot be undone.
+              Cancel all {groupToCancel?.invoices.length} invoices for {groupToCancel?.grade?.name}? This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
-            <Label htmlFor="bulk-cancel-reason">Cancellation Reason</Label>
+            <Label htmlFor="bulk-cancel-reason">Reason</Label>
             <Textarea
               id="bulk-cancel-reason"
-              placeholder="Enter reason for cancellation..."
+              placeholder="Enter reason..."
               value={bulkCancelReason}
               onChange={(e) => setBulkCancelReason(e.target.value)}
               className="mt-2"
@@ -887,41 +752,40 @@ export default function Invoices() {
               setGroupToCancel(null);
               setBulkCancelReason("");
             }}>
-              Cancel
+              Keep
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleBulkCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Confirm Cancellation
+              Cancel All
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Single Cancel Dialog */}
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel Invoice</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to cancel invoice {invoiceToCancel?.invoice_number}? This action cannot be undone.
+              Cancel invoice {invoiceToCancel?.invoice_number}? This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="cancelReason">Reason for Cancellation *</Label>
-              <Textarea
-                id="cancelReason"
-                placeholder="Enter the reason for cancelling this invoice..."
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                rows={3}
-              />
-            </div>
+          <div className="py-4">
+            <Label htmlFor="cancelReason">Reason *</Label>
+            <Textarea
+              id="cancelReason"
+              placeholder="Enter reason..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              className="mt-2"
+            />
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => {
               setCancelReason("");
               setInvoiceToCancel(null);
             }}>
-              Keep Invoice
+              Keep
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmCancelInvoice}
@@ -932,18 +796,6 @@ export default function Invoices() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <MpesaPaymentDialog
-        open={mpesaDialogOpen}
-        onOpenChange={setMpesaDialogOpen}
-        learnerId={mpesaInvoice?.learner_id}
-        learnerName={mpesaInvoice?.learner ? `${mpesaInvoice.learner.first_name} ${mpesaInvoice.learner.last_name}` : ""}
-        admissionNumber={mpesaInvoice?.learner?.admission_number}
-        invoiceId={mpesaInvoice?.id}
-        amount={mpesaInvoice?.balance_due}
-        onSuccess={fetchInvoices}
-      />
-      </div>
     </DashboardLayout>
   );
 }
