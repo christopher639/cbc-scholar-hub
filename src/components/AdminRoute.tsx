@@ -21,9 +21,17 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Only admins can access these routes
-  if (user.role !== "admin") {
-    return <Navigate to="/dashboard" replace />;
+  // Admin, finance, and visitor roles can access the admin portal
+  const allowedRoles = ["admin", "finance", "visitor"];
+  if (!allowedRoles.includes(user.role)) {
+    // Redirect learners and teachers to their portals
+    if (user.role === "learner") {
+      return <Navigate to="/learner-portal" replace />;
+    }
+    if (user.role === "teacher") {
+      return <Navigate to="/teacher-portal" replace />;
+    }
+    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;
