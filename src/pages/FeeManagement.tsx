@@ -960,6 +960,13 @@ const FeeManagement = () => {
 
           {/* Fee Structures Tab */}
           <TabsContent value="structures" className="space-y-4">
+            <div className="flex justify-end">
+              <Button size="sm" className="gap-2" onClick={() => setEditFeeStructureOpen(true)}>
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Create Fee Structure</span>
+                <span className="sm:hidden">Create</span>
+              </Button>
+            </div>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Fee Structure</CardTitle>
@@ -975,7 +982,7 @@ const FeeManagement = () => {
                 ) : structures.length === 0 ? (
                   <div className="text-center py-6">
                     <p className="text-muted-foreground text-sm mb-3">No fee structures set yet</p>
-                    <Button size="sm" onClick={() => navigate("/fee-structures")}>
+                    <Button size="sm" onClick={() => setEditFeeStructureOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       Set Fee Structure
                     </Button>
@@ -1021,6 +1028,12 @@ const FeeManagement = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Fee Structure Dialog */}
+            <SetFeeStructureDialogEnhanced
+              open={editFeeStructureOpen}
+              onOpenChange={setEditFeeStructureOpen}
+            />
           </TabsContent>
         </Tabs>
 
