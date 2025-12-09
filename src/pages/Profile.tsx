@@ -311,6 +311,7 @@ export default function Profile() {
     };
   };
 
+  // Get role information for display
   const roleInfo = getRoleInfo();
 
   return (
