@@ -404,41 +404,49 @@ export default function Invoices() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Card>
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 bg-primary/10 rounded-full mb-3">
-                <Receipt className="h-6 w-6 text-primary" />
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <Receipt className="h-4 w-4 text-primary" />
               </div>
-              <p className="text-sm text-muted-foreground">Invoices (30d)</p>
-              <p className="text-2xl font-bold mt-1">{recentInvoicesStats.count}</p>
+              <div>
+                <p className="text-xs text-muted-foreground">Invoices (30d)</p>
+                <p className="text-lg font-bold">{recentInvoicesStats.count}</p>
+              </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-3">
-                <TrendingUp className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <TrendingUp className="h-4 w-4 text-primary" />
               </div>
-              <p className="text-sm text-muted-foreground">Total Billed</p>
-              <p className="text-lg md:text-xl font-bold mt-1">{formatCurrency(recentInvoicesStats.totalAmount)}</p>
+              <div>
+                <p className="text-xs text-muted-foreground">Total Billed</p>
+                <p className="text-sm md:text-base font-bold">{formatCurrency(recentInvoicesStats.totalAmount)}</p>
+              </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full mb-3">
-                <Wallet className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <Wallet className="h-4 w-4 text-primary" />
               </div>
-              <p className="text-sm text-muted-foreground">Collected</p>
-              <p className="text-lg md:text-xl font-bold text-green-600 mt-1">{formatCurrency(recentInvoicesStats.totalPaid)}</p>
+              <div>
+                <p className="text-xs text-muted-foreground">Collected</p>
+                <p className="text-sm md:text-base font-bold">{formatCurrency(recentInvoicesStats.totalPaid)}</p>
+              </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full mb-3">
-                <Clock className="h-6 w-6 text-red-600 dark:text-red-400" />
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <Clock className="h-4 w-4 text-primary" />
               </div>
-              <p className="text-sm text-muted-foreground">Outstanding</p>
-              <p className="text-lg md:text-xl font-bold text-red-600 mt-1">{formatCurrency(recentInvoicesStats.totalBalance)}</p>
+              <div>
+                <p className="text-xs text-muted-foreground">Outstanding</p>
+                <p className="text-sm md:text-base font-bold">{formatCurrency(recentInvoicesStats.totalBalance)}</p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -551,7 +559,7 @@ export default function Invoices() {
                             <div className="flex items-center gap-4 text-sm">
                               <div className="hidden sm:block text-right">
                                 <div className="text-muted-foreground text-xs">Balance</div>
-                                <div className="font-semibold text-red-600">{formatCurrency(group.totalBalance)}</div>
+                                <div className="font-semibold">{formatCurrency(group.totalBalance)}</div>
                               </div>
                               <div className="flex gap-1">
                                 <Button
@@ -607,8 +615,8 @@ export default function Invoices() {
                                       </div>
                                     </TableCell>
                                     <TableCell className="text-right">{formatCurrency(invoice.total_amount)}</TableCell>
-                                    <TableCell className="text-right text-green-600">{formatCurrency(invoice.amount_paid)}</TableCell>
-                                    <TableCell className="text-right text-red-600">{formatCurrency(invoice.balance_due)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(invoice.amount_paid)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(invoice.balance_due)}</TableCell>
                                     <TableCell>
                                       <Badge className={getStatusBadge(invoice.status)} variant="secondary">
                                         {invoice.status}
