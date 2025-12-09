@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { teacherSchema } from "@/lib/validations/teacher";
+import { useVisitorAccess } from "@/hooks/useVisitorAccess";
 
 interface AddTeacherDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
   const { toast } = useToast();
   const { addTeacher } = useTeachers();
   const { user } = useAuth();
+  const { checkAccess } = useVisitorAccess();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     tsc_number: "",
@@ -52,6 +54,8 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!checkAccess("add teachers")) return;
     
     // Validate form data using Zod schema
     const validationResult = teacherSchema.safeParse(formData);

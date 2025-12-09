@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { useVisitorAccess } from "@/hooks/useVisitorAccess";
 
 interface HeroBackground {
   id: string;
@@ -33,6 +34,7 @@ const Settings = () => {
   const { settings: admissionSettings, loading: admissionLoading, updateSettings: updateAdmissionSettings } = useAdmissionNumberSettings();
   const { schoolInfo, loading: schoolInfoLoading, updateSchoolInfo } = useSchoolInfo();
   const { toast } = useToast();
+  const { checkAccess, isVisitor } = useVisitorAccess();
   
   const [admissionPrefix, setAdmissionPrefix] = useState("");
   const [admissionNumber, setAdmissionNumber] = useState("");
@@ -168,6 +170,7 @@ const Settings = () => {
   };
 
   const handleSaveSchoolInfo = async () => {
+    if (!checkAccess("update school information")) return;
     setSavingSchoolInfo(true);
     
     try {
@@ -259,6 +262,8 @@ const Settings = () => {
   };
 
   const handleUploadHeroImage = async (file: File) => {
+    if (!checkAccess("upload hero images")) return;
+    
     if (heroBackgrounds.length >= 4) {
       toast({ 
         title: "Maximum reached", 
@@ -305,6 +310,7 @@ const Settings = () => {
   };
 
   const handleDeleteHeroImage = async (id: string) => {
+    if (!checkAccess("delete hero images")) return;
     try {
       const { error } = await supabase
         .from("hero_backgrounds")
@@ -321,6 +327,7 @@ const Settings = () => {
   };
 
   const handleToggleHeroActive = async (id: string, isActive: boolean) => {
+    if (!checkAccess("update hero images")) return;
     try {
       const { error } = await supabase.from("hero_backgrounds").update({ is_active: isActive }).eq("id", id);
       if (error) throw error;
