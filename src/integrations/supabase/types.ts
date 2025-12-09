@@ -2203,16 +2203,27 @@ export type Database = {
       count_admin_users: { Args: never; Returns: number }
       generate_admission_number: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
-      generate_learner_invoice: {
-        Args: {
-          p_academic_year: string
-          p_grade_id: string
-          p_learner_id: string
-          p_stream_id: string
-          p_term: Database["public"]["Enums"]["term"]
-        }
-        Returns: string
-      }
+      generate_learner_invoice:
+        | {
+            Args: {
+              p_academic_year: string
+              p_grade_id: string
+              p_learner_id: string
+              p_stream_id: string
+              p_term: Database["public"]["Enums"]["term"]
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_academic_year: string
+              p_grade_id: string
+              p_learner_id: string
+              p_stream_id: string
+              p_term: string
+            }
+            Returns: string
+          }
       generate_transaction_number: { Args: never; Returns: string }
       get_active_learner_count: { Args: never; Returns: number }
       get_unique_visitor_count: { Args: never; Returns: number }
