@@ -404,57 +404,41 @@ export default function Invoices() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
-                  <Receipt className="h-4 w-4 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-muted-foreground truncate">Invoices (30d)</p>
-                  <p className="text-base font-bold">{recentInvoicesStats.count}</p>
-                </div>
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <div className="p-3 bg-primary/10 rounded-full mb-3">
+                <Receipt className="h-6 w-6 text-primary" />
               </div>
+              <p className="text-sm text-muted-foreground">Invoices (30d)</p>
+              <p className="text-2xl font-bold mt-1">{recentInvoicesStats.count}</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg shrink-0">
-                  <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-muted-foreground truncate">Total Billed</p>
-                  <p className="text-xs font-bold truncate">{formatCurrency(recentInvoicesStats.totalAmount)}</p>
-                </div>
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-3">
+                <TrendingUp className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
+              <p className="text-sm text-muted-foreground">Total Billed</p>
+              <p className="text-lg md:text-xl font-bold mt-1">{formatCurrency(recentInvoicesStats.totalAmount)}</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg shrink-0">
-                  <Wallet className="h-4 w-4 text-green-600 dark:text-green-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-muted-foreground truncate">Collected</p>
-                  <p className="text-xs font-bold text-green-600 truncate">{formatCurrency(recentInvoicesStats.totalPaid)}</p>
-                </div>
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full mb-3">
+                <Wallet className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
+              <p className="text-sm text-muted-foreground">Collected</p>
+              <p className="text-lg md:text-xl font-bold text-green-600 mt-1">{formatCurrency(recentInvoicesStats.totalPaid)}</p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-red-100 dark:bg-red-900/30 rounded-lg shrink-0">
-                  <Clock className="h-4 w-4 text-red-600 dark:text-red-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-muted-foreground truncate">Outstanding</p>
-                  <p className="text-xs font-bold text-red-600 truncate">{formatCurrency(recentInvoicesStats.totalBalance)}</p>
-                </div>
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full mb-3">
+                <Clock className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
+              <p className="text-sm text-muted-foreground">Outstanding</p>
+              <p className="text-lg md:text-xl font-bold text-red-600 mt-1">{formatCurrency(recentInvoicesStats.totalBalance)}</p>
             </CardContent>
           </Card>
         </div>
