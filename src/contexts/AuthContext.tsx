@@ -118,6 +118,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!error && data.user) {
+        // Check if user is activated
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("is_activated, activation_status")
+          .eq("id", data.user.id)
+          .maybeSingle();
+
+        // If user exists but is not activated, deny login
+        if (profileData && profileData.is_activated === false) {
+          await supabase.auth.signOut();
+          if (!silent) {
+            toast({
+              title: "Account Pending",
+              description: "Your account is pending admin approval. Please wait for activation.",
+              variant: "destructive",
+            });
+          }
+          return { success: false, role: null };
+        }
+
         const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
