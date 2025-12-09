@@ -285,14 +285,16 @@ const Users = () => {
                 {showActivation ? (
                   <div className="flex items-center gap-2">
                     <Select onValueChange={(value) => activateUser(user.id, value as AppRole)}>
-                      <SelectTrigger className="w-28">
+                      <SelectTrigger className="w-32">
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="teacher">Teacher</SelectItem>
+                        <SelectItem value="finance">Finance</SelectItem>
                         <SelectItem value="parent">Parent</SelectItem>
                         <SelectItem value="learner">Learner</SelectItem>
+                        <SelectItem value="visitor">Visitor</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -307,8 +309,10 @@ const Users = () => {
                     <SelectContent>
                       <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="teacher">Teacher</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
                       <SelectItem value="parent">Parent</SelectItem>
                       <SelectItem value="learner">Learner</SelectItem>
+                      <SelectItem value="visitor">Visitor</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

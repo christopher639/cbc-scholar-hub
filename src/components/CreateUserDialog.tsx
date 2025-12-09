@@ -146,7 +146,10 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
               <SelectContent>
                 <SelectItem value="admin">Administrator</SelectItem>
                 <SelectItem value="teacher">Teacher</SelectItem>
+                <SelectItem value="finance">Finance Officer</SelectItem>
+                <SelectItem value="parent">Parent</SelectItem>
                 <SelectItem value="learner">Learner</SelectItem>
+                <SelectItem value="visitor">Visitor</SelectItem>
               </SelectContent>
             </Select>
           </div>

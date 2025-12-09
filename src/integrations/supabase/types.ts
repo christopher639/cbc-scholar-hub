@@ -2180,6 +2180,7 @@ export type Database = {
         | "student"
         | "learner"
         | "finance"
+        | "visitor"
       boarding_status: "day_scholar" | "boarder"
       gender: "male" | "female" | "other"
       grade_level:
@@ -2324,7 +2325,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "teacher", "parent", "student", "learner", "finance"],
+      app_role: [
+        "admin",
+        "teacher",
+        "parent",
+        "student",
+        "learner",
+        "finance",
+        "visitor",
+      ],
       boarding_status: ["day_scholar", "boarder"],
       gender: ["male", "female", "other"],
       grade_level: [
