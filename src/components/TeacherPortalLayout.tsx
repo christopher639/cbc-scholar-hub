@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { PortalFooter } from "@/components/PortalFooter";
 
 export function TeacherPortalLayout() {
   const location = useLocation();
@@ -188,10 +189,15 @@ export function TeacherPortalLayout() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 pt-14 pb-16 md:pb-4">
+        <div className="flex-1 pt-14 pb-16 md:pb-0">
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6">
             <Outlet context={{ teacher }} />
           </main>
+          
+          {/* Footer - Hidden on mobile (bottom nav takes that space) */}
+          <div className="hidden md:block">
+            <PortalFooter schoolInfo={schoolInfo} />
+          </div>
         </div>
 
         {/* Bottom Navigation - Mobile Only - Icons with Tooltips */}
