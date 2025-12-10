@@ -47,30 +47,33 @@ export default function NonTeachingStaff() {
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="flex justify-between gap-2 sm:gap-4">
-          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Total Staff</p>
-            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : staff.length}</p>
-            <p className="text-[10px] text-muted-foreground">{activeStaff} active</p>
-          </Card>
-          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Departments</p>
-            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : departments}</p>
-            <p className="text-[10px] text-muted-foreground">Active depts</p>
-          </Card>
-          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Total Salaries</p>
-            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : `${(totalSalaries / 1000).toFixed(0)}K`}</p>
-            <p className="text-[10px] text-muted-foreground">Monthly</p>
-          </Card>
-        </div>
-
         {/* Staff Directory */}
         <Card>
           <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-2xl">Staff Directory</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Search and manage staff members</CardDescription>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <CardTitle className="text-lg sm:text-2xl">Staff Directory</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Search and manage staff members</CardDescription>
+              </div>
+              {/* Stats - inline on large screens */}
+              <div className="flex justify-between gap-2 lg:gap-3">
+                <Card className="w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center p-2 border-dashed">
+                  <p className="text-[10px] text-muted-foreground">Total Staff</p>
+                  <p className="text-xl sm:text-2xl font-bold">{loading ? "..." : staff.length}</p>
+                  <p className="text-[9px] text-muted-foreground">{activeStaff} active</p>
+                </Card>
+                <Card className="w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center p-2 border-dashed">
+                  <p className="text-[10px] text-muted-foreground">Departments</p>
+                  <p className="text-xl sm:text-2xl font-bold">{loading ? "..." : departments}</p>
+                  <p className="text-[9px] text-muted-foreground">Active depts</p>
+                </Card>
+                <Card className="w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center p-2 border-dashed">
+                  <p className="text-[10px] text-muted-foreground">Salaries</p>
+                  <p className="text-xl sm:text-2xl font-bold">{loading ? "..." : `${(totalSalaries / 1000).toFixed(0)}K`}</p>
+                  <p className="text-[9px] text-muted-foreground">Monthly</p>
+                </Card>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <div className="flex items-center gap-2 sm:gap-4 mb-4">

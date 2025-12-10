@@ -55,30 +55,33 @@ const Teachers = () => {
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="flex justify-between gap-2 sm:gap-4">
-          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
-            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : teachers.length}</p>
-            <p className="text-[10px] text-muted-foreground">Teachers</p>
-          </Card>
-          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Assigned</p>
-            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : withAssignments}</p>
-            <p className="text-[10px] text-muted-foreground">With subjects</p>
-          </Card>
-          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">This Month</p>
-            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : thisMonth}</p>
-            <p className="text-[10px] text-muted-foreground">New hires</p>
-          </Card>
-        </div>
-
         {/* Teacher Directory */}
         <Card>
           <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-2xl">Teacher Directory</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Search and manage teachers</CardDescription>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <CardTitle className="text-lg sm:text-2xl">Teacher Directory</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Search and manage teachers</CardDescription>
+              </div>
+              {/* Stats - inline on large screens */}
+              <div className="flex justify-between gap-2 lg:gap-3">
+                <Card className="w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center p-2 border-dashed">
+                  <p className="text-[10px] text-muted-foreground">Total</p>
+                  <p className="text-xl sm:text-2xl font-bold">{loading ? "..." : teachers.length}</p>
+                  <p className="text-[9px] text-muted-foreground">Teachers</p>
+                </Card>
+                <Card className="w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center p-2 border-dashed">
+                  <p className="text-[10px] text-muted-foreground">Assigned</p>
+                  <p className="text-xl sm:text-2xl font-bold">{loading ? "..." : withAssignments}</p>
+                  <p className="text-[9px] text-muted-foreground">With subjects</p>
+                </Card>
+                <Card className="w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center p-2 border-dashed">
+                  <p className="text-[10px] text-muted-foreground">This Month</p>
+                  <p className="text-xl sm:text-2xl font-bold">{loading ? "..." : thisMonth}</p>
+                  <p className="text-[9px] text-muted-foreground">New hires</p>
+                </Card>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <div className="flex items-center gap-2 sm:gap-4 mb-4">
