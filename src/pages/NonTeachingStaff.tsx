@@ -9,6 +9,22 @@ import { AddNonTeachingStaffDialog } from "@/components/AddNonTeachingStaffDialo
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const avatarColors = [
+  "bg-red-500", "bg-blue-500", "bg-green-500", "bg-yellow-500", 
+  "bg-purple-500", "bg-pink-500", "bg-indigo-500", "bg-teal-500",
+  "bg-orange-500", "bg-cyan-500"
+];
+
+const getAvatarColor = (name: string) => {
+  const index = name.charCodeAt(0) % avatarColors.length;
+  return avatarColors[index];
+};
+
+const getInitials = (firstName: string, lastName: string) => {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+};
 
 export default function NonTeachingStaff() {
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -96,6 +112,7 @@ export default function NonTeachingStaff() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="text-xs sm:text-sm w-12">Photo</TableHead>
                       <TableHead className="text-xs sm:text-sm">Name</TableHead>
                       <TableHead className="text-xs sm:text-sm">Job Title</TableHead>
                       <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Department</TableHead>
@@ -107,6 +124,14 @@ export default function NonTeachingStaff() {
                   <TableBody>
                     {filteredStaff.map((member) => (
                       <TableRow key={member.id}>
+                        <TableCell className="py-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={member.photo_url || ""} alt={`${member.first_name} ${member.last_name}`} />
+                            <AvatarFallback className={`${getAvatarColor(member.first_name)} text-white text-xs`}>
+                              {getInitials(member.first_name, member.last_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TableCell>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           {member.first_name} {member.last_name}
                         </TableCell>
