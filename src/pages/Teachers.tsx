@@ -56,33 +56,21 @@ const Teachers = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
-              <CardDescription className="text-xs sm:text-sm">Total Teachers</CardDescription>
-              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : teachers.length}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">All staff</p>
-            </CardContent>
+        <div className="flex justify-between gap-2 sm:gap-4">
+          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
+            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : teachers.length}</p>
+            <p className="text-[10px] text-muted-foreground">Teachers</p>
           </Card>
-          <Card>
-            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
-              <CardDescription className="text-xs sm:text-sm">Assigned</CardDescription>
-              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : withAssignments}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">With subjects</p>
-            </CardContent>
+          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Assigned</p>
+            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : withAssignments}</p>
+            <p className="text-[10px] text-muted-foreground">With subjects</p>
           </Card>
-          <Card>
-            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
-              <CardDescription className="text-xs sm:text-sm">This Month</CardDescription>
-              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : thisMonth}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">New hires</p>
-            </CardContent>
+          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">This Month</p>
+            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : thisMonth}</p>
+            <p className="text-[10px] text-muted-foreground">New hires</p>
           </Card>
         </div>
 

@@ -48,33 +48,21 @@ export default function NonTeachingStaff() {
         </div>
 
         {/* Stats */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
-              <CardDescription className="text-xs sm:text-sm">Total Staff</CardDescription>
-              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : staff.length}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">{activeStaff} active</p>
-            </CardContent>
+        <div className="flex justify-between gap-2 sm:gap-4">
+          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Total Staff</p>
+            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : staff.length}</p>
+            <p className="text-[10px] text-muted-foreground">{activeStaff} active</p>
           </Card>
-          <Card>
-            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
-              <CardDescription className="text-xs sm:text-sm">Departments</CardDescription>
-              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : departments}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">Active depts</p>
-            </CardContent>
+          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Departments</p>
+            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : departments}</p>
+            <p className="text-[10px] text-muted-foreground">Active depts</p>
           </Card>
-          <Card>
-            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
-              <CardDescription className="text-xs sm:text-sm">Total Salaries</CardDescription>
-              <CardTitle className="text-lg sm:text-3xl">{loading ? "..." : `${(totalSalaries / 1000).toFixed(0)}K`}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">Monthly</p>
-            </CardContent>
+          <Card className="w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center p-2">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Total Salaries</p>
+            <p className="text-2xl sm:text-3xl font-bold">{loading ? "..." : `${(totalSalaries / 1000).toFixed(0)}K`}</p>
+            <p className="text-[10px] text-muted-foreground">Monthly</p>
           </Card>
         </div>
 
