@@ -28,50 +28,39 @@ export default function NonTeachingStaff() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center justify-between sm:block">
-            <div>
-              <h1 className="text-xl sm:text-3xl font-bold text-foreground">Non-Teaching Staff</h1>
-              <p className="text-xs sm:text-base text-muted-foreground">Manage support staff</p>
-            </div>
-            <Button className="gap-2 sm:hidden" size="sm" onClick={() => setShowAddDialog(true)}>
-              <Plus className="h-4 w-4" />
-              Add
-            </Button>
-          </div>
-          <Button className="gap-2 hidden sm:flex" onClick={() => setShowAddDialog(true)}>
-            <Plus className="h-4 w-4" />
-            Add Staff Member
-          </Button>
-        </div>
-
+      <div className="space-y-4">
         {/* Staff Directory */}
         <Card>
-          <CardHeader className="p-4 sm:p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <CardHeader className="p-3 sm:p-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <CardTitle className="text-lg sm:text-2xl">Staff Directory</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">Search and manage staff members</CardDescription>
+                <CardTitle className="text-base sm:text-xl">Staff Directory</CardTitle>
+                <CardDescription className="text-xs">Search and manage support staff</CardDescription>
               </div>
-              {/* Stats - inline on large screens */}
-              <div className="flex justify-between gap-2 lg:gap-3">
-                <Card className="w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center p-2 border-dashed">
-                  <p className="text-[10px] text-muted-foreground">Total Staff</p>
-                  <p className="text-xl sm:text-2xl font-bold">{loading ? "..." : staff.length}</p>
-                  <p className="text-[9px] text-muted-foreground">{activeStaff} active</p>
+              {/* Stats + Add Button */}
+              <div className="flex justify-between items-center gap-2">
+                <Card className="w-16 h-16 sm:w-20 sm:h-20 flex flex-col items-center justify-center p-1 border-dashed">
+                  <p className="text-[9px] text-muted-foreground">Total</p>
+                  <p className="text-lg sm:text-xl font-bold">{loading ? "..." : staff.length}</p>
+                  <p className="text-[8px] text-muted-foreground">{activeStaff} active</p>
                 </Card>
-                <Card className="w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center p-2 border-dashed">
-                  <p className="text-[10px] text-muted-foreground">Departments</p>
-                  <p className="text-xl sm:text-2xl font-bold">{loading ? "..." : departments}</p>
-                  <p className="text-[9px] text-muted-foreground">Active depts</p>
+                <Card className="w-16 h-16 sm:w-20 sm:h-20 flex flex-col items-center justify-center p-1 border-dashed">
+                  <p className="text-[9px] text-muted-foreground">Depts</p>
+                  <p className="text-lg sm:text-xl font-bold">{loading ? "..." : departments}</p>
+                  <p className="text-[8px] text-muted-foreground">Active</p>
                 </Card>
-                <Card className="w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center p-2 border-dashed">
-                  <p className="text-[10px] text-muted-foreground">Salaries</p>
-                  <p className="text-xl sm:text-2xl font-bold">{loading ? "..." : `${(totalSalaries / 1000).toFixed(0)}K`}</p>
-                  <p className="text-[9px] text-muted-foreground">Monthly</p>
+                <Card className="w-16 h-16 sm:w-20 sm:h-20 flex flex-col items-center justify-center p-1 border-dashed">
+                  <p className="text-[9px] text-muted-foreground">Salaries</p>
+                  <p className="text-lg sm:text-xl font-bold">{loading ? "..." : `${(totalSalaries / 1000).toFixed(0)}K`}</p>
+                  <p className="text-[8px] text-muted-foreground">Monthly</p>
                 </Card>
+                <Button 
+                  className="w-16 h-16 sm:w-20 sm:h-20 flex flex-col items-center justify-center gap-1" 
+                  onClick={() => setShowAddDialog(true)}
+                >
+                  <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="text-[9px] sm:text-xs">Add</span>
+                </Button>
               </div>
             </div>
           </CardHeader>
