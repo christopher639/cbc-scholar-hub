@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Heart, User, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Heart, User, Loader2, GraduationCap } from "lucide-react";
 
 interface Blog {
   id: string;
@@ -197,6 +197,25 @@ export default function BlogDetail() {
           </Button>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-card border-t border-border py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              {schoolInfo?.logo_url ? (
+                <img src={schoolInfo.logo_url} alt="Logo" className="h-8 w-8 object-contain" />
+              ) : (
+                <GraduationCap className="h-6 w-6 text-primary" />
+              )}
+              <span className="font-bold text-foreground">{schoolInfo?.school_name || "School"}</span>
+            </div>
+            <p className="text-muted-foreground text-sm text-center">
+              © {new Date().getFullYear()} {schoolInfo?.school_name || "School"}. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

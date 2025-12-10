@@ -188,8 +188,10 @@ export function TeacherPortalLayout() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 pt-14 pb-14 md:pb-4">
-          <Outlet context={{ teacher }} />
+        <div className="flex-1 pt-14 pb-16 md:pb-4">
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6">
+            <Outlet context={{ teacher }} />
+          </main>
         </div>
 
         {/* Bottom Navigation - Mobile Only - Icons with Tooltips */}
@@ -203,13 +205,13 @@ export function TeacherPortalLayout() {
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => navigate(item.path)}
-                      className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
+                      className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
                         isActive 
                           ? "bg-primary text-primary-foreground" 
                           : "text-muted-foreground hover:bg-muted"
                       }`}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-4 w-4" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="text-xs">
