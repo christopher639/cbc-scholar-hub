@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddTeacherDialog } from "@/components/AddTeacherDialog";
-import { Plus, Search, MoreHorizontal, Eye, Edit, UserMinus } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Eye } from "lucide-react";
 import { useTeachers } from "@/hooks/useTeachers";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -24,78 +24,90 @@ const Teachers = () => {
     teacher.employee_number?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Calculate stats
+  const thisMonth = teachers.filter(t => {
+    if (!t.hired_date) return false;
+    const hireDate = new Date(t.hired_date);
+    const now = new Date();
+    return hireDate.getMonth() === now.getMonth() && hireDate.getFullYear() === now.getFullYear();
+  }).length;
+
+  const withAssignments = teachers.filter(t => t.specialization).length;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Teachers</h1>
-            <p className="text-muted-foreground">Manage teacher information and assignments</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between sm:block">
+            <div>
+              <h1 className="text-xl sm:text-3xl font-bold text-foreground">Teachers</h1>
+              <p className="text-xs sm:text-base text-muted-foreground">Manage teacher information</p>
+            </div>
+            <Button className="gap-2 sm:hidden" size="sm" onClick={() => setAddDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Add
+            </Button>
           </div>
-          <Button className="gap-2" onClick={() => setAddDialogOpen(true)}>
+          <Button className="gap-2 hidden sm:flex" onClick={() => setAddDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add New Teacher
           </Button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        {/* Stats */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-3">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Teachers</CardTitle>
+            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
+              <CardDescription className="text-xs sm:text-sm">Total Teachers</CardDescription>
+              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : teachers.length}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? "..." : teachers.length}</div>
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <p className="text-xs sm:text-sm text-muted-foreground">All staff</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Active</CardTitle>
+            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
+              <CardDescription className="text-xs sm:text-sm">Assigned</CardDescription>
+              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : withAssignments}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-success">{loading ? "..." : teachers.length}</div>
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <p className="text-xs sm:text-sm text-muted-foreground">With subjects</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">With Assignments</CardTitle>
+            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
+              <CardDescription className="text-xs sm:text-sm">This Month</CardDescription>
+              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : thisMonth}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-warning">{loading ? "..." : teachers.filter(t => t.specialization).length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">0</div>
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <p className="text-xs sm:text-sm text-muted-foreground">New hires</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Search and Filters */}
+        {/* Teacher Directory */}
         <Card>
-          <CardHeader>
-            <CardTitle>Teacher Directory</CardTitle>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-2xl">Teacher Directory</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Search and manage teachers</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4 mb-4">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="flex items-center gap-2 sm:gap-4 mb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name, TSC number, or subject..."
-                  className="pl-10"
+                  placeholder="Search by name, email..."
+                  className="pl-10 text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button variant="outline">Filter</Button>
+              <Button variant="outline" size="sm">Filter</Button>
             </div>
 
             {/* Teachers Table */}
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto">
               {loading ? (
                 <div className="p-4 space-y-4">
                   {[1, 2, 3].map((i) => (
@@ -104,11 +116,11 @@ const Teachers = () => {
                 </div>
               ) : filteredTeachers.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
+                  <p className="text-muted-foreground mb-4 text-sm">
                     {searchQuery ? "No teachers match your search" : "No teachers found"}
                   </p>
                   {!searchQuery && (
-                    <Button onClick={() => setAddDialogOpen(true)}>
+                    <Button size="sm" onClick={() => setAddDialogOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add First Teacher
                     </Button>
@@ -118,33 +130,33 @@ const Teachers = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Employee No.</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Specialization</TableHead>
-                      <TableHead>Hired Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Employee No.</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Name</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Contact</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden md:table-cell">Specialization</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Hired Date</TableHead>
+                      <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredTeachers.map((teacher) => (
                       <TableRow key={teacher.id}>
-                        <TableCell className="font-medium">{teacher.employee_number || 'N/A'}</TableCell>
-                        <TableCell>{teacher.first_name} {teacher.last_name}</TableCell>
-                        <TableCell>
+                        <TableCell className="font-medium text-xs sm:text-sm">{teacher.employee_number || 'N/A'}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{teacher.first_name} {teacher.last_name}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <div className="space-y-1">
-                            <div className="text-sm">{teacher.phone || 'N/A'}</div>
+                            <div className="text-xs sm:text-sm">{teacher.phone || 'N/A'}</div>
                             <div className="text-xs text-muted-foreground">{teacher.email}</div>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           {teacher.specialization ? (
-                            <Badge variant="outline">{teacher.specialization}</Badge>
+                            <Badge variant="outline" className="text-xs">{teacher.specialization}</Badge>
                           ) : (
-                            <span className="text-muted-foreground">-</span>
+                            <span className="text-muted-foreground text-xs">-</span>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell text-xs sm:text-sm">
                           {teacher.hired_date 
                             ? new Date(teacher.hired_date).toLocaleDateString()
                             : 'N/A'}
