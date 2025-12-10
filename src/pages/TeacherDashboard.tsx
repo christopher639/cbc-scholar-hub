@@ -241,34 +241,38 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden px-2 sm:px-4 md:px-6 py-3 md:py-4 space-y-3 md:space-y-6">
+    <div className="w-full max-w-full overflow-x-hidden px-3 sm:px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
       {/* Welcome Section */}
-      <div className="space-y-0.5">
-        <h1 className="text-lg sm:text-xl md:text-3xl font-bold truncate">
+      <div className="space-y-1">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">
           Welcome, {teacher?.first_name}!
         </h1>
-        <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           Overview of your teaching activities
         </p>
       </div>
 
-      {/* Stats Grid - 2 columns on mobile, 4 on desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 md:gap-4">
+      {/* Stats Grid - 2 columns on mobile (perfect squares), 4 on desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {statsCards.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title} className="overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-3 md:p-4 pb-0.5 sm:pb-1">
-                <CardTitle className="text-[9px] sm:text-[10px] md:text-sm font-medium truncate pr-1">
-                  {stat.title}
-                </CardTitle>
-                <Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
-              </CardHeader>
-              <CardContent className="p-2 sm:p-3 md:p-4 pt-0">
-                <div className="text-base sm:text-lg md:text-2xl font-bold">{stat.value}</div>
-                <p className="text-[8px] sm:text-[9px] md:text-xs text-muted-foreground truncate">
-                  {stat.description}
-                </p>
+            <Card key={stat.title} className="overflow-hidden aspect-square sm:aspect-auto">
+              <CardContent className="p-4 sm:p-5 md:p-6 h-full flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm sm:text-base md:text-lg font-medium">
+                    {stat.title}
+                  </CardTitle>
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Icon className="h-5 w-5 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary" />
+                  </div>
+                </div>
+                <div className="mt-auto">
+                  <div className="text-2xl sm:text-2xl md:text-3xl font-bold">{stat.value}</div>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                    {stat.description}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           );
@@ -276,35 +280,35 @@ export default function TeacherDashboard() {
       </div>
 
       {/* Best Performing Area & Charts Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Best Performing Learning Area */}
         <Card className="overflow-hidden">
-          <CardHeader className="p-2 sm:p-3 md:p-4 pb-1">
-            <CardTitle className="flex items-center gap-1.5 text-xs sm:text-sm md:text-base">
-              <Award className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-yellow-500 flex-shrink-0" />
+          <CardHeader className="p-4 sm:p-5 md:p-6 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+              <Award className="h-5 w-5 sm:h-5 sm:w-5 md:h-6 md:w-6 text-yellow-500 flex-shrink-0" />
               <span className="truncate">Best Performing Area</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-2 sm:p-3 md:p-4 pt-0">
+          <CardContent className="p-4 sm:p-5 md:p-6 pt-0">
             {bestPerformingArea ? (
-              <div className="space-y-1.5 sm:space-y-2">
+              <div className="space-y-3">
                 <div>
-                  <p className="text-xs sm:text-sm md:text-lg font-semibold truncate">{bestPerformingArea.name}</p>
-                  <p className="text-[9px] sm:text-xs text-muted-foreground">Code: {bestPerformingArea.code}</p>
+                  <p className="text-base sm:text-lg md:text-xl font-semibold truncate">{bestPerformingArea.name}</p>
+                  <p className="text-sm text-muted-foreground">Code: {bestPerformingArea.code}</p>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-4">
                   <div>
-                    <p className="text-lg sm:text-xl md:text-3xl font-bold">{Math.round(bestPerformingArea.average)}%</p>
-                    <p className="text-[8px] sm:text-[9px] md:text-xs text-muted-foreground">Class Avg</p>
+                    <p className="text-2xl sm:text-3xl md:text-4xl font-bold">{Math.round(bestPerformingArea.average)}%</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Class Avg</p>
                   </div>
                   <div>
-                    <p className={`text-base sm:text-lg md:text-2xl font-bold ${getGradeColor(getGradeCategory(bestPerformingArea.average))}`}>
+                    <p className={`text-xl sm:text-2xl md:text-3xl font-bold ${getGradeColor(getGradeCategory(bestPerformingArea.average))}`}>
                       {getGradeCategory(bestPerformingArea.average)}
                     </p>
-                    <p className="text-[8px] sm:text-[9px] md:text-xs text-muted-foreground">Grade</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Grade</p>
                   </div>
                 </div>
-                <div className="text-[7px] sm:text-[8px] md:text-xs text-muted-foreground grid grid-cols-2 gap-x-1">
+                <div className="text-xs sm:text-sm text-muted-foreground grid grid-cols-2 gap-x-2">
                   <p>E.E = 80%+</p>
                   <p>M.E = 50-79%</p>
                   <p>A.E = 30-49%</p>
@@ -312,17 +316,17 @@ export default function TeacherDashboard() {
                 </div>
               </div>
             ) : (
-              <p className="text-[10px] sm:text-xs text-muted-foreground">No performance data</p>
+              <p className="text-sm text-muted-foreground">No performance data</p>
             )}
           </CardContent>
         </Card>
 
         {/* Class Performance Overview - Radar Chart */}
         <Card className="overflow-hidden">
-          <CardHeader className="p-2 sm:p-3 md:p-4 pb-1">
-            <CardTitle className="text-xs sm:text-sm md:text-base">Class Performance</CardTitle>
+          <CardHeader className="p-4 sm:p-5 md:p-6 pb-2">
+            <CardTitle className="text-base sm:text-lg md:text-xl">Class Performance</CardTitle>
           </CardHeader>
-          <CardContent className="p-2 sm:p-3 md:p-4 pt-0">
+          <CardContent className="p-4 sm:p-5 md:p-6 pt-0">
             {classPerformanceData.length > 0 ? (
               <ChartContainer
                 config={{
@@ -331,13 +335,13 @@ export default function TeacherDashboard() {
                     color: "hsl(var(--primary))",
                   },
                 }}
-                className="h-[120px] sm:h-[140px] md:h-[200px]"
+                className="h-[180px] sm:h-[200px] md:h-[240px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={classPerformanceData}>
                     <PolarGrid />
-                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 6 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 6 }} />
+                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 10 }} />
                     <Radar
                       name="Class Average"
                       dataKey="average"
@@ -350,7 +354,7 @@ export default function TeacherDashboard() {
                         if (payload && payload.length > 0) {
                           const data = payload[0].payload;
                           return (
-                            <div className="bg-card border border-border rounded-md p-1.5 shadow-md text-[10px]">
+                            <div className="bg-card border border-border rounded-md p-2 shadow-md text-sm">
                               <p className="font-medium">{data.fullName}</p>
                               <p>Avg: {data.average}%</p>
                               <p className={`font-medium ${getGradeColor(getGradeCategory(data.average))}`}>
@@ -366,7 +370,7 @@ export default function TeacherDashboard() {
                 </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <p className="text-[10px] sm:text-xs text-muted-foreground text-center py-4">No performance data</p>
+              <p className="text-sm text-muted-foreground text-center py-8">No performance data</p>
             )}
           </CardContent>
         </Card>
@@ -375,37 +379,37 @@ export default function TeacherDashboard() {
 
       {/* Quick Actions */}
       <Card className="overflow-hidden">
-        <CardHeader className="p-2 sm:p-3 md:p-4 pb-1">
-          <CardTitle className="text-xs sm:text-sm md:text-base">Quick Actions</CardTitle>
+        <CardHeader className="p-4 sm:p-5 md:p-6 pb-2">
+          <CardTitle className="text-base sm:text-lg md:text-xl">Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="p-2 sm:p-3 md:p-4 pt-0 grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-4">
+        <CardContent className="p-4 sm:p-5 md:p-6 pt-0 grid grid-cols-3 gap-3 sm:gap-4">
           <button
             onClick={() => navigate("/teacher-portal/marks")}
-            className="p-1.5 sm:p-2 md:p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
+            className="p-3 sm:p-4 md:p-6 border border-border rounded-lg hover:bg-muted transition-colors text-left"
           >
-            <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6 mb-0.5 sm:mb-1 md:mb-2 text-primary" />
-            <h3 className="text-[10px] sm:text-xs md:text-base font-semibold">Post Marks</h3>
-            <p className="text-[8px] sm:text-[9px] md:text-sm text-muted-foreground hidden sm:block">
+            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 mb-2 text-primary" />
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold">Post Marks</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
               Enter records
             </p>
           </button>
           <button
             onClick={() => navigate("/teacher-portal/assignments")}
-            className="p-1.5 sm:p-2 md:p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
+            className="p-3 sm:p-4 md:p-6 border border-border rounded-lg hover:bg-muted transition-colors text-left"
           >
-            <FileText className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6 mb-0.5 sm:mb-1 md:mb-2 text-primary" />
-            <h3 className="text-[10px] sm:text-xs md:text-base font-semibold">Assignments</h3>
-            <p className="text-[8px] sm:text-[9px] md:text-sm text-muted-foreground hidden sm:block">
+            <FileText className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 mb-2 text-primary" />
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold">Assignments</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
               Post new
             </p>
           </button>
           <button
             onClick={() => navigate("/teacher-portal/profile")}
-            className="p-1.5 sm:p-2 md:p-4 border border-border rounded-lg hover:bg-muted transition-colors text-left"
+            className="p-3 sm:p-4 md:p-6 border border-border rounded-lg hover:bg-muted transition-colors text-left"
           >
-            <Users className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6 mb-0.5 sm:mb-1 md:mb-2 text-primary" />
-            <h3 className="text-[10px] sm:text-xs md:text-base font-semibold">Profile</h3>
-            <p className="text-[8px] sm:text-[9px] md:text-sm text-muted-foreground hidden sm:block">
+            <Users className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 mb-2 text-primary" />
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold">Profile</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
               Your info
             </p>
           </button>
