@@ -72,7 +72,7 @@ const Learners = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 shrink-0">
           <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">Learners</h1>
           
-          {/* Search and Filter Row */}
+          {/* Search, Filter, and Add Button Row */}
           <div className="flex items-center gap-2 flex-1 lg:max-w-xl">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -98,12 +98,11 @@ const Learners = () => {
               )}
               <ChevronDown className={`h-3 w-3 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </Button>
+            <Button className="h-8 gap-1 text-xs shrink-0" size="sm" onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Add Learner</span>
+            </Button>
           </div>
-          
-          <Button className="gap-1" size="sm" onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Add Learner</span>
-          </Button>
         </div>
 
         {/* Collapsible Filters */}
