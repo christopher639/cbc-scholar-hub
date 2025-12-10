@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PWAInstallButton } from "@/components/PWAInstallButton";
 import { useLearnerPortalCache } from "@/hooks/useLearnerCache";
+import { PortalFooter } from "@/components/PortalFooter";
 
 export default function LearnerPortalLayout() {
   const navigate = useNavigate();
@@ -255,6 +256,11 @@ export default function LearnerPortalLayout() {
       <main className="flex-1 mt-14 md:mt-16 mb-16 md:mb-0 overflow-auto relative">
         <div className={cn("transition-opacity duration-200", isNavigating && "opacity-50 pointer-events-none")}>
           <Outlet context={{ learnerDetails: displayLearner, schoolInfo: displaySchool, refetch: fetchData }} />
+        </div>
+        
+        {/* Footer - Hidden on mobile (bottom nav takes that space) */}
+        <div className="hidden md:block">
+          <PortalFooter schoolInfo={displaySchool} />
         </div>
       </main>
 
