@@ -11,6 +11,22 @@ import { AddTeacherDialog } from "@/components/AddTeacherDialog";
 import { Plus, Search, MoreHorizontal, Eye } from "lucide-react";
 import { useTeachers } from "@/hooks/useTeachers";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const avatarColors = [
+  "bg-red-500", "bg-blue-500", "bg-green-500", "bg-yellow-500", 
+  "bg-purple-500", "bg-pink-500", "bg-indigo-500", "bg-teal-500",
+  "bg-orange-500", "bg-cyan-500"
+];
+
+const getAvatarColor = (name: string) => {
+  const index = name.charCodeAt(0) % avatarColors.length;
+  return avatarColors[index];
+};
+
+const getInitials = (firstName: string, lastName: string) => {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+};
 
 const Teachers = () => {
   const navigate = useNavigate();
@@ -110,6 +126,7 @@ const Teachers = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="text-xs sm:text-sm w-12">Photo</TableHead>
                       <TableHead className="text-xs sm:text-sm">Employee No.</TableHead>
                       <TableHead className="text-xs sm:text-sm">Name</TableHead>
                       <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Contact</TableHead>
@@ -121,6 +138,14 @@ const Teachers = () => {
                   <TableBody>
                     {filteredTeachers.map((teacher) => (
                       <TableRow key={teacher.id}>
+                        <TableCell className="py-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={teacher.photo_url || ""} alt={`${teacher.first_name} ${teacher.last_name}`} />
+                            <AvatarFallback className={`${getAvatarColor(teacher.first_name)} text-white text-xs`}>
+                              {getInitials(teacher.first_name, teacher.last_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TableCell>
                         <TableCell className="font-medium text-xs sm:text-sm">{teacher.employee_number || 'N/A'}</TableCell>
                         <TableCell className="text-xs sm:text-sm">{teacher.first_name} {teacher.last_name}</TableCell>
                         <TableCell className="hidden sm:table-cell">

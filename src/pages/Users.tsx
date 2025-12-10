@@ -6,6 +6,26 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit, Trash2, Check, X, Clock, UserCheck, UserX, DollarSign } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const avatarColors = [
+  "bg-red-500", "bg-blue-500", "bg-green-500", "bg-yellow-500", 
+  "bg-purple-500", "bg-pink-500", "bg-indigo-500", "bg-teal-500",
+  "bg-orange-500", "bg-cyan-500"
+];
+
+const getAvatarColor = (name: string) => {
+  const index = name.charCodeAt(0) % avatarColors.length;
+  return avatarColors[index];
+};
+
+const getInitials = (name: string) => {
+  const parts = name.split(' ');
+  if (parts.length >= 2) {
+    return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
 import { cn } from "@/lib/utils";
 import {
   AlertDialog,
@@ -48,6 +68,7 @@ interface UserProfile {
   role: AppRole;
   is_activated: boolean;
   activation_status: string;
+  avatar_url?: string;
 }
 
 const Users = () => {
@@ -70,7 +91,7 @@ const Users = () => {
       
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, full_name, created_at, is_activated, activation_status");
+        .select("id, full_name, created_at, is_activated, activation_status, avatar_url");
 
       if (profilesError) throw profilesError;
 
@@ -91,6 +112,7 @@ const Users = () => {
           role: (userRole?.role || "learner") as AppRole,
           is_activated: profile.is_activated ?? false,
           activation_status: profile.activation_status ?? "pending",
+          avatar_url: profile.avatar_url,
         };
       }) || [];
 
@@ -268,6 +290,7 @@ const Users = () => {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-12">Photo</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>{showActivation ? "Status" : "Current Role"}</TableHead>
             <TableHead>Joined Date</TableHead>
@@ -278,6 +301,14 @@ const Users = () => {
         <TableBody>
           {userList.map((user) => (
             <TableRow key={user.id} className="h-10">
+              <TableCell className="py-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.avatar_url || ""} alt={user.name} />
+                  <AvatarFallback className={`${getAvatarColor(user.name)} text-white text-xs`}>
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+              </TableCell>
               <TableCell className="font-medium py-2">{user.name}</TableCell>
               <TableCell className="py-2">
                 {showActivation ? (
