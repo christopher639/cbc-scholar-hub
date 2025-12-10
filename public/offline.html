@@ -13,7 +13,7 @@
 
     :root {
       --bg-color: #ffffff;
-      --card-bg: #f9fafb;
+      --card-bg: #ffffff;
       --text-primary: #111827;
       --text-secondary: #6b7280;
       --border-color: #e5e7eb;
@@ -21,6 +21,7 @@
       --accent-hover: #2563eb;
       --status-offline: #ef4444;
       --status-online: #22c55e;
+      --icon-bg: #f3f4f6;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -30,10 +31,11 @@
         --text-primary: #f1f5f9;
         --text-secondary: #94a3b8;
         --border-color: #334155;
-        --accent-color: #3b82f6;
-        --accent-hover: #60a5fa;
+        --accent-color: #60a5fa;
+        --accent-hover: #93c5fd;
         --status-offline: #f87171;
         --status-online: #4ade80;
+        --icon-bg: #334155;
       }
     }
 
@@ -64,7 +66,7 @@
       width: 64px;
       height: 64px;
       margin: 0 auto 16px;
-      background: var(--border-color);
+      background: var(--icon-bg);
       border-radius: 50%;
       display: flex;
       align-items: center;
