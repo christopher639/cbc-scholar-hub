@@ -429,56 +429,95 @@ const Users = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Users & Roles</h1>
-            <p className="text-muted-foreground">Manage user access and permissions</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              onClick={() => {
-                if (checkFinanceAccess("create users", false)) {
-                  setCreateDialogOpen(true);
-                }
-              }} 
-              className="gap-2"
-              disabled={isVisitor || isFinance}
-            >
-              <Plus className="h-4 w-4" />
-              Create User
-            </Button>
-            {pendingUsers.length > 0 && (
-              <Badge variant="destructive" className="gap-1">
-                <Clock className="h-3 w-3" />
-                {pendingUsers.length} Pending
-              </Badge>
-            )}
-            <Badge variant="secondary" className="gap-2">
-              <UsersIcon className="h-4 w-4" />
-              {users.length} Active
-            </Badge>
-          </div>
-        </div>
-
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="active" className="gap-2">
-              <UserCheck className="h-4 w-4" />
-              Active Users ({users.length})
-            </TabsTrigger>
-            <TabsTrigger value="pending" className="gap-2">
-              <Clock className="h-4 w-4" />
-              Pending Approval ({pendingUsers.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="active">
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Users</CardTitle>
-                <CardDescription>View and manage activated user roles</CardDescription>
-              </CardHeader>
-              <CardContent>
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <CardTitle>Users & Roles</CardTitle>
+                    <CardDescription>Manage user access and permissions</CardDescription>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <Button 
+                      onClick={() => {
+                        if (checkFinanceAccess("create users", false)) {
+                          setCreateDialogOpen(true);
+                        }
+                      }} 
+                      size="sm"
+                      disabled={isVisitor || isFinance}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Create User
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="bg-green-500/10 text-green-600 border-green-500 hover:bg-green-500/20"
+                    >
+                      <UsersIcon className="h-4 w-4 mr-1" />
+                      {users.length} Active
+                    </Button>
+                    {pendingUsers.length > 0 && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="bg-red-500/10 text-red-600 border-red-500 hover:bg-red-500/20"
+                      >
+                        <Clock className="h-4 w-4 mr-1" />
+                        {pendingUsers.length} Pending
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <TabsList>
+                  <TabsTrigger value="active" className="gap-2">
+                    <UserCheck className="h-4 w-4" />
+                    Active Users ({users.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="pending" className="gap-2">
+                    <Clock className="h-4 w-4" />
+                    Pending Approval ({pendingUsers.length})
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              {/* Mobile buttons */}
+              <div className="flex sm:hidden items-center gap-2 mt-3">
+                <Button 
+                  onClick={() => {
+                    if (checkFinanceAccess("create users", false)) {
+                      setCreateDialogOpen(true);
+                    }
+                  }} 
+                  size="sm"
+                  disabled={isVisitor || isFinance}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Create User
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="bg-green-500/10 text-green-600 border-green-500 hover:bg-green-500/20"
+                >
+                  <UsersIcon className="h-4 w-4 mr-1" />
+                  {users.length} Active
+                </Button>
+                {pendingUsers.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="bg-red-500/10 text-red-600 border-red-500 hover:bg-red-500/20"
+                  >
+                    <Clock className="h-4 w-4 mr-1" />
+                    {pendingUsers.length} Pending
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <TabsContent value="active" className="mt-0">
                 {loading ? (
                   <div className="text-center py-8 text-muted-foreground">Loading users...</div>
                 ) : users.length === 0 ? (
@@ -486,17 +525,9 @@ const Users = () => {
                 ) : (
                   <UserTable userList={users} />
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="pending">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pending Approval</CardTitle>
-                <CardDescription>Users who signed up and are waiting for activation</CardDescription>
-              </CardHeader>
-              <CardContent>
+              <TabsContent value="pending" className="mt-0">
                 {loading ? (
                   <div className="text-center py-8 text-muted-foreground">Loading...</div>
                 ) : pendingUsers.length === 0 ? (
@@ -504,9 +535,9 @@ const Users = () => {
                 ) : (
                   <UserTable userList={pendingUsers} showActivation />
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </TabsContent>
+            </CardContent>
+          </Card>
         </Tabs>
       </div>
       
