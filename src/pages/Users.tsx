@@ -285,61 +285,210 @@ const Users = () => {
     }
   };
 
+  // Mobile card view for small screens
+  const UserCard = ({ user, showActivation = false }: { user: UserProfile, showActivation?: boolean }) => (
+    <div className="border rounded-lg p-4 space-y-3 bg-card">
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={user.avatar_url || ""} alt={user.name} />
+          <AvatarFallback className={`${getAvatarColor(user.name)} text-white text-sm`}>
+            {getInitials(user.name)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium truncate">{user.name}</p>
+          <p className="text-xs text-muted-foreground">
+            Joined {new Date(user.created_at).toLocaleDateString()}
+          </p>
+        </div>
+        {showActivation ? (
+          <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300 shrink-0">
+            <Clock className="h-3 w-3" />
+            Pending
+          </Badge>
+        ) : (
+          <Badge
+            variant={user.role === "admin" ? "default" : user.role === "finance" ? "outline" : "secondary"}
+            className={cn(
+              "gap-1 shrink-0",
+              user.role === "finance" && "border-green-500 text-green-600",
+              user.role === "visitor" && "border-blue-500 text-blue-600"
+            )}
+          >
+            {user.role === "admin" && <ShieldCheck className="h-3 w-3" />}
+            {user.role === "finance" && <DollarSign className="h-3 w-3" />}
+            {user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}
+          </Badge>
+        )}
+      </div>
+      
+      <div className="flex flex-col sm:flex-row gap-2">
+        {showActivation ? (
+          <>
+            <Select onValueChange={(value) => activateUser(user.id, value as AppRole)} disabled={isVisitor || isFinance}>
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Select role to activate" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="teacher">Teacher</SelectItem>
+                <SelectItem value="finance">Finance</SelectItem>
+                <SelectItem value="parent">Parent</SelectItem>
+                <SelectItem value="learner">Learner</SelectItem>
+                <SelectItem value="visitor">Visitor</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              disabled={isVisitor || isFinance}
+              onClick={() => denyUser(user.id)}
+            >
+              <UserX className="h-4 w-4 mr-1" />
+              Deny
+            </Button>
+          </>
+        ) : (
+          <>
+            <Select
+              value={user.role}
+              onValueChange={(value) => updateUserRole(user.id, value)}
+              disabled={isVisitor || isFinance}
+            >
+              <SelectTrigger className="flex-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="teacher">Teacher</SelectItem>
+                <SelectItem value="finance">Finance</SelectItem>
+                <SelectItem value="parent">Parent</SelectItem>
+                <SelectItem value="learner">Learner</SelectItem>
+                <SelectItem value="visitor">Visitor</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                disabled={isVisitor || isFinance}
+                onClick={() => {
+                  if (checkFinanceAccess("edit users", false)) {
+                    setSelectedUser({ id: user.id, name: user.name });
+                    setEditDialogOpen(true);
+                  }
+                }}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-destructive hover:text-destructive"
+                disabled={isVisitor || isFinance}
+                onClick={() => {
+                  if (checkFinanceAccess("delete users", false)) {
+                    setUserToDelete({ id: user.id, name: user.name });
+                    setDeleteDialogOpen(true);
+                  }
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
   const UserTable = ({ userList, showActivation = false }: { userList: UserProfile[], showActivation?: boolean }) => (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12">Photo</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>{showActivation ? "Status" : "Current Role"}</TableHead>
-            <TableHead>Joined Date</TableHead>
-            <TableHead>{showActivation ? "Assign Role & Activate" : "Change Role"}</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {userList.map((user) => (
-            <TableRow key={user.id} className="h-10">
-              <TableCell className="py-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar_url || ""} alt={user.name} />
-                  <AvatarFallback className={`${getAvatarColor(user.name)} text-white text-xs`}>
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-              </TableCell>
-              <TableCell className="font-medium py-2">{user.name}</TableCell>
-              <TableCell className="py-2">
-                {showActivation ? (
-                  <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
-                    <Clock className="h-3 w-3" />
-                    Pending
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant={user.role === "admin" ? "default" : user.role === "finance" ? "outline" : "secondary"}
-                    className={cn(
-                      "gap-1",
-                      user.role === "finance" && "border-green-500 text-green-600",
-                      user.role === "visitor" && "border-blue-500 text-blue-600"
-                    )}
-                  >
-                    {user.role === "admin" && <ShieldCheck className="h-3 w-3" />}
-                    {user.role === "finance" && <DollarSign className="h-3 w-3" />}
-                    {user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}
-                  </Badge>
-                )}
-              </TableCell>
-              <TableCell className="py-2">
-                {new Date(user.created_at).toLocaleDateString()}
-              </TableCell>
-              <TableCell className="py-2">
-                {showActivation ? (
-                  <div className="flex items-center gap-2">
-                    <Select onValueChange={(value) => activateUser(user.id, value as AppRole)} disabled={isVisitor || isFinance}>
+    <>
+      {/* Mobile card view */}
+      <div className="md:hidden space-y-3">
+        {userList.map((user) => (
+          <UserCard key={user.id} user={user} showActivation={showActivation} />
+        ))}
+      </div>
+      
+      {/* Desktop table view */}
+      <div className="hidden md:block overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">Photo</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>{showActivation ? "Status" : "Current Role"}</TableHead>
+              <TableHead>Joined Date</TableHead>
+              <TableHead>{showActivation ? "Assign Role & Activate" : "Change Role"}</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {userList.map((user) => (
+              <TableRow key={user.id} className="h-10">
+                <TableCell className="py-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar_url || ""} alt={user.name} />
+                    <AvatarFallback className={`${getAvatarColor(user.name)} text-white text-xs`}>
+                      {getInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </TableCell>
+                <TableCell className="font-medium py-2">{user.name}</TableCell>
+                <TableCell className="py-2">
+                  {showActivation ? (
+                    <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
+                      <Clock className="h-3 w-3" />
+                      Pending
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant={user.role === "admin" ? "default" : user.role === "finance" ? "outline" : "secondary"}
+                      className={cn(
+                        "gap-1",
+                        user.role === "finance" && "border-green-500 text-green-600",
+                        user.role === "visitor" && "border-blue-500 text-blue-600"
+                      )}
+                    >
+                      {user.role === "admin" && <ShieldCheck className="h-3 w-3" />}
+                      {user.role === "finance" && <DollarSign className="h-3 w-3" />}
+                      {user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}
+                    </Badge>
+                  )}
+                </TableCell>
+                <TableCell className="py-2">
+                  {new Date(user.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell className="py-2">
+                  {showActivation ? (
+                    <div className="flex items-center gap-2">
+                      <Select onValueChange={(value) => activateUser(user.id, value as AppRole)} disabled={isVisitor || isFinance}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="teacher">Teacher</SelectItem>
+                          <SelectItem value="finance">Finance</SelectItem>
+                          <SelectItem value="parent">Parent</SelectItem>
+                          <SelectItem value="learner">Learner</SelectItem>
+                          <SelectItem value="visitor">Visitor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <Select
+                      value={user.role}
+                      onValueChange={(value) => updateUserRole(user.id, value)}
+                      disabled={isVisitor || isFinance}
+                    >
                       <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Select role" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="admin">Admin</SelectItem>
@@ -350,80 +499,62 @@ const Users = () => {
                         <SelectItem value="visitor">Visitor</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                ) : (
-                  <Select
-                    value={user.role}
-                    onValueChange={(value) => updateUserRole(user.id, value)}
-                    disabled={isVisitor || isFinance}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="teacher">Teacher</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                      <SelectItem value="parent">Parent</SelectItem>
-                      <SelectItem value="learner">Learner</SelectItem>
-                      <SelectItem value="visitor">Visitor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </TableCell>
-              <TableCell className="py-2">
-                <div className="flex gap-2">
-                  {showActivation ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      disabled={isVisitor || isFinance}
-                      onClick={() => denyUser(user.id)}
-                    >
-                      <UserX className="h-4 w-4 mr-1" />
-                      Deny
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={isVisitor || isFinance}
-                        onClick={() => {
-                          if (checkFinanceAccess("edit users", false)) {
-                            setSelectedUser({ id: user.id, name: user.name });
-                            setEditDialogOpen(true);
-                          }
-                        }}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
+                  )}
+                </TableCell>
+                <TableCell className="py-2">
+                  <div className="flex gap-2">
+                    {showActivation ? (
                       <Button
                         variant="outline"
                         size="sm"
                         className="text-destructive hover:text-destructive"
                         disabled={isVisitor || isFinance}
-                        onClick={() => {
-                          if (checkFinanceAccess("delete users", false)) {
-                            setUserToDelete({ id: user.id, name: user.name });
-                            setDeleteDialogOpen(true);
-                          }
-                        }}
+                        onClick={() => denyUser(user.id)}
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
+                        <UserX className="h-4 w-4 mr-1" />
+                        Deny
                       </Button>
-                    </>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isVisitor || isFinance}
+                          onClick={() => {
+                            if (checkFinanceAccess("edit users", false)) {
+                              setSelectedUser({ id: user.id, name: user.name });
+                              setEditDialogOpen(true);
+                            }
+                          }}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          disabled={isVisitor || isFinance}
+                          onClick={() => {
+                            if (checkFinanceAccess("delete users", false)) {
+                              setUserToDelete({ id: user.id, name: user.name });
+                              setDeleteDialogOpen(true);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 
   return (
@@ -432,88 +563,61 @@ const Users = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-3">
+                {/* Header row - title and create button */}
+                <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Users & Roles</CardTitle>
-                    <CardDescription>Manage user access and permissions</CardDescription>
+                    <CardTitle className="text-lg sm:text-xl">Users & Roles</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Manage user access and permissions</CardDescription>
                   </div>
-                  <div className="hidden sm:flex items-center gap-2">
-                    <Button 
-                      onClick={() => {
-                        if (checkFinanceAccess("create users", false)) {
-                          setCreateDialogOpen(true);
-                        }
-                      }} 
-                      size="sm"
-                      disabled={isVisitor || isFinance}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Create User
-                    </Button>
+                  <Button 
+                    onClick={() => {
+                      if (checkFinanceAccess("create users", false)) {
+                        setCreateDialogOpen(true);
+                      }
+                    }} 
+                    size="sm"
+                    disabled={isVisitor || isFinance}
+                    className="shrink-0"
+                  >
+                    <Plus className="h-4 w-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Create User</span>
+                  </Button>
+                </div>
+                
+                {/* Stats and tabs row */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="bg-green-500/10 text-green-600 border-green-500 hover:bg-green-500/20"
+                      className="bg-green-500/10 text-green-600 border-green-500 hover:bg-green-500/20 text-xs sm:text-sm"
                     >
-                      <UsersIcon className="h-4 w-4 mr-1" />
+                      <UsersIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                       {users.length} Active
                     </Button>
                     {pendingUsers.length > 0 && (
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="bg-red-500/10 text-red-600 border-red-500 hover:bg-red-500/20"
+                        className="bg-red-500/10 text-red-600 border-red-500 hover:bg-red-500/20 text-xs sm:text-sm"
                       >
-                        <Clock className="h-4 w-4 mr-1" />
+                        <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                         {pendingUsers.length} Pending
                       </Button>
                     )}
                   </div>
+                  <TabsList className="w-full sm:w-auto">
+                    <TabsTrigger value="active" className="gap-1 sm:gap-2 flex-1 sm:flex-none text-xs sm:text-sm">
+                      <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline">Active</span> ({users.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="pending" className="gap-1 sm:gap-2 flex-1 sm:flex-none text-xs sm:text-sm">
+                      <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline">Pending</span> ({pendingUsers.length})
+                    </TabsTrigger>
+                  </TabsList>
                 </div>
-                <TabsList>
-                  <TabsTrigger value="active" className="gap-2">
-                    <UserCheck className="h-4 w-4" />
-                    Active Users ({users.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="pending" className="gap-2">
-                    <Clock className="h-4 w-4" />
-                    Pending Approval ({pendingUsers.length})
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-              {/* Mobile buttons */}
-              <div className="flex sm:hidden items-center gap-2 mt-3">
-                <Button 
-                  onClick={() => {
-                    if (checkFinanceAccess("create users", false)) {
-                      setCreateDialogOpen(true);
-                    }
-                  }} 
-                  size="sm"
-                  disabled={isVisitor || isFinance}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Create User
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="bg-green-500/10 text-green-600 border-green-500 hover:bg-green-500/20"
-                >
-                  <UsersIcon className="h-4 w-4 mr-1" />
-                  {users.length} Active
-                </Button>
-                {pendingUsers.length > 0 && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="bg-red-500/10 text-red-600 border-red-500 hover:bg-red-500/20"
-                  >
-                    <Clock className="h-4 w-4 mr-1" />
-                    {pendingUsers.length} Pending
-                  </Button>
-                )}
               </div>
             </CardHeader>
             <CardContent>
