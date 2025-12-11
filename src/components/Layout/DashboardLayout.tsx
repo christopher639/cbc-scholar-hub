@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { SchoolAssistantChat } from "@/components/SchoolAssistantChat";
 import { NotificationsDropdown } from "@/components/NotificationsDropdown";
 import { AdminSearchBar } from "@/components/AdminSearchBar";
 import {
@@ -439,6 +440,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <BottomNavigation />
         </main>
         <OfflineIndicator />
+        {user?.role === "admin" && <SchoolAssistantChat />}
       </div>
     </SidebarProvider>
   );
