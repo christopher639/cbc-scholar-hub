@@ -8,10 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, Phone, Mail, MapPin, Calendar, FileText, DollarSign, TrendingUp, History, ArrowLeft, Edit, UserX, ArrowUp, ArrowDown } from "lucide-react";
+import { User, Phone, Mail, MapPin, Calendar, FileText, TrendingUp, History, ArrowLeft, Edit, ArrowUp, ArrowDown, GraduationCap, Wallet, CreditCard, Clock, BookOpen, Heart, AlertCircle, IdCard } from "lucide-react";
 import { PromotionHistoryDialog } from "@/components/PromotionHistoryDialog";
 import { EditLearnerDialog } from "@/components/EditLearnerDialog";
-import { TransferLearnerDialog } from "@/components/TransferLearnerDialog";
 import { useLearnerDetail } from "@/hooks/useLearnerDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/currency";
@@ -24,7 +23,6 @@ const LearnerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const [promotionHistoryOpen, setPromotionHistoryOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const { learner, loading, refetch } = useLearnerDetail(id || "");
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("2025/2026");
   const [selectedTerm, setSelectedTerm] = useState("term_1");
@@ -139,43 +137,6 @@ const LearnerProfile = () => {
     return termMap[term] || term;
   };
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-12 w-64" />
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex gap-6">
-                <Skeleton className="h-32 w-32 rounded-full" />
-                <div className="flex-1 space-y-4">
-                  <Skeleton className="h-8 w-64" />
-                  <Skeleton className="h-4 w-48" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-6 w-24" />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (!learner) {
-    return (
-      <DashboardLayout>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">Learner not found</p>
-          </CardContent>
-        </Card>
-      </DashboardLayout>
-    );
-  }
-
   const calculateAge = (dob: string) => {
     const birthDate = new Date(dob);
     const today = new Date();
@@ -187,682 +148,687 @@ const LearnerProfile = () => {
     return age;
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-4 sm:space-y-6">
+          <Skeleton className="h-10 w-32" />
+          <div className="grid gap-4 md:grid-cols-3">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64 md:col-span-2" />
+          </div>
+          <Skeleton className="h-96" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!learner) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-4">
+          <Link to="/learners">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Learners
+            </Button>
+          </Link>
+          <Card>
+            <CardContent className="py-12 text-center">
+              <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Learner Not Found</h2>
+              <p className="text-muted-foreground">The learner you're looking for doesn't exist or has been removed.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Back Button */}
-        <Link to="/learners">
-          <Button variant="ghost" size="sm" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Learners
-          </Button>
-        </Link>
+      <div className="space-y-4 sm:space-y-6">
+        {/* Back Button & Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link to="/learners">
+              <Button variant="outline" size="icon" className="h-9 w-9">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Learner Profile</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">View and manage learner information</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setPromotionHistoryOpen(true)} variant="outline" className="gap-2">
+              <History className="h-4 w-4" />
+              <span className="hidden sm:inline">History</span>
+            </Button>
+            <Button onClick={() => setEditDialogOpen(true)} className="gap-2">
+              <Edit className="h-4 w-4" />
+              <span className="hidden sm:inline">Edit</span>
+            </Button>
+          </div>
+        </div>
 
-        {/* Header Section */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Column 1: Large Square Profile Image */}
-              <div className="flex justify-center lg:justify-start">
-                <div className="relative w-48 h-48 lg:w-56 lg:h-56">
-                  {learner.photo_url ? (
-                    <img 
-                      src={learner.photo_url} 
-                      alt={`${learner.first_name} ${learner.last_name}`}
-                      className="w-full h-full object-cover rounded-lg border-4 border-border shadow-lg"
-                    />
-                  ) : (
-                    <div className="w-full h-full rounded-lg border-4 border-border shadow-lg bg-primary/10 flex items-center justify-center">
-                      <span className="text-6xl font-bold text-primary">
-                        {learner.first_name[0]}{learner.last_name[0]}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Column 2: Primary Information */}
-              <div className="space-y-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">
-                    {learner.first_name} {learner.last_name}
-                  </h1>
-                  <p className="text-muted-foreground">Admission No: {learner.admission_number}</p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="text-base">
-                    {learner.current_grade?.name} {learner.current_stream?.name}
+        {/* Profile Header */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Profile Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center text-center">
+                {learner.photo_url ? (
+                  <img 
+                    src={learner.photo_url} 
+                    alt={`${learner.first_name} ${learner.last_name}`}
+                    className="w-32 h-32 sm:w-40 sm:h-40 object-cover rounded-xl border-4 border-border shadow-lg mb-4"
+                  />
+                ) : (
+                  <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-xl border-4 border-border shadow-lg bg-primary/10 flex items-center justify-center mb-4">
+                    <span className="text-4xl sm:text-5xl font-bold text-primary">
+                      {learner.first_name[0]}{learner.last_name[0]}
+                    </span>
+                  </div>
+                )}
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+                  {learner.first_name} {learner.last_name}
+                </h2>
+                <p className="text-muted-foreground mb-3">#{learner.admission_number}</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Badge variant="secondary">
+                    {learner.current_grade?.name} - {learner.current_stream?.name}
                   </Badge>
                   {learner.status === "alumni" ? (
-                    <Badge variant="default" className="text-base bg-purple-600">Alumni</Badge>
+                    <Badge className="bg-purple-600">Alumni</Badge>
                   ) : (
-                    <Badge className="text-base">Active</Badge>
+                    <Badge>Active</Badge>
                   )}
                   {learner.is_staff_child && (
-                    <Badge variant="outline" className="text-base">Staff Child</Badge>
+                    <Badge variant="outline">Staff Child</Badge>
                   )}
                 </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Born: {new Date(learner.date_of_birth).toLocaleDateString()} ({calculateAge(learner.date_of_birth)} years)</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <User className="h-4 w-4" />
-                    <span className="capitalize">{learner.gender}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Enrolled: {new Date(learner.enrollment_date).toLocaleDateString()}</span>
-                  </div>
-                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Column 3: Academic & Action Buttons */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Academic Year</p>
-                    <p className="text-base font-semibold text-foreground">{learner.currentAcademicYear || "N/A"}</p>
+          {/* Quick Info Cards */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Quick Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Calendar className="h-4 w-4 text-primary" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Current Term</p>
-                    <p className="text-base font-semibold text-foreground">{learner.currentTerm?.replace("_", " ").toUpperCase() || "N/A"}</p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Button onClick={() => setPromotionHistoryOpen(true)} variant="outline" className="w-full gap-2">
-                    <History className="h-4 w-4" />
-                    View Promotion History
-                  </Button>
-                  <Button onClick={() => setEditDialogOpen(true)} className="w-full gap-2">
-                    <Edit className="h-4 w-4" />
-                    Edit Information
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tabbed Content */}
-        <Tabs defaultValue="personal" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto">
-            <TabsTrigger value="personal">Personal Info</TabsTrigger>
-            <TabsTrigger value="academic">Academic</TabsTrigger>
-            <TabsTrigger value="fees">Fees</TabsTrigger>
-            <TabsTrigger value="parent">Parent/Guardian</TabsTrigger>
-            {learner.status === "alumni" && (
-              <TabsTrigger value="alumni">Alumni Info</TabsTrigger>
-            )}
-          </TabsList>
-
-          {/* Personal Info Tab */}
-          <TabsContent value="personal" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">First Name</p>
-                    <p className="text-base font-medium">{learner.first_name}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Last Name</p>
-                    <p className="text-base font-medium">{learner.last_name}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
-                    <p className="text-base font-medium">{new Date(learner.date_of_birth).toLocaleDateString()}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Gender</p>
-                    <p className="text-base font-medium capitalize">{learner.gender}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Admission Number</p>
-                    <p className="text-base font-medium">{learner.admission_number}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Enrollment Date</p>
-                    <p className="text-base font-medium">{new Date(learner.enrollment_date).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                {learner.medical_info && (
-                  <>
-                    <Separator />
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Medical Information</p>
-                      <p className="text-base">{learner.medical_info}</p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Academic Tab */}
-          <TabsContent value="academic" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Current Academic Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Grade</p>
-                    <Badge variant="secondary" className="text-base">{learner.current_grade?.name}</Badge>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Stream</p>
-                    <Badge variant="outline" className="text-base">{learner.current_stream?.name}</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Performance Records */}
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
-                    <CardTitle>Performance Records</CardTitle>
-                    <CardDescription>Academic performance by learning area</CardDescription>
+                    <p className="text-xs text-muted-foreground">Date of Birth</p>
+                    <p className="text-sm font-medium">{new Date(learner.date_of_birth).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">({calculateAge(learner.date_of_birth)} years)</p>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                  <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="Select year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {academicYears.map((year) => (
-                        <SelectItem key={year} value={year}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="Select term" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="term_1">Term 1</SelectItem>
-                      <SelectItem value="term_2">Term 2</SelectItem>
-                      <SelectItem value="term_3">Term 3</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="p-2 rounded-lg bg-blue-500/10">
+                    <User className="h-4 w-4 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Gender</p>
+                    <p className="text-sm font-medium capitalize">{learner.gender}</p>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {learner.performance.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No performance records found</p>
-                ) : (
-                  <>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Learning Area</TableHead>
-                            <TableHead className="hidden md:table-cell">Year/Term</TableHead>
-                            <TableHead className="text-center">Opener</TableHead>
-                            <TableHead className="text-center">Midterm</TableHead>
-                            <TableHead className="text-center">Final</TableHead>
-                            <TableHead className="text-center font-semibold">Average</TableHead>
-                            <TableHead className="hidden lg:table-cell">Remarks</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm).filter((row: any) => 
-                            row.academic_year === selectedAcademicYear && row.term === selectedTerm
-                          ).map((row: any, index: number) => (
-                            <TableRow key={index}>
-                              <TableCell className="font-medium">{row.learning_area}</TableCell>
-                              <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                                {row.academic_year} / {getTermLabel(row.term)}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {row.opener !== null ? (
-                                  <Badge className={getGradeColor(row.opener)}>{row.opener}%</Badge>
-                                ) : (
-                                  <span className="text-muted-foreground text-sm">-</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {row.midterm !== null ? (
-                                  <Badge className={getGradeColor(row.midterm)}>{row.midterm}%</Badge>
-                                ) : (
-                                  <span className="text-muted-foreground text-sm">-</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {row.final !== null ? (
-                                  <Badge className={getGradeColor(row.final)}>{row.final}%</Badge>
-                                ) : (
-                                  <span className="text-muted-foreground text-sm">-</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {row.average > 0 ? (
-                                  <div className="flex items-center justify-center gap-1">
-                                    <Badge variant="default" className={getGradeColor(row.average)}>
-                                      {row.average.toFixed(1)}%
-                                    </Badge>
-                                    {row.deviation !== null && (
-                                      <div className="flex items-center">
-                                        {row.deviation > 0 ? (
-                                          <ArrowUp className="h-3 w-3 text-green-600" />
-                                        ) : row.deviation < 0 ? (
-                                          <ArrowDown className="h-3 w-3 text-red-600" />
-                                        ) : null}
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground text-sm">-</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
-                                {row.remarks || "-"}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                    
-                    {/* Overview Graph */}
-                    {groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm).filter((row: any) => 
-                      row.academic_year === selectedAcademicYear && row.term === selectedTerm
-                    ).length > 0 && (
-                      <div className="h-[300px] mt-6">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm).filter((row: any) => 
-                            row.academic_year === selectedAcademicYear && row.term === selectedTerm
-                          )}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                              dataKey="learning_area" 
-                              angle={-45}
-                              textAnchor="end"
-                              height={100}
-                            />
-                            <YAxis domain={[0, 100]} />
-                            <Tooltip />
-                            <Legend />
-                            <Line 
-                              type="linear" 
-                              dataKey="opener" 
-                              stroke="hsl(var(--primary))" 
-                              strokeWidth={2}
-                              name="Opener"
-                            />
-                            <Line 
-                              type="linear" 
-                              dataKey="midterm" 
-                              stroke="hsl(var(--accent))" 
-                              strokeWidth={2}
-                              name="Mid-Term"
-                            />
-                            <Line 
-                              type="linear" 
-                              dataKey="final" 
-                              stroke="hsl(var(--secondary))" 
-                              strokeWidth={2}
-                              name="Final"
-                            />
-                            <Line 
-                              type="linear" 
-                              dataKey="average" 
-                              stroke="hsl(var(--chart-1))" 
-                              strokeWidth={2}
-                              name="Average"
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Fees Tab */}
-          <TabsContent value="fees" className="space-y-4">
-            {/* Cumulative Fees Summary */}
-            <Card className="border-primary/20 bg-primary/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Fee Summary - Admission #{learner.admission_number}
-                </CardTitle>
-                <CardDescription>
-                  Fees accumulate as new invoices are generated each term
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-lg bg-background/50 border border-border">
-                    <p className="text-sm text-muted-foreground mb-1">Total Accumulated Fees</p>
-                    <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(learner.feeInfo?.totalAccumulatedFees || 0)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      From {learner.feeInfo?.allInvoices?.length || 0} invoices
-                    </p>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="p-2 rounded-lg bg-green-500/10">
+                    <GraduationCap className="h-4 w-4 text-green-500" />
                   </div>
-                  <div className="p-4 rounded-lg bg-background/50 border border-border">
-                    <p className="text-sm text-muted-foreground mb-1">Total Amount Paid</p>
-                    <p className="text-2xl font-bold text-success">
-                      {formatCurrency(learner.feeInfo?.totalPaid || 0)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {learner.feeInfo?.transactions?.length || 0} payments recorded
-                    </p>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Enrolled</p>
+                    <p className="text-sm font-medium">{new Date(learner.enrollment_date).toLocaleDateString()}</p>
                   </div>
-                  <div className="p-4 rounded-lg bg-background/50 border border-border">
-                    <p className="text-sm text-muted-foreground mb-1">Outstanding Balance</p>
-                    <p className={`text-2xl font-bold ${(learner.feeInfo?.totalBalance || 0) > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="p-2 rounded-lg bg-orange-500/10">
+                    <BookOpen className="h-4 w-4 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Academic Year</p>
+                    <p className="text-sm font-medium">{learner.currentAcademicYear || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="p-2 rounded-lg bg-purple-500/10">
+                    <Clock className="h-4 w-4 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Current Term</p>
+                    <p className="text-sm font-medium">{learner.currentTerm?.replace("_", " ").toUpperCase() || "N/A"}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="p-2 rounded-lg bg-red-500/10">
+                    <Wallet className="h-4 w-4 text-red-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Fee Balance</p>
+                    <p className={`text-sm font-medium ${(learner.feeInfo?.totalBalance || 0) > 0 ? 'text-destructive' : 'text-green-600'}`}>
                       {formatCurrency(learner.feeInfo?.totalBalance || 0)}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Accumulated - Paid
-                    </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-            {/* Current Term Fees */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Current Term Fees</CardTitle>
-                <CardDescription>
-                  {learner.currentAcademicYear} - {learner.currentTerm?.replace("_", " ").toUpperCase()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Term Fees</p>
-                    <p className="text-xl font-bold text-foreground">
-                      {formatCurrency(learner.feeInfo?.currentTermFees || 0)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Amount Paid</p>
-                    <p className="text-xl font-bold text-primary">
-                      {formatCurrency(learner.feeInfo?.currentTermPaid || 0)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Balance</p>
-                    <p className="text-xl font-bold text-destructive">
-                      {formatCurrency(learner.feeInfo?.currentTermBalance || 0)}
-                    </p>
+        {/* Tabbed Content */}
+        <Card>
+          <Tabs defaultValue="personal" className="w-full">
+            <CardHeader className="pb-0">
+              <TabsList className="w-full justify-start flex-wrap h-auto gap-1">
+                <TabsTrigger value="personal" className="gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">Personal</span>
+                </TabsTrigger>
+                <TabsTrigger value="academic" className="gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  <span className="hidden sm:inline">Academic</span>
+                </TabsTrigger>
+                <TabsTrigger value="fees" className="gap-2">
+                  <Wallet className="h-4 w-4" />
+                  <span className="hidden sm:inline">Fees</span>
+                </TabsTrigger>
+                <TabsTrigger value="parent" className="gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">Parent</span>
+                </TabsTrigger>
+                {learner.status === "alumni" && (
+                  <TabsTrigger value="alumni" className="gap-2">
+                    <GraduationCap className="h-4 w-4" />
+                    <span className="hidden sm:inline">Alumni</span>
+                  </TabsTrigger>
+                )}
+              </TabsList>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {/* Personal Info Tab */}
+              <TabsContent value="personal" className="mt-0 space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Personal Details</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">First Name</p>
+                      <p className="font-medium">{learner.first_name}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Last Name</p>
+                      <p className="font-medium">{learner.last_name}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Date of Birth</p>
+                      <p className="font-medium">{new Date(learner.date_of_birth).toLocaleDateString()}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Gender</p>
+                      <p className="font-medium capitalize">{learner.gender}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Admission Number</p>
+                      <p className="font-medium">{learner.admission_number}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Enrollment Date</p>
+                      <p className="font-medium">{new Date(learner.enrollment_date).toLocaleDateString()}</p>
+                    </div>
+                    {learner.birth_certificate_number && (
+                      <div className="p-4 rounded-lg border">
+                        <p className="text-sm text-muted-foreground">Birth Certificate No.</p>
+                        <p className="font-medium">{learner.birth_certificate_number}</p>
+                      </div>
+                    )}
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Boarding Status</p>
+                      <p className="font-medium capitalize">{learner.boarding_status || "Day"}</p>
+                    </div>
+                    {learner.blood_type && (
+                      <div className="p-4 rounded-lg border">
+                        <p className="text-sm text-muted-foreground">Blood Type</p>
+                        <p className="font-medium">{learner.blood_type}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* All Invoices History */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Invoice History
-                </CardTitle>
-                <CardDescription>
-                  As learner progresses through terms and grades, invoices accumulate for admission #{learner.admission_number}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {learner.feeInfo?.allInvoices && learner.feeInfo.allInvoices.length > 0 ? (
-                  <div className="space-y-3">
-                    {learner.feeInfo.allInvoices.map((invoice: any, idx: number) => (
-                      <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border border-border rounded-lg bg-card gap-2 hover:bg-accent/50 transition-colors">
-                        <div className="space-y-1">
-                          <p className="font-medium text-foreground">
-                            {invoice.academic_year} - {invoice.term?.replace("_", " ").toUpperCase()}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Invoice: {invoice.invoice_number}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Issued: {new Date(invoice.issue_date || invoice.created_at).toLocaleDateString()}
-                          </p>
+                {(learner.medical_info || learner.allergies) && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-red-500" />
+                      Medical Information
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {learner.medical_info && (
+                        <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
+                          <p className="text-sm text-muted-foreground">Medical Notes</p>
+                          <p className="font-medium">{learner.medical_info}</p>
                         </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <p className="font-semibold text-lg text-foreground">
-                            {formatCurrency(invoice.total_amount)}
-                          </p>
-                          <p className="text-sm text-success">
-                            Paid: {formatCurrency(invoice.amount_paid)}
-                          </p>
-                          <p className="text-sm text-destructive">
-                            Balance: {formatCurrency(invoice.balance_due)}
-                          </p>
-                          <Badge variant={invoice.status === "paid" ? "default" : invoice.status === "partial" ? "secondary" : "outline"}>
-                            {invoice.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold text-foreground">Total from all invoices:</span>
-                        <span className="text-xl font-bold text-foreground">
-                          {formatCurrency(learner.feeInfo?.totalAccumulatedFees || 0)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-center text-muted-foreground py-4">No invoices generated yet</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Payment History */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <History className="h-5 w-5" />
-                  Payment History
-                </CardTitle>
-                <CardDescription>
-                  All payments recorded for admission #{learner.admission_number}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {(learner.feeInfo?.transactions?.length > 0 || learner.feeInfo?.feePayments?.length > 0) ? (
-                  <div className="space-y-3">
-                    {/* Fee Transactions (New System) */}
-                    {learner.feeInfo.transactions?.map((transaction: any) => (
-                      <div key={transaction.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border border-border rounded-lg bg-card gap-2 hover:bg-accent/50 transition-colors">
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-lg text-success">+{formatCurrency(transaction.amount_paid)}</p>
-                            <Badge variant="outline" className="text-xs">{transaction.transaction_number}</Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(transaction.payment_date).toLocaleDateString()} • {transaction.payment_method}
-                          </p>
-                          {transaction.invoice && (
-                            <p className="text-xs text-muted-foreground">
-                              Invoice: {transaction.invoice.invoice_number} ({transaction.invoice.academic_year} - {transaction.invoice.term?.replace("_", " ").toUpperCase()})
-                            </p>
-                          )}
-                          {transaction.reference_number && (
-                            <p className="text-xs text-muted-foreground">Ref: {transaction.reference_number}</p>
-                          )}
-                          {transaction.receipt_number && (
-                            <Badge variant="secondary" className="text-xs mt-1">
-                              Receipt: {transaction.receipt_number}
-                            </Badge>
-                          )}
-                          {transaction.notes && (
-                            <p className="text-xs text-muted-foreground italic mt-1">{transaction.notes}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {/* Legacy Fee Payments */}
-                    {learner.feeInfo.feePayments?.map((payment: any) => (
-                      <div key={payment.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border border-border rounded-lg bg-card gap-2 hover:bg-accent/50 transition-colors">
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-lg text-success">+{formatCurrency(payment.amount_paid)}</p>
-                            {payment.receipt_number && (
-                              <Badge variant="outline" className="text-xs">{payment.receipt_number}</Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(payment.payment_date).toLocaleDateString()}
-                            {payment.payment_method && ` • ${payment.payment_method}`}
-                          </p>
-                          {payment.fee_structure && (
-                            <p className="text-xs text-muted-foreground">
-                              {payment.fee_structure.academic_year} - {payment.fee_structure.term?.replace("_", " ").toUpperCase()}
-                            </p>
-                          )}
-                          {payment.notes && (
-                            <p className="text-xs text-muted-foreground italic mt-1">{payment.notes}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    
-                    <div className="mt-4 p-4 bg-success/10 rounded-lg border border-success/20">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold text-foreground">Total Payments Made:</span>
-                        <span className="text-xl font-bold text-success">
-                          {formatCurrency(learner.feeInfo?.totalPaid || 0)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-center text-muted-foreground py-4">No payment history available</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Parent/Guardian Tab */}
-          <TabsContent value="parent" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Parent/Guardian Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {!learner.parent ? (
-                  <p className="text-center text-muted-foreground py-8">No parent/guardian information available</p>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Full Name</p>
-                        <p className="text-base font-medium">{learner.parent.first_name} {learner.parent.last_name}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <p className="text-base font-medium">{learner.parent.phone}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Email</p>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <p className="text-base font-medium">{learner.parent.email}</p>
-                        </div>
-                      </div>
-                      {learner.parent.occupation && (
-                        <div className="space-y-2">
-                          <p className="text-sm font-medium text-muted-foreground">Occupation</p>
-                          <p className="text-base font-medium">{learner.parent.occupation}</p>
+                      )}
+                      {learner.allergies && (
+                        <div className="p-4 rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+                          <p className="text-sm text-muted-foreground">Allergies</p>
+                          <p className="font-medium">{learner.allergies}</p>
                         </div>
                       )}
                     </div>
-                    {learner.parent.address && (
-                      <>
-                        <Separator />
-                        <div className="space-y-2">
-                          <p className="text-sm font-medium text-muted-foreground">Address</p>
-                          <div className="flex items-start gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
-                            <p className="text-base">{learner.parent.address}</p>
+                  </div>
+                )}
+
+                {(learner.emergency_contact || learner.emergency_phone) && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Phone className="h-5 w-5 text-green-500" />
+                      Emergency Contact
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {learner.emergency_contact && (
+                        <div className="p-4 rounded-lg border">
+                          <p className="text-sm text-muted-foreground">Contact Name</p>
+                          <p className="font-medium">{learner.emergency_contact}</p>
+                        </div>
+                      )}
+                      {learner.emergency_phone && (
+                        <div className="p-4 rounded-lg border">
+                          <p className="text-sm text-muted-foreground">Contact Phone</p>
+                          <p className="font-medium">{learner.emergency_phone}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {(learner.previous_school || learner.previous_grade) && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Previous School Information</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {learner.previous_school && (
+                        <div className="p-4 rounded-lg border">
+                          <p className="text-sm text-muted-foreground">Previous School</p>
+                          <p className="font-medium">{learner.previous_school}</p>
+                        </div>
+                      )}
+                      {learner.previous_grade && (
+                        <div className="p-4 rounded-lg border">
+                          <p className="text-sm text-muted-foreground">Previous Grade</p>
+                          <p className="font-medium">{learner.previous_grade}</p>
+                        </div>
+                      )}
+                      {learner.reason_for_transfer && (
+                        <div className="p-4 rounded-lg border sm:col-span-2">
+                          <p className="text-sm text-muted-foreground">Reason for Transfer</p>
+                          <p className="font-medium">{learner.reason_for_transfer}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Academic Tab */}
+              <TabsContent value="academic" className="mt-0 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-lg border">
+                    <p className="text-sm text-muted-foreground">Current Grade</p>
+                    <Badge variant="secondary" className="mt-1">{learner.current_grade?.name}</Badge>
+                  </div>
+                  <div className="p-4 rounded-lg border">
+                    <p className="text-sm text-muted-foreground">Current Stream</p>
+                    <Badge variant="outline" className="mt-1">{learner.current_stream?.name}</Badge>
+                  </div>
+                </div>
+
+                {/* Performance Filters */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Performance Records</h3>
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {academicYears.map((year) => (
+                          <SelectItem key={year} value={year}>{year}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Select term" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="term_1">Term 1</SelectItem>
+                        <SelectItem value="term_2">Term 2</SelectItem>
+                        <SelectItem value="term_3">Term 3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {learner.performance.length === 0 ? (
+                    <div className="text-center py-12 border rounded-lg">
+                      <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No performance records found</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Performance Table */}
+                      <div className="rounded-md border overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Learning Area</TableHead>
+                              <TableHead className="text-center">Opener</TableHead>
+                              <TableHead className="text-center">Midterm</TableHead>
+                              <TableHead className="text-center">Final</TableHead>
+                              <TableHead className="text-center">Average</TableHead>
+                              <TableHead className="hidden lg:table-cell">Remarks</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm)
+                              .filter((row: any) => row.academic_year === selectedAcademicYear && row.term === selectedTerm)
+                              .map((row: any, index: number) => (
+                                <TableRow key={index}>
+                                  <TableCell className="font-medium">{row.learning_area}</TableCell>
+                                  <TableCell className="text-center">
+                                    {row.opener !== null ? (
+                                      <Badge className={getGradeColor(row.opener)}>{row.opener}%</Badge>
+                                    ) : "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {row.midterm !== null ? (
+                                      <Badge className={getGradeColor(row.midterm)}>{row.midterm}%</Badge>
+                                    ) : "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {row.final !== null ? (
+                                      <Badge className={getGradeColor(row.final)}>{row.final}%</Badge>
+                                    ) : "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {row.average > 0 ? (
+                                      <div className="flex items-center justify-center gap-1">
+                                        <Badge className={getGradeColor(row.average)}>{row.average.toFixed(1)}%</Badge>
+                                        {row.deviation !== null && (
+                                          row.deviation > 0 ? (
+                                            <ArrowUp className="h-3 w-3 text-green-600" />
+                                          ) : row.deviation < 0 ? (
+                                            <ArrowDown className="h-3 w-3 text-red-600" />
+                                          ) : null
+                                        )}
+                                      </div>
+                                    ) : "-"}
+                                  </TableCell>
+                                  <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                                    {row.remarks || "-"}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      
+                      {/* Performance Chart */}
+                      {groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm)
+                        .filter((row: any) => row.academic_year === selectedAcademicYear && row.term === selectedTerm).length > 0 && (
+                        <div className="h-[300px] mt-6">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm)
+                              .filter((row: any) => row.academic_year === selectedAcademicYear && row.term === selectedTerm)}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="learning_area" angle={-45} textAnchor="end" height={100} />
+                              <YAxis domain={[0, 100]} />
+                              <Tooltip />
+                              <Legend />
+                              <Line type="linear" dataKey="opener" stroke="hsl(var(--primary))" strokeWidth={2} name="Opener" />
+                              <Line type="linear" dataKey="midterm" stroke="hsl(var(--accent))" strokeWidth={2} name="Mid-Term" />
+                              <Line type="linear" dataKey="final" stroke="hsl(var(--secondary))" strokeWidth={2} name="Final" />
+                              <Line type="linear" dataKey="average" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Average" />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Fees Tab */}
+              <TabsContent value="fees" className="mt-0 space-y-6">
+                {/* Fee Summary Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg border bg-muted/30">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Accumulated</p>
+                        <p className="text-xl font-bold">{formatCurrency(learner.feeInfo?.totalAccumulatedFees || 0)}</p>
+                        <p className="text-xs text-muted-foreground">{learner.feeInfo?.allInvoices?.length || 0} invoices</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg border bg-green-50 dark:bg-green-950/20">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-green-500/10">
+                        <CreditCard className="h-5 w-5 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Paid</p>
+                        <p className="text-xl font-bold text-green-600">{formatCurrency(learner.feeInfo?.totalPaid || 0)}</p>
+                        <p className="text-xs text-muted-foreground">{learner.feeInfo?.transactions?.length || 0} payments</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg border bg-red-50 dark:bg-red-950/20">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-red-500/10">
+                        <Wallet className="h-5 w-5 text-red-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Outstanding</p>
+                        <p className={`text-xl font-bold ${(learner.feeInfo?.totalBalance || 0) > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                          {formatCurrency(learner.feeInfo?.totalBalance || 0)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Current Term */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Current Term ({learner.currentAcademicYear} - {learner.currentTerm?.replace("_", " ").toUpperCase()})
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Term Fees</p>
+                      <p className="text-lg font-bold">{formatCurrency(learner.feeInfo?.currentTermFees || 0)}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Paid</p>
+                      <p className="text-lg font-bold text-green-600">{formatCurrency(learner.feeInfo?.currentTermPaid || 0)}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Balance</p>
+                      <p className="text-lg font-bold text-destructive">{formatCurrency(learner.feeInfo?.currentTermBalance || 0)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Invoice History */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Invoice History</h3>
+                  {learner.feeInfo?.allInvoices && learner.feeInfo.allInvoices.length > 0 ? (
+                    <div className="space-y-3">
+                      {learner.feeInfo.allInvoices.map((invoice: any, idx: number) => (
+                        <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border rounded-lg hover:bg-accent/50 transition-colors gap-3">
+                          <div>
+                            <p className="font-medium">{invoice.academic_year} - {invoice.term?.replace("_", " ").toUpperCase()}</p>
+                            <p className="text-sm text-muted-foreground">Invoice: {invoice.invoice_number}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Issued: {new Date(invoice.issue_date || invoice.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-start sm:items-end gap-1">
+                            <p className="font-semibold">{formatCurrency(invoice.total_amount)}</p>
+                            <div className="flex gap-2 text-sm">
+                              <span className="text-green-600">Paid: {formatCurrency(invoice.amount_paid)}</span>
+                              <span className="text-destructive">Due: {formatCurrency(invoice.balance_due)}</span>
+                            </div>
+                            <Badge variant={invoice.status === "paid" ? "default" : invoice.status === "partial" ? "secondary" : "outline"}>
+                              {invoice.status}
+                            </Badge>
                           </div>
                         </div>
-                      </>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 border rounded-lg">
+                      <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No invoices generated yet</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Payment History */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Payment History</h3>
+                  {(learner.feeInfo?.transactions?.length > 0 || learner.feeInfo?.feePayments?.length > 0) ? (
+                    <div className="space-y-3">
+                      {learner.feeInfo.transactions?.map((transaction: any) => (
+                        <div key={transaction.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border rounded-lg hover:bg-accent/50 transition-colors gap-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-green-600">+{formatCurrency(transaction.amount_paid)}</p>
+                              <Badge variant="outline" className="text-xs">{transaction.transaction_number}</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(transaction.payment_date).toLocaleDateString()} • {transaction.payment_method}
+                            </p>
+                            {transaction.receipt_number && (
+                              <Badge variant="secondary" className="text-xs">Receipt: {transaction.receipt_number}</Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {learner.feeInfo.feePayments?.map((payment: any) => (
+                        <div key={payment.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border rounded-lg hover:bg-accent/50 transition-colors gap-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-green-600">+{formatCurrency(payment.amount_paid)}</p>
+                              {payment.receipt_number && (
+                                <Badge variant="outline" className="text-xs">{payment.receipt_number}</Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(payment.payment_date).toLocaleDateString()}
+                              {payment.payment_method && ` • ${payment.payment_method}`}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 border rounded-lg">
+                      <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No payment history available</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Parent Tab */}
+              <TabsContent value="parent" className="mt-0">
+                {!learner.parent ? (
+                  <div className="text-center py-12 border rounded-lg">
+                    <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No parent/guardian information available</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Full Name</p>
+                      <p className="font-medium">{learner.parent.first_name} {learner.parent.last_name}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                        <Phone className="h-4 w-4" />
+                        <span className="text-sm">Phone Number</span>
+                      </div>
+                      <p className="font-medium">{learner.parent.phone}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                        <Mail className="h-4 w-4" />
+                        <span className="text-sm">Email</span>
+                      </div>
+                      <p className="font-medium">{learner.parent.email}</p>
+                    </div>
+                    {learner.parent.occupation && (
+                      <div className="p-4 rounded-lg border">
+                        <p className="text-sm text-muted-foreground">Occupation</p>
+                        <p className="font-medium">{learner.parent.occupation}</p>
+                      </div>
+                    )}
+                    {learner.parent.address && (
+                      <div className="p-4 rounded-lg border sm:col-span-2">
+                        <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                          <MapPin className="h-4 w-4" />
+                          <span className="text-sm">Address</span>
+                        </div>
+                        <p className="font-medium">{learner.parent.address}</p>
+                      </div>
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </TabsContent>
 
-          {/* Alumni Info Tab */}
-          {learner.status === "alumni" && learner.alumni && learner.alumni.length > 0 && (
-            <TabsContent value="alumni" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Alumni Information</CardTitle>
-                  <CardDescription>Graduation details and records</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Graduation Year</p>
+              {/* Alumni Tab */}
+              {learner.status === "alumni" && learner.alumni && learner.alumni.length > 0 && (
+                <TabsContent value="alumni" className="mt-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="p-4 rounded-lg border bg-purple-50 dark:bg-purple-950/20">
+                      <p className="text-sm text-muted-foreground">Graduation Year</p>
                       <p className="text-2xl font-bold text-purple-600">{learner.alumni[0].graduation_year}</p>
                     </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Graduation Date</p>
-                      <p className="text-base font-medium">{new Date(learner.alumni[0].graduation_date).toLocaleDateString()}</p>
+                    <div className="p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Graduation Date</p>
+                      <p className="font-medium">{new Date(learner.alumni[0].graduation_date).toLocaleDateString()}</p>
                     </div>
                     {learner.alumni[0].final_grade && (
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Final Grade</p>
-                        <Badge variant="secondary" className="text-base">
-                          {learner.alumni[0].final_grade.name}
-                        </Badge>
+                      <div className="p-4 rounded-lg border">
+                        <p className="text-sm text-muted-foreground">Final Grade</p>
+                        <Badge variant="secondary" className="mt-1">{learner.alumni[0].final_grade.name}</Badge>
                       </div>
                     )}
                     {learner.alumni[0].final_stream && (
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Final Stream</p>
-                        <Badge variant="outline" className="text-base">
-                          {learner.alumni[0].final_stream.name}
-                        </Badge>
+                      <div className="p-4 rounded-lg border">
+                        <p className="text-sm text-muted-foreground">Final Stream</p>
+                        <Badge variant="outline" className="mt-1">{learner.alumni[0].final_stream.name}</Badge>
                       </div>
                     )}
                   </div>
                   {learner.alumni[0].notes && (
-                    <>
-                      <Separator />
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Notes</p>
-                        <p className="text-base">{learner.alumni[0].notes}</p>
-                      </div>
-                    </>
+                    <div className="mt-4 p-4 rounded-lg border">
+                      <p className="text-sm text-muted-foreground mb-2">Notes</p>
+                      <p>{learner.alumni[0].notes}</p>
+                    </div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
-        </Tabs>
+                </TabsContent>
+              )}
+            </CardContent>
+          </Tabs>
+        </Card>
 
         <PromotionHistoryDialog
           open={promotionHistoryOpen}
