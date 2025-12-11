@@ -14,7 +14,7 @@ interface SmsRecipient {
 
 interface TextSmsResponse {
   responses: Array<{
-    "respose-code": number;
+    "response-code": number;
     "response-description": string;
     mobile: string;
     messageid?: number;
@@ -154,11 +154,11 @@ serve(async (req) => {
     }
 
     if (recipients.length === 0) {
-      // Update status to sent with 0 count
+      // Update status to completed with 0 count
       await supabase
         .from("bulk_messages")
         .update({
-          status: "sent",
+          status: "completed",
           sent_count: 0,
           failed_count: 0,
           sent_at: new Date().toISOString(),
@@ -218,7 +218,7 @@ serve(async (req) => {
 
         // Count successes and failures
         for (const resp of result.responses || []) {
-          if (resp["respose-code"] === 200) {
+          if (resp["response-code"] === 200) {
             totalSent++;
           } else {
             totalFailed++;
@@ -237,7 +237,7 @@ serve(async (req) => {
     }
 
     // Update message status
-    const finalStatus = totalFailed === recipients.length ? "failed" : "sent";
+    const finalStatus = totalFailed === recipients.length ? "failed" : "completed";
     
     await supabase
       .from("bulk_messages")
