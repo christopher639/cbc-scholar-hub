@@ -20,3 +20,18 @@ verify_jwt = false
 
 [functions.mpesa-simulate]
 verify_jwt = true
+
+[functions.send-bulk-sms]
+verify_jwt = true
+
+[functions.send-bulk-emails]
+verify_jwt = true
+
+[functions.delete-user]
+verify_jwt = true
+
+[functions.ai-tutor]
+verify_jwt = true
+
+[functions.study-recommendations]
+verify_jwt = true

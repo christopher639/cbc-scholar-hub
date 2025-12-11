@@ -130,18 +130,30 @@ export default function Communication() {
         .limit(1)
         .single();
 
-      if (messageData && (formData.messageType === "email" || formData.messageType === "both")) {
-        supabase.functions.invoke("send-bulk-emails", {
-          body: { messageId: messageData.id },
-        }).catch(err => console.error("Error triggering email send:", err));
+      if (messageData) {
+        // Trigger email sending if email or both
+        if (formData.messageType === "email" || formData.messageType === "both") {
+          supabase.functions.invoke("send-bulk-emails", {
+            body: { messageId: messageData.id },
+          }).catch(err => console.error("Error triggering email send:", err));
+        }
+
+        // Trigger SMS sending if sms or both
+        if (formData.messageType === "sms" || formData.messageType === "both") {
+          supabase.functions.invoke("send-bulk-sms", {
+            body: { messageId: messageData.id },
+          }).catch(err => console.error("Error triggering SMS send:", err));
+        }
       }
 
       const recipientLabel = formData.recipientType === "all_teachers" ? "teachers" : "parents";
+      const messageTypes = [];
+      if (formData.messageType === "email" || formData.messageType === "both") messageTypes.push("emails");
+      if (formData.messageType === "sms" || formData.messageType === "both") messageTypes.push("SMS");
+      
       toast({
         title: "Success",
-        description: formData.messageType === "email" || formData.messageType === "both" 
-          ? `Emails are being sent to ${recipientLabel}. Check recent messages for status.` 
-          : "Message sent successfully.",
+        description: `${messageTypes.join(" and ")} are being sent to ${recipientLabel}. Check recent messages for status.`,
       });
 
       setFormData({
