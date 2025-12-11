@@ -35,3 +35,9 @@ verify_jwt = true
 
 [functions.study-recommendations]
 verify_jwt = true
+
+[functions.send-performance-sms]
+verify_jwt = false
+
+[functions.send-fee-reminder-sms]
+verify_jwt = false

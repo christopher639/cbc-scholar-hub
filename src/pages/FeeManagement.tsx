@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Calendar, Receipt, Wallet, Clock, FileText, Search, Printer, XCircle, Smartphone, ChevronDown, ChevronRight } from "lucide-react";
+import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Calendar, Receipt, Wallet, Clock, FileText, Search, Printer, XCircle, Smartphone, ChevronDown, ChevronRight, Send, MessageSquare } from "lucide-react";
 import { useFeePayments } from "@/hooks/useFeePayments";
 import { useFeeStats } from "@/hooks/useFeeStats";
 import { useFeeStructures } from "@/hooks/useFeeStructures";
@@ -85,6 +85,40 @@ const FeeManagement = () => {
   const [mpesaDialogOpen, setMpesaDialogOpen] = useState(false);
   const [mpesaInvoice, setMpesaInvoice] = useState<any>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [feeReminderLoading, setFeeReminderLoading] = useState(false);
+  const [feeReminderScope, setFeeReminderScope] = useState<"school" | "grade" | "stream">("school");
+  const [feeReminderGradeId, setFeeReminderGradeId] = useState("");
+
+  const handleSendFeeReminder = async () => {
+    setFeeReminderLoading(true);
+    try {
+      const response = await supabase.functions.invoke("send-fee-reminder-sms", {
+        body: {
+          scope: feeReminderScope,
+          gradeId: feeReminderGradeId || undefined,
+          includeCurrentTerm: true,
+          includePreviousBalance: true,
+        },
+      });
+
+      if (response.error) throw response.error;
+      const result = response.data;
+      
+      toast({
+        title: result.success ? "Success" : "Notice",
+        description: result.message,
+        variant: result.success ? "default" : "destructive",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send fee reminders",
+        variant: "destructive",
+      });
+    } finally {
+      setFeeReminderLoading(false);
+    }
+  };
 
   // Learner Fees state
   const [selectedLearnerId, setSelectedLearnerId] = useState<string>("");
@@ -425,6 +459,41 @@ const FeeManagement = () => {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
             <div className="flex gap-2 flex-wrap justify-end">
+              {/* Fee Reminder Section */}
+              <div className="flex items-center gap-2">
+                <Select value={feeReminderScope} onValueChange={(v: "school" | "grade" | "stream") => setFeeReminderScope(v)}>
+                  <SelectTrigger className="w-[130px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="school">Whole School</SelectItem>
+                    <SelectItem value="grade">By Grade</SelectItem>
+                  </SelectContent>
+                </Select>
+                {feeReminderScope === "grade" && (
+                  <Select value={feeReminderGradeId} onValueChange={setFeeReminderGradeId}>
+                    <SelectTrigger className="w-[120px] h-8 text-xs">
+                      <SelectValue placeholder="Grade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grades.map((g) => (
+                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1" 
+                  onClick={handleSendFeeReminder}
+                  disabled={feeReminderLoading || (feeReminderScope === "grade" && !feeReminderGradeId)}
+                >
+                  <MessageSquare className="h-3 w-3" />
+                  <span className="hidden sm:inline">{feeReminderLoading ? "Sending..." : "Fee Reminder SMS"}</span>
+                  <span className="sm:hidden">{feeReminderLoading ? "..." : "SMS"}</span>
+                </Button>
+              </div>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
