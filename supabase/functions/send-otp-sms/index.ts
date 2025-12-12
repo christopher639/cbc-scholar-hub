@@ -54,7 +54,7 @@ serve(async (req) => {
       .from("learners")
       .select("id, first_name, last_name, parent_id")
       .eq("admission_number", username)
-      .single();
+      .maybeSingle();
 
     if (learner) {
       userId = learner.id;
@@ -66,7 +66,7 @@ serve(async (req) => {
           .from("parents")
           .select("phone")
           .eq("id", learner.parent_id)
-          .single();
+          .maybeSingle();
         
         if (parent?.phone) {
           userPhone = parent.phone;
@@ -74,11 +74,25 @@ serve(async (req) => {
       }
     } else {
       // Try to find as teacher (by tsc_number or employee_number)
-      const { data: teacher } = await supabase
+      // First try tsc_number
+      let teacher = null;
+      const { data: teacherByTsc } = await supabase
         .from("teachers")
         .select("id, first_name, last_name, phone, tsc_number, employee_number")
-        .or(`tsc_number.eq.${username},employee_number.eq.${username}`)
-        .single();
+        .eq("tsc_number", username)
+        .maybeSingle();
+      
+      if (teacherByTsc) {
+        teacher = teacherByTsc;
+      } else {
+        // Try employee_number
+        const { data: teacherByEmp } = await supabase
+          .from("teachers")
+          .select("id, first_name, last_name, phone, tsc_number, employee_number")
+          .eq("employee_number", username)
+          .maybeSingle();
+        teacher = teacherByEmp;
+      }
 
       if (teacher) {
         userId = teacher.id;
@@ -87,12 +101,12 @@ serve(async (req) => {
           userPhone = teacher.phone;
         }
       } else {
-        // Try to find as admin user (by email)
+        // Try to find as admin user (by user id in profiles)
         const { data: profile } = await supabase
           .from("profiles")
           .select("id, phone_number")
           .eq("id", username)
-          .single();
+          .maybeSingle();
         
         if (profile) {
           userId = profile.id;
@@ -103,6 +117,8 @@ serve(async (req) => {
         }
       }
     }
+
+    console.log("User lookup result:", { userId, detectedUserType, hasPhone: !!userPhone });
 
     if (!userId) {
       return new Response(
