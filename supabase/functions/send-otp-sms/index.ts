@@ -135,9 +135,16 @@ serve(async (req) => {
     }
 
     if (!userPhone) {
+      // Return 200 with no_phone flag so frontend can handle gracefully
       return new Response(
-        JSON.stringify({ success: false, message: "No phone number associated with this account" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        JSON.stringify({ 
+          success: false, 
+          no_phone: true,
+          message: "No phone number associated with this account",
+          userId: userId,
+          userType: detectedUserType
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
