@@ -434,6 +434,15 @@ export default function Auth() {
           console.error("Profile creation error:", profileError);
         }
 
+        // Notify admins about the new user request (in-app notification)
+        await supabase.rpc("notify_admins", {
+          p_title: "New User Registration",
+          p_message: `${fullName.trim()} has registered and is waiting for account verification.`,
+          p_type: "user_request",
+          p_entity_type: "user",
+          p_entity_id: data.user.id,
+        });
+
         // Send account created notification via SMS/Email
         try {
           await supabase.functions.invoke("send-account-notification", {
