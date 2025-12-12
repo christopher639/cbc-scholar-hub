@@ -101,18 +101,25 @@ serve(async (req) => {
           userPhone = teacher.phone;
         }
       } else {
-        // Try to find as admin user (by user id in profiles)
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id, phone_number")
-          .eq("id", username)
-          .maybeSingle();
+        // Try to find as admin user by email
+        // First get user from auth.users by email using admin API
+        const { data: authData } = await supabase.auth.admin.listUsers();
+        const authUser = authData?.users?.find(u => u.email === username);
         
-        if (profile) {
-          userId = profile.id;
-          detectedUserType = "admin";
-          if (profile.phone_number) {
-            userPhone = profile.phone_number;
+        if (authUser) {
+          // Now get profile with phone number
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("id, phone_number")
+            .eq("id", authUser.id)
+            .maybeSingle();
+          
+          if (profile) {
+            userId = profile.id;
+            detectedUserType = "admin";
+            if (profile.phone_number) {
+              userPhone = profile.phone_number;
+            }
           }
         }
       }
