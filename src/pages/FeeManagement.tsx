@@ -26,6 +26,7 @@ import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 import { GenerateInvoicesDialog } from "@/components/GenerateInvoicesDialog";
 import { MpesaPaymentDialog } from "@/components/MpesaPaymentDialog";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
+import { FeeStructureDocumentPreview } from "@/components/FeeStructureDocumentPreview";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { format } from "date-fns";
@@ -1078,133 +1079,74 @@ const FeeManagement = () => {
 
           {/* Fee Structures Tab */}
           <TabsContent value="structures" className="space-y-4">
-            {/* Actions Bar */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-between">
-              <div className="flex gap-2 flex-wrap items-center">
-                <Select value={structureYearFilter} onValueChange={setStructureYearFilter}>
-                  <SelectTrigger className="w-[130px] h-9 text-sm">
-                    <SelectValue placeholder="Academic Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Years</SelectItem>
-                    {uniqueAcademicYears.map((year) => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={structureGradeFilter} onValueChange={setStructureGradeFilter}>
-                  <SelectTrigger className="w-[120px] h-9 text-sm">
-                    <SelectValue placeholder="Grade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Grades</SelectItem>
-                    {grades.map((grade) => (
-                      <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2"
-                  onClick={handleDownloadFeeStructure}
-                  disabled={filteredStructures.length === 0}
-                >
-                  <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">Download</span>
-                </Button>
-              </div>
-              <Button size="sm" className="gap-2" onClick={() => setEditFeeStructureOpen(true)}>
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Create Fee Structure</span>
-                <span className="sm:hidden">Create</span>
-              </Button>
-            </div>
-
-            {/* Fee Structures Display */}
+            {/* Filter Bar */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold">Fee Structures</CardTitle>
-                <CardDescription className="text-sm text-muted-foreground">
-                  Fee breakdown by grade and term
-                </CardDescription>
+                <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                  <div>
+                    <CardTitle className="text-lg font-semibold">Fee Structure</CardTitle>
+                    <CardDescription className="text-sm">Select academic year and grade to view fee structure</CardDescription>
+                  </div>
+                  <Button size="sm" className="gap-2" onClick={() => setEditFeeStructureOpen(true)}>
+                    <Plus className="h-4 w-4" />
+                    Create Fee Structure
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {structuresLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-24 w-full" />
-                    ))}
+                <div className="grid gap-4 sm:grid-cols-2 max-w-md">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Academic Year</Label>
+                    <Select value={structureYearFilter} onValueChange={setStructureYearFilter}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniqueAcademicYears.map((year) => (
+                          <SelectItem key={year} value={year}>{year}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                ) : filteredStructures.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                    <p className="text-muted-foreground text-sm mb-3">No fee structures found</p>
-                    <Button size="sm" onClick={() => setEditFeeStructureOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Fee Structure
-                    </Button>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Grade</Label>
+                    <Select value={structureGradeFilter} onValueChange={setStructureGradeFilter}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select grade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {grades.map((grade) => (
+                          <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {(() => {
-                      const gradeGroups: { [key: string]: any[] } = {};
-                      filteredStructures.forEach((structure) => {
-                        const gradeName = structure.grade?.name || 'Unknown Grade';
-                        if (!gradeGroups[gradeName]) {
-                          gradeGroups[gradeName] = [];
-                        }
-                        gradeGroups[gradeName].push(structure);
-                      });
-
-                      return Object.entries(gradeGroups).map(([gradeName, gradeStructures]) => {
-                        // Group by term within each grade
-                        const termGroups: { [key: string]: any[] } = {};
-                        gradeStructures.forEach((s) => {
-                          const termKey = `${s.academic_year} - ${s.term.replace("_", " ").toUpperCase()}`;
-                          if (!termGroups[termKey]) {
-                            termGroups[termKey] = [];
-                          }
-                          termGroups[termKey].push(s);
-                        });
-
-                        return (
-                          <div key={gradeName} className="rounded-lg border border-border p-4">
-                            <h3 className="font-semibold text-base mb-3">{gradeName}</h3>
-                            <div className="space-y-3">
-                              {Object.entries(termGroups).map(([termKey, termStructures]) => {
-                                const total = termStructures.reduce((sum, s) => sum + Number(s.amount), 0);
-                                return (
-                                  <div key={termKey} className="bg-muted/30 rounded-md p-3">
-                                    <p className="text-sm font-medium text-muted-foreground mb-2">{termKey}</p>
-                                    <div className="grid gap-2 sm:grid-cols-2">
-                                      {termStructures.map((structure) => (
-                                        <div key={structure.id} className="flex justify-between text-sm">
-                                          <span className="text-muted-foreground">
-                                            {structure.category?.name || structure.description || 'Tuition Fee'}
-                                          </span>
-                                          <span className="font-medium">
-                                            {formatCurrency(Number(structure.amount))}
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <div className="flex justify-between font-semibold text-sm pt-2 mt-2 border-t border-border">
-                                      <span>Total</span>
-                                      <span className="text-primary">{formatCurrency(total)}</span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                )}
+                </div>
               </CardContent>
             </Card>
+
+            {/* Fee Structure Document Preview */}
+            {structureYearFilter && structureYearFilter !== "all" && structureGradeFilter && structureGradeFilter !== "all" ? (
+              <FeeStructureDocumentPreview
+                structures={filteredStructures}
+                academicYear={structureYearFilter}
+                gradeName={grades.find(g => g.id === structureGradeFilter)?.name || ""}
+                loading={structuresLoading}
+                onDownload={handleDownloadFeeStructure}
+              />
+            ) : (
+              <Card>
+                <CardContent className="py-12">
+                  <div className="text-center">
+                    <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+                    <h3 className="text-base font-medium text-muted-foreground mb-2">No Fee Structure Selected</h3>
+                    <p className="text-sm text-muted-foreground/70 max-w-sm mx-auto">
+                      Please select both academic year and grade above to view the fee structure document
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Fee Structure Dialog */}
             <SetFeeStructureDialogEnhanced
