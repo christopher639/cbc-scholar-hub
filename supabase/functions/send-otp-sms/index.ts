@@ -119,7 +119,7 @@ serve(async (req) => {
       apikey: apiKey,
       partnerID: 15265,
       message: message,
-      shortcode: schoolName.substring(0, 11),
+      shortcode: "TextSMS",
       mobile: formattedPhone,
     };
 
