@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.send-credentials-sms]
 verify_jwt = false
+
+[functions.send-account-notification]
+verify_jwt = false

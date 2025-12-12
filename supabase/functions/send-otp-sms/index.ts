@@ -285,8 +285,13 @@ serve(async (req) => {
       );
     }
 
+    // CRITICAL: If OTP failed to send to ANY channel, return failure to block login
     return new Response(
-      JSON.stringify({ success: false, message: "Failed to send OTP. Please try again." }),
+      JSON.stringify({ 
+        success: false, 
+        otpFailed: true,
+        message: "Failed to send OTP. Unable to verify your identity. Please contact admin or try again later." 
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   } catch (error: unknown) {
