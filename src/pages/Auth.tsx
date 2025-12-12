@@ -24,6 +24,7 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingGoogleAuth, setCheckingGoogleAuth] = useState(true);
@@ -36,6 +37,8 @@ export default function Auth() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [verifiedUserId, setVerifiedUserId] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPhone, setSignupPhone] = useState("");
   
   // Check for Google OAuth callback and handle user verification
   useEffect(() => {
@@ -53,7 +56,7 @@ export default function Auth() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        // Check if user has a role assigned
+        // Check if user has a role assigned (existing verified user)
         const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
@@ -61,14 +64,14 @@ export default function Auth() {
           .single();
         
         if (roleData?.role) {
-          // Check if 2FA is enabled
+          // EXISTING USER - Requires OTP verification if 2FA is enabled
           const { data: schoolData } = await supabase
             .from("school_info")
             .select("two_factor_enabled")
             .single();
           
           if (schoolData?.two_factor_enabled) {
-            // Send OTP to user's phone
+            // Send OTP to user's phone/email
             try {
               const response = await supabase.functions.invoke("send-otp-sms", {
                 body: { username: session.user.email, mode: "2fa_login" }
@@ -103,6 +106,15 @@ export default function Auth() {
                 } else {
                   navigate("/dashboard", { replace: true });
                 }
+              } else if (response.data?.otpFailed) {
+                // OTP failed to send - BLOCK LOGIN
+                toast({ 
+                  title: "Login Blocked", 
+                  description: response.data.message || "Failed to send verification code. Please try again later or contact admin.",
+                  variant: "destructive" 
+                });
+                await supabase.auth.signOut();
+                navigate("/", { replace: true });
               } else {
                 throw new Error(response.data?.message || "Failed to send OTP");
               }
@@ -123,6 +135,7 @@ export default function Auth() {
               } else {
                 toast({ title: "Error", description: error.message || "Failed to send verification code", variant: "destructive" });
                 await supabase.auth.signOut();
+                navigate("/", { replace: true });
               }
             }
           } else {
@@ -136,8 +149,10 @@ export default function Auth() {
             }
           }
         } else {
-          // No role assigned - create profile and require admin activation
+          // NEW USER (first-time Google signup) - No OTP required, create pending account
           const userName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User";
+          const userEmail = session.user.email || "";
+          const userPhone = session.user.phone || "";
           
           const { data: profile } = await supabase
             .from("profiles")
@@ -162,13 +177,28 @@ export default function Auth() {
               p_entity_type: "user",
               p_entity_id: session.user.id,
             });
+
+            // Send account created notification via SMS/Email
+            try {
+              await supabase.functions.invoke("send-account-notification", {
+                body: { 
+                  userId: session.user.id, 
+                  notificationType: "account_created",
+                  email: userEmail,
+                  phone: userPhone,
+                  fullName: userName
+                }
+              });
+            } catch (notifyError) {
+              console.error("Failed to send account created notification:", notifyError);
+            }
           }
           
           // Sign out and show message - all new users need admin activation
           await supabase.auth.signOut();
           toast({
             title: "Account Pending Verification",
-            description: "Your account has been created and is pending admin approval. You'll be notified once activated.",
+            description: "Your account has been created. You'll receive a notification via SMS/email once admin approves your account.",
           });
           navigate("/", { replace: true });
         }
@@ -265,6 +295,13 @@ export default function Auth() {
                 navigate("/dashboard", { replace: true });
               }
             }
+          } else if (response.data?.otpFailed) {
+            // OTP failed to send - BLOCK LOGIN
+            toast({ 
+              title: "Login Blocked", 
+              description: response.data.message || "Failed to send verification code. Unable to verify your identity.",
+              variant: "destructive" 
+            });
           } else {
             throw new Error(response.data?.message || "Failed to send OTP");
           }
@@ -286,7 +323,8 @@ export default function Auth() {
               }
             }
           } else {
-            toast({ title: "Error", description: error.message || "Failed to send verification code", variant: "destructive" });
+            // OTP failed - Block login
+            toast({ title: "Login Blocked", description: error.message || "Failed to send verification code. Please try again later.", variant: "destructive" });
           }
         }
         setIsSubmitting(false);
@@ -321,6 +359,30 @@ export default function Auth() {
       toast({ title: "Error", description: "Please enter your full name", variant: "destructive" });
       return;
     }
+
+    if (!signupEmail.trim()) {
+      toast({ title: "Error", description: "Please enter your email", variant: "destructive" });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(signupEmail.trim())) {
+      toast({ title: "Error", description: "Please enter a valid email address", variant: "destructive" });
+      return;
+    }
+
+    if (!signupPhone.trim()) {
+      toast({ title: "Error", description: "Please enter your phone number", variant: "destructive" });
+      return;
+    }
+
+    // Validate phone format (should start with 07, 01, or +254)
+    const phoneClean = signupPhone.replace(/\s/g, "");
+    if (!/^(0[17]\d{8}|\+?254[17]\d{8})$/.test(phoneClean)) {
+      toast({ title: "Error", description: "Please enter a valid Kenyan phone number (e.g., 0712345678)", variant: "destructive" });
+      return;
+    }
     
     if (password !== confirmPassword) {
       toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
@@ -336,7 +398,7 @@ export default function Auth() {
     
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: username,
+        email: signupEmail.trim().toLowerCase(),
         password: password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth`,
@@ -349,12 +411,21 @@ export default function Auth() {
       if (error) throw error;
       
       if (data.user) {
-        // Create profile with pending activation status
+        // Format phone number
+        let formattedPhone = phoneClean;
+        if (formattedPhone.startsWith("0")) {
+          formattedPhone = "254" + formattedPhone.substring(1);
+        } else if (formattedPhone.startsWith("+")) {
+          formattedPhone = formattedPhone.substring(1);
+        }
+
+        // Create profile with pending activation status and phone number
         const { error: profileError } = await supabase
           .from("profiles")
           .upsert({
             id: data.user.id,
             full_name: fullName.trim(),
+            phone_number: formattedPhone,
             is_activated: false,
             activation_status: "pending",
           });
@@ -362,16 +433,33 @@ export default function Auth() {
         if (profileError) {
           console.error("Profile creation error:", profileError);
         }
+
+        // Send account created notification via SMS/Email
+        try {
+          await supabase.functions.invoke("send-account-notification", {
+            body: { 
+              userId: data.user.id, 
+              notificationType: "account_created",
+              email: signupEmail.trim().toLowerCase(),
+              phone: formattedPhone,
+              fullName: fullName.trim()
+            }
+          });
+        } catch (notifyError) {
+          console.error("Failed to send account created notification:", notifyError);
+        }
         
         toast({
           title: "Account Created!",
-          description: "Your account is pending admin approval. You'll be notified once activated.",
+          description: "You'll receive an SMS and email notification. Please wait for admin approval.",
         });
         
         // Sign out since they need approval
         await supabase.auth.signOut();
         setIsSignUp(false);
         setFullName("");
+        setSignupEmail("");
+        setSignupPhone("");
         setPassword("");
         setConfirmPassword("");
       }
@@ -653,8 +741,8 @@ export default function Auth() {
               </button>
             </div>
           ) : isSignUp ? (
-            // Sign Up Form - Google Only
-            <div className="space-y-4">
+            // Sign Up Form - Email/Password + Phone OR Google
+            <form onSubmit={handleSignUp} className="space-y-3">
               <Button
                 type="button"
                 variant="outline"
@@ -675,6 +763,111 @@ export default function Auth() {
                 Continue with Google
               </Button>
               
+              <div className="relative my-3">
+                <Separator />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-[10px] text-muted-foreground">
+                  or sign up with email
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="fullName" className="text-xs font-medium">Full Name</Label>
+                <Input
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  autoComplete="name"
+                  className="h-10 rounded-lg border-border/60 text-sm"
+                  placeholder="Enter your full name"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="signupEmail" className="text-xs font-medium">Email Address</Label>
+                <Input
+                  id="signupEmail"
+                  type="email"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  className="h-10 rounded-lg border-border/60 text-sm"
+                  placeholder="you@example.com"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="signupPhone" className="text-xs font-medium">Phone Number (+254)</Label>
+                <Input
+                  id="signupPhone"
+                  type="tel"
+                  value={signupPhone}
+                  onChange={(e) => setSignupPhone(e.target.value)}
+                  required
+                  autoComplete="tel"
+                  className="h-10 rounded-lg border-border/60 text-sm"
+                  placeholder="0712345678"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Used for OTP verification and notifications
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="signupPassword" className="text-xs font-medium">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="signupPassword"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="new-password"
+                    className="h-10 rounded-lg border-border/60 pr-10 text-sm"
+                    placeholder="Min. 6 characters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="confirmPassword" className="text-xs font-medium">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    autoComplete="new-password"
+                    className="h-10 rounded-lg border-border/60 pr-10 text-sm"
+                    placeholder="Re-enter password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full h-10 rounded-lg text-sm font-semibold" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating Account...</>
+                ) : (
+                  <><UserPlus className="mr-2 h-4 w-4" />Create Account</>
+                )}
+              </Button>
+              
               <button
                 type="button"
                 onClick={() => setIsSignUp(false)}
@@ -683,7 +876,7 @@ export default function Auth() {
                 <ArrowLeft className="h-3 w-3" />
                 Back to Sign In
               </button>
-            </div>
+            </form>
           ) : (
             // Sign In Form
             <form onSubmit={handleLogin} className="space-y-3">
