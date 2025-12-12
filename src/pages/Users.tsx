@@ -176,6 +176,16 @@ const Users = () => {
   const activateUser = async (userId: string, role: AppRole) => {
     if (!checkFinanceAccess("activate users", false)) return;
     try {
+      // Get user profile info for notification
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name, phone_number")
+        .eq("id", userId)
+        .single();
+
+      // Get user email from auth (if available via edge function or stored)
+      const userEmail = null; // Will be fetched from edge function
+
       // Update profile activation status
       const { error: profileError } = await supabase
         .from("profiles")
@@ -194,6 +204,28 @@ const Users = () => {
       });
 
       if (roleError) throw roleError;
+
+      // Send account verified notification via SMS and email
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session) {
+          await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-account-notification`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId,
+              notificationType: "account_verified",
+              phone: profileData?.phone_number,
+              fullName: profileData?.full_name,
+            }),
+          });
+        }
+      } catch (notifError) {
+        console.error("Failed to send verification notification:", notifError);
+      }
 
       toast({
         title: "User Activated",

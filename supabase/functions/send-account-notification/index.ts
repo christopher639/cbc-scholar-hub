@@ -25,7 +25,7 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, notificationType, email, phone, fullName } = await req.json();
+    const { userId, notificationType, email: providedEmail, phone: providedPhone, fullName: providedName } = await req.json();
 
     // notificationType: "account_created" or "account_verified"
 
@@ -39,6 +39,28 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Get user email from auth.users table
+    let email = providedEmail;
+    let phone = providedPhone;
+    let fullName = providedName;
+
+    // Try to get user info from auth.users if not provided
+    const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+    if (authUser?.user) {
+      if (!email) email = authUser.user.email;
+      if (!phone) phone = authUser.user.phone || authUser.user.user_metadata?.phone_number;
+      if (!fullName) fullName = authUser.user.user_metadata?.full_name;
+    }
+
+    // Also try to get phone from profiles if still not available
+    if (!phone) {
+      const { data: profile } = await supabase.from("profiles").select("phone_number, full_name").eq("id", userId).single();
+      if (profile) {
+        if (!phone) phone = profile.phone_number;
+        if (!fullName) fullName = profile.full_name;
+      }
+    }
 
     // Get school info
     const { data: school } = await supabase.from("school_info").select("school_name").single();
