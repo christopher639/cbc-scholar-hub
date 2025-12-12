@@ -134,11 +134,15 @@ export default function OTPVerification() {
   };
 
   const handleBackToLogin = async () => {
-    // If Google auth, sign out first
-    if (pendingData?.isGoogleAuth) {
-      await supabase.auth.signOut();
-    }
-    navigate("/auth", { replace: true });
+    // Always sign out to prevent auto-redirect on Auth page
+    await supabase.auth.signOut();
+    // Clear any learner/teacher session tokens
+    localStorage.removeItem("learner_session");
+    localStorage.removeItem("teacher_session");
+    // Small delay to ensure signOut completes before navigation
+    setTimeout(() => {
+      navigate("/auth", { replace: true });
+    }, 100);
   };
 
   if (!pendingData) {
