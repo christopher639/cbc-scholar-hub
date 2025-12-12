@@ -34,6 +34,7 @@ import { formatCurrency } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { downloadFeeBalanceReport } from "@/utils/feeReportGenerator";
+import { generateFeeStructurePDF } from "@/utils/feeStructurePdfGenerator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -452,48 +453,36 @@ const FeeManagement = () => {
   }, [structures, structureYearFilter, structureGradeFilter]);
 
   const handleDownloadFeeStructure = async () => {
-    const { data: school } = await supabase.from("school_info").select("*").single();
-    
-    // Group structures by grade and term
-    const gradeGroups: { [key: string]: any[] } = {};
-    filteredStructures.forEach((structure) => {
-      const gradeName = structure.grade?.name || 'Unknown Grade';
-      if (!gradeGroups[gradeName]) {
-        gradeGroups[gradeName] = [];
-      }
-      gradeGroups[gradeName].push(structure);
-    });
+    try {
+      const { data: school } = await supabase.from("school_info").select("*").single();
+      
+      const academicYear = structureYearFilter !== "all" 
+        ? structureYearFilter 
+        : (currentPeriod?.academic_year || new Date().getFullYear().toString());
+      
+      const gradeName = structureGradeFilter !== "all" 
+        ? grades.find((g) => g.id === structureGradeFilter)?.name 
+        : undefined;
 
-    let csvContent = `${school?.school_name || "School"} - Fee Structure Report\n`;
-    csvContent += `Generated: ${format(new Date(), "PPP")}\n`;
-    if (structureYearFilter !== "all") csvContent += `Academic Year: ${structureYearFilter}\n`;
-    if (structureGradeFilter !== "all") {
-      const gradeName = grades.find((g) => g.id === structureGradeFilter)?.name;
-      if (gradeName) csvContent += `Grade: ${gradeName}\n`;
-    }
-    csvContent += `\nGrade,Term,Academic Year,Description,Amount\n`;
+      await generateFeeStructurePDF(
+        filteredStructures,
+        school,
+        academicYear,
+        gradeName
+      );
 
-    Object.entries(gradeGroups).forEach(([gradeName, gradeStructures]) => {
-      gradeStructures.forEach((s) => {
-        csvContent += `"${gradeName}","${s.term.replace("_", " ").toUpperCase()}","${s.academic_year}","${s.category?.name || s.description || 'Tuition Fee'}","${s.amount}"\n`;
+      toast({
+        title: "Downloaded",
+        description: "Fee structure PDF has been downloaded",
       });
-    });
-
-    // Download
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `fee-structure-${structureYearFilter !== "all" ? structureYearFilter : "all"}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: "Downloaded",
-      description: "Fee structure report has been downloaded",
-    });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
