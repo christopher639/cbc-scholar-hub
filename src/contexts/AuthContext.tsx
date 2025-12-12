@@ -17,6 +17,7 @@ interface AuthContextType {
   loginAdmin: (email: string, password: string) => Promise<{ success: boolean; role: string | null }>;
   loginTeacher: (tscNumber: string, idNumber: string) => Promise<{ success: boolean; role: string | null }>;
   loginLearner: (admissionNumber: string, birthCertificate: string) => Promise<{ success: boolean; role: string | null }>;
+  validateCredentials: (username: string, password: string) => Promise<{ success: boolean; role: string | null; userType: string | null }>;
   logout: () => Promise<void>;
 }
 
@@ -336,6 +337,85 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Validate credentials WITHOUT creating a session (for 2FA flow)
+  const validateCredentials = async (username: string, password: string): Promise<{ success: boolean; role: string | null; userType: string | null }> => {
+    try {
+      // Check teacher credentials first
+      const { data: teacherData } = await supabase
+        .from("teachers")
+        .select("id, first_name, last_name")
+        .ilike("employee_number", username.trim())
+        .ilike("id_number", password.trim())
+        .maybeSingle();
+
+      if (teacherData) {
+        return { success: true, role: "teacher", userType: "teacher" };
+      }
+
+      // Check learner credentials
+      const { data: learnerData } = await supabase
+        .rpc("validate_learner_credentials", {
+          _admission: username.trim(),
+          _birth: password.trim(),
+        });
+
+      if (learnerData && learnerData.length > 0) {
+        return { success: true, role: "learner", userType: "learner" };
+      }
+
+      // Check admin credentials (just verify, don't sign in)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: username.trim().toLowerCase(),
+        password: password.trim(),
+      });
+
+      if (!error && data.user) {
+        // Check if user is activated
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("is_activated, activation_status")
+          .eq("id", data.user.id)
+          .maybeSingle();
+
+        // Sign out immediately - we only validated
+        await supabase.auth.signOut();
+
+        if (profileData && profileData.is_activated === false) {
+          toast({
+            title: "Account Pending",
+            description: "Your account is pending admin approval. Please wait for activation.",
+            variant: "destructive",
+          });
+          return { success: false, role: null, userType: null };
+        }
+
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+
+        if (roleData) {
+          return { success: true, role: roleData.role, userType: "admin" };
+        }
+      }
+
+      toast({
+        title: "Login Failed",
+        description: "Invalid credentials. Please verify your username and password.",
+        variant: "destructive",
+      });
+      return { success: false, role: null, userType: null };
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      return { success: false, role: null, userType: null };
+    }
+  };
+
   const logout = async () => {
     try {
       const learnerToken = localStorage.getItem(LEARNER_SESSION_KEY);
@@ -370,7 +450,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginAdmin, loginTeacher, loginLearner, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginAdmin, loginTeacher, loginLearner, validateCredentials, logout }}>
       {children}
     </AuthContext.Provider>
   );
