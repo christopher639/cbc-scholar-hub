@@ -23,7 +23,7 @@ interface LocationState {
 export default function OTPVerification() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const { schoolInfo } = useSchoolInfo();
   const { toast } = useToast();
 
@@ -134,15 +134,9 @@ export default function OTPVerification() {
   };
 
   const handleBackToLogin = async () => {
-    // Always sign out to prevent auto-redirect on Auth page
-    await supabase.auth.signOut();
-    // Clear any learner/teacher session tokens
-    localStorage.removeItem("learner_session");
-    localStorage.removeItem("teacher_session");
-    // Small delay to ensure signOut completes before navigation
-    setTimeout(() => {
-      navigate("/auth", { replace: true });
-    }, 100);
+    // Use the logout function from AuthContext to properly clear all state
+    await logout();
+    navigate("/auth", { replace: true });
   };
 
   if (!pendingData) {
