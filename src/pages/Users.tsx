@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit, Trash2, Check, X, Clock, UserCheck, UserX, DollarSign } from "lucide-react";
+import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit, Trash2, Check, X, Clock, UserCheck, UserX, DollarSign, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const avatarColors = [
@@ -101,13 +107,40 @@ const Users = () => {
 
       if (rolesError) throw rolesError;
 
+      // Fetch user emails from auth via edge function or use stored emails
+      const userEmails: Record<string, string> = {};
+      
+      // Try to get emails from Supabase auth (this requires admin access)
+      // For now, we'll get them from the auth metadata if available
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-user-emails`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userIds: profiles?.map(p => p.id) || [] }),
+          });
+          if (response.ok) {
+            const emailData = await response.json();
+            emailData.emails?.forEach((e: { id: string; email: string }) => {
+              userEmails[e.id] = e.email;
+            });
+          }
+        } catch (e) {
+          console.log("Could not fetch emails:", e);
+        }
+      }
+
       const allUsers = profiles?.map((profile) => {
         const userRole = roles?.find((r) => r.user_id === profile.id);
         
         return {
           id: profile.id,
           name: profile.full_name,
-          email: "Loading...",
+          email: userEmails[profile.id] || "—",
           created_at: profile.created_at,
           role: (userRole?.role || "learner") as AppRole,
           is_activated: profile.is_activated ?? false,
@@ -454,10 +487,11 @@ const Users = () => {
             <TableRow>
               <TableHead className="w-12">Photo</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>{showActivation ? "Status" : "Current Role"}</TableHead>
               <TableHead>Joined Date</TableHead>
               <TableHead>{showActivation ? "Assign Role & Activate" : "Change Role"}</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="w-16">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -472,6 +506,7 @@ const Users = () => {
                   </Avatar>
                 </TableCell>
                 <TableCell className="font-medium py-2">{user.name}</TableCell>
+                <TableCell className="py-2 text-muted-foreground text-sm">{user.email}</TableCell>
                 <TableCell className="py-2">
                   {showActivation ? (
                     <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
@@ -534,23 +569,26 @@ const Users = () => {
                   )}
                 </TableCell>
                 <TableCell className="py-2">
-                  <div className="flex gap-2">
-                    {showActivation ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        disabled={isVisitor || isFinance}
-                        onClick={() => denyUser(user.id)}
-                      >
-                        <UserX className="h-4 w-4 mr-1" />
-                        Deny
-                      </Button>
-                    ) : (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
+                  {showActivation ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      disabled={isVisitor || isFinance}
+                      onClick={() => denyUser(user.id)}
+                    >
+                      <UserX className="h-4 w-4 mr-1" />
+                      Deny
+                    </Button>
+                  ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
                           disabled={isVisitor || isFinance}
                           onClick={() => {
                             if (checkFinanceAccess("edit users", false)) {
@@ -559,14 +597,12 @@ const Users = () => {
                             }
                           }}
                         >
-                          <Edit className="h-4 w-4 mr-1" />
+                          <Edit className="h-4 w-4 mr-2" />
                           Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           disabled={isVisitor || isFinance}
+                          className="text-destructive focus:text-destructive"
                           onClick={() => {
                             if (checkFinanceAccess("delete users", false)) {
                               setUserToDelete({ id: user.id, name: user.name });
@@ -574,12 +610,12 @@ const Users = () => {
                             }
                           }}
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
+                          <Trash2 className="h-4 w-4 mr-2" />
                           Delete
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
