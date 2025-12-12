@@ -83,6 +83,15 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
           console.error('Profile update error:', profileError);
         }
 
+        // Create notification for all admins about the new user
+        await supabase.rpc("notify_admins", {
+          p_title: "New User Created",
+          p_message: `${formData.fullName} has been added as ${formData.role} by admin.`,
+          p_type: "new_staff",
+          p_entity_type: "user",
+          p_entity_id: authData.user.id,
+        });
+
         toast({
           title: "Success",
           description: "User created and activated successfully",
