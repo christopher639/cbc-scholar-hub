@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, loading, login } = useAuth();
+  const { user, loading, login, validateCredentials } = useAuth();
   const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   const { toast } = useToast();
   
@@ -43,8 +43,11 @@ export default function Auth() {
   const [loginOtpSent, setLoginOtpSent] = useState(false);
   const [loginSentOtp, setLoginSentOtp] = useState("");
   const [loginOtpExpiry, setLoginOtpExpiry] = useState<Date | null>(null);
-  const [pendingLoginData, setPendingLoginData] = useState<{ username: string; password: string; role?: string } | null>(null);
+  const [pendingLoginData, setPendingLoginData] = useState<{ username: string; password: string; role?: string | null; userType?: string | null } | null>(null);
   const [maskedPhone, setMaskedPhone] = useState("");
+
+  // State for Google 2FA
+  const [googleUser, setGoogleUser] = useState<{ id: string; role: string; email: string } | null>(null);
 
   // Check for Google OAuth callback and handle user verification
   useEffect(() => {
@@ -70,15 +73,53 @@ export default function Auth() {
           .single();
         
         if (roleData?.role) {
-          // User is verified and has a role - redirect to appropriate dashboard
-          if (roleData.role === "learner") {
-            navigate("/learner-portal", { replace: true });
-          } else if (roleData.role === "teacher") {
-            navigate("/teacher-portal", { replace: true });
-          } else if (roleData.role === "admin" || roleData.role === "finance" || roleData.role === "visitor") {
-            navigate("/dashboard", { replace: true });
+          // Check if 2FA is enabled
+          const { data: schoolData } = await supabase
+            .from("school_info")
+            .select("two_factor_enabled")
+            .single();
+          
+          if (schoolData?.two_factor_enabled) {
+            // Store Google user data and require 2FA
+            setGoogleUser({ 
+              id: session.user.id, 
+              role: roleData.role, 
+              email: session.user.email || "" 
+            });
+            
+            // Send OTP to user's phone
+            try {
+              const response = await supabase.functions.invoke("send-otp-sms", {
+                body: { username: session.user.email, mode: "2fa_login" }
+              });
+              
+              if (response.data?.success) {
+                setLoginSentOtp(response.data.otp);
+                setLoginOtpExpiry(new Date(response.data.expiresAt));
+                setMaskedPhone(response.data.phone);
+                setIs2FARequired(true);
+                setLoginOtpSent(true);
+                setPendingLoginData({ username: session.user.email || "", password: "", role: roleData.role });
+                toast({ 
+                  title: "OTP Sent", 
+                  description: `Verification code sent to phone ending in ...${response.data.phone}. Valid for 5 minutes.` 
+                });
+              } else {
+                throw new Error(response.data?.message || "Failed to send OTP");
+              }
+            } catch (error: any) {
+              toast({ title: "Error", description: error.message || "Failed to send verification code", variant: "destructive" });
+              await supabase.auth.signOut();
+            }
           } else {
-            navigate("/dashboard", { replace: true });
+            // No 2FA - redirect directly
+            if (roleData.role === "learner") {
+              navigate("/learner-portal", { replace: true });
+            } else if (roleData.role === "teacher") {
+              navigate("/teacher-portal", { replace: true });
+            } else {
+              navigate("/dashboard", { replace: true });
+            }
           }
         } else {
           // No role assigned - create profile and require admin activation
@@ -133,6 +174,9 @@ export default function Auth() {
   }, []);
 
   useEffect(() => {
+    // Don't auto-redirect if 2FA verification is pending
+    if (is2FARequired) return;
+    
     if (user && !loading) {
       // Check if user is activated and redirect based on role
       if (user.role === "learner") {
@@ -145,7 +189,7 @@ export default function Auth() {
         navigate("/dashboard", { replace: true });
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, is2FARequired]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,12 +203,12 @@ export default function Auth() {
     
     // Check if 2FA is enabled
     if (schoolInfo?.two_factor_enabled) {
-      // First validate credentials without completing login
-      const result = await login(username, password);
+      // First validate credentials WITHOUT completing login
+      const result = await validateCredentials(username, password);
       
       if (result?.success) {
-        // Store pending login data
-        setPendingLoginData({ username, password, role: result.role });
+        // Store pending login data (including userType for proper login after OTP)
+        setPendingLoginData({ username, password, role: result.role, userType: result.userType });
         
         // Automatically send OTP to user's associated phone
         try {
@@ -193,6 +237,8 @@ export default function Auth() {
         setIsSubmitting(false);
         return;
       }
+      setIsSubmitting(false);
+      return;
     } else {
       // Normal login without 2FA
       const result = await login(username, password);
@@ -248,15 +294,41 @@ export default function Auth() {
     }
     
     if (loginOtp === loginSentOtp) {
-      // OTP verified, complete the login redirect
-      toast({ title: "Verified", description: "Login successful!" });
-      if (pendingLoginData?.role === "learner") {
-        navigate("/learner-portal", { replace: true });
-      } else if (pendingLoginData?.role === "teacher") {
-        navigate("/teacher-portal", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
+      setIsSubmitting(true);
+      
+      // OTP verified - now actually complete the login
+      if (pendingLoginData) {
+        const result = await login(pendingLoginData.username, pendingLoginData.password);
+        
+        if (result?.success) {
+          toast({ title: "Verified", description: "Login successful!" });
+          setIs2FARequired(false);
+          
+          if (result.role === "learner") {
+            navigate("/learner-portal", { replace: true });
+          } else if (result.role === "teacher") {
+            navigate("/teacher-portal", { replace: true });
+          } else {
+            navigate("/dashboard", { replace: true });
+          }
+        } else {
+          toast({ title: "Error", description: "Login failed after verification.", variant: "destructive" });
+        }
+      } else if (googleUser) {
+        // For Google users, they're already authenticated - just redirect
+        toast({ title: "Verified", description: "Login successful!" });
+        setIs2FARequired(false);
+        
+        if (googleUser.role === "learner") {
+          navigate("/learner-portal", { replace: true });
+        } else if (googleUser.role === "teacher") {
+          navigate("/teacher-portal", { replace: true });
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
       }
+      
+      setIsSubmitting(false);
     } else {
       toast({ title: "Error", description: "Invalid OTP. Please try again.", variant: "destructive" });
     }
