@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, ArrowUp, FileDown, Settings, Download, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, Users, ArrowUp, FileDown, Settings, Download, Pencil, Trash2 } from "lucide-react";
 import { AddGradeStreamDialog } from "@/components/AddGradeStreamDialog";
 import { EditGradeDialog } from "@/components/EditGradeDialog";
 import { EditStreamDialog } from "@/components/EditStreamDialog";
@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
@@ -399,6 +398,13 @@ const Grades = () => {
 
             {manageGradeId && (
               <div className="space-y-4">
+                {/* Warning Banner */}
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-xs text-amber-800 dark:text-amber-200">
+                    <strong>Warning:</strong> Editing or deleting grades/streams will affect all associated learners and records. Grades/streams with learners cannot be deleted.
+                  </p>
+                </div>
+
                 {/* Grade Actions */}
                 <div className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
@@ -407,34 +413,30 @@ const Grades = () => {
                       {grades.find(g => g.id === manageGradeId)?.learner_count || 0} learners • {grades.find(g => g.id === manageGradeId)?.stream_count || 0} streams
                     </p>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setSelectedGrade(grades.find(g => g.id === manageGradeId));
-                          setEditGradeDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Edit Grade
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => {
-                          setSelectedGrade(grades.find(g => g.id === manageGradeId));
-                          setDeleteGradeDialogOpen(true);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Grade
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedGrade(grades.find(g => g.id === manageGradeId));
+                        setEditGradeDialogOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedGrade(grades.find(g => g.id === manageGradeId));
+                        setDeleteGradeDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Streams List */}
@@ -454,34 +456,30 @@ const Grades = () => {
                               Capacity: {stream.capacity || "Unlimited"}
                             </p>
                           </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedStream(stream);
-                                  setEditStreamDialogOpen(true);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4 mr-2" />
-                                Edit Stream
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => {
-                                  setSelectedStream(stream);
-                                  setDeleteStreamDialogOpen(true);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete Stream
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStream(stream);
+                                setEditStreamDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStream(stream);
+                                setDeleteStreamDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
