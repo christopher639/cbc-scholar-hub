@@ -29,7 +29,6 @@ import NonTeachingStaff from "./pages/NonTeachingStaff";
 import Invoices from "./pages/Invoices";
 import FeeStructures from "./pages/FeeStructures";
 import Activities from "./pages/Activities";
-// SchoolInfo merged into Settings page
 import LearnerProfile from "./pages/LearnerProfile";
 import LearnerProfilePage from "./pages/LearnerProfilePage";
 import LearnerSettings from "./pages/LearnerSettings";
@@ -63,12 +62,76 @@ import TeacherSettings from "./pages/TeacherSettings";
 
 const queryClient = new QueryClient();
 
-function SessionTimeoutWrapper({ children }: { children: React.ReactNode }) {
+// Component that uses AuthProvider context for session timeout
+function AppContent() {
   const { showWarning, timeRemaining, extendSession } = useSessionTimeout();
   
   return (
     <>
-      {children}
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          {/* Public School Website */}
+          <Route path="/" element={<Home />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/signout" element={<Signout />} />
+          
+          {/* Learner Portal Routes */}
+          <Route path="/learner-portal" element={<ProtectedRoute><LearnerPortalLayout /></ProtectedRoute>}>
+            <Route index element={<LearnerDashboard />} />
+            <Route path="profile" element={<LearnerProfilePage />} />
+            <Route path="performance" element={<LearnerPerformance />} />
+            <Route path="fees" element={<LearnerFeesPage />} />
+            <Route path="fee-structures" element={<LearnerFeeStructures />} />
+            <Route path="ai-tutor" element={<LearnerAITutor />} />
+            <Route path="settings" element={<LearnerSettings />} />
+          </Route>
+
+          {/* Teacher Portal Routes */}
+          <Route path="/teacher-portal" element={<ProtectedRoute><TeacherPortalLayout /></ProtectedRoute>}>
+            <Route index element={<TeacherDashboard />} />
+            <Route path="marks" element={<TeacherMarks />} />
+            <Route path="assignments" element={<TeacherAssignments />} />
+            <Route path="profile" element={<TeacherPortalProfile />} />
+            <Route path="settings" element={<TeacherSettings />} />
+          </Route>
+
+          <Route path="/dashboard" element={<ProtectedRoute><AdminRoute><Dashboard /></AdminRoute></ProtectedRoute>} />
+          <Route path="/learners" element={<ProtectedRoute><Learners /></ProtectedRoute>} />
+          <Route path="/learners/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
+          <Route path="/alumni" element={<ProtectedRoute><Alumni /></ProtectedRoute>} />
+          <Route path="/grades" element={<ProtectedRoute><Grades /></ProtectedRoute>} />
+          <Route path="/grades/:grade" element={<ProtectedRoute><GradeDetail /></ProtectedRoute>} />
+          <Route path="/grades/:grade/:stream" element={<ProtectedRoute><StreamDetail /></ProtectedRoute>} />
+          <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
+          <Route path="/teachers" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
+          <Route path="/teachers/:id" element={<ProtectedRoute><TeacherProfile /></ProtectedRoute>} />
+          <Route path="/non-teaching-staff" element={<ProtectedRoute><NonTeachingStaff /></ProtectedRoute>} />
+          <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
+          <Route path="/admissions" element={<ProtectedRoute><AdminRoute><Admissions /></AdminRoute></ProtectedRoute>} />
+          <Route path="/fees" element={<ProtectedRoute><AdminRoute><FeeManagement /></AdminRoute></ProtectedRoute>} />
+          <Route path="/invoices" element={<ProtectedRoute><AdminRoute><Invoices /></AdminRoute></ProtectedRoute>} />
+          <Route path="/fee-structures" element={<ProtectedRoute><AdminRoute><FeeStructures /></AdminRoute></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><AdminRoute><Reports /></AdminRoute></ProtectedRoute>} />
+          <Route path="/bulk-learner-reports" element={<ProtectedRoute><BulkLearnerReports /></ProtectedRoute>} />
+          <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+          <Route path="/academic-years" element={<ProtectedRoute><AcademicYears /></ProtectedRoute>} />
+          <Route path="/communication" element={<ProtectedRoute><Communication /></ProtectedRoute>} />
+          <Route path="/offline-storage" element={<ProtectedRoute><OfflineSettings /></ProtectedRoute>} />
+          <Route path="/academic-settings" element={<ProtectedRoute><AcademicSettings /></ProtectedRoute>} />
+          <Route path="/learner-fees" element={<ProtectedRoute><AdminRoute><LearnerFeesPortal /></AdminRoute></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/blogs" element={<ProtectedRoute><AdminRoute><Blogs /></AdminRoute></ProtectedRoute>} />
+          <Route path="/programs" element={<ProtectedRoute><AdminRoute><Programs /></AdminRoute></ProtectedRoute>} />
+          <Route path="/gallery" element={<ProtectedRoute><AdminRoute><Gallery /></AdminRoute></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
       <SessionTimeoutWarning
         open={showWarning}
         timeRemaining={timeRemaining}
@@ -83,73 +146,7 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <SessionTimeoutWrapper>
-            <Routes>
-{/* Public School Website */}
-            <Route path="/" element={<Home />} />
-            <Route path="/blog/:id" element={<BlogDetail />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/signout" element={<Signout />} />
-            
-            {/* Learner Portal Routes */}
-            <Route path="/learner-portal" element={<ProtectedRoute><LearnerPortalLayout /></ProtectedRoute>}>
-              <Route index element={<LearnerDashboard />} />
-              <Route path="profile" element={<LearnerProfilePage />} />
-              <Route path="performance" element={<LearnerPerformance />} />
-              <Route path="fees" element={<LearnerFeesPage />} />
-              <Route path="fee-structures" element={<LearnerFeeStructures />} />
-              <Route path="ai-tutor" element={<LearnerAITutor />} />
-              <Route path="settings" element={<LearnerSettings />} />
-            </Route>
-
-            {/* Teacher Portal Routes */}
-            <Route path="/teacher-portal" element={<ProtectedRoute><TeacherPortalLayout /></ProtectedRoute>}>
-              <Route index element={<TeacherDashboard />} />
-              <Route path="marks" element={<TeacherMarks />} />
-              <Route path="assignments" element={<TeacherAssignments />} />
-              <Route path="profile" element={<TeacherPortalProfile />} />
-              <Route path="settings" element={<TeacherSettings />} />
-            </Route>
-            <Route path="/dashboard" element={<ProtectedRoute><AdminRoute><Dashboard /></AdminRoute></ProtectedRoute>} />
-            <Route path="/learners" element={<ProtectedRoute><Learners /></ProtectedRoute>} />
-            <Route path="/learners/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
-            <Route path="/alumni" element={<ProtectedRoute><Alumni /></ProtectedRoute>} />
-            <Route path="/grades" element={<ProtectedRoute><Grades /></ProtectedRoute>} />
-            <Route path="/grades/:grade" element={<ProtectedRoute><GradeDetail /></ProtectedRoute>} />
-            <Route path="/grades/:grade/:stream" element={<ProtectedRoute><StreamDetail /></ProtectedRoute>} />
-            <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
-            <Route path="/teachers" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
-            <Route path="/teachers/:id" element={<ProtectedRoute><TeacherProfile /></ProtectedRoute>} />
-            <Route path="/non-teaching-staff" element={<ProtectedRoute><NonTeachingStaff /></ProtectedRoute>} />
-            <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
-            <Route path="/admissions" element={<ProtectedRoute><AdminRoute><Admissions /></AdminRoute></ProtectedRoute>} />
-            <Route path="/fees" element={<ProtectedRoute><AdminRoute><FeeManagement /></AdminRoute></ProtectedRoute>} />
-            <Route path="/invoices" element={<ProtectedRoute><AdminRoute><Invoices /></AdminRoute></ProtectedRoute>} />
-            <Route path="/fee-structures" element={<ProtectedRoute><AdminRoute><FeeStructures /></AdminRoute></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute><AdminRoute><Reports /></AdminRoute></ProtectedRoute>} />
-            <Route path="/bulk-learner-reports" element={<ProtectedRoute><BulkLearnerReports /></ProtectedRoute>} />
-            {/* School info is now part of Settings page */}
-            <Route path="/learner/:id" element={<ProtectedRoute><LearnerProfile /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-            <Route path="/academic-years" element={<ProtectedRoute><AcademicYears /></ProtectedRoute>} />
-            <Route path="/communication" element={<ProtectedRoute><Communication /></ProtectedRoute>} />
-            <Route path="/offline-storage" element={<ProtectedRoute><OfflineSettings /></ProtectedRoute>} />
-            <Route path="/academic-settings" element={<ProtectedRoute><AcademicSettings /></ProtectedRoute>} />
-            <Route path="/learner-fees" element={<ProtectedRoute><AdminRoute><LearnerFeesPortal /></AdminRoute></ProtectedRoute>} />
-            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-            <Route path="/blogs" element={<ProtectedRoute><AdminRoute><Blogs /></AdminRoute></ProtectedRoute>} />
-            <Route path="/programs" element={<ProtectedRoute><AdminRoute><Programs /></AdminRoute></ProtectedRoute>} />
-            <Route path="/gallery" element={<ProtectedRoute><AdminRoute><Gallery /></AdminRoute></ProtectedRoute>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-            </SessionTimeoutWrapper>
-        </BrowserRouter>
+          <AppContent />
         </AuthProvider>
       </TooltipProvider>
     </ThemeProvider>
