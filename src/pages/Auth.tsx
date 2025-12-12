@@ -104,12 +104,40 @@ export default function Auth() {
                   title: "OTP Sent", 
                   description: `Verification code sent to phone ending in ...${response.data.phone}. Valid for 5 minutes.` 
                 });
+              } else if (response.data?.message?.includes("No phone number")) {
+                // No phone number - skip 2FA and allow login
+                toast({ 
+                  title: "2FA Skipped", 
+                  description: "No phone number on file. Please add one in settings for 2FA.",
+                });
+                if (roleData.role === "learner") {
+                  navigate("/learner-portal", { replace: true });
+                } else if (roleData.role === "teacher") {
+                  navigate("/teacher-portal", { replace: true });
+                } else {
+                  navigate("/dashboard", { replace: true });
+                }
               } else {
                 throw new Error(response.data?.message || "Failed to send OTP");
               }
             } catch (error: any) {
-              toast({ title: "Error", description: error.message || "Failed to send verification code", variant: "destructive" });
-              await supabase.auth.signOut();
+              // Check if error is about no phone number
+              if (error.message?.includes("No phone number")) {
+                toast({ 
+                  title: "2FA Skipped", 
+                  description: "No phone number on file. Please add one in settings for 2FA.",
+                });
+                if (roleData.role === "learner") {
+                  navigate("/learner-portal", { replace: true });
+                } else if (roleData.role === "teacher") {
+                  navigate("/teacher-portal", { replace: true });
+                } else {
+                  navigate("/dashboard", { replace: true });
+                }
+              } else {
+                toast({ title: "Error", description: error.message || "Failed to send verification code", variant: "destructive" });
+                await supabase.auth.signOut();
+              }
             }
           } else {
             // No 2FA - redirect directly
@@ -228,11 +256,45 @@ export default function Auth() {
               title: "OTP Sent", 
               description: `Verification code sent to phone ending in ...${response.data.phone}. Valid for 5 minutes.` 
             });
+          } else if (response.data?.message?.includes("No phone number")) {
+            // No phone number - proceed with login without 2FA
+            toast({ 
+              title: "2FA Skipped", 
+              description: "No phone number on file. Please add one in settings for 2FA.",
+            });
+            const loginResult = await login(username, password);
+            if (loginResult?.success) {
+              if (loginResult.role === "learner") {
+                navigate("/learner-portal", { replace: true });
+              } else if (loginResult.role === "teacher") {
+                navigate("/teacher-portal", { replace: true });
+              } else {
+                navigate("/dashboard", { replace: true });
+              }
+            }
           } else {
             throw new Error(response.data?.message || "Failed to send OTP");
           }
         } catch (error: any) {
-          toast({ title: "Error", description: error.message || "Failed to send verification code", variant: "destructive" });
+          // Check if error is about no phone number
+          if (error.message?.includes("No phone number")) {
+            toast({ 
+              title: "2FA Skipped", 
+              description: "No phone number on file. Please add one in settings for 2FA.",
+            });
+            const loginResult = await login(username, password);
+            if (loginResult?.success) {
+              if (loginResult.role === "learner") {
+                navigate("/learner-portal", { replace: true });
+              } else if (loginResult.role === "teacher") {
+                navigate("/teacher-portal", { replace: true });
+              } else {
+                navigate("/dashboard", { replace: true });
+              }
+            }
+          } else {
+            toast({ title: "Error", description: error.message || "Failed to send verification code", variant: "destructive" });
+          }
         }
         setIsSubmitting(false);
         return;
