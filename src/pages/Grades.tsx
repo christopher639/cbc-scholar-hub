@@ -3,9 +3,10 @@ import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, ArrowUp, FileDown, Settings, Download } from "lucide-react";
+import { Plus, Users, ArrowUp, FileDown, Settings, Download, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { AddGradeStreamDialog } from "@/components/AddGradeStreamDialog";
 import { EditGradeDialog } from "@/components/EditGradeDialog";
+import { EditStreamDialog } from "@/components/EditStreamDialog";
 import { SetLastGradeDialog } from "@/components/SetLastGradeDialog";
 import { PromoteLearnerDialog } from "@/components/PromoteLearnerDialog";
 import { useGrades } from "@/hooks/useGrades";
@@ -16,26 +17,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
 const Grades = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [addStreamDialogOpen, setAddStreamDialogOpen] = useState(false);
   const [editGradeDialogOpen, setEditGradeDialogOpen] = useState(false);
+  const [editStreamDialogOpen, setEditStreamDialogOpen] = useState(false);
   const [lastGradeDialogOpen, setLastGradeDialogOpen] = useState(false);
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
+  const [deleteGradeDialogOpen, setDeleteGradeDialogOpen] = useState(false);
+  const [deleteStreamDialogOpen, setDeleteStreamDialogOpen] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<any>(null);
+  const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedGradeId, setSelectedGradeId] = useState<string>("");
   const [selectedStreamId, setSelectedStreamId] = useState<string>("all");
   const [selectedLearners, setSelectedLearners] = useState<string[]>([]);
+  const [manageGradeId, setManageGradeId] = useState<string>("");
   
   const { grades, loading: gradesLoading, fetchGrades } = useGrades();
-  const { streams, loading: streamsLoading } = useStreams(selectedGradeId);
+  const { streams, loading: streamsLoading, fetchStreams } = useStreams(selectedGradeId);
+  const { streams: manageStreams, loading: manageStreamsLoading, fetchStreams: fetchManageStreams } = useStreams(manageGradeId);
   const { learners, loading: learnersLoading, fetchLearners } = useLearners(
     selectedGradeId || undefined,
     selectedStreamId !== "all" ? selectedStreamId : undefined
@@ -67,6 +75,59 @@ const Grades = () => {
 
   const currentGradeName = grades.find(g => g.id === selectedGradeId)?.name || "";
   const loading = gradesLoading || streamsLoading || learnersLoading;
+
+  const handleDeleteGrade = async () => {
+    if (!selectedGrade) return;
+    try {
+      const { error } = await supabase
+        .from("grades")
+        .delete()
+        .eq("id", selectedGrade.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Grade deleted successfully",
+      });
+      fetchGrades();
+      setDeleteGradeDialogOpen(false);
+      setSelectedGrade(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteStream = async () => {
+    if (!selectedStream) return;
+    try {
+      const { error } = await supabase
+        .from("streams")
+        .delete()
+        .eq("id", selectedStream.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Stream deleted successfully",
+      });
+      fetchManageStreams();
+      fetchGrades();
+      setDeleteStreamDialogOpen(false);
+      setSelectedStream(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDownloadPDF = async () => {
     if (!selectedGradeId || learners.length === 0) {
@@ -314,6 +375,123 @@ const Grades = () => {
           </CardContent>
         </Card>
 
+        {/* Manage Grades & Streams */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Manage Grades & Streams</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="manage-grade" className="text-xs">Select Grade to Manage</Label>
+              <Select value={manageGradeId} onValueChange={setManageGradeId}>
+                <SelectTrigger id="manage-grade" className="h-8 text-sm">
+                  <SelectValue placeholder="Select a grade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {grades.map((grade) => (
+                    <SelectItem key={grade.id} value={grade.id} className="text-sm">
+                      {grade.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {manageGradeId && (
+              <div className="space-y-4">
+                {/* Grade Actions */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium text-sm">{grades.find(g => g.id === manageGradeId)?.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {grades.find(g => g.id === manageGradeId)?.learner_count || 0} learners • {grades.find(g => g.id === manageGradeId)?.stream_count || 0} streams
+                    </p>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedGrade(grades.find(g => g.id === manageGradeId));
+                          setEditGradeDialogOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Grade
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => {
+                          setSelectedGrade(grades.find(g => g.id === manageGradeId));
+                          setDeleteGradeDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Grade
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Streams List */}
+                <div className="space-y-2">
+                  <Label className="text-xs">Streams in this Grade</Label>
+                  {manageStreamsLoading ? (
+                    <Skeleton className="h-20 w-full" />
+                  ) : manageStreams.length === 0 ? (
+                    <p className="text-sm text-muted-foreground p-3 border rounded-lg">No streams in this grade</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {manageStreams.map((stream) => (
+                        <div key={stream.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium text-sm">{stream.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Capacity: {stream.capacity || "Unlimited"}
+                            </p>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedStream(stream);
+                                  setEditStreamDialogOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit Stream
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => {
+                                  setSelectedStream(stream);
+                                  setDeleteStreamDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Stream
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Learners Table */}
         {selectedGradeId && (
           <Card>
@@ -416,7 +594,10 @@ const Grades = () => {
               open={editGradeDialogOpen}
               onOpenChange={setEditGradeDialogOpen}
               grade={selectedGrade}
-              onSuccess={fetchGrades}
+              onSuccess={() => {
+                fetchGrades();
+                setSelectedGrade(null);
+              }}
             />
             <SetLastGradeDialog
               open={lastGradeDialogOpen}
@@ -428,6 +609,55 @@ const Grades = () => {
             />
           </>
         )}
+
+        {selectedStream && (
+          <EditStreamDialog
+            open={editStreamDialogOpen}
+            onOpenChange={setEditStreamDialogOpen}
+            stream={selectedStream}
+            onSuccess={() => {
+              fetchManageStreams();
+              fetchGrades();
+              setSelectedStream(null);
+            }}
+          />
+        )}
+
+        <AlertDialog open={deleteGradeDialogOpen} onOpenChange={setDeleteGradeDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Grade</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{selectedGrade?.name}"? This action cannot be undone.
+                Note: Grades with learners cannot be deleted.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteGrade} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={deleteStreamDialogOpen} onOpenChange={setDeleteStreamDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Stream</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{selectedStream?.name}"? This action cannot be undone.
+                Note: Streams with learners cannot be deleted.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteStream} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <PromoteLearnerDialog
           open={promoteDialogOpen}
