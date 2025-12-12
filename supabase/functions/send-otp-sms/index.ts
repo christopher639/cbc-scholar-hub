@@ -172,11 +172,17 @@ serve(async (req) => {
     const schoolName = school?.school_name || "School";
     const messageType = is2FAMode ? "login verification" : "password reset";
 
-    // Try SMS first if phone is available
+    let smsSent = false;
+    let emailSent = false;
+    let formattedPhone = "";
+    let maskedEmail = "";
+    const deliveryMethods: string[] = [];
+
+    // Send SMS if phone is available
     if (userPhone) {
       const apiKey = Deno.env.get("TEXT_SMS_API_KEY");
       if (apiKey) {
-        const formattedPhone = formatPhoneNumber(userPhone);
+        formattedPhone = formatPhoneNumber(userPhone);
         const message = `Your ${schoolName} ${messageType} OTP is: ${otp}. Valid for 5 minutes. Do not share this code.`;
 
         const smsPayload = {
@@ -189,91 +195,98 @@ serve(async (req) => {
 
         console.log("Sending OTP via SMS to:", formattedPhone.slice(-4));
 
-        const smsResponse = await fetch("https://sms.textsms.co.ke/api/services/sendsms/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(smsPayload),
-        });
+        try {
+          const smsResponse = await fetch("https://sms.textsms.co.ke/api/services/sendsms/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(smsPayload),
+          });
 
-        const smsResult = await smsResponse.json();
-        console.log("SMS API response:", smsResult);
+          const smsResult = await smsResponse.json();
+          console.log("SMS API response:", smsResult);
 
-        if (smsResult["response-code"] === 200 || smsResult.responses?.[0]?.["response-code"] === 200) {
-          return new Response(
-            JSON.stringify({ 
-              success: true, 
-              message: "OTP sent successfully via SMS",
-              otp: otp,
-              userId: userId,
-              userType: detectedUserType,
-              expiresAt: expiresAt,
-              phone: formattedPhone.slice(-4),
-              deliveryMethod: "sms"
-            }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+          if (smsResult["response-code"] === 200 || smsResult.responses?.[0]?.["response-code"] === 200) {
+            smsSent = true;
+            deliveryMethods.push("sms");
+          } else {
+            console.error("SMS sending failed:", smsResult);
+          }
+        } catch (smsError) {
+          console.error("SMS error:", smsError);
         }
-        console.error("SMS sending failed, trying email fallback:", smsResult);
       }
     }
 
-    // Fallback to email if no phone or SMS failed
+    // Send email if available (send to both if both exist)
     if (userEmail) {
       const resendApiKey = Deno.env.get("RESEND_API_KEY");
-      if (!resendApiKey) {
-        return new Response(
-          JSON.stringify({ success: false, message: "Email API not configured" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-        );
+      if (resendApiKey) {
+        const resend = new Resend(resendApiKey);
+        console.log("Sending OTP via email to:", userEmail);
+
+        try {
+          const emailResponse = await resend.emails.send({
+            from: `${schoolName} <onboarding@resend.dev>`,
+            to: [userEmail],
+            subject: `Your ${messageType} OTP Code`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #333;">Your ${messageType} OTP Code</h2>
+                <p>Hello,</p>
+                <p>Your one-time verification code for ${schoolName} is:</p>
+                <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">${otp}</span>
+                </div>
+                <p style="color: #666;">This code is valid for <strong>5 minutes</strong>. Do not share this code with anyone.</p>
+                <p style="color: #999; font-size: 12px; margin-top: 30px;">If you didn't request this code, please ignore this email.</p>
+              </div>
+            `,
+          });
+
+          if (!emailResponse.error) {
+            emailSent = true;
+            maskedEmail = userEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3");
+            deliveryMethods.push("email");
+            console.log("Email sent successfully:", emailResponse);
+          } else {
+            console.error("Email sending failed:", emailResponse.error);
+          }
+        } catch (emailError) {
+          console.error("Email error:", emailError);
+        }
+      }
+    }
+
+    // Check if at least one method succeeded
+    if (smsSent || emailSent) {
+      let successMessage = "OTP sent successfully";
+      if (smsSent && emailSent) {
+        successMessage = "OTP sent to both phone and email";
+      } else if (smsSent) {
+        successMessage = "OTP sent via SMS";
+      } else {
+        successMessage = "OTP sent via email";
       }
 
-      const resend = new Resend(resendApiKey);
-      console.log("Sending OTP via email to:", userEmail);
-
-      const emailResponse = await resend.emails.send({
-        from: `${schoolName} <onboarding@resend.dev>`,
-        to: [userEmail],
-        subject: `Your ${messageType} OTP Code`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #333;">Your ${messageType} OTP Code</h2>
-            <p>Hello,</p>
-            <p>Your one-time verification code for ${schoolName} is:</p>
-            <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
-              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">${otp}</span>
-            </div>
-            <p style="color: #666;">This code is valid for <strong>5 minutes</strong>. Do not share this code with anyone.</p>
-            <p style="color: #999; font-size: 12px; margin-top: 30px;">If you didn't request this code, please ignore this email.</p>
-          </div>
-        `,
-      });
-
-      if (emailResponse.error) {
-        console.error("Email sending failed:", emailResponse.error);
-        return new Response(
-          JSON.stringify({ success: false, message: "Failed to send OTP. Please try again." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-        );
-      }
-
-      console.log("Email sent successfully:", emailResponse);
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: "OTP sent successfully via email",
+          message: successMessage,
           otp: otp,
           userId: userId,
           userType: detectedUserType,
           expiresAt: expiresAt,
-          email: userEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3"),
-          deliveryMethod: "email"
+          phone: smsSent ? formattedPhone.slice(-4) : "",
+          email: emailSent ? maskedEmail : "",
+          deliveryMethod: deliveryMethods.length > 1 ? "both" : deliveryMethods[0],
+          deliveryMethods: deliveryMethods
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
-      JSON.stringify({ success: false, message: "Failed to send OTP. No valid contact method available." }),
+      JSON.stringify({ success: false, message: "Failed to send OTP. Please try again." }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   } catch (error: unknown) {
