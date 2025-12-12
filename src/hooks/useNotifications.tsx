@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,14 +16,67 @@ export interface Notification {
   updated_at: string;
 }
 
+// Helper to check if browser notifications are supported
+const isBrowserNotificationSupported = () => {
+  return "Notification" in window;
+};
+
+// Helper to request notification permission
+export const requestNotificationPermission = async (): Promise<boolean> => {
+  if (!isBrowserNotificationSupported()) {
+    console.log("Browser notifications not supported");
+    return false;
+  }
+
+  if (Notification.permission === "granted") {
+    return true;
+  }
+
+  if (Notification.permission === "denied") {
+    return false;
+  }
+
+  const permission = await Notification.requestPermission();
+  return permission === "granted";
+};
+
+// Helper to show a browser notification
+const showBrowserNotification = (title: string, message: string, icon?: string) => {
+  if (!isBrowserNotificationSupported() || Notification.permission !== "granted") {
+    return;
+  }
+
+  try {
+    new Notification(title, {
+      body: message,
+      icon: icon || "/icon.png",
+      badge: "/icon.png",
+      tag: `notification-${Date.now()}`,
+    });
+  } catch (error) {
+    console.error("Error showing browser notification:", error);
+  }
+};
+
+// Check if push notifications are enabled in localStorage
+export const isPushNotificationsEnabled = (): boolean => {
+  return localStorage.getItem("push_notifications_enabled") === "true";
+};
+
+// Set push notifications preference
+export const setPushNotificationsEnabled = (enabled: boolean) => {
+  localStorage.setItem("push_notifications_enabled", enabled ? "true" : "false");
+};
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pushEnabled, setPushEnabled] = useState(isPushNotificationsEnabled());
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -44,7 +97,7 @@ export function useNotifications() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -122,14 +175,42 @@ export function useNotifications() {
     }
   };
 
+  const enablePushNotifications = async (): Promise<boolean> => {
+    const granted = await requestNotificationPermission();
+    if (granted) {
+      setPushNotificationsEnabled(true);
+      setPushEnabled(true);
+      toast({
+        title: "Push Notifications Enabled",
+        description: "You will now receive browser notifications for important updates.",
+      });
+    } else {
+      toast({
+        title: "Permission Denied",
+        description: "Please enable notifications in your browser settings.",
+        variant: "destructive",
+      });
+    }
+    return granted;
+  };
+
+  const disablePushNotifications = () => {
+    setPushNotificationsEnabled(false);
+    setPushEnabled(false);
+    toast({
+      title: "Push Notifications Disabled",
+      description: "You will no longer receive browser notifications.",
+    });
+  };
+
   useEffect(() => {
     if (!user?.id) return;
 
     fetchNotifications();
 
-    // Set up realtime subscription
+    // Set up realtime subscription for new notifications
     const channel = supabase
-      .channel('notifications-channel')
+      .channel('notifications-realtime')
       .on(
         'postgres_changes',
         {
@@ -143,10 +224,53 @@ export function useNotifications() {
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
 
-          // Show toast for new notification
+          // Show in-app toast notification
           toast({
             title: newNotification.title,
             description: newNotification.message,
+          });
+
+          // Show browser push notification if enabled
+          if (isPushNotificationsEnabled() && Notification.permission === "granted") {
+            showBrowserNotification(newNotification.title, newNotification.message);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          const updatedNotification = payload.new as Notification;
+          setNotifications(prev => 
+            prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
+          );
+          // Recalculate unread count
+          setNotifications(prev => {
+            setUnreadCount(prev.filter(n => !n.is_read).length);
+            return prev;
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          const deletedNotification = payload.old as Notification;
+          setNotifications(prev => prev.filter(n => n.id !== deletedNotification.id));
+          // Recalculate unread count
+          setNotifications(prev => {
+            setUnreadCount(prev.filter(n => !n.is_read).length);
+            return prev;
           });
         }
       )
@@ -155,7 +279,7 @@ export function useNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, toast, fetchNotifications]);
 
   return {
     notifications,
@@ -165,5 +289,9 @@ export function useNotifications() {
     markAllAsRead,
     deleteNotification,
     refetch: fetchNotifications,
+    pushEnabled,
+    enablePushNotifications,
+    disablePushNotifications,
+    isBrowserNotificationSupported: isBrowserNotificationSupported(),
   };
 }

@@ -75,7 +75,7 @@ serve(async (req) => {
     let emailHtml = "";
 
     if (notificationType === "account_created") {
-      smsMessage = `Hello ${fullName || "User"}! Your ${schoolName} account has been created successfully. Please wait for admin approval. You will be notified once your account is verified.`;
+      smsMessage = `Hello ${fullName || "User"}! Your ${schoolName} account has been created. Please wait for admin approval. If it takes too long, please contact the school admin. You will be notified once verified.`;
       emailSubject = `Account Created - ${schoolName}`;
       emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -86,6 +86,7 @@ serve(async (req) => {
             <p style="margin: 0; color: #666;"><strong>Status:</strong> Pending Verification</p>
           </div>
           <p>Please wait for admin approval. You will receive another notification once your account is verified and activated.</p>
+          <p style="color: #666; font-style: italic;">If it's taking too long, please contact the school administration directly.</p>
           <p style="color: #999; font-size: 12px; margin-top: 30px;">If you didn't create this account, please ignore this email.</p>
         </div>
       `;
