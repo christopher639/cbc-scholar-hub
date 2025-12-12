@@ -37,6 +37,29 @@ export default function OTPVerification() {
   const [maskedEmail, setMaskedEmail] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState<"sms" | "email" | "both">("sms");
   const [pendingData, setPendingData] = useState<LocationState | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!otpExpiry) return;
+
+    const updateTimer = () => {
+      const now = new Date();
+      const remaining = Math.max(0, Math.floor((otpExpiry.getTime() - now.getTime()) / 1000));
+      setTimeRemaining(remaining);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpExpiry]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   useEffect(() => {
     const state = location.state as LocationState;
@@ -219,8 +242,12 @@ export default function OTPVerification() {
                 maxLength={6}
                 autoFocus
               />
-              <p className="text-xs text-center text-muted-foreground">
-                Code expires in 5 minutes
+              <p className={`text-xs text-center ${timeRemaining === 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                {timeRemaining > 0 ? (
+                  <>Code expires in <span className="font-mono font-medium">{formatTime(timeRemaining)}</span></>
+                ) : (
+                  "Code expired. Please resend OTP."
+                )}
               </p>
             </div>
 
