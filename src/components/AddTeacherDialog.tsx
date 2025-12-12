@@ -109,6 +109,25 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
         photo_url: photoUrl || null,
       });
 
+      // Send credentials via SMS if phone number is provided
+      if (formData.phone && newTeacher) {
+        try {
+          await supabase.functions.invoke("send-credentials-sms", {
+            body: {
+              type: "teacher",
+              phone: formData.phone,
+              credentials: {
+                tscNumber: formData.tsc_number,
+                idNumber: formData.id_number,
+                portalUrl: window.location.origin + "/auth"
+              }
+            }
+          });
+        } catch (smsError) {
+          console.log("SMS sending failed:", smsError);
+        }
+      }
+
       // Log activity
       if (newTeacher && user) {
         await supabase.from("activity_logs").insert({

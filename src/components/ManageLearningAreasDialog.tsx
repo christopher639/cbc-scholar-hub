@@ -189,26 +189,28 @@ const ManageLearningAreasDialog = ({ open, onOpenChange }: ManageLearningAreasDi
             ) : learningAreas.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No learning areas yet</p>
             ) : (
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {learningAreas.map((area) => (
                   <div key={area.id} className="p-4 border border-border rounded-lg bg-card">
                     {editingId === area.id ? (
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label>Code</Label>
-                          <Input
-                            value={editCode}
-                            onChange={(e) => setEditCode(e.target.value.toUpperCase())}
-                            maxLength={6}
-                            className="uppercase font-mono"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Name</Label>
-                          <Input
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                          />
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label>Code</Label>
+                            <Input
+                              value={editCode}
+                              onChange={(e) => setEditCode(e.target.value.toUpperCase())}
+                              maxLength={6}
+                              className="uppercase font-mono"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Name</Label>
+                            <Input
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                            />
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <Label>Teacher</Label>
@@ -226,7 +228,7 @@ const ManageLearningAreasDialog = ({ open, onOpenChange }: ManageLearningAreasDi
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="col-span-3 flex justify-end gap-2">
+                        <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -247,18 +249,18 @@ const ManageLearningAreasDialog = ({ open, onOpenChange }: ManageLearningAreasDi
                       </div>
                     ) : (
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 flex-1">
+                        <div className="flex items-center gap-3 flex-1">
                           <Badge variant="outline" className="font-mono text-xs px-2 py-1">
                             {area.code}
                           </Badge>
-                          <div className="flex-1">
-                            <p className="font-medium text-foreground">{area.name}</p>
-                            <p className="text-sm text-muted-foreground">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-foreground truncate">{area.name}</p>
+                            <p className="text-sm text-muted-foreground truncate">
                               {area.teacher ? `${area.teacher.first_name} ${area.teacher.last_name}` : "No teacher assigned"}
                             </p>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"

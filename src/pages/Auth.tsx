@@ -18,6 +18,7 @@ export default function Auth() {
   const { toast } = useToast();
   
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -26,6 +27,11 @@ export default function Auth() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingGoogleAuth, setCheckingGoogleAuth] = useState(true);
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [sentOtp, setSentOtp] = useState("");
+  const [userType, setUserType] = useState<"learner" | "teacher">("learner");
 
   // Check for Google OAuth callback and handle user verification
   useEffect(() => {
@@ -249,7 +255,44 @@ export default function Auth() {
   };
 
   const handleForgotPassword = () => {
-    alert("Please contact the school administrator to reset your password.");
+    setIsForgotPassword(true);
+  };
+
+  const handleSendOtp = async () => {
+    if (!username || !phone) {
+      toast({ title: "Error", description: "Please enter your username and phone number", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const response = await supabase.functions.invoke("send-otp-sms", {
+        body: { phone, username, userType }
+      });
+      if (response.error) throw response.error;
+      if (response.data?.success) {
+        setSentOtp(response.data.otp);
+        setOtpSent(true);
+        toast({ title: "OTP Sent", description: `OTP sent to phone ending in ...${response.data.phone}` });
+      } else {
+        throw new Error(response.data?.message || "Failed to send OTP");
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp === sentOtp) {
+      toast({ title: "Success", description: "OTP verified! You can now login with your credentials." });
+      setIsForgotPassword(false);
+      setOtpSent(false);
+      setOtp("");
+      setSentOtp("");
+    } else {
+      toast({ title: "Error", description: "Invalid OTP. Please try again.", variant: "destructive" });
+    }
   };
 
   if (loading || schoolLoading || checkingGoogleAuth) {

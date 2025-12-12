@@ -206,21 +206,21 @@ const Activities = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-lg md:text-2xl font-bold text-foreground">System Activities</h1>
-            <p className="text-xs md:text-sm text-muted-foreground">Track all CRUD operations across the system</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">System Activities</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Track all CRUD operations across the system</p>
           </div>
           <Card className="w-fit">
-            <CardContent className="p-3 flex items-center gap-3">
-              <div className="h-9 w-9 bg-primary/10 rounded flex items-center justify-center">
-                <Eye className="h-4 w-4 text-primary" />
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Eye className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Visitors</p>
-                <p className="text-base font-bold text-foreground">{visitorCount.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">Unique Visitors</p>
+                <p className="text-lg font-bold text-foreground">{visitorCount.toLocaleString()}</p>
               </div>
             </CardContent>
           </Card>
@@ -229,39 +229,39 @@ const Activities = () => {
         {/* Trend Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
-            <CardHeader className="p-3 md:p-4">
+            <CardHeader className="p-4 sm:p-6">
               <div className="flex items-center gap-2">
-                <LogIn className="h-4 w-4 text-primary" />
-                <CardTitle className="text-sm md:text-base">Login Trends</CardTitle>
+                <LogIn className="h-5 w-5 text-primary" />
+                <CardTitle className="text-base sm:text-lg">Login Trends</CardTitle>
               </div>
-              <CardDescription className="text-xs">Daily logins (30 days)</CardDescription>
+              <CardDescription className="text-sm">Daily logins over the last 30 days</CardDescription>
             </CardHeader>
-            <CardContent className="p-2 md:p-4">
+            <CardContent className="p-4 sm:p-6 pt-0">
               {loading ? (
-                <Skeleton className="h-[180px] md:h-[200px] w-full" />
+                <Skeleton className="h-[200px] w-full" />
               ) : (
-                <ResponsiveContainer width="100%" height={180}>
+                <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                       interval={7}
                       angle={-45}
                       textAnchor="end"
                       height={50}
                     />
                     <YAxis 
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-                      width={30}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                      width={35}
                     />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '0.375rem',
-                        fontSize: '12px',
-                        padding: '8px 12px'
+                        borderRadius: '0.5rem',
+                        fontSize: '13px',
+                        padding: '10px 14px'
                       }}
                     />
                     <Line 
@@ -279,39 +279,39 @@ const Activities = () => {
           </Card>
 
           <Card>
-            <CardHeader className="p-3 md:p-4">
+            <CardHeader className="p-4 sm:p-6">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-success" />
-                <CardTitle className="text-sm md:text-base">Activity Trends</CardTitle>
+                <TrendingUp className="h-5 w-5 text-success" />
+                <CardTitle className="text-base sm:text-lg">Activity Trends</CardTitle>
               </div>
-              <CardDescription className="text-xs">All system actions (30 days)</CardDescription>
+              <CardDescription className="text-sm">All system actions over 30 days</CardDescription>
             </CardHeader>
-            <CardContent className="p-2 md:p-4">
+            <CardContent className="p-4 sm:p-6 pt-0">
               {loading ? (
-                <Skeleton className="h-[180px] md:h-[200px] w-full" />
+                <Skeleton className="h-[200px] w-full" />
               ) : (
-                <ResponsiveContainer width="100%" height={180}>
+                <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                       interval={7}
                       angle={-45}
                       textAnchor="end"
                       height={50}
                     />
                     <YAxis 
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-                      width={30}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                      width={35}
                     />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '0.375rem',
-                        fontSize: '12px',
-                        padding: '8px 12px'
+                        borderRadius: '0.5rem',
+                        fontSize: '13px',
+                        padding: '10px 14px'
                       }}
                     />
                     <Line 
@@ -331,7 +331,7 @@ const Activities = () => {
 
         {/* Filters */}
         <Card>
-          <CardContent className="p-3">
+          <CardContent className="p-4">
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -339,31 +339,31 @@ const Activities = () => {
                   placeholder="Search activities..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 text-sm"
+                  className="pl-9 h-10"
                 />
               </div>
               <div className="flex gap-2">
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="flex-1 sm:w-[140px] h-9 text-sm">
+                  <SelectTrigger className="flex-1 sm:w-[160px] h-10">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all" className="text-sm">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     {entityTypes.map(type => (
-                      <SelectItem key={type} value={type} className="text-sm">
+                      <SelectItem key={type} value={type}>
                         {formatEntityType(type)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Select value={filterAction} onValueChange={setFilterAction}>
-                  <SelectTrigger className="flex-1 sm:w-[120px] h-9 text-sm">
+                  <SelectTrigger className="flex-1 sm:w-[140px] h-10">
                     <SelectValue placeholder="Action" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all" className="text-sm">All Actions</SelectItem>
+                    <SelectItem value="all">All Actions</SelectItem>
                     {actions.map(action => (
-                      <SelectItem key={action} value={action} className="text-sm capitalize">
+                      <SelectItem key={action} value={action} className="capitalize">
                         {action}
                       </SelectItem>
                     ))}
@@ -376,24 +376,24 @@ const Activities = () => {
 
         {/* Activities List */}
         <Card>
-          <CardHeader className="p-3">
+          <CardHeader className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">Recent Activities</CardTitle>
-              <CardDescription className="text-xs">
-                {recentActivities.length} of {filteredActivities.length}
+              <CardTitle className="text-base sm:text-lg">Recent Activities</CardTitle>
+              <CardDescription className="text-sm">
+                Showing {recentActivities.length} of {filteredActivities.length}
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="p-3 pt-0">
+          <CardContent className="p-4 sm:p-6 pt-0">
             {loading ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+                  <Skeleton key={i} className="h-14 w-full" />
                 ))}
               </div>
             ) : recentActivities.length === 0 ? (
-              <div className="text-center py-6">
-                <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+              <div className="text-center py-8">
+                <Activity className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">No activities found</p>
               </div>
             ) : (
@@ -401,33 +401,33 @@ const Activities = () => {
                 {recentActivities.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
                   >
-                    <div className={`p-1.5 rounded-full shrink-0 ${getActionColor(activity.action)}`}>
+                    <div className={`p-2 rounded-full shrink-0 ${getActionColor(activity.action)}`}>
                       {getActionIcon(activity.action)}
                     </div>
                     
-                    <div className="flex-1 min-w-0 flex items-center gap-1.5 flex-wrap">
-                      <span className="font-medium text-foreground text-xs truncate max-w-[80px] sm:max-w-[120px]">
+                    <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-foreground text-sm truncate max-w-[100px] sm:max-w-[150px]">
                         {activity.user_name || "System"}
                       </span>
-                      <span className="text-xs text-muted-foreground capitalize">{activity.action}</span>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground capitalize">{activity.action}</span>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         {getEntityIcon(activity.entity_type)}
                         <span className="hidden sm:inline">{formatEntityType(activity.entity_type)}</span>
                       </div>
                       {activity.entity_name && (
-                        <span className="text-xs font-medium text-foreground truncate max-w-[100px] sm:max-w-[180px]">
+                        <span className="text-sm font-medium text-foreground truncate max-w-[120px] sm:max-w-[200px]">
                           "{activity.entity_name}"
                         </span>
                       )}
                     </div>
                     
                     <div className="flex items-center gap-2 shrink-0">
-                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-5">
+                      <Badge variant="outline" className="text-xs px-2 py-1">
                         {activity.user_role || "sys"}
                       </Badge>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      <span className="text-sm text-muted-foreground whitespace-nowrap hidden sm:inline">
                         {new Date(activity.created_at).toLocaleString('en-US', { 
                           month: 'short', 
                           day: 'numeric',
