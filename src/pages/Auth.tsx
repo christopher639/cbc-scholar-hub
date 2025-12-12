@@ -334,7 +334,125 @@ export default function Auth() {
 
         {/* Auth Form */}
         <div className="bg-card rounded-xl p-5 border border-border/50">
-        {isSignUp ? (
+        {isForgotPassword ? (
+            // Forgot Password OTP Form
+            <div className="space-y-4">
+              <div className="text-center mb-2">
+                <h2 className="text-lg font-semibold">Reset Password</h2>
+                <p className="text-xs text-muted-foreground">
+                  {otpSent ? "Enter the OTP sent to your phone" : "Enter your details to receive an OTP"}
+                </p>
+              </div>
+              
+              {!otpSent ? (
+                <>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">I am a</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={userType === "learner" ? "default" : "outline"}
+                        size="sm"
+                        className="flex-1 text-xs"
+                        onClick={() => setUserType("learner")}
+                      >
+                        Learner
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={userType === "teacher" ? "default" : "outline"}
+                        size="sm"
+                        className="flex-1 text-xs"
+                        onClick={() => setUserType("teacher")}
+                      >
+                        Teacher
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="forgot-username" className="text-xs font-medium">
+                      {userType === "learner" ? "Admission Number" : "TSC Number"}
+                    </Label>
+                    <Input
+                      id="forgot-username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="h-10 rounded-lg border-border/60 text-sm"
+                      placeholder={userType === "learner" ? "Enter admission number" : "Enter TSC number"}
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="phone" className="text-xs font-medium">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="h-10 rounded-lg border-border/60 text-sm"
+                      placeholder="e.g., 0712345678"
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      {userType === "learner" ? "Parent's phone number" : "Your registered phone number"}
+                    </p>
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    className="w-full h-10 rounded-lg text-sm font-semibold"
+                    onClick={handleSendOtp}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending OTP...</>
+                    ) : (
+                      "Send OTP"
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-1">
+                    <Label htmlFor="otp" className="text-xs font-medium">Enter OTP</Label>
+                    <Input
+                      id="otp"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      className="h-10 rounded-lg border-border/60 text-sm text-center tracking-widest"
+                      placeholder="Enter 6-digit OTP"
+                      maxLength={6}
+                    />
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    className="w-full h-10 rounded-lg text-sm font-semibold"
+                    onClick={handleVerifyOtp}
+                    disabled={isSubmitting}
+                  >
+                    Verify OTP
+                  </Button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => { setOtpSent(false); setOtp(""); }}
+                    className="w-full text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Resend OTP
+                  </button>
+                </>
+              )}
+              
+              <button
+                type="button"
+                onClick={() => { setIsForgotPassword(false); setOtpSent(false); setOtp(""); setPhone(""); }}
+                className="w-full text-xs text-primary hover:text-primary/80 font-medium flex items-center justify-center gap-1"
+              >
+                <ArrowLeft className="h-3 w-3" />
+                Back to Sign In
+              </button>
+            </div>
+          ) : isSignUp ? (
             // Sign Up Form - Google Only
             <div className="space-y-4">
               <Button
