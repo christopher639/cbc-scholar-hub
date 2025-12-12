@@ -66,9 +66,9 @@ export function NotificationsDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96">
-        <div className="flex items-center justify-between px-4 py-2 border-b">
-          <h3 className="font-semibold">Notifications</h3>
+      <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] max-w-96 sm:w-96">
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2 border-b">
+          <h3 className="font-semibold text-sm sm:text-base">Notifications</h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -82,7 +82,7 @@ export function NotificationsDropdown() {
           )}
         </div>
 
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[60vh] max-h-[400px]">
           {loading ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
               Loading notifications...
