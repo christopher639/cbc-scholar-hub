@@ -84,7 +84,9 @@ export default function Auth() {
                     role: roleData.role,
                     otp: response.data.otp,
                     expiresAt: response.data.expiresAt,
-                    maskedPhone: response.data.phone,
+                    maskedPhone: response.data.phone || "",
+                    maskedEmail: response.data.email || "",
+                    deliveryMethod: response.data.deliveryMethod || "sms",
                     isGoogleAuth: true
                   }
                 });
@@ -241,7 +243,9 @@ export default function Auth() {
                 userType: result.userType,
                 otp: response.data.otp,
                 expiresAt: response.data.expiresAt,
-                maskedPhone: response.data.phone,
+                maskedPhone: response.data.phone || "",
+                maskedEmail: response.data.email || "",
+                deliveryMethod: response.data.deliveryMethod || "sms",
                 isGoogleAuth: false
               }
             });

@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Phone, Loader2, ArrowLeft, School, ShieldCheck } from "lucide-react";
+import { Phone, Mail, Loader2, ArrowLeft, School, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface LocationState {
@@ -16,7 +16,9 @@ interface LocationState {
   userType?: string;
   otp: string;
   expiresAt: string;
-  maskedPhone: string;
+  maskedPhone?: string;
+  maskedEmail?: string;
+  deliveryMethod?: "sms" | "email";
   isGoogleAuth?: boolean;
 }
 
@@ -32,6 +34,8 @@ export default function OTPVerification() {
   const [sentOtp, setSentOtp] = useState("");
   const [otpExpiry, setOtpExpiry] = useState<Date | null>(null);
   const [maskedPhone, setMaskedPhone] = useState("");
+  const [maskedEmail, setMaskedEmail] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<"sms" | "email">("sms");
   const [pendingData, setPendingData] = useState<LocationState | null>(null);
 
   useEffect(() => {
@@ -45,7 +49,9 @@ export default function OTPVerification() {
 
     setSentOtp(state.otp);
     setOtpExpiry(new Date(state.expiresAt));
-    setMaskedPhone(state.maskedPhone);
+    setMaskedPhone(state.maskedPhone || "");
+    setMaskedEmail(state.maskedEmail || "");
+    setDeliveryMethod(state.deliveryMethod || "sms");
     setPendingData(state);
   }, [location.state, navigate]);
 
@@ -63,10 +69,15 @@ export default function OTPVerification() {
       if (response.data?.success) {
         setSentOtp(response.data.otp);
         setOtpExpiry(new Date(response.data.expiresAt));
-        setMaskedPhone(response.data.phone);
+        setMaskedPhone(response.data.phone || "");
+        setMaskedEmail(response.data.email || "");
+        setDeliveryMethod(response.data.deliveryMethod || "sms");
+        const destination = response.data.deliveryMethod === "email" 
+          ? `email ${response.data.email}` 
+          : `phone ending in ...${response.data.phone}`;
         toast({
           title: "OTP Resent",
-          description: `New verification code sent to phone ending in ...${response.data.phone}. Valid for 5 minutes.`
+          description: `New verification code sent to ${destination}. Valid for 5 minutes.`
         });
       } else if (response.data?.no_phone) {
         // No phone - skip 2FA
@@ -178,11 +189,19 @@ export default function OTPVerification() {
             </div>
             <h2 className="text-lg font-semibold">Two-Factor Authentication</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Enter the 6-digit code sent to your phone
+              Enter the 6-digit code sent to your {deliveryMethod === "email" ? "email" : "phone"}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Phone ending in ...{maskedPhone}
-            </p>
+            {deliveryMethod === "email" && maskedEmail ? (
+              <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
+                <Mail className="h-3 w-3" />
+                {maskedEmail}
+              </p>
+            ) : maskedPhone ? (
+              <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
+                <Phone className="h-3 w-3" />
+                Phone ending in ...{maskedPhone}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-4">

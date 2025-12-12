@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -134,13 +135,27 @@ serve(async (req) => {
       );
     }
 
-    if (!userPhone) {
-      // Return 200 with no_phone flag so frontend can handle gracefully
+    // Get user email for fallback
+    let userEmail = "";
+    if (detectedUserType === "teacher") {
+      const { data: teacher } = await supabase
+        .from("teachers")
+        .select("email")
+        .eq("id", userId)
+        .maybeSingle();
+      userEmail = teacher?.email || "";
+    } else if (detectedUserType === "admin") {
+      const authUser = (await supabase.auth.admin.listUsers()).data?.users?.find(u => u.email === username);
+      userEmail = authUser?.email || "";
+    }
+    // Learners don't have email, they use parent's phone
+
+    if (!userPhone && !userEmail) {
       return new Response(
         JSON.stringify({ 
           success: false, 
           no_phone: true,
-          message: "No phone number associated with this account",
+          message: "No phone number or email associated with this account",
           userId: userId,
           userType: detectedUserType
         }),
@@ -152,62 +167,115 @@ serve(async (req) => {
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
 
-    const apiKey = Deno.env.get("TEXT_SMS_API_KEY");
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ success: false, message: "SMS API not configured" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-      );
-    }
-
     // Get school info for message
     const { data: school } = await supabase.from("school_info").select("school_name").single();
     const schoolName = school?.school_name || "School";
-
-    const formattedPhone = formatPhoneNumber(userPhone);
     const messageType = is2FAMode ? "login verification" : "password reset";
-    const message = `Your ${schoolName} ${messageType} OTP is: ${otp}. Valid for 5 minutes. Do not share this code.`;
 
-    // Send SMS via TextSMS
-    const smsPayload = {
-      apikey: apiKey,
-      partnerID: 15265,
-      message: message,
-      shortcode: "TextSMS",
-      mobile: formattedPhone,
-    };
+    // Try SMS first if phone is available
+    if (userPhone) {
+      const apiKey = Deno.env.get("TEXT_SMS_API_KEY");
+      if (apiKey) {
+        const formattedPhone = formatPhoneNumber(userPhone);
+        const message = `Your ${schoolName} ${messageType} OTP is: ${otp}. Valid for 5 minutes. Do not share this code.`;
 
-    console.log("Sending OTP to:", formattedPhone.slice(-4));
+        const smsPayload = {
+          apikey: apiKey,
+          partnerID: 15265,
+          message: message,
+          shortcode: "TextSMS",
+          mobile: formattedPhone,
+        };
 
-    const smsResponse = await fetch("https://sms.textsms.co.ke/api/services/sendsms/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(smsPayload),
-    });
+        console.log("Sending OTP via SMS to:", formattedPhone.slice(-4));
 
-    const smsResult = await smsResponse.json();
-    console.log("SMS API response:", smsResult);
+        const smsResponse = await fetch("https://sms.textsms.co.ke/api/services/sendsms/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(smsPayload),
+        });
 
-    if (smsResult["response-code"] === 200 || smsResult.responses?.[0]?.["response-code"] === 200) {
+        const smsResult = await smsResponse.json();
+        console.log("SMS API response:", smsResult);
+
+        if (smsResult["response-code"] === 200 || smsResult.responses?.[0]?.["response-code"] === 200) {
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              message: "OTP sent successfully via SMS",
+              otp: otp,
+              userId: userId,
+              userType: detectedUserType,
+              expiresAt: expiresAt,
+              phone: formattedPhone.slice(-4),
+              deliveryMethod: "sms"
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        console.error("SMS sending failed, trying email fallback:", smsResult);
+      }
+    }
+
+    // Fallback to email if no phone or SMS failed
+    if (userEmail) {
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      if (!resendApiKey) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Email API not configured" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+
+      const resend = new Resend(resendApiKey);
+      console.log("Sending OTP via email to:", userEmail);
+
+      const emailResponse = await resend.emails.send({
+        from: `${schoolName} <onboarding@resend.dev>`,
+        to: [userEmail],
+        subject: `Your ${messageType} OTP Code`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #333;">Your ${messageType} OTP Code</h2>
+            <p>Hello,</p>
+            <p>Your one-time verification code for ${schoolName} is:</p>
+            <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">${otp}</span>
+            </div>
+            <p style="color: #666;">This code is valid for <strong>5 minutes</strong>. Do not share this code with anyone.</p>
+            <p style="color: #999; font-size: 12px; margin-top: 30px;">If you didn't request this code, please ignore this email.</p>
+          </div>
+        `,
+      });
+
+      if (emailResponse.error) {
+        console.error("Email sending failed:", emailResponse.error);
+        return new Response(
+          JSON.stringify({ success: false, message: "Failed to send OTP. Please try again." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+
+      console.log("Email sent successfully:", emailResponse);
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: "OTP sent successfully",
+          message: "OTP sent successfully via email",
           otp: otp,
           userId: userId,
           userType: detectedUserType,
           expiresAt: expiresAt,
-          phone: formattedPhone.slice(-4)
+          email: userEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3"),
+          deliveryMethod: "email"
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-    } else {
-      console.error("SMS sending failed:", smsResult);
-      return new Response(
-        JSON.stringify({ success: false, message: "Failed to send OTP. Please try again." }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-      );
     }
+
+    return new Response(
+      JSON.stringify({ success: false, message: "Failed to send OTP. No valid contact method available." }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
   } catch (error: unknown) {
     console.error("Error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
