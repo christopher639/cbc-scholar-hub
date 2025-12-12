@@ -35,7 +35,7 @@ export default function OTPVerification() {
   const [otpExpiry, setOtpExpiry] = useState<Date | null>(null);
   const [maskedPhone, setMaskedPhone] = useState("");
   const [maskedEmail, setMaskedEmail] = useState("");
-  const [deliveryMethod, setDeliveryMethod] = useState<"sms" | "email">("sms");
+  const [deliveryMethod, setDeliveryMethod] = useState<"sms" | "email" | "both">("sms");
   const [pendingData, setPendingData] = useState<LocationState | null>(null);
 
   useEffect(() => {
@@ -189,19 +189,22 @@ export default function OTPVerification() {
             </div>
             <h2 className="text-lg font-semibold">Two-Factor Authentication</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Enter the 6-digit code sent to your {deliveryMethod === "email" ? "email" : "phone"}
+              Enter the 6-digit code sent to your {deliveryMethod === "both" ? "phone and email" : deliveryMethod === "email" ? "email" : "phone"}
             </p>
-            {deliveryMethod === "email" && maskedEmail ? (
-              <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
-                <Mail className="h-3 w-3" />
-                {maskedEmail}
-              </p>
-            ) : maskedPhone ? (
-              <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
-                <Phone className="h-3 w-3" />
-                Phone ending in ...{maskedPhone}
-              </p>
-            ) : null}
+            <div className="flex flex-col items-center gap-1 mt-1">
+              {maskedPhone && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Phone className="h-3 w-3" />
+                  Phone ending in ...{maskedPhone}
+                </p>
+              )}
+              {maskedEmail && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Mail className="h-3 w-3" />
+                  {maskedEmail}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4">
