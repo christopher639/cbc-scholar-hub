@@ -189,19 +189,19 @@ export default function OTPVerification() {
             </div>
             <h2 className="text-lg font-semibold">Two-Factor Authentication</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Enter the 6-digit code sent to your {deliveryMethod === "both" ? "phone and email" : deliveryMethod === "email" ? "email" : "phone"}
+              Enter the 6-digit verification code
             </p>
-            <div className="flex flex-col items-center gap-1 mt-1">
+            <div className="flex flex-col items-center gap-1 mt-2 text-xs text-muted-foreground">
               {maskedPhone && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <p className="flex items-center gap-1">
                   <Phone className="h-3 w-3" />
-                  Phone ending in ...{maskedPhone}
+                  OTP sent to phone ending in ...{maskedPhone}
                 </p>
               )}
               {maskedEmail && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <p className="flex items-center gap-1">
                   <Mail className="h-3 w-3" />
-                  {maskedEmail}
+                  OTP also sent to email {maskedEmail}
                 </p>
               )}
             </div>
