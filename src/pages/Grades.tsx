@@ -300,8 +300,8 @@ const Grades = () => {
           </div>
         </div>
 
-        {/* Filters and Manage Grades - Side by Side on Large Screens */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        {/* Filters and Manage Grades - Side by Side on SM and above */}
+        <div className="grid gap-6 sm:grid-cols-2">
           {/* Filters */}
           <Card>
             <CardHeader className="pb-3">
