@@ -44,6 +44,8 @@ serve(async (req) => {
     // Verify user exists based on type
     let userPhone = phone;
 
+    let userId = "";
+
     if (userType === "learner") {
       const { data: learner } = await supabase
         .from("learners")
@@ -57,6 +59,7 @@ serve(async (req) => {
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
         );
       }
+      userId = learner.id;
 
       // Get parent phone
       if (learner.parent_id) {
@@ -86,6 +89,7 @@ serve(async (req) => {
       if (teacher.phone) {
         userPhone = teacher.phone;
       }
+      userId = teacher.id;
     }
 
     if (!userPhone) {
@@ -137,9 +141,10 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: "OTP sent successfully",
-          otp: otp, // Return OTP for verification (in production, store in DB)
+          otp: otp,
+          userId: userId,
           expiresAt: expiresAt,
-          phone: formattedPhone.slice(-4) // Return last 4 digits for display
+          phone: formattedPhone.slice(-4)
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

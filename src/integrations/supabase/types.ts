@@ -1812,6 +1812,7 @@ export type Database = {
           payment_instructions: string | null
           phone: string | null
           school_name: string
+          two_factor_enabled: boolean | null
           updated_at: string
           vision: string | null
         }
@@ -1840,6 +1841,7 @@ export type Database = {
           payment_instructions?: string | null
           phone?: string | null
           school_name: string
+          two_factor_enabled?: boolean | null
           updated_at?: string
           vision?: string | null
         }
@@ -1868,6 +1870,7 @@ export type Database = {
           payment_instructions?: string | null
           phone?: string | null
           school_name?: string
+          two_factor_enabled?: boolean | null
           updated_at?: string
           vision?: string | null
         }
