@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { School, Users, Bell, Shield, DollarSign, Moon, Sun, Image as ImageIcon, Loader2, X, Plus, Upload, Save, User } from "lucide-react";
+import { School, Users, Bell, Shield, DollarSign, Moon, Sun, Image as ImageIcon, Loader2, X, Plus, Upload, Save, User, BellRing } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
@@ -18,6 +18,96 @@ import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useVisitorAccess } from "@/hooks/useVisitorAccess";
+import { useNotifications, requestNotificationPermission, isPushNotificationsEnabled, setPushNotificationsEnabled } from "@/hooks/useNotifications";
+
+// Push Notification Toggle Component
+const PushNotificationToggle = () => {
+  const [enabled, setEnabled] = useState(isPushNotificationsEnabled());
+  const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | "unsupported">("default");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if ("Notification" in window) {
+      setPermissionStatus(Notification.permission);
+    } else {
+      setPermissionStatus("unsupported");
+    }
+  }, []);
+
+  const handleToggle = async () => {
+    if (permissionStatus === "unsupported") {
+      toast({
+        title: "Not Supported",
+        description: "Your browser does not support push notifications.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!enabled) {
+      // Enable push notifications
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        setPushNotificationsEnabled(true);
+        setEnabled(true);
+        setPermissionStatus("granted");
+        toast({
+          title: "Push Notifications Enabled",
+          description: "You will now receive browser notifications for important updates.",
+        });
+      } else {
+        setPermissionStatus(Notification.permission);
+        toast({
+          title: "Permission Required",
+          description: "Please allow notifications in your browser to enable this feature.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      // Disable push notifications
+      setPushNotificationsEnabled(false);
+      setEnabled(false);
+      toast({
+        title: "Push Notifications Disabled",
+        description: "You will no longer receive browser notifications.",
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <BellRing className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <p className="font-medium">Browser Push Notifications</p>
+            <p className="text-sm text-muted-foreground">
+              {permissionStatus === "unsupported" 
+                ? "Your browser does not support push notifications"
+                : permissionStatus === "denied"
+                ? "Notifications are blocked. Please update your browser settings."
+                : enabled 
+                ? "You will receive real-time notifications"
+                : "Enable to receive real-time browser alerts"}
+            </p>
+          </div>
+        </div>
+        <Switch 
+          checked={enabled && permissionStatus === "granted"}
+          onCheckedChange={handleToggle}
+          disabled={permissionStatus === "unsupported" || permissionStatus === "denied"}
+        />
+      </div>
+      {permissionStatus === "denied" && (
+        <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+          Notifications are blocked by your browser. To enable them, click the lock icon in your browser's address bar and allow notifications for this site.
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface HeroBackground {
   id: string;
@@ -1112,8 +1202,18 @@ const Settings = () => {
           <TabsContent value="notifications" className="space-y-4">
             <Card>
               <CardHeader>
+                <CardTitle>Push Notifications</CardTitle>
+                <CardDescription>Enable browser notifications to receive real-time alerts even when the app is in the background</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <PushNotificationToggle />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>Manage system notifications and alerts</CardDescription>
+                <CardDescription>Manage which notifications you receive</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -1128,6 +1228,14 @@ const Settings = () => {
                   <div>
                     <p className="font-medium">Fee Payments</p>
                     <p className="text-sm text-muted-foreground">Notify on payment receipts</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">User Registration Requests</p>
+                    <p className="text-sm text-muted-foreground">Notify when new users request account approval</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
