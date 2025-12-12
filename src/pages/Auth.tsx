@@ -186,7 +186,13 @@ export default function Auth() {
   }, []);
 
   useEffect(() => {
-    if (user && !loading) {
+    // Only auto-redirect if user exists, not loading, AND we're not handling OAuth callback
+    // OAuth callback is handled separately with 2FA check
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const urlParams = new URLSearchParams(window.location.search);
+    const isOAuthCallback = hashParams.has('access_token') || urlParams.has('code');
+    
+    if (user && !loading && !isOAuthCallback && !checkingGoogleAuth) {
       // Check if user is activated and redirect based on role
       if (user.role === "learner") {
         navigate("/learner-portal", { replace: true });
@@ -198,7 +204,7 @@ export default function Auth() {
         navigate("/dashboard", { replace: true });
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, checkingGoogleAuth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
