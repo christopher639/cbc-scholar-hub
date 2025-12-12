@@ -336,12 +336,43 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         medical_info: formData.medicalInfo || null,
       });
 
+      // Get the newly created learner's admission number
+      const { data: newLearner } = await supabase
+        .from("learners")
+        .select("admission_number")
+        .eq("first_name", formData.firstName)
+        .eq("last_name", formData.lastName)
+        .eq("date_of_birth", formData.dateOfBirth)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      // Send credentials via SMS to parent if phone number is provided
+      if (formData.parentPhone && newLearner) {
+        try {
+          await supabase.functions.invoke("send-credentials-sms", {
+            body: {
+              type: "learner",
+              phone: formData.parentPhone,
+              credentials: {
+                learnerName: `${formData.firstName} ${formData.lastName}`,
+                admissionNumber: newLearner.admission_number,
+                birthCertificate: formData.birthCertificateNumber,
+                portalUrl: window.location.origin + "/auth"
+              }
+            }
+          });
+        } catch (smsError) {
+          console.log("SMS sending failed:", smsError);
+        }
+      }
+
       handleCancel();
       await fetchLearners();
 
       toast({
         title: "Success",
-        description: "Learner added successfully with auto-generated admission number",
+        description: "Learner added successfully with auto-generated admission number. Credentials sent via SMS.",
       });
     } catch (error: any) {
       console.error("Error adding learner:", error);
