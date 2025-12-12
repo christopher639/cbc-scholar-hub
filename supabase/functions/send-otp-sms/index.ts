@@ -28,11 +28,14 @@ serve(async (req) => {
   }
 
   try {
-    const { phone, username, userType } = await req.json();
+    const { phone, username, userType, mode } = await req.json();
 
-    if (!phone || !username) {
+    // mode: "forgot_password" or "2fa_login"
+    const is2FAMode = mode === "2fa_login";
+
+    if (!username) {
       return new Response(
-        JSON.stringify({ success: false, message: "Phone and username are required" }),
+        JSON.stringify({ success: false, message: "Username is required" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
@@ -41,27 +44,23 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verify user exists based on type
-    let userPhone = phone;
-
+    // Find user and their phone number based on username
+    let userPhone = phone || "";
     let userId = "";
+    let detectedUserType = userType;
 
-    if (userType === "learner") {
-      const { data: learner } = await supabase
-        .from("learners")
-        .select("id, first_name, last_name, parent_id")
-        .eq("admission_number", username)
-        .single();
+    // Try to find as learner first (by admission number)
+    const { data: learner } = await supabase
+      .from("learners")
+      .select("id, first_name, last_name, parent_id")
+      .eq("admission_number", username)
+      .single();
 
-      if (!learner) {
-        return new Response(
-          JSON.stringify({ success: false, message: "Learner not found with this admission number" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
-        );
-      }
+    if (learner) {
       userId = learner.id;
-
-      // Get parent phone
+      detectedUserType = "learner";
+      
+      // Get parent phone for learner
       if (learner.parent_id) {
         const { data: parent } = await supabase
           .from("parents")
@@ -73,35 +72,55 @@ serve(async (req) => {
           userPhone = parent.phone;
         }
       }
-    } else if (userType === "teacher") {
+    } else {
+      // Try to find as teacher (by tsc_number or employee_number)
       const { data: teacher } = await supabase
         .from("teachers")
-        .select("id, first_name, last_name, phone")
-        .eq("tsc_number", username)
+        .select("id, first_name, last_name, phone, tsc_number, employee_number")
+        .or(`tsc_number.eq.${username},employee_number.eq.${username}`)
         .single();
 
-      if (!teacher) {
-        return new Response(
-          JSON.stringify({ success: false, message: "Teacher not found with this TSC number" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
-        );
+      if (teacher) {
+        userId = teacher.id;
+        detectedUserType = "teacher";
+        if (teacher.phone) {
+          userPhone = teacher.phone;
+        }
+      } else {
+        // Try to find as admin user (by email)
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, phone_number")
+          .eq("id", username)
+          .single();
+        
+        if (profile) {
+          userId = profile.id;
+          detectedUserType = "admin";
+          if (profile.phone_number) {
+            userPhone = profile.phone_number;
+          }
+        }
       }
-      if (teacher.phone) {
-        userPhone = teacher.phone;
-      }
-      userId = teacher.id;
+    }
+
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ success: false, message: "User not found" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
+      );
     }
 
     if (!userPhone) {
       return new Response(
-        JSON.stringify({ success: false, message: "No phone number found for this user" }),
+        JSON.stringify({ success: false, message: "No phone number associated with this account" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
 
-    // Generate OTP
+    // Generate OTP with 5 minute expiry
     const otp = generateOTP();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
 
     const apiKey = Deno.env.get("TEXT_SMS_API_KEY");
     if (!apiKey) {
@@ -116,7 +135,8 @@ serve(async (req) => {
     const schoolName = school?.school_name || "School";
 
     const formattedPhone = formatPhoneNumber(userPhone);
-    const message = `Your ${schoolName} password reset OTP is: ${otp}. Valid for 10 minutes. Do not share this code.`;
+    const messageType = is2FAMode ? "login verification" : "password reset";
+    const message = `Your ${schoolName} ${messageType} OTP is: ${otp}. Valid for 5 minutes. Do not share this code.`;
 
     // Send SMS via TextSMS
     const smsPayload = {
@@ -126,6 +146,8 @@ serve(async (req) => {
       shortcode: "TextSMS",
       mobile: formattedPhone,
     };
+
+    console.log("Sending OTP to:", formattedPhone.slice(-4));
 
     const smsResponse = await fetch("https://sms.textsms.co.ke/api/services/sendsms/", {
       method: "POST",
@@ -143,6 +165,7 @@ serve(async (req) => {
           message: "OTP sent successfully",
           otp: otp,
           userId: userId,
+          userType: detectedUserType,
           expiresAt: expiresAt,
           phone: formattedPhone.slice(-4)
         }),
