@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { School, Eye, EyeOff, LogIn, Loader2, UserPlus, ArrowLeft, Phone } from "lucide-react";
+import { School, Eye, EyeOff, LogIn, Loader2, UserPlus, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
@@ -37,18 +37,6 @@ export default function Auth() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [verifiedUserId, setVerifiedUserId] = useState("");
   
-  // 2FA states
-  const [is2FARequired, setIs2FARequired] = useState(false);
-  const [loginOtp, setLoginOtp] = useState("");
-  const [loginOtpSent, setLoginOtpSent] = useState(false);
-  const [loginSentOtp, setLoginSentOtp] = useState("");
-  const [loginOtpExpiry, setLoginOtpExpiry] = useState<Date | null>(null);
-  const [pendingLoginData, setPendingLoginData] = useState<{ username: string; password: string; role?: string | null; userType?: string | null } | null>(null);
-  const [maskedPhone, setMaskedPhone] = useState("");
-
-  // State for Google 2FA
-  const [googleUser, setGoogleUser] = useState<{ id: string; role: string; email: string } | null>(null);
-
   // Check for Google OAuth callback and handle user verification
   useEffect(() => {
     const handleGoogleAuthCallback = async () => {
@@ -80,13 +68,6 @@ export default function Auth() {
             .single();
           
           if (schoolData?.two_factor_enabled) {
-            // Store Google user data and require 2FA
-            setGoogleUser({ 
-              id: session.user.id, 
-              role: roleData.role, 
-              email: session.user.email || "" 
-            });
-            
             // Send OTP to user's phone
             try {
               const response = await supabase.functions.invoke("send-otp-sms", {
@@ -94,17 +75,20 @@ export default function Auth() {
               });
               
               if (response.data?.success) {
-                setLoginSentOtp(response.data.otp);
-                setLoginOtpExpiry(new Date(response.data.expiresAt));
-                setMaskedPhone(response.data.phone);
-                setIs2FARequired(true);
-                setLoginOtpSent(true);
-                setPendingLoginData({ username: session.user.email || "", password: "", role: roleData.role });
-                toast({ 
-                  title: "OTP Sent", 
-                  description: `Verification code sent to phone ending in ...${response.data.phone}. Valid for 5 minutes.` 
+                // Navigate to OTP verification page
+                navigate("/otp-verification", { 
+                  replace: true,
+                  state: {
+                    username: session.user.email || "",
+                    password: "",
+                    role: roleData.role,
+                    otp: response.data.otp,
+                    expiresAt: response.data.expiresAt,
+                    maskedPhone: response.data.phone,
+                    isGoogleAuth: true
+                  }
                 });
-              } else if (response.data?.message?.includes("No phone number")) {
+              } else if (response.data?.no_phone) {
                 // No phone number - skip 2FA and allow login
                 toast({ 
                   title: "2FA Skipped", 
@@ -202,9 +186,6 @@ export default function Auth() {
   }, []);
 
   useEffect(() => {
-    // Don't auto-redirect if 2FA verification is pending
-    if (is2FARequired) return;
-    
     if (user && !loading) {
       // Check if user is activated and redirect based on role
       if (user.role === "learner") {
@@ -217,7 +198,7 @@ export default function Auth() {
         navigate("/dashboard", { replace: true });
       }
     }
-  }, [user, loading, navigate, is2FARequired]);
+  }, [user, loading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,9 +216,6 @@ export default function Auth() {
       const result = await validateCredentials(username, password);
       
       if (result?.success) {
-        // Store pending login data (including userType for proper login after OTP)
-        setPendingLoginData({ username, password, role: result.role, userType: result.userType });
-        
         // Automatically send OTP to user's associated phone
         try {
           const response = await supabase.functions.invoke("send-otp-sms", {
@@ -247,16 +225,21 @@ export default function Auth() {
           if (response.error) throw response.error;
           
           if (response.data?.success) {
-            setLoginSentOtp(response.data.otp);
-            setLoginOtpExpiry(new Date(response.data.expiresAt));
-            setMaskedPhone(response.data.phone);
-            setIs2FARequired(true);
-            setLoginOtpSent(true);
-            toast({ 
-              title: "OTP Sent", 
-              description: `Verification code sent to phone ending in ...${response.data.phone}. Valid for 5 minutes.` 
+            // Navigate to OTP verification page
+            navigate("/otp-verification", {
+              replace: true,
+              state: {
+                username,
+                password,
+                role: result.role,
+                userType: result.userType,
+                otp: response.data.otp,
+                expiresAt: response.data.expiresAt,
+                maskedPhone: response.data.phone,
+                isGoogleAuth: false
+              }
             });
-          } else if (response.data?.message?.includes("No phone number")) {
+          } else if (response.data?.no_phone) {
             // No phone number - proceed with login without 2FA
             toast({ 
               title: "2FA Skipped", 
@@ -319,81 +302,6 @@ export default function Auth() {
     }
     
     setIsSubmitting(false);
-  };
-
-  const handleResend2FAOtp = async () => {
-    setIsSubmitting(true);
-    try {
-      const response = await supabase.functions.invoke("send-otp-sms", {
-        body: { username: pendingLoginData?.username, mode: "2fa_login" }
-      });
-      
-      if (response.error) throw response.error;
-      
-      if (response.data?.success) {
-        setLoginSentOtp(response.data.otp);
-        setLoginOtpExpiry(new Date(response.data.expiresAt));
-        setMaskedPhone(response.data.phone);
-        toast({ 
-          title: "OTP Resent", 
-          description: `New verification code sent to phone ending in ...${response.data.phone}. Valid for 5 minutes.` 
-        });
-      } else {
-        throw new Error(response.data?.message || "Failed to resend OTP");
-      }
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleVerify2FAOtp = async () => {
-    // Check if OTP has expired
-    if (loginOtpExpiry && new Date() > loginOtpExpiry) {
-      toast({ title: "OTP Expired", description: "Your OTP has expired. Please request a new one.", variant: "destructive" });
-      return;
-    }
-    
-    if (loginOtp === loginSentOtp) {
-      setIsSubmitting(true);
-      
-      // OTP verified - now actually complete the login
-      if (pendingLoginData) {
-        const result = await login(pendingLoginData.username, pendingLoginData.password);
-        
-        if (result?.success) {
-          toast({ title: "Verified", description: "Login successful!" });
-          setIs2FARequired(false);
-          
-          if (result.role === "learner") {
-            navigate("/learner-portal", { replace: true });
-          } else if (result.role === "teacher") {
-            navigate("/teacher-portal", { replace: true });
-          } else {
-            navigate("/dashboard", { replace: true });
-          }
-        } else {
-          toast({ title: "Error", description: "Login failed after verification.", variant: "destructive" });
-        }
-      } else if (googleUser) {
-        // For Google users, they're already authenticated - just redirect
-        toast({ title: "Verified", description: "Login successful!" });
-        setIs2FARequired(false);
-        
-        if (googleUser.role === "learner") {
-          navigate("/learner-portal", { replace: true });
-        } else if (googleUser.role === "teacher") {
-          navigate("/teacher-portal", { replace: true });
-        } else {
-          navigate("/dashboard", { replace: true });
-        }
-      }
-      
-      setIsSubmitting(false);
-    } else {
-      toast({ title: "Error", description: "Invalid OTP. Please try again.", variant: "destructive" });
-    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -616,70 +524,7 @@ export default function Auth() {
 
         {/* Auth Form */}
         <div className="bg-card rounded-xl p-5 border border-border/50">
-        {is2FARequired ? (
-            // 2FA OTP Verification Form
-            <div className="space-y-4">
-              <div className="text-center mb-2">
-                <Phone className="h-10 w-10 mx-auto text-primary mb-2" />
-                <h2 className="text-lg font-semibold">Verify Your Login</h2>
-                <p className="text-xs text-muted-foreground">
-                  Enter the 6-digit code sent to phone ending in ...{maskedPhone}
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Code expires in 5 minutes
-                </p>
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="login-otp" className="text-xs font-medium">Verification Code</Label>
-                <Input
-                  id="login-otp"
-                  value={loginOtp}
-                  onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  className="h-12 rounded-lg border-border/60 text-lg text-center tracking-[0.5em] font-mono"
-                  placeholder="000000"
-                  maxLength={6}
-                  autoFocus
-                />
-              </div>
-              
-              <Button
-                type="button"
-                className="w-full h-10 rounded-lg text-sm font-semibold"
-                onClick={handleVerify2FAOtp}
-                disabled={isSubmitting || loginOtp.length !== 6}
-              >
-                {isSubmitting ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verifying...</>
-                ) : (
-                  "Verify & Continue"
-                )}
-              </Button>
-              
-              <button
-                type="button"
-                onClick={handleResend2FAOtp}
-                disabled={isSubmitting}
-                className="w-full text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
-              >
-                {isSubmitting ? "Sending..." : "Didn't receive code? Resend OTP"}
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => { 
-                  setIs2FARequired(false); 
-                  setLoginOtpSent(false); 
-                  setLoginOtp(""); 
-                  setPendingLoginData(null);
-                }}
-                className="w-full text-xs text-primary hover:text-primary/80 font-medium flex items-center justify-center gap-1"
-              >
-                <ArrowLeft className="h-3 w-3" />
-                Back to Sign In
-              </button>
-            </div>
-          ) : isForgotPassword ? (
+        {isForgotPassword ? (
             // Forgot Password OTP Form
             <div className="space-y-4">
               <div className="text-center mb-2">
