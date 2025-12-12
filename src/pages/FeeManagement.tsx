@@ -88,7 +88,8 @@ const FeeManagement = () => {
   const [feeReminderLoading, setFeeReminderLoading] = useState(false);
   const [feeReminderScope, setFeeReminderScope] = useState<"school" | "grade" | "stream">("school");
   const [feeReminderGradeId, setFeeReminderGradeId] = useState("");
-
+  const [structureYearFilter, setStructureYearFilter] = useState("all");
+  const [structureGradeFilter, setStructureGradeFilter] = useState("all");
   const handleSendFeeReminder = async () => {
     setFeeReminderLoading(true);
     try {
@@ -436,6 +437,65 @@ const FeeManagement = () => {
   const learnerTotalDue = learnerInvoices.reduce((sum, inv) => sum + Number(inv.total_amount), 0);
   const learnerOverallBalance = learnerTotalDue - learnerTotalPaid;
 
+  // Fee structure filtering and download
+  const uniqueAcademicYears = useMemo(() => {
+    const years = new Set(structures.map((s) => s.academic_year));
+    return Array.from(years).sort().reverse();
+  }, [structures]);
+
+  const filteredStructures = useMemo(() => {
+    return structures.filter((s) => {
+      const matchesYear = structureYearFilter === "all" || s.academic_year === structureYearFilter;
+      const matchesGrade = structureGradeFilter === "all" || s.grade_id === structureGradeFilter;
+      return matchesYear && matchesGrade;
+    });
+  }, [structures, structureYearFilter, structureGradeFilter]);
+
+  const handleDownloadFeeStructure = async () => {
+    const { data: school } = await supabase.from("school_info").select("*").single();
+    
+    // Group structures by grade and term
+    const gradeGroups: { [key: string]: any[] } = {};
+    filteredStructures.forEach((structure) => {
+      const gradeName = structure.grade?.name || 'Unknown Grade';
+      if (!gradeGroups[gradeName]) {
+        gradeGroups[gradeName] = [];
+      }
+      gradeGroups[gradeName].push(structure);
+    });
+
+    let csvContent = `${school?.school_name || "School"} - Fee Structure Report\n`;
+    csvContent += `Generated: ${format(new Date(), "PPP")}\n`;
+    if (structureYearFilter !== "all") csvContent += `Academic Year: ${structureYearFilter}\n`;
+    if (structureGradeFilter !== "all") {
+      const gradeName = grades.find((g) => g.id === structureGradeFilter)?.name;
+      if (gradeName) csvContent += `Grade: ${gradeName}\n`;
+    }
+    csvContent += `\nGrade,Term,Academic Year,Description,Amount\n`;
+
+    Object.entries(gradeGroups).forEach(([gradeName, gradeStructures]) => {
+      gradeStructures.forEach((s) => {
+        csvContent += `"${gradeName}","${s.term.replace("_", " ").toUpperCase()}","${s.academic_year}","${s.category?.name || s.description || 'Tuition Fee'}","${s.amount}"\n`;
+      });
+    });
+
+    // Download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `fee-structure-${structureYearFilter !== "all" ? structureYearFilter : "all"}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Downloaded",
+      description: "Fee structure report has been downloaded",
+    });
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-4">
@@ -450,10 +510,10 @@ const FeeManagement = () => {
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList className="grid w-full grid-cols-4 h-auto">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm py-2">Overview</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-xs sm:text-sm py-2">Invoices</TabsTrigger>
-            <TabsTrigger value="learner-fees" className="text-xs sm:text-sm py-2">Learner Fees</TabsTrigger>
-            <TabsTrigger value="structures" className="text-xs sm:text-sm py-2">Fee Structures</TabsTrigger>
+            <TabsTrigger value="overview" className="text-sm py-2">Overview</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-sm py-2">Invoices</TabsTrigger>
+            <TabsTrigger value="learner-fees" className="text-sm py-2">Learner Fees</TabsTrigger>
+            <TabsTrigger value="structures" className="text-sm py-2">Fee Structures</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -563,7 +623,7 @@ const FeeManagement = () => {
             {/* Fee Payment Trend Graph */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Fee Payment Trend</CardTitle>
+                <CardTitle className="text-lg font-semibold">Fee Payment Trend</CardTitle>
               </CardHeader>
               <CardContent>
                 {statsLoading ? (
@@ -619,7 +679,7 @@ const FeeManagement = () => {
             {/* Recent Payments */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Recent Payments</CardTitle>
+                <CardTitle className="text-lg font-semibold">Recent Payments</CardTitle>
               </CardHeader>
               <CardContent>
                 {paymentsLoading ? (
@@ -863,7 +923,7 @@ const FeeManagement = () => {
           <TabsContent value="learner-fees" className="space-y-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Select Learner</CardTitle>
+                <CardTitle className="text-lg font-semibold">Select Learner</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="max-w-md">
@@ -940,7 +1000,7 @@ const FeeManagement = () => {
                 {/* Invoices */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Fee Invoices</CardTitle>
+                    <CardTitle className="text-lg font-semibold">Fee Invoices</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {learnerInvoicesLoading ? (
@@ -988,7 +1048,7 @@ const FeeManagement = () => {
                 {/* Payment History */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Payment History</CardTitle>
+                    <CardTitle className="text-lg font-semibold">Payment History</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {transactionsLoading ? (
@@ -1029,17 +1089,56 @@ const FeeManagement = () => {
 
           {/* Fee Structures Tab */}
           <TabsContent value="structures" className="space-y-4">
-            <div className="flex justify-end">
+            {/* Actions Bar */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-between">
+              <div className="flex gap-2 flex-wrap items-center">
+                <Select value={structureYearFilter} onValueChange={setStructureYearFilter}>
+                  <SelectTrigger className="w-[130px] h-9 text-sm">
+                    <SelectValue placeholder="Academic Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Years</SelectItem>
+                    {uniqueAcademicYears.map((year) => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={structureGradeFilter} onValueChange={setStructureGradeFilter}>
+                  <SelectTrigger className="w-[120px] h-9 text-sm">
+                    <SelectValue placeholder="Grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Grades</SelectItem>
+                    {grades.map((grade) => (
+                      <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={handleDownloadFeeStructure}
+                  disabled={filteredStructures.length === 0}
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Download</span>
+                </Button>
+              </div>
               <Button size="sm" className="gap-2" onClick={() => setEditFeeStructureOpen(true)}>
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">Create Fee Structure</span>
                 <span className="sm:hidden">Create</span>
               </Button>
             </div>
+
+            {/* Fee Structures Display */}
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Fee Structure</CardTitle>
-                <CardDescription className="text-xs">Current fee breakdown by grade</CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">Fee Structures</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                  Fee breakdown by grade and term
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {structuresLoading ? (
@@ -1048,19 +1147,20 @@ const FeeManagement = () => {
                       <Skeleton key={i} className="h-24 w-full" />
                     ))}
                   </div>
-                ) : structures.length === 0 ? (
-                  <div className="text-center py-6">
-                    <p className="text-muted-foreground text-sm mb-3">No fee structures set yet</p>
+                ) : filteredStructures.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileText className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                    <p className="text-muted-foreground text-sm mb-3">No fee structures found</p>
                     <Button size="sm" onClick={() => setEditFeeStructureOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
-                      Set Fee Structure
+                      Create Fee Structure
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {(() => {
                       const gradeGroups: { [key: string]: any[] } = {};
-                      structures.forEach((structure) => {
+                      filteredStructures.forEach((structure) => {
                         const gradeName = structure.grade?.name || 'Unknown Grade';
                         if (!gradeGroups[gradeName]) {
                           gradeGroups[gradeName] = [];
@@ -1069,25 +1169,44 @@ const FeeManagement = () => {
                       });
 
                       return Object.entries(gradeGroups).map(([gradeName, gradeStructures]) => {
-                        const total = gradeStructures.reduce((sum, s) => sum + Number(s.amount), 0);
+                        // Group by term within each grade
+                        const termGroups: { [key: string]: any[] } = {};
+                        gradeStructures.forEach((s) => {
+                          const termKey = `${s.academic_year} - ${s.term.replace("_", " ").toUpperCase()}`;
+                          if (!termGroups[termKey]) {
+                            termGroups[termKey] = [];
+                          }
+                          termGroups[termKey].push(s);
+                        });
+
                         return (
-                          <div key={gradeName} className="rounded-lg bg-muted/30 p-3">
-                            <h3 className="font-semibold text-sm mb-2">{gradeName}</h3>
-                            <div className="grid gap-1 md:grid-cols-2 text-xs">
-                              {gradeStructures.map((structure) => (
-                                <div key={structure.id} className="flex justify-between">
-                                  <span className="text-muted-foreground">
-                                    {structure.category?.name || structure.description || 'Fee'}:
-                                  </span>
-                                  <span className="font-medium">
-                                    {formatCurrency(Number(structure.amount))}
-                                  </span>
-                                </div>
-                              ))}
-                              <div className="flex justify-between font-bold col-span-2 pt-1 mt-1 border-t border-border">
-                                <span>Total:</span>
-                                <span className="text-primary">{formatCurrency(total)}</span>
-                              </div>
+                          <div key={gradeName} className="rounded-lg border border-border p-4">
+                            <h3 className="font-semibold text-base mb-3">{gradeName}</h3>
+                            <div className="space-y-3">
+                              {Object.entries(termGroups).map(([termKey, termStructures]) => {
+                                const total = termStructures.reduce((sum, s) => sum + Number(s.amount), 0);
+                                return (
+                                  <div key={termKey} className="bg-muted/30 rounded-md p-3">
+                                    <p className="text-sm font-medium text-muted-foreground mb-2">{termKey}</p>
+                                    <div className="grid gap-2 sm:grid-cols-2">
+                                      {termStructures.map((structure) => (
+                                        <div key={structure.id} className="flex justify-between text-sm">
+                                          <span className="text-muted-foreground">
+                                            {structure.category?.name || structure.description || 'Tuition Fee'}
+                                          </span>
+                                          <span className="font-medium">
+                                            {formatCurrency(Number(structure.amount))}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="flex justify-between font-semibold text-sm pt-2 mt-2 border-t border-border">
+                                      <span>Total</span>
+                                      <span className="text-primary">{formatCurrency(total)}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         );
