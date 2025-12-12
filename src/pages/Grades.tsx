@@ -300,17 +300,92 @@ const Grades = () => {
           </div>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Filter Learners</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 py-3">
-            <div className="grid gap-3 md:grid-cols-2">
+        {/* Filters and Manage Grades - Side by Side on Large Screens */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Filters */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Filter Learners</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 py-3">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="grade-filter" className="text-xs">Grade</Label>
+                  <Select value={selectedGradeId} onValueChange={setSelectedGradeId}>
+                    <SelectTrigger id="grade-filter" className="h-8 text-sm">
+                      <SelectValue placeholder="Select a grade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grades.map((grade) => (
+                        <SelectItem key={grade.id} value={grade.id} className="text-sm">
+                          {grade.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="stream-filter" className="text-xs">Stream</Label>
+                  <Select 
+                    value={selectedStreamId} 
+                    onValueChange={setSelectedStreamId}
+                    disabled={!selectedGradeId}
+                  >
+                    <SelectTrigger id="stream-filter" className="h-8 text-sm">
+                      <SelectValue placeholder={selectedGradeId ? "Select a stream" : "Select grade first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="text-sm">All Streams</SelectItem>
+                      {streams.map((stream) => (
+                        <SelectItem key={stream.id} value={stream.id} className="text-sm">
+                          {stream.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {selectedGradeId && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      <Users className="mr-1 h-3 w-3" />
+                      {learners.length} learner{learners.length !== 1 ? 's' : ''}
+                    </Badge>
+                    {selectedStreamId !== "all" && (
+                      <Badge variant="outline" className="text-xs">
+                        {streams.find(s => s.id === selectedStreamId)?.name}
+                      </Badge>
+                    )}
+                  </div>
+                  {learners.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadPDF}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download PDF
+                    </Button>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Manage Grades & Streams */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Manage Grades & Streams</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="grade-filter" className="text-xs">Grade</Label>
-                <Select value={selectedGradeId} onValueChange={setSelectedGradeId}>
-                  <SelectTrigger id="grade-filter" className="h-8 text-sm">
+                <Label htmlFor="manage-grade" className="text-xs">Select Grade to Manage</Label>
+                <Select value={manageGradeId} onValueChange={setManageGradeId}>
+                  <SelectTrigger id="manage-grade" className="h-8 text-sm">
                     <SelectValue placeholder="Select a grade" />
                   </SelectTrigger>
                   <SelectContent>
@@ -323,172 +398,100 @@ const Grades = () => {
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="stream-filter" className="text-xs">Stream</Label>
-                <Select 
-                  value={selectedStreamId} 
-                  onValueChange={setSelectedStreamId}
-                  disabled={!selectedGradeId}
-                >
-                  <SelectTrigger id="stream-filter" className="h-8 text-sm">
-                    <SelectValue placeholder={selectedGradeId ? "Select a stream" : "Select grade first"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all" className="text-sm">All Streams</SelectItem>
-                    {streams.map((stream) => (
-                      <SelectItem key={stream.id} value={stream.id} className="text-sm">
-                        {stream.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {selectedGradeId && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs">
-                    <Users className="mr-1 h-3 w-3" />
-                    {learners.length} learner{learners.length !== 1 ? 's' : ''}
-                  </Badge>
-                  {selectedStreamId !== "all" && (
-                    <Badge variant="outline" className="text-xs">
-                      {streams.find(s => s.id === selectedStreamId)?.name}
-                    </Badge>
-                  )}
-                </div>
-                {learners.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownloadPDF}
-                    className="gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download PDF
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Manage Grades & Streams */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Manage Grades & Streams</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="manage-grade" className="text-xs">Select Grade to Manage</Label>
-              <Select value={manageGradeId} onValueChange={setManageGradeId}>
-                <SelectTrigger id="manage-grade" className="h-8 text-sm">
-                  <SelectValue placeholder="Select a grade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {grades.map((grade) => (
-                    <SelectItem key={grade.id} value={grade.id} className="text-sm">
-                      {grade.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {manageGradeId && (
-              <div className="space-y-4">
-                {/* Warning Banner */}
-                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <p className="text-xs text-amber-800 dark:text-amber-200">
-                    <strong>Warning:</strong> Editing or deleting grades/streams will affect all associated learners and records. Grades/streams with learners cannot be deleted.
-                  </p>
-                </div>
-
-                {/* Grade Actions */}
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium text-sm">{grades.find(g => g.id === manageGradeId)?.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {grades.find(g => g.id === manageGradeId)?.learner_count || 0} learners • {grades.find(g => g.id === manageGradeId)?.stream_count || 0} streams
+              {manageGradeId && (
+                <div className="space-y-4">
+                  {/* Warning Banner */}
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <p className="text-xs text-amber-800 dark:text-amber-200">
+                      <strong>Warning:</strong> Editing or deleting grades/streams will affect all associated learners and records. Grades/streams with learners cannot be deleted.
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedGrade(grades.find(g => g.id === manageGradeId));
-                        setEditGradeDialogOpen(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedGrade(grades.find(g => g.id === manageGradeId));
-                        setDeleteGradeDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
+
+                  {/* Grade Actions */}
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">{grades.find(g => g.id === manageGradeId)?.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {grades.find(g => g.id === manageGradeId)?.learner_count || 0} learners • {grades.find(g => g.id === manageGradeId)?.stream_count || 0} streams
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedGrade(grades.find(g => g.id === manageGradeId));
+                          setEditGradeDialogOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedGrade(grades.find(g => g.id === manageGradeId));
+                          setDeleteGradeDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Streams List */}
+                  <div className="space-y-2">
+                    <Label className="text-xs">Streams in this Grade</Label>
+                    {manageStreamsLoading ? (
+                      <Skeleton className="h-20 w-full" />
+                    ) : manageStreams.length === 0 ? (
+                      <p className="text-sm text-muted-foreground p-3 border rounded-lg">No streams in this grade</p>
+                    ) : (
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {manageStreams.map((stream) => (
+                          <div key={stream.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <p className="font-medium text-sm">{stream.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Capacity: {stream.capacity || "Unlimited"}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedStream(stream);
+                                  setEditStreamDialogOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedStream(stream);
+                                  setDeleteStreamDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {/* Streams List */}
-                <div className="space-y-2">
-                  <Label className="text-xs">Streams in this Grade</Label>
-                  {manageStreamsLoading ? (
-                    <Skeleton className="h-20 w-full" />
-                  ) : manageStreams.length === 0 ? (
-                    <p className="text-sm text-muted-foreground p-3 border rounded-lg">No streams in this grade</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {manageStreams.map((stream) => (
-                        <div key={stream.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium text-sm">{stream.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Capacity: {stream.capacity || "Unlimited"}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedStream(stream);
-                                setEditStreamDialogOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedStream(stream);
-                                setDeleteStreamDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Learners Table */}
         {selectedGradeId && (
