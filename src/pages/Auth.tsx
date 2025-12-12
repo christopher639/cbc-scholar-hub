@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { School, Eye, EyeOff, LogIn, Loader2, UserPlus, ArrowLeft } from "lucide-react";
+import { School, Eye, EyeOff, LogIn, Loader2, UserPlus, ArrowLeft, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
@@ -32,6 +32,17 @@ export default function Auth() {
   const [otpSent, setOtpSent] = useState(false);
   const [sentOtp, setSentOtp] = useState("");
   const [userType, setUserType] = useState<"learner" | "teacher">("learner");
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [verifiedUserId, setVerifiedUserId] = useState("");
+  
+  // 2FA states
+  const [is2FARequired, setIs2FARequired] = useState(false);
+  const [loginOtp, setLoginOtp] = useState("");
+  const [loginOtpSent, setLoginOtpSent] = useState(false);
+  const [loginSentOtp, setLoginSentOtp] = useState("");
+  const [pendingLoginData, setPendingLoginData] = useState<{ username: string; password: string; role?: string } | null>(null);
 
   // Check for Google OAuth callback and handle user verification
   useEffect(() => {
@@ -144,21 +155,77 @@ export default function Auth() {
       localStorage.removeItem("remembered_username");
     }
     
-    const result = await login(username, password);
-    
-    if (result?.success) {
-      if (result.role === "learner") {
-        navigate("/learner-portal", { replace: true });
-      } else if (result.role === "teacher") {
-        navigate("/teacher-portal", { replace: true });
-      } else if (result.role === "admin" || result.role === "finance" || result.role === "visitor") {
-        navigate("/dashboard", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
+    // Check if 2FA is enabled
+    if (schoolInfo?.two_factor_enabled) {
+      // First validate credentials without completing login
+      const result = await login(username, password);
+      
+      if (result?.success) {
+        // Store pending login data and trigger 2FA
+        setPendingLoginData({ username, password, role: result.role });
+        setIs2FARequired(true);
+        setIsSubmitting(false);
+        return;
+      }
+    } else {
+      // Normal login without 2FA
+      const result = await login(username, password);
+      
+      if (result?.success) {
+        if (result.role === "learner") {
+          navigate("/learner-portal", { replace: true });
+        } else if (result.role === "teacher") {
+          navigate("/teacher-portal", { replace: true });
+        } else if (result.role === "admin" || result.role === "finance" || result.role === "visitor") {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
       }
     }
     
     setIsSubmitting(false);
+  };
+
+  const handleSend2FAOtp = async () => {
+    if (!phone) {
+      toast({ title: "Error", description: "Please enter your phone number", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const formattedPhone = phone.startsWith("0") ? `254${phone.substring(1)}` : phone;
+      const response = await supabase.functions.invoke("send-otp-sms", {
+        body: { phone: formattedPhone, username, userType: pendingLoginData?.role === "teacher" ? "teacher" : "learner" }
+      });
+      if (response.error) throw response.error;
+      if (response.data?.success) {
+        setLoginSentOtp(response.data.otp);
+        setLoginOtpSent(true);
+        toast({ title: "OTP Sent", description: `OTP sent to phone ending in ...${response.data.phone}` });
+      } else {
+        throw new Error(response.data?.message || "Failed to send OTP");
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerify2FAOtp = async () => {
+    if (loginOtp === loginSentOtp) {
+      // OTP verified, complete the login redirect
+      if (pendingLoginData?.role === "learner") {
+        navigate("/learner-portal", { replace: true });
+      } else if (pendingLoginData?.role === "teacher") {
+        navigate("/teacher-portal", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    } else {
+      toast({ title: "Error", description: "Invalid OTP. Please try again.", variant: "destructive" });
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -265,12 +332,14 @@ export default function Auth() {
     }
     setIsSubmitting(true);
     try {
+      const formattedPhone = phone.startsWith("0") ? `254${phone.substring(1)}` : phone;
       const response = await supabase.functions.invoke("send-otp-sms", {
-        body: { phone, username, userType }
+        body: { phone: formattedPhone, username, userType }
       });
       if (response.error) throw response.error;
       if (response.data?.success) {
         setSentOtp(response.data.otp);
+        setVerifiedUserId(response.data.userId);
         setOtpSent(true);
         toast({ title: "OTP Sent", description: `OTP sent to phone ending in ...${response.data.phone}` });
       } else {
@@ -285,13 +354,58 @@ export default function Auth() {
 
   const handleVerifyOtp = async () => {
     if (otp === sentOtp) {
-      toast({ title: "Success", description: "OTP verified! You can now login with your credentials." });
-      setIsForgotPassword(false);
-      setOtpSent(false);
-      setOtp("");
-      setSentOtp("");
+      setOtpVerified(true);
+      toast({ title: "Success", description: "OTP verified! Please set your new password." });
     } else {
       toast({ title: "Error", description: "Invalid OTP. Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!newPassword || !confirmNewPassword) {
+      toast({ title: "Error", description: "Please enter and confirm your new password", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "Error", description: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      // Update password based on user type
+      if (userType === "learner") {
+        const { error } = await supabase
+          .from("learners")
+          .update({ birth_certificate_number: newPassword })
+          .eq("id", verifiedUserId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("teachers")
+          .update({ id_number: newPassword })
+          .eq("id", verifiedUserId);
+        if (error) throw error;
+      }
+      
+      toast({ title: "Password Reset", description: "Your password has been updated. You can now login." });
+      // Reset all states
+      setIsForgotPassword(false);
+      setOtpSent(false);
+      setOtpVerified(false);
+      setOtp("");
+      setSentOtp("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setPhone("");
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

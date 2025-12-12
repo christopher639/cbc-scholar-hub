@@ -1153,10 +1153,26 @@ const Settings = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Two-Factor Authentication</p>
-                    <p className="text-sm text-muted-foreground">Require 2FA for all users</p>
+                    <p className="font-medium">Two-Factor Authentication (OTP via SMS)</p>
+                    <p className="text-sm text-muted-foreground">Require phone OTP verification for all logins</p>
                   </div>
-                  <Switch />
+                  <Switch 
+                    checked={schoolInfo?.two_factor_enabled || false}
+                    onCheckedChange={async (checked) => {
+                      if (!checkAccess("update security settings")) return;
+                      try {
+                        await updateSchoolInfo({ two_factor_enabled: checked });
+                        toast({
+                          title: checked ? "2FA Enabled" : "2FA Disabled",
+                          description: checked 
+                            ? "All users will now need to verify via OTP when logging in" 
+                            : "Two-factor authentication has been disabled",
+                        });
+                      } catch (error: any) {
+                        toast({ title: "Error", description: error.message, variant: "destructive" });
+                      }
+                    }}
+                  />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
