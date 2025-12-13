@@ -34,6 +34,8 @@ import LearnerProfilePage from "./pages/LearnerProfilePage";
 import LearnerSettings from "./pages/LearnerSettings";
 import Auth from "./pages/Auth";
 import OTPVerification from "./pages/OTPVerification";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Users from "./pages/Users";
 import LearnerPerformance from "./pages/LearnerPerformance";
@@ -88,6 +90,8 @@ function AppRoutes() {
       <Route path="/blog/:id" element={<BlogDetail />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/otp-verification" element={<OTPVerification />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/signout" element={<Signout />} />
       
       {/* Learner Portal Routes */}
