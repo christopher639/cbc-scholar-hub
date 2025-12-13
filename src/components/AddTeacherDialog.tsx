@@ -109,13 +109,14 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
         photo_url: photoUrl || null,
       });
 
-      // Send credentials via SMS if phone number is provided
-      if (formData.phone && newTeacher) {
+      // Send credentials via SMS and Email
+      if (newTeacher && (formData.phone || formData.email)) {
         try {
           await supabase.functions.invoke("send-credentials-sms", {
             body: {
               type: "teacher",
-              phone: formData.phone,
+              phone: formData.phone || null,
+              email: formData.email || null,
               credentials: {
                 tscNumber: formData.tsc_number,
                 idNumber: formData.id_number,
@@ -124,7 +125,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
             }
           });
         } catch (smsError) {
-          console.log("SMS sending failed:", smsError);
+          console.log("Credentials sending failed:", smsError);
         }
       }
 
