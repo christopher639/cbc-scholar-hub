@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,7 +83,7 @@ export default function Invoices() {
   const [bulkCancelReason, setBulkCancelReason] = useState("");
   const [mpesaDialogOpen, setMpesaDialogOpen] = useState(false);
   const [mpesaInvoice, setMpesaInvoice] = useState<any>(null);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string> | null>(null);
 
   const { balances, loading: balancesLoading } = useFeeBalances({
     gradeId: selectedGradeForReport,
@@ -147,9 +147,19 @@ export default function Invoices() {
     return Object.values(grouped);
   }, [invoices, searchQuery, statusFilter, gradeFilter]);
 
+  // Auto-expand all groups on initial load
+  useEffect(() => {
+    if (expandedGroups === null && groupedInvoices.length > 0) {
+      const allKeys = groupedInvoices.map((group: any) => 
+        `${group.gradeId}-${group.term}-${group.academicYear}`
+      );
+      setExpandedGroups(new Set(allKeys));
+    }
+  }, [groupedInvoices, expandedGroups]);
+
   const toggleGroupExpansion = (groupKey: string) => {
     setExpandedGroups((prev) => {
-      const newSet = new Set(prev);
+      const newSet = new Set(prev || []);
       if (newSet.has(groupKey)) {
         newSet.delete(groupKey);
       } else {
@@ -540,7 +550,7 @@ export default function Invoices() {
               <div className="space-y-3">
                 {groupedInvoices.map((group: any) => {
                   const groupKey = `${group.gradeId}-${group.term}-${group.academicYear}`;
-                  const isExpanded = expandedGroups.has(groupKey);
+                  const isExpanded = expandedGroups?.has(groupKey) ?? true;
 
                   return (
                     <Collapsible key={groupKey} open={isExpanded} onOpenChange={() => toggleGroupExpansion(groupKey)}>
