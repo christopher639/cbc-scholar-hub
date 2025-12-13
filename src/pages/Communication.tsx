@@ -17,7 +17,7 @@ import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useRecentMessages } from "@/hooks/useRecentMessages";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle, Users, GraduationCap, Inbox, Eye, Phone, User, BarChart3, Timer, Play, RefreshCw } from "lucide-react";
+import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle, Users, GraduationCap, Inbox, Eye, Phone, User, BarChart3, Timer, Play, RefreshCw, Reply } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 export default function Communication() {
@@ -32,6 +32,10 @@ export default function Communication() {
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [automationLoading, setAutomationLoading] = useState(false);
   const [runNowLoading, setRunNowLoading] = useState(false);
+  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
+  const [replyMessage, setReplyMessage] = useState("");
+  const [replyLoading, setReplyLoading] = useState(false);
+  const [selectedContactMessage, setSelectedContactMessage] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     messageType: "both",
@@ -112,6 +116,63 @@ export default function Communication() {
       queryClient.invalidateQueries({ queryKey: ["contact-messages"] });
     } catch (error) {
       console.error("Error marking message as read:", error);
+    }
+  };
+
+  const handleOpenReply = (msg: any) => {
+    setSelectedContactMessage(msg);
+    setReplyMessage("");
+    setReplyDialogOpen(true);
+  };
+
+  const handleSendReply = async () => {
+    if (!selectedContactMessage || !replyMessage.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a reply message",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setReplyLoading(true);
+    try {
+      const response = await supabase.functions.invoke("send-reply-message", {
+        body: {
+          contactMessageId: selectedContactMessage.id,
+          replyMessage: replyMessage.trim(),
+        },
+      });
+
+      if (response.error) throw response.error;
+
+      const result = response.data;
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+        setReplyDialogOpen(false);
+        setSelectedContactMessage(null);
+        setReplyMessage("");
+        queryClient.invalidateQueries({ queryKey: ["contact-messages"] });
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to send reply",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error sending reply:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reply",
+        variant: "destructive",
+      });
+    } finally {
+      setReplyLoading(false);
     }
   };
 
@@ -508,17 +569,27 @@ export default function Communication() {
                             </div>
                             <p className="text-foreground whitespace-pre-wrap">{msg.message}</p>
                           </div>
-                          {!msg.is_read && (
+                          <div className="flex flex-col gap-2 flex-shrink-0">
                             <Button
-                              variant="outline"
+                              variant="default"
                               size="sm"
-                              onClick={() => markAsRead(msg.id)}
-                              className="flex-shrink-0"
+                              onClick={() => handleOpenReply(msg)}
+                              className="gap-1"
                             >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Mark Read
+                              <Reply className="h-4 w-4" />
+                              Reply
                             </Button>
-                          )}
+                            {!msg.is_read && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => markAsRead(msg.id)}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Mark Read
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         <div className="text-xs text-muted-foreground">
                           Received: {format(new Date(msg.created_at), "PPpp")}
@@ -529,6 +600,61 @@ export default function Communication() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Reply Dialog */}
+            {replyDialogOpen && selectedContactMessage && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Reply className="h-5 w-5" />
+                    Reply to {selectedContactMessage.name}
+                  </CardTitle>
+                  <CardDescription>
+                    Your reply will be sent via {selectedContactMessage.phone ? "SMS" : ""}{selectedContactMessage.phone && selectedContactMessage.email ? " and " : ""}{selectedContactMessage.email ? "email" : ""}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">Original message:</p>
+                    <p className="text-sm">{selectedContactMessage.message}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reply">Your Reply *</Label>
+                    <Textarea
+                      id="reply"
+                      value={replyMessage}
+                      onChange={(e) => setReplyMessage(e.target.value)}
+                      placeholder="Type your reply here..."
+                      rows={4}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSendReply}
+                      disabled={replyLoading || !replyMessage.trim()}
+                      className="gap-2"
+                    >
+                      {replyLoading ? (
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                      Send Reply
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setReplyDialogOpen(false);
+                        setSelectedContactMessage(null);
+                        setReplyMessage("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Send Bulk Message Tab */}
