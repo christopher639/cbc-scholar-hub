@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
@@ -17,7 +18,7 @@ import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useRecentMessages } from "@/hooks/useRecentMessages";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle, Users, GraduationCap, Inbox, Eye, Phone, User, BarChart3, Timer, Play, RefreshCw, Reply } from "lucide-react";
+import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle, Users, GraduationCap, Inbox, Eye, Phone, User, BarChart3, Timer, Play, RefreshCw, Reply, EyeOff } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 export default function Communication() {
@@ -28,7 +29,8 @@ export default function Communication() {
   const { academicYears } = useAcademicYears();
   const { data: recentMessages, isLoading: messagesLoading } = useRecentMessages();
   const [loading, setLoading] = useState(false);
-  const [showAllMessages, setShowAllMessages] = useState(false);
+  const [showRepliedMessages, setShowRepliedMessages] = useState(false);
+  const [showAllRecentMessages, setShowAllRecentMessages] = useState(false);
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [automationLoading, setAutomationLoading] = useState(false);
   const [runNowLoading, setRunNowLoading] = useState(false);
@@ -149,6 +151,12 @@ export default function Communication() {
       const result = response.data;
 
       if (result.success) {
+        // Mark message as read after successful reply
+        await supabase
+          .from("contact_messages")
+          .update({ is_read: true })
+          .eq("id", selectedContactMessage.id);
+        
         toast({
           title: "Success",
           description: result.message,
@@ -476,6 +484,20 @@ export default function Communication() {
 
   const unreadCount = contactMessages?.filter(m => !m.is_read).length || 0;
 
+  // Sort messages: unreplied (unread) first, then replied (read)
+  const sortedContactMessages = contactMessages
+    ? [...contactMessages].sort((a, b) => {
+        if (!a.is_read && b.is_read) return -1;
+        if (a.is_read && !b.is_read) return 1;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      })
+    : [];
+
+  // Filter based on showRepliedMessages toggle
+  const filteredContactMessages = showRepliedMessages
+    ? sortedContactMessages
+    : sortedContactMessages.filter(m => !m.is_read);
+
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
@@ -522,13 +544,37 @@ export default function Communication() {
           <TabsContent value="inbox" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Inbox className="h-5 w-5" />
-                  Messages from Website Visitors
-                </CardTitle>
-                <CardDescription>
-                  Contact form submissions from your public website
-                </CardDescription>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Inbox className="h-5 w-5" />
+                      Messages from Website Visitors
+                    </CardTitle>
+                    <CardDescription>
+                      Contact form submissions from your public website
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={showRepliedMessages ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setShowRepliedMessages(!showRepliedMessages)}
+                      className="gap-1"
+                    >
+                      {showRepliedMessages ? (
+                        <>
+                          <EyeOff className="h-4 w-4" />
+                          Hide Replied
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="h-4 w-4" />
+                          Show Replied
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {contactLoading ? (
@@ -537,13 +583,17 @@ export default function Communication() {
                   <div className="text-sm text-muted-foreground py-8 text-center">
                     No messages yet. Visitor inquiries from the website will appear here.
                   </div>
+                ) : filteredContactMessages.length === 0 ? (
+                  <div className="text-sm text-muted-foreground py-8 text-center">
+                    All messages have been replied. Click "Show Replied" to view them.
+                  </div>
                 ) : (
                   <div className="space-y-4">
-                    {contactMessages.map((msg) => (
+                    {filteredContactMessages.map((msg) => (
                       <div
                         key={msg.id}
                         className={`p-4 border rounded-lg space-y-3 transition-colors ${
-                          !msg.is_read ? "bg-primary/5 border-primary/20" : "bg-card"
+                          !msg.is_read ? "bg-primary/5 border-primary/20" : "bg-muted/30"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-4">
@@ -551,8 +601,10 @@ export default function Communication() {
                             <div className="flex items-center gap-2 mb-1">
                               <User className="h-4 w-4 text-muted-foreground" />
                               <span className="font-semibold text-foreground">{msg.name}</span>
-                              {!msg.is_read && (
+                              {!msg.is_read ? (
                                 <Badge variant="default" className="text-xs">New</Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-xs">Replied</Badge>
                               )}
                             </div>
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mb-2">
@@ -571,24 +623,14 @@ export default function Communication() {
                           </div>
                           <div className="flex flex-col gap-2 flex-shrink-0">
                             <Button
-                              variant="default"
+                              variant={msg.is_read ? "outline" : "default"}
                               size="sm"
                               onClick={() => handleOpenReply(msg)}
                               className="gap-1"
                             >
                               <Reply className="h-4 w-4" />
-                              Reply
+                              {msg.is_read ? "Reply Again" : "Reply"}
                             </Button>
-                            {!msg.is_read && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => markAsRead(msg.id)}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                Mark Read
-                              </Button>
-                            )}
                           </div>
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -602,21 +644,27 @@ export default function Communication() {
             </Card>
 
             {/* Reply Dialog */}
-            {replyDialogOpen && selectedContactMessage && (
-              <Card className="mt-4">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+            <Dialog open={replyDialogOpen} onOpenChange={(open) => {
+              if (!open) {
+                setReplyDialogOpen(false);
+                setSelectedContactMessage(null);
+                setReplyMessage("");
+              }
+            }}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
                     <Reply className="h-5 w-5" />
-                    Reply to {selectedContactMessage.name}
-                  </CardTitle>
-                  <CardDescription>
-                    Your reply will be sent via {selectedContactMessage.phone ? "SMS" : ""}{selectedContactMessage.phone && selectedContactMessage.email ? " and " : ""}{selectedContactMessage.email ? "email" : ""}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                    Reply to {selectedContactMessage?.name}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Your reply will be sent via {selectedContactMessage?.phone ? "SMS" : ""}{selectedContactMessage?.phone && selectedContactMessage?.email ? " and " : ""}{selectedContactMessage?.email ? "email" : ""}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 pt-2">
                   <div className="p-3 bg-muted rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">Original message:</p>
-                    <p className="text-sm">{selectedContactMessage.message}</p>
+                    <p className="text-sm">{selectedContactMessage?.message}</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="reply">Your Reply *</Label>
@@ -652,9 +700,9 @@ export default function Communication() {
                       Cancel
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* Send Bulk Message Tab */}
@@ -829,7 +877,7 @@ export default function Communication() {
                       <div className="text-sm text-muted-foreground">No messages sent yet</div>
                     ) : (
                       <div className="space-y-3">
-                        {(showAllMessages ? recentMessages : recentMessages.slice(0, 5)).map((msg: any) => (
+                        {(showAllRecentMessages ? recentMessages : recentMessages.slice(0, 5)).map((msg: any) => (
                           <div
                             key={msg.id}
                             className="p-3 border border-border rounded-lg space-y-2"
@@ -879,9 +927,9 @@ export default function Communication() {
                             variant="ghost"
                             size="sm"
                             className="w-full text-muted-foreground"
-                            onClick={() => setShowAllMessages(!showAllMessages)}
+                            onClick={() => setShowAllRecentMessages(!showAllRecentMessages)}
                           >
-                            {showAllMessages ? "Show Less" : `Show More (${recentMessages.length - 5} more)`}
+                            {showAllRecentMessages ? "Show Less" : `Show More (${recentMessages.length - 5} more)`}
                           </Button>
                         )}
                       </div>
