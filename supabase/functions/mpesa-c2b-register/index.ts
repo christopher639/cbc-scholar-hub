@@ -41,7 +41,7 @@ serve(async (req) => {
   }
 
   try {
-    const shortcode = Deno.env.get('MPESA_SHORTCODE') || '600000';
+    const shortcode = Deno.env.get('MPESA_SHORTCODE') || '600426';
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 
     const accessToken = await getAccessToken();
