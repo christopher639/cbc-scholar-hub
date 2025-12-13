@@ -540,13 +540,13 @@ const FeeManagement = () => {
             <div className="grid gap-3 grid-cols-3">
               {feeStats.map((stat) => (
                 <Card key={stat.label}>
-                  <CardContent className="p-4 sm:p-5 flex items-center gap-3 min-h-[80px]">
-                    <div className="p-2 bg-primary/10 rounded-full shrink-0 hidden sm:flex">
-                      <stat.icon className="h-4 w-4 text-primary" />
+                  <CardContent className="p-4 sm:p-6 flex items-center gap-3 min-h-[100px]">
+                    <div className="p-2 sm:p-3 bg-primary/10 rounded-full shrink-0 hidden sm:flex">
+                      <stat.icon className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">{stat.label}</p>
-                      <p className="text-sm sm:text-lg font-bold">{stat.value}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
+                      <p className="text-base sm:text-xl font-bold">{stat.value}</p>
                     </div>
                   </CardContent>
                 </Card>

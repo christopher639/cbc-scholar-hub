@@ -40,6 +40,13 @@ serve(async (req) => {
 
     const schoolName = schoolInfo?.school_name || "School";
 
+    // Get all learning areas for reference
+    const { data: learningAreas } = await supabase
+      .from("learning_areas")
+      .select("id, name, code");
+
+    const learningAreaMap = new Map(learningAreas?.map(la => [la.id, la]) || []);
+
     // Build learner query based on scope
     let learnersQuery = supabase
       .from("learners")
@@ -85,7 +92,7 @@ serve(async (req) => {
         marks,
         grade_letter,
         exam_type,
-        learning_area:learning_areas(name, code)
+        learning_area_id
       `)
       .eq("academic_year", academicYear)
       .eq("term", term);
@@ -101,12 +108,20 @@ serve(async (req) => {
       throw perfError;
     }
 
-    // Group performance by learner
-    const performanceByLearner = new Map<string, any[]>();
+    // Group performance by learner and learning area
+    const performanceByLearner = new Map<string, Map<string, any[]>>();
+    
     performanceRecords?.forEach((record) => {
-      const existing = performanceByLearner.get(record.learner_id) || [];
-      existing.push(record);
-      performanceByLearner.set(record.learner_id, existing);
+      if (!performanceByLearner.has(record.learner_id)) {
+        performanceByLearner.set(record.learner_id, new Map());
+      }
+      const learnerPerf = performanceByLearner.get(record.learner_id)!;
+      const laId = record.learning_area_id;
+      
+      if (!learnerPerf.has(laId)) {
+        learnerPerf.set(laId, []);
+      }
+      learnerPerf.get(laId)!.push(record);
     });
 
     // Format phone number
@@ -133,28 +148,57 @@ serve(async (req) => {
       const formattedPhone = formatPhone(parent.phone);
       if (!formattedPhone) continue;
 
-      const learnerPerformance = performanceByLearner.get(learner.id) || [];
+      const learnerPerfMap = performanceByLearner.get(learner.id);
       
-      if (learnerPerformance.length === 0) continue;
+      if (!learnerPerfMap || learnerPerfMap.size === 0) continue;
 
-      // Calculate average
-      const totalMarks = learnerPerformance.reduce((sum, p) => sum + Number(p.marks), 0);
-      const avgMarks = totalMarks / learnerPerformance.length;
+      // Build subject-wise performance summary
+      const subjectSummary: { code: string; name: string; marks: number; examTypes: string[] }[] = [];
+      
+      learnerPerfMap.forEach((records, laId) => {
+        const la = learningAreaMap.get(laId);
+        if (!la) return;
+        
+        // Calculate average for combined or single exam type
+        const totalMarks = records.reduce((sum, r) => sum + Number(r.marks), 0);
+        const avgMarks = totalMarks / records.length;
+        const examTypes = [...new Set(records.map(r => r.exam_type))];
+        
+        subjectSummary.push({
+          code: la.code || la.name.substring(0, 4).toUpperCase(),
+          name: la.name,
+          marks: Math.round(avgMarks),
+          examTypes
+        });
+      });
+
+      if (subjectSummary.length === 0) continue;
+
+      // Sort by marks descending
+      subjectSummary.sort((a, b) => b.marks - a.marks);
+
+      // Calculate overall average
+      const totalAvg = subjectSummary.reduce((sum, s) => sum + s.marks, 0) / subjectSummary.length;
 
       // Get grade category
       let gradeCategory = "B.E";
-      if (avgMarks >= 80) gradeCategory = "E.E";
-      else if (avgMarks >= 50) gradeCategory = "M.E";
-      else if (avgMarks >= 30) gradeCategory = "A.E";
+      if (totalAvg >= 80) gradeCategory = "E.E";
+      else if (totalAvg >= 50) gradeCategory = "M.E";
+      else if (totalAvg >= 30) gradeCategory = "A.E";
 
-      // Build subject summary (top 3 and bottom 2)
-      const sortedPerf = [...learnerPerformance].sort((a, b) => b.marks - a.marks);
-      const topSubjects = sortedPerf.slice(0, 3).map(p => `${p.learning_area?.code || 'N/A'}:${p.marks}`).join(", ");
+      // Build detailed subject list (all subjects)
+      const subjectList = subjectSummary.map(s => `${s.code}:${s.marks}`).join(", ");
 
       const termLabel = term.replace("_", " ").toUpperCase();
-      const examLabel = examType === "combined" ? "Combined" : examType.replace("_", "-").toUpperCase();
+      const examLabel = examType === "combined" 
+        ? "Combined (Opener+Mid+Final)" 
+        : examType.replace("_", "-").toUpperCase();
 
-      const message = `${schoolName}: Dear ${parent.first_name}, ${learner.first_name} ${learner.last_name}'s ${termLabel} ${examLabel} results - Avg: ${avgMarks.toFixed(1)}% (${gradeCategory}). Top: ${topSubjects}. Total subjects: ${learnerPerformance.length}`;
+      // Build comprehensive message with all subjects
+      let message = `${schoolName}: Dear ${parent.first_name}, ${learner.first_name}'s ${termLabel} ${examLabel} Results:\n`;
+      message += `Subjects: ${subjectList}\n`;
+      message += `Overall Avg: ${totalAvg.toFixed(1)}% (${gradeCategory})\n`;
+      message += `Total: ${subjectSummary.length} subjects`;
 
       smsList.push({
         partnerID: partnerId,
@@ -162,14 +206,14 @@ serve(async (req) => {
         pass_type: "plain",
         clientsmsid: clientSmsId++,
         mobile: formattedPhone,
-        message: message.substring(0, 160),
+        message: message.substring(0, 480), // Allow 3 SMS parts for complete data
         shortcode: shortcode,
       });
     }
 
     if (smsList.length === 0) {
       return new Response(
-        JSON.stringify({ success: false, message: "No parents with valid phone numbers found" }),
+        JSON.stringify({ success: false, message: "No parents with valid phone numbers or performance records found" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

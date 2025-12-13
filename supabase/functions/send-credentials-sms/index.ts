@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,11 +25,11 @@ serve(async (req) => {
   }
 
   try {
-    const { type, phone, credentials } = await req.json();
+    const { type, phone, email, credentials } = await req.json();
 
-    if (!type || !phone || !credentials) {
+    if (!type || !credentials) {
       return new Response(
-        JSON.stringify({ success: false, message: "Type, phone, and credentials are required" }),
+        JSON.stringify({ success: false, message: "Type and credentials are required" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
@@ -37,28 +38,49 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const apiKey = Deno.env.get("TEXT_SMS_API_KEY");
-    if (!apiKey) {
-      console.log("SMS API not configured, skipping SMS send");
-      return new Response(
-        JSON.stringify({ success: true, message: "SMS skipped - API not configured" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const smsApiKey = Deno.env.get("TEXT_SMS_API_KEY");
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     // Get school info
     const { data: school } = await supabase.from("school_info").select("school_name").single();
     const schoolName = school?.school_name || "School";
 
-    const formattedPhone = formatPhoneNumber(phone);
-    let message = "";
+    let smsMessage = "";
+    let emailSubject = "";
+    let emailHtml = "";
 
     if (type === "learner") {
       // Credentials for learner (sent to parent)
-      message = `Welcome to ${schoolName}! Your child ${credentials.learnerName} has been enrolled. Login credentials - Username: ${credentials.admissionNumber}, Password: ${credentials.birthCertificate || "Contact admin"}. Portal: ${credentials.portalUrl || "school website"}`;
+      smsMessage = `Welcome to ${schoolName}! Your child ${credentials.learnerName} has been enrolled. Login: Username: ${credentials.admissionNumber}, Password: ${credentials.birthCertificate || "Contact admin"}. Portal: ${credentials.portalUrl}. Please change password on first login.`;
+      emailSubject = `${schoolName} - Learner Portal Credentials`;
+      emailHtml = `
+        <h2>Welcome to ${schoolName}!</h2>
+        <p>Your child <strong>${credentials.learnerName}</strong> has been successfully enrolled.</p>
+        <h3>Login Credentials:</h3>
+        <ul>
+          <li><strong>Username:</strong> ${credentials.admissionNumber}</li>
+          <li><strong>Password:</strong> ${credentials.birthCertificate || "Contact admin"}</li>
+        </ul>
+        <p>Portal URL: <a href="${credentials.portalUrl}">${credentials.portalUrl}</a></p>
+        <p><strong>Important:</strong> Please change the password on first login for security.</p>
+        <p>Best regards,<br>${schoolName}</p>
+      `;
     } else if (type === "teacher") {
       // Credentials for teacher
-      message = `Welcome to ${schoolName}! Your teacher account has been created. Login credentials - Username (TSC): ${credentials.tscNumber}, Password (ID): ${credentials.idNumber}. Portal: ${credentials.portalUrl || "school website"}`;
+      smsMessage = `Welcome to ${schoolName}! Your teacher account is ready. Login: Username (TSC): ${credentials.tscNumber}, Password (ID): ${credentials.idNumber}. Portal: ${credentials.portalUrl}. IMPORTANT: Change your password on first login for security.`;
+      emailSubject = `${schoolName} - Teacher Portal Credentials`;
+      emailHtml = `
+        <h2>Welcome to ${schoolName}!</h2>
+        <p>Your teacher account has been created successfully.</p>
+        <h3>Login Credentials:</h3>
+        <ul>
+          <li><strong>Username (TSC Number):</strong> ${credentials.tscNumber}</li>
+          <li><strong>Password (ID Number):</strong> ${credentials.idNumber}</li>
+        </ul>
+        <p>Portal URL: <a href="${credentials.portalUrl}">${credentials.portalUrl}</a></p>
+        <p><strong>IMPORTANT:</strong> For security reasons, please change your password immediately after your first login.</p>
+        <p>Best regards,<br>${schoolName}</p>
+      `;
     } else {
       return new Response(
         JSON.stringify({ success: false, message: "Invalid type specified" }),
@@ -66,39 +88,69 @@ serve(async (req) => {
       );
     }
 
-    // Send SMS via TextSMS
-    const smsPayload = {
-      apikey: apiKey,
-      partnerID: 15265,
-      message: message,
-      shortcode: schoolName.substring(0, 11),
-      mobile: formattedPhone,
-    };
+    let smsSent = false;
+    let emailSent = false;
 
-    console.log("Sending credentials SMS to:", formattedPhone);
+    // Send SMS if phone is provided and API key is configured
+    if (phone && smsApiKey) {
+      const formattedPhone = formatPhoneNumber(phone);
+      const smsPayload = {
+        apikey: smsApiKey,
+        partnerID: 15265,
+        message: smsMessage.substring(0, 320), // Allow 2 SMS parts
+        shortcode: schoolName.substring(0, 11),
+        mobile: formattedPhone,
+      };
 
-    const smsResponse = await fetch("https://sms.textsms.co.ke/api/services/sendsms/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(smsPayload),
-    });
+      console.log("Sending credentials SMS to:", formattedPhone);
 
-    const smsResult = await smsResponse.json();
-    console.log("SMS API response:", smsResult);
+      try {
+        const smsResponse = await fetch("https://sms.textsms.co.ke/api/services/sendsms/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(smsPayload),
+        });
 
-    if (smsResult["response-code"] === 200 || smsResult.responses?.[0]?.["response-code"] === 200) {
-      return new Response(
-        JSON.stringify({ success: true, message: "Credentials sent via SMS successfully" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    } else {
-      console.error("SMS sending failed:", smsResult);
-      // Don't fail the whole operation, just log the error
-      return new Response(
-        JSON.stringify({ success: true, message: "User created but SMS delivery may have failed" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        const smsResult = await smsResponse.json();
+        console.log("SMS API response:", smsResult);
+
+        if (smsResult["response-code"] === 200 || smsResult.responses?.[0]?.["response-code"] === 200) {
+          smsSent = true;
+        }
+      } catch (smsError) {
+        console.error("SMS sending error:", smsError);
+      }
     }
+
+    // Send Email if email is provided and API key is configured
+    if (email && resendApiKey) {
+      try {
+        const resend = new Resend(resendApiKey);
+        const emailResponse = await resend.emails.send({
+          from: `${schoolName} <onboarding@resend.dev>`,
+          to: [email],
+          subject: emailSubject,
+          html: emailHtml,
+        });
+        console.log("Email sent:", emailResponse);
+        emailSent = true;
+      } catch (emailError) {
+        console.error("Email sending error:", emailError);
+      }
+    }
+
+    const message = smsSent && emailSent 
+      ? "Credentials sent via SMS and Email" 
+      : smsSent 
+        ? "Credentials sent via SMS" 
+        : emailSent 
+          ? "Credentials sent via Email" 
+          : "User created but credential delivery may have failed";
+
+    return new Response(
+      JSON.stringify({ success: true, message, smsSent, emailSent }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (error: unknown) {
     console.error("Error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";

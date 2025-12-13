@@ -347,13 +347,14 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         .limit(1)
         .single();
 
-      // Send credentials via SMS to parent if phone number is provided
-      if (formData.parentPhone && newLearner) {
+      // Send credentials via SMS and Email to parent
+      if (newLearner && (formData.parentPhone || formData.parentEmail)) {
         try {
           await supabase.functions.invoke("send-credentials-sms", {
             body: {
               type: "learner",
-              phone: formData.parentPhone,
+              phone: formData.parentPhone || null,
+              email: formData.parentEmail || null,
               credentials: {
                 learnerName: `${formData.firstName} ${formData.lastName}`,
                 admissionNumber: newLearner.admission_number,
@@ -363,7 +364,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
             }
           });
         } catch (smsError) {
-          console.log("SMS sending failed:", smsError);
+          console.log("Credentials sending failed:", smsError);
         }
       }
 

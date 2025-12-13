@@ -31,14 +31,17 @@ serve(async (req) => {
 
     console.log("Fee reminder request:", { scope, gradeId, streamId, includeCurrentTerm, includePreviousBalance });
 
-    // Get school info
+    // Get school info with payment details
     const { data: schoolInfo } = await supabase
       .from("school_info")
-      .select("school_name, mpesa_paybill")
+      .select("school_name, mpesa_paybill, mpesa_account_name, bank_name, bank_account_name, bank_account_number, bank_branch, payment_instructions")
       .single();
 
     const schoolName = schoolInfo?.school_name || "School";
     const paybill = schoolInfo?.mpesa_paybill || "";
+    const bankName = schoolInfo?.bank_name || "";
+    const bankAccount = schoolInfo?.bank_account_number || "";
+    const bankBranch = schoolInfo?.bank_branch || "";
 
     // Get current academic period
     const { data: currentPeriod } = await supabase
@@ -110,25 +113,11 @@ serve(async (req) => {
       .in("learner_id", learnerIds)
       .neq("status", "cancelled");
 
-    // Get all transactions
-    const { data: transactions } = await supabase
-      .from("fee_transactions")
-      .select("learner_id, amount_paid")
-      .in("learner_id", learnerIds);
-
-    // Get all fee_payments
-    const { data: feePayments } = await supabase
-      .from("fee_payments")
-      .select("learner_id, amount_paid")
-      .in("learner_id", learnerIds);
-
     // Calculate balances per learner
     const balancesByLearner = new Map<string, { currentTerm: number; previousBalance: number; totalBalance: number }>();
 
     for (const learner of learners) {
       const learnerInvoices = invoices?.filter(inv => inv.learner_id === learner.id) || [];
-      const learnerTransactions = transactions?.filter(t => t.learner_id === learner.id) || [];
-      const learnerFeePayments = feePayments?.filter(p => p.learner_id === learner.id) || [];
 
       // Current term invoice
       const currentTermInvoice = learnerInvoices.find(
@@ -173,28 +162,32 @@ serve(async (req) => {
 
       // Only send if there's a balance to remind
       let balanceToShow = 0;
-      let balanceLabel = "";
 
       if (includeCurrentTerm && includePreviousBalance) {
         balanceToShow = balances.totalBalance;
-        balanceLabel = "Total balance";
       } else if (includeCurrentTerm) {
         balanceToShow = balances.currentTerm;
-        balanceLabel = "Current term balance";
       } else if (includePreviousBalance) {
         balanceToShow = balances.previousBalance;
-        balanceLabel = "Previous balance";
       } else {
         balanceToShow = balances.totalBalance;
-        balanceLabel = "Total balance";
       }
 
       if (balanceToShow <= 0) continue;
 
       const formatKsh = (amount: number) => `KSh ${amount.toLocaleString("en-KE")}`;
-      const paybillInfo = paybill ? ` Paybill: ${paybill}, A/C: ${learner.admission_number}` : "";
 
-      const message = `${schoolName}: Dear ${parent.first_name}, ${learner.first_name}'s fee reminder. ${balanceLabel}: ${formatKsh(balanceToShow)}.${paybillInfo} Thank you.`;
+      // Build payment details
+      let paymentInfo = "";
+      if (paybill) {
+        paymentInfo = `Pay via M-Pesa Paybill: ${paybill}, A/C: ${learner.admission_number}`;
+      }
+      if (bankName && bankAccount) {
+        if (paymentInfo) paymentInfo += " OR ";
+        paymentInfo += `Bank: ${bankName}, A/C: ${bankAccount}${bankBranch ? `, Branch: ${bankBranch}` : ""}`;
+      }
+
+      const message = `${schoolName}: Dear ${parent.first_name}, ${learner.first_name}'s outstanding fee balance is ${formatKsh(balanceToShow)}. Kindly pay school fees early to avoid inconveniences. ${paymentInfo}. Thank you.`;
 
       smsList.push({
         partnerID: partnerId,
@@ -202,7 +195,7 @@ serve(async (req) => {
         pass_type: "plain",
         clientsmsid: clientSmsId++,
         mobile: formattedPhone,
-        message: message.substring(0, 160),
+        message: message.substring(0, 320), // Allow 2 SMS parts
         shortcode: shortcode,
       });
     }
