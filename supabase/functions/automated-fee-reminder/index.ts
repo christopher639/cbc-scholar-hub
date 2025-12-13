@@ -12,6 +12,15 @@ serve(async (req) => {
   }
 
   try {
+    // Parse request body to check for force flag
+    let forceRun = false;
+    try {
+      const body = await req.json();
+      forceRun = body?.force === true;
+    } catch {
+      // No body or invalid JSON, continue without force
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const apiKey = Deno.env.get("TEXT_SMS_API_KEY")!;
@@ -20,7 +29,7 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log("Checking for automated fee reminders to send...");
+    console.log("Checking for automated fee reminders to send...", forceRun ? "(forced)" : "");
 
     // Get fee reminder settings
     const { data: settings, error: settingsError } = await supabase
@@ -36,7 +45,8 @@ serve(async (req) => {
       );
     }
 
-    if (!settings.is_enabled) {
+    // Only check is_enabled if not forced
+    if (!forceRun && !settings.is_enabled) {
       console.log("Automated fee reminders are disabled");
       return new Response(
         JSON.stringify({ success: false, message: "Automated reminders are disabled" }),
@@ -44,17 +54,19 @@ serve(async (req) => {
       );
     }
 
-    // Check if it's time to run
+    // Check if it's time to run (skip if forced)
     const now = new Date();
     const nextRun = settings.next_run_at ? new Date(settings.next_run_at) : null;
 
-    if (nextRun && now < nextRun) {
+    if (!forceRun && nextRun && now < nextRun) {
       console.log(`Not time to run yet. Next run: ${nextRun.toISOString()}`);
       return new Response(
         JSON.stringify({ success: false, message: "Not scheduled to run yet" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    console.log(forceRun ? "Force running fee reminders..." : "Running scheduled fee reminders...");
 
     // Get school info
     const { data: schoolInfo } = await supabase
