@@ -242,17 +242,23 @@ export default function Home() {
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!contactForm.name.trim() || !contactForm.email.trim() || !contactForm.message.trim()) {
-      toast({ title: "Error", description: "Please fill in all required fields", variant: "destructive" });
+    if (!contactForm.name.trim() || !contactForm.email.trim() || !contactForm.message.trim() || !contactForm.phone.trim()) {
+      toast({ title: "Error", description: "Please fill in all required fields including phone number", variant: "destructive" });
+      return;
+    }
+
+    if (contactForm.phone.length !== 9) {
+      toast({ title: "Error", description: "Please enter a valid 9-digit phone number", variant: "destructive" });
       return;
     }
 
     setSubmitting(true);
     try {
+      const formattedPhone = "+254" + contactForm.phone;
       const { error } = await supabase.from("contact_messages").insert({
         name: contactForm.name.trim(),
         email: contactForm.email.trim(),
-        phone: contactForm.phone.trim() || null,
+        phone: formattedPhone,
         message: contactForm.message.trim(),
       });
 
@@ -778,13 +784,24 @@ export default function Home() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone (Optional)</Label>
-                    <Input
-                      id="phone"
-                      value={contactForm.phone}
-                      onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                      placeholder="+254 7XX XXX XXX"
-                    />
+                    <Label htmlFor="phone">Phone *</Label>
+                    <div className="flex">
+                      <div className="flex items-center justify-center px-3 border border-r-0 rounded-l-md bg-muted text-muted-foreground text-sm">
+                        +254
+                      </div>
+                      <Input
+                        id="phone"
+                        value={contactForm.phone}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "").slice(0, 9);
+                          setContactForm({ ...contactForm, phone: value });
+                        }}
+                        placeholder="7XX XXX XXX"
+                        className="rounded-l-none"
+                        maxLength={9}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">Enter 9 digits after +254</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="message">Message *</Label>
