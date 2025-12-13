@@ -53,3 +53,9 @@ verify_jwt = false
 
 [functions.send-account-notification]
 verify_jwt = false
+
+[functions.automated-fee-reminder]
+verify_jwt = false
+
+[functions.get-user-emails]
+verify_jwt = true

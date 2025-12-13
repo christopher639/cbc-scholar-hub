@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
@@ -16,8 +17,8 @@ import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useRecentMessages } from "@/hooks/useRecentMessages";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle, Users, GraduationCap, Inbox, Eye, Phone, User, BarChart3 } from "lucide-react";
-import { format } from "date-fns";
+import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle, Users, GraduationCap, Inbox, Eye, Phone, User, BarChart3, Timer, Play, RefreshCw } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 
 export default function Communication() {
   const { toast } = useToast();
@@ -29,6 +30,8 @@ export default function Communication() {
   const [loading, setLoading] = useState(false);
   const [showAllMessages, setShowAllMessages] = useState(false);
   const [performanceLoading, setPerformanceLoading] = useState(false);
+  const [automationLoading, setAutomationLoading] = useState(false);
+  const [runNowLoading, setRunNowLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     messageType: "both",
@@ -47,6 +50,43 @@ export default function Communication() {
     gradeId: "",
     streamId: "",
   });
+
+  // Fetch fee reminder automation settings
+  const { data: automationSettings, isLoading: automationSettingsLoading, refetch: refetchAutomation } = useQuery({
+    queryKey: ["fee-reminder-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fee_reminder_settings")
+        .select("*")
+        .single();
+      
+      if (error && error.code !== "PGRST116") throw error;
+      return data;
+    },
+  });
+
+  const [automationForm, setAutomationForm] = useState({
+    isEnabled: false,
+    intervalDays: 7,
+    scope: "school" as "school" | "grade",
+    gradeId: "",
+    includeCurrentTerm: true,
+    includePreviousBalance: true,
+  });
+
+  // Sync automation form with fetched settings
+  useEffect(() => {
+    if (automationSettings) {
+      setAutomationForm({
+        isEnabled: automationSettings.is_enabled || false,
+        intervalDays: automationSettings.interval_days || 7,
+        scope: (automationSettings.scope as "school" | "grade") || "school",
+        gradeId: automationSettings.grade_id || "",
+        includeCurrentTerm: automationSettings.include_current_term ?? true,
+        includePreviousBalance: automationSettings.include_previous_balance ?? true,
+      });
+    }
+  }, [automationSettings]);
 
   // Fetch visitor contact messages
   const { data: contactMessages, isLoading: contactLoading } = useQuery({
@@ -150,6 +190,87 @@ export default function Communication() {
       });
     } finally {
       setPerformanceLoading(false);
+    }
+  };
+
+  const handleSaveAutomation = async () => {
+    setAutomationLoading(true);
+    try {
+      const now = new Date();
+      const nextRun = automationForm.isEnabled
+        ? new Date(now.getTime() + automationForm.intervalDays * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      const updateData = {
+        is_enabled: automationForm.isEnabled,
+        interval_days: automationForm.intervalDays,
+        scope: automationForm.scope,
+        grade_id: automationForm.scope === "grade" ? automationForm.gradeId : null,
+        include_current_term: automationForm.includeCurrentTerm,
+        include_previous_balance: automationForm.includePreviousBalance,
+        next_run_at: nextRun,
+      };
+
+      if (automationSettings?.id) {
+        const { error } = await supabase
+          .from("fee_reminder_settings")
+          .update(updateData)
+          .eq("id", automationSettings.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("fee_reminder_settings")
+          .insert([updateData]);
+        if (error) throw error;
+      }
+
+      await refetchAutomation();
+      toast({
+        title: "Success",
+        description: "Automation settings saved successfully",
+      });
+    } catch (error: any) {
+      console.error("Error saving automation settings:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save automation settings",
+        variant: "destructive",
+      });
+    } finally {
+      setAutomationLoading(false);
+    }
+  };
+
+  const handleRunNow = async () => {
+    setRunNowLoading(true);
+    try {
+      const response = await supabase.functions.invoke("automated-fee-reminder");
+
+      if (response.error) throw response.error;
+
+      const result = response.data;
+      await refetchAutomation();
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+      } else {
+        toast({
+          title: "Notice",
+          description: result.message || "No reminders sent",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error running automation:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to run automation",
+        variant: "destructive",
+      });
+    } finally {
+      setRunNowLoading(false);
     }
   };
 
@@ -321,6 +442,16 @@ export default function Communication() {
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Performance SMS</span>
               <span className="sm:hidden">Marks</span>
+            </TabsTrigger>
+            <TabsTrigger value="automation" className="gap-2">
+              <Timer className="h-4 w-4" />
+              <span className="hidden sm:inline">Fee Automation</span>
+              <span className="sm:hidden">Auto</span>
+              {automationSettings?.is_enabled && (
+                <Badge className="ml-1 h-5 min-w-5 text-xs bg-green-500">
+                  On
+                </Badge>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -783,6 +914,206 @@ export default function Communication() {
                   <Send className="h-4 w-4" />
                   {performanceLoading ? "Sending..." : "Send Performance SMS"}
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Fee Automation Tab */}
+          <TabsContent value="automation" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Timer className="h-5 w-5" />
+                  Automated Fee Reminders
+                </CardTitle>
+                <CardDescription>
+                  Configure automatic SMS reminders to parents about outstanding fee balances
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {automationSettingsLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">Loading settings...</div>
+                ) : (
+                  <>
+                    {/* Status Card */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 border rounded-lg bg-muted/30">
+                        <div className="text-sm text-muted-foreground">Status</div>
+                        <div className="flex items-center gap-2 mt-1">
+                          {automationSettings?.is_enabled ? (
+                            <>
+                              <CheckCircle2 className="h-5 w-5 text-green-500" />
+                              <span className="font-semibold text-green-600">Active</span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-5 w-5 text-muted-foreground" />
+                              <span className="font-semibold text-muted-foreground">Disabled</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="p-4 border rounded-lg bg-muted/30">
+                        <div className="text-sm text-muted-foreground">Last Run</div>
+                        <div className="font-semibold mt-1">
+                          {automationSettings?.last_run_at
+                            ? formatDistanceToNow(new Date(automationSettings.last_run_at), { addSuffix: true })
+                            : "Never"}
+                        </div>
+                      </div>
+                      <div className="p-4 border rounded-lg bg-muted/30">
+                        <div className="text-sm text-muted-foreground">Next Run</div>
+                        <div className="font-semibold mt-1">
+                          {automationSettings?.is_enabled && automationSettings?.next_run_at
+                            ? format(new Date(automationSettings.next_run_at), "PPp")
+                            : "Not scheduled"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Enable Toggle */}
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <div className="font-medium">Enable Automated Reminders</div>
+                        <div className="text-sm text-muted-foreground">
+                          Automatically send fee reminders to parents at the specified interval
+                        </div>
+                      </div>
+                      <Switch
+                        checked={automationForm.isEnabled}
+                        onCheckedChange={(checked) => setAutomationForm({ ...automationForm, isEnabled: checked })}
+                      />
+                    </div>
+
+                    {/* Settings Form */}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="interval">Reminder Interval (Days)</Label>
+                          <Select
+                            value={automationForm.intervalDays.toString()}
+                            onValueChange={(value) => setAutomationForm({ ...automationForm, intervalDays: parseInt(value) })}
+                          >
+                            <SelectTrigger id="interval">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">Every day</SelectItem>
+                              <SelectItem value="3">Every 3 days</SelectItem>
+                              <SelectItem value="7">Every week</SelectItem>
+                              <SelectItem value="14">Every 2 weeks</SelectItem>
+                              <SelectItem value="30">Every month</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="scope">Send To</Label>
+                          <Select
+                            value={automationForm.scope}
+                            onValueChange={(value: "school" | "grade") => setAutomationForm({ ...automationForm, scope: value, gradeId: "" })}
+                          >
+                            <SelectTrigger id="scope">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="school">Whole School</SelectItem>
+                              <SelectItem value="grade">Specific Grade</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {automationForm.scope === "grade" && (
+                        <div className="space-y-2">
+                          <Label htmlFor="automationGrade">Select Grade</Label>
+                          <Select
+                            value={automationForm.gradeId}
+                            onValueChange={(value) => setAutomationForm({ ...automationForm, gradeId: value })}
+                          >
+                            <SelectTrigger id="automationGrade">
+                              <SelectValue placeholder="Choose a grade" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {grades.map((grade) => (
+                                <SelectItem key={grade.id} value={grade.id}>
+                                  {grade.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <div className="font-medium text-sm">Include Current Term Fees</div>
+                            <div className="text-xs text-muted-foreground">Remind about current term balance</div>
+                          </div>
+                          <Switch
+                            checked={automationForm.includeCurrentTerm}
+                            onCheckedChange={(checked) => setAutomationForm({ ...automationForm, includeCurrentTerm: checked })}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <div className="font-medium text-sm">Include Previous Balance</div>
+                            <div className="text-xs text-muted-foreground">Remind about arrears from past terms</div>
+                          </div>
+                          <Switch
+                            checked={automationForm.includePreviousBalance}
+                            onCheckedChange={(checked) => setAutomationForm({ ...automationForm, includePreviousBalance: checked })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        <strong>SMS Preview:</strong> Parents will receive a message with their learner's fee balance and payment instructions (Paybill number and account reference).
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        onClick={handleSaveAutomation}
+                        disabled={automationLoading}
+                        className="gap-2"
+                      >
+                        {automationLoading ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="h-4 w-4" />
+                            Save Settings
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleRunNow}
+                        disabled={runNowLoading || !automationForm.isEnabled}
+                        className="gap-2"
+                      >
+                        {runNowLoading ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4" />
+                            Run Now
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
