@@ -49,106 +49,129 @@ serve(async (req) => {
     let userPhone = phone || "";
     let userId = "";
     let detectedUserType = userType;
+    let userEmail = "";
 
     // Try to find as learner first (by admission number)
-    const { data: learner } = await supabase
+    const { data: learnerByAdmission } = await supabase
       .from("learners")
       .select("id, first_name, last_name, parent_id")
       .eq("admission_number", username)
       .maybeSingle();
 
-    if (learner) {
-      userId = learner.id;
+    if (learnerByAdmission) {
+      userId = learnerByAdmission.id;
       detectedUserType = "learner";
       
-      // Get parent phone for learner
-      if (learner.parent_id) {
+      // Get parent phone and email for learner
+      if (learnerByAdmission.parent_id) {
         const { data: parent } = await supabase
           .from("parents")
-          .select("phone")
-          .eq("id", learner.parent_id)
+          .select("phone, email")
+          .eq("id", learnerByAdmission.parent_id)
           .maybeSingle();
         
-        if (parent?.phone) {
-          userPhone = parent.phone;
+        if (parent) {
+          userPhone = parent.phone || "";
+          userEmail = parent.email || "";
         }
       }
     } else {
-      // Try to find as teacher (by tsc_number or employee_number)
-      // First try tsc_number
-      let teacher = null;
-      const { data: teacherByTsc } = await supabase
-        .from("teachers")
-        .select("id, first_name, last_name, phone, tsc_number, employee_number")
-        .eq("tsc_number", username)
+      // Try to find learner by birth certificate number
+      const { data: learnerByBirthCert } = await supabase
+        .from("learners")
+        .select("id, first_name, last_name, parent_id")
+        .eq("birth_certificate_number", username)
         .maybeSingle();
-      
-      if (teacherByTsc) {
-        teacher = teacherByTsc;
-      } else {
-        // Try employee_number
-        const { data: teacherByEmp } = await supabase
-          .from("teachers")
-          .select("id, first_name, last_name, phone, tsc_number, employee_number")
-          .eq("employee_number", username)
-          .maybeSingle();
-        teacher = teacherByEmp;
-      }
 
-      if (teacher) {
-        userId = teacher.id;
-        detectedUserType = "teacher";
-        if (teacher.phone) {
-          userPhone = teacher.phone;
-        }
-      } else {
-        // Try to find as admin user by email
-        // First get user from auth.users by email using admin API
-        const { data: authData } = await supabase.auth.admin.listUsers();
-        const authUser = authData?.users?.find(u => u.email === username);
+      if (learnerByBirthCert) {
+        userId = learnerByBirthCert.id;
+        detectedUserType = "learner";
         
-        if (authUser) {
-          // Now get profile with phone number
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("id, phone_number")
-            .eq("id", authUser.id)
+        // Get parent phone and email for learner
+        if (learnerByBirthCert.parent_id) {
+          const { data: parent } = await supabase
+            .from("parents")
+            .select("phone, email")
+            .eq("id", learnerByBirthCert.parent_id)
             .maybeSingle();
           
-          if (profile) {
-            userId = profile.id;
-            detectedUserType = "admin";
-            if (profile.phone_number) {
-              userPhone = profile.phone_number;
+          if (parent) {
+            userPhone = parent.phone || "";
+            userEmail = parent.email || "";
+          }
+        }
+      } else {
+        // Try to find as teacher (by tsc_number or employee_number)
+        let teacher = null;
+        const { data: teacherByTsc } = await supabase
+          .from("teachers")
+          .select("id, first_name, last_name, phone, email, tsc_number, employee_number")
+          .eq("tsc_number", username)
+          .maybeSingle();
+        
+        if (teacherByTsc) {
+          teacher = teacherByTsc;
+        } else {
+          // Try employee_number
+          const { data: teacherByEmp } = await supabase
+            .from("teachers")
+            .select("id, first_name, last_name, phone, email, tsc_number, employee_number")
+            .eq("employee_number", username)
+            .maybeSingle();
+          teacher = teacherByEmp;
+        }
+
+        if (teacher) {
+          userId = teacher.id;
+          detectedUserType = "teacher";
+          userPhone = teacher.phone || "";
+          userEmail = teacher.email || "";
+        } else {
+          // Try to find as non-teaching staff by employee_number
+          const { data: staff } = await supabase
+            .from("non_teaching_staff")
+            .select("id, first_name, last_name, phone, email, employee_number")
+            .eq("employee_number", username)
+            .maybeSingle();
+
+          if (staff) {
+            userId = staff.id;
+            detectedUserType = "employee";
+            userPhone = staff.phone || "";
+            userEmail = staff.email || "";
+          } else {
+            // Try to find as admin user by email
+            const { data: authData } = await supabase.auth.admin.listUsers();
+            const authUser = authData?.users?.find(u => u.email === username);
+            
+            if (authUser) {
+              // Now get profile with phone number
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("id, phone_number")
+                .eq("id", authUser.id)
+                .maybeSingle();
+              
+              if (profile) {
+                userId = profile.id;
+                detectedUserType = "admin";
+                userPhone = profile.phone_number || "";
+                userEmail = authUser.email || "";
+              }
             }
           }
         }
       }
     }
 
-    console.log("User lookup result:", { userId, detectedUserType, hasPhone: !!userPhone });
+    console.log("User lookup result:", { userId, detectedUserType, hasPhone: !!userPhone, hasEmail: !!userEmail });
 
     if (!userId) {
       return new Response(
-        JSON.stringify({ success: false, message: "User not found" }),
+        JSON.stringify({ success: false, message: "User not found. Please check your details." }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
       );
     }
-
-    // Get user email for fallback
-    let userEmail = "";
-    if (detectedUserType === "teacher") {
-      const { data: teacher } = await supabase
-        .from("teachers")
-        .select("email")
-        .eq("id", userId)
-        .maybeSingle();
-      userEmail = teacher?.email || "";
-    } else if (detectedUserType === "admin") {
-      const authUser = (await supabase.auth.admin.listUsers()).data?.users?.find(u => u.email === username);
-      userEmail = authUser?.email || "";
-    }
-    // Learners don't have email, they use parent's phone
 
     if (!userPhone && !userEmail) {
       return new Response(

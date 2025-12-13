@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { supabase } from "@/integrations/supabase/client";
@@ -941,13 +941,12 @@ export default function Auth() {
                     Remember me
                   </Label>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
+                <Link
+                  to="/forgot-password"
                   className="text-xs text-primary hover:text-primary/80 font-medium"
                 >
                   Forgot password?
-                </button>
+                </Link>
               </div>
 
               <Button type="submit" className="w-full h-10 rounded-lg text-sm font-semibold mt-2" disabled={isSubmitting}>
