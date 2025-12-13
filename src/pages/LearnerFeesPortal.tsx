@@ -11,18 +11,32 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, TrendingDown, TrendingUp, FileText, Receipt } from "lucide-react";
+import { DollarSign, TrendingDown, FileText, Receipt, Smartphone, Info } from "lucide-react";
 import { format } from "date-fns";
+import { MpesaPaymentDialog } from "@/components/MpesaPaymentDialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function LearnerFeesPortal() {
   const [selectedLearnerId, setSelectedLearnerId] = useState<string>("");
   const [feePayments, setFeePayments] = useState<any[]>([]);
+  const [mpesaDialogOpen, setMpesaDialogOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const { learners, loading: learnersLoading } = useLearners();
-  const { invoices, loading: invoicesLoading } = useInvoices(selectedLearnerId);
-  const { transactions, loading: transactionsLoading } = useTransactions(undefined, selectedLearnerId);
+  const { invoices, loading: invoicesLoading, fetchInvoices } = useInvoices(selectedLearnerId);
+  const { transactions, loading: transactionsLoading, fetchTransactions } = useTransactions(undefined, selectedLearnerId);
   const { currentPeriod } = useAcademicPeriods();
 
   const selectedLearner = learners.find(l => l.id === selectedLearnerId);
+
+  const handleMpesaPayment = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setMpesaDialogOpen(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    fetchInvoices();
+    fetchTransactions();
+  };
 
   // Fetch fee_payments for selected learner
   useEffect(() => {
@@ -205,11 +219,33 @@ export default function LearnerFeesPortal() {
               </Card>
             </div>
 
+            {/* M-Pesa Payment Instructions */}
+            <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
+              <Smartphone className="h-4 w-4 text-green-600" />
+              <AlertTitle className="text-green-800 dark:text-green-400">Pay via M-Pesa</AlertTitle>
+              <AlertDescription className="text-green-700 dark:text-green-300">
+                <div className="mt-2 space-y-2">
+                  <p className="font-medium">To pay school fees via M-Pesa:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                    <li>Go to M-Pesa menu on your phone</li>
+                    <li>Select <strong>Lipa na M-Pesa</strong> → <strong>Pay Bill</strong></li>
+                    <li>Enter Business Number: <strong className="font-mono">600426</strong></li>
+                    <li>Enter Account Number: <strong className="font-mono">{selectedLearner?.admission_number}</strong></li>
+                    <li>Enter the amount you wish to pay</li>
+                    <li>Confirm and enter your M-Pesa PIN</li>
+                  </ol>
+                  <p className="text-xs mt-2 text-muted-foreground">
+                    Payments are automatically recorded to the learner's account using the admission number as reference.
+                  </p>
+                </div>
+              </AlertDescription>
+            </Alert>
+
             {/* Invoices */}
             <Card>
               <CardHeader>
                 <CardTitle>Fee Invoices</CardTitle>
-                <CardDescription>Term-wise fee breakdown</CardDescription>
+                <CardDescription>Term-wise fee breakdown - Click "Pay via M-Pesa" to initiate payment</CardDescription>
               </CardHeader>
               <CardContent>
                 {invoicesLoading ? (
@@ -227,6 +263,7 @@ export default function LearnerFeesPortal() {
                         <TableHead className="text-right">Paid</TableHead>
                         <TableHead className="text-right">Balance</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -249,6 +286,19 @@ export default function LearnerFeesPortal() {
                             }>
                               {invoice.status}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {invoice.status !== 'paid' && Number(invoice.balance_due) > 0 && (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="bg-green-600 text-white hover:bg-green-700 border-green-600"
+                                onClick={() => handleMpesaPayment(invoice)}
+                              >
+                                <Smartphone className="h-3 w-3 mr-1" />
+                                M-Pesa
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -304,6 +354,18 @@ export default function LearnerFeesPortal() {
           </>
         )}
       </div>
+
+      {/* M-Pesa Payment Dialog */}
+      <MpesaPaymentDialog
+        open={mpesaDialogOpen}
+        onOpenChange={setMpesaDialogOpen}
+        learnerId={selectedLearnerId}
+        learnerName={selectedLearner ? `${selectedLearner.first_name} ${selectedLearner.last_name}` : undefined}
+        admissionNumber={selectedLearner?.admission_number}
+        invoiceId={selectedInvoice?.id}
+        amount={selectedInvoice ? Number(selectedInvoice.balance_due) : undefined}
+        onSuccess={handlePaymentSuccess}
+      />
     </DashboardLayout>
   );
 }
