@@ -746,6 +746,56 @@ export type Database = {
           },
         ]
       }
+      fee_reminder_settings: {
+        Row: {
+          created_at: string
+          grade_id: string | null
+          id: string
+          include_current_term: boolean
+          include_previous_balance: boolean
+          interval_days: number
+          is_enabled: boolean
+          last_run_at: string | null
+          next_run_at: string | null
+          scope: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          grade_id?: string | null
+          id?: string
+          include_current_term?: boolean
+          include_previous_balance?: boolean
+          interval_days?: number
+          is_enabled?: boolean
+          last_run_at?: string | null
+          next_run_at?: string | null
+          scope?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          grade_id?: string | null
+          id?: string
+          include_current_term?: boolean
+          include_previous_balance?: boolean
+          interval_days?: number
+          is_enabled?: boolean
+          last_run_at?: string | null
+          next_run_at?: string | null
+          scope?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_reminder_settings_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_structure_items: {
         Row: {
           amount: number
