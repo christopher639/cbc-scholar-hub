@@ -264,6 +264,21 @@ export default function Home() {
 
       if (error) throw error;
 
+      // Send confirmation email to the visitor
+      try {
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact-confirmation`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: contactForm.name.trim(),
+            email: contactForm.email.trim(),
+            message: contactForm.message.trim(),
+          }),
+        });
+      } catch (emailError) {
+        console.log("Email confirmation error (non-blocking):", emailError);
+      }
+
       toast({ title: "Message Sent!", description: "Thank you for contacting us. We'll get back to you soon." });
       setContactForm({ name: "", email: "", phone: "", message: "" });
     } catch (error: any) {

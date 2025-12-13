@@ -59,3 +59,9 @@ verify_jwt = false
 
 [functions.get-user-emails]
 verify_jwt = true
+
+[functions.send-contact-confirmation]
+verify_jwt = false
+
+[functions.reset-password]
+verify_jwt = false
