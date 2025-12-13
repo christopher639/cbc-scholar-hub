@@ -59,8 +59,8 @@ serve(async (req) => {
 
     console.log('Registering C2B URLs:', { validationUrl, confirmationUrl });
 
-    const response = await fetch(
-      `${MPESA_BASE_URL}/mpesa/c2b/v1/registerurl`,
+const response = await fetch(
+      `${MPESA_BASE_URL}/mpesa/c2b/v2/registerurl`,
       {
         method: 'POST',
         headers: {
