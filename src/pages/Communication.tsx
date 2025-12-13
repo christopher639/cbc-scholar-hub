@@ -244,7 +244,9 @@ export default function Communication() {
   const handleRunNow = async () => {
     setRunNowLoading(true);
     try {
-      const response = await supabase.functions.invoke("automated-fee-reminder");
+      const response = await supabase.functions.invoke("automated-fee-reminder", {
+        body: { force: true }
+      });
 
       if (response.error) throw response.error;
 
