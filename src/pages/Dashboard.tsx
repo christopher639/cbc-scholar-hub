@@ -86,15 +86,22 @@ const Dashboard = () => {
               <>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="gap-2">
+                    <Button variant="outline" className="gap-2 text-xs sm:text-sm">
                       <Calendar className="h-4 w-4" />
-                      {dateRange.start && dateRange.end
-                        ? `${format(dateRange.start, "PP")} - ${format(dateRange.end, "PP")}`
-                        : "Filter by Date"}
+                      <span className="hidden sm:inline">
+                        {dateRange.start && dateRange.end
+                          ? `${format(dateRange.start, "PP")} - ${format(dateRange.end, "PP")}`
+                          : "Filter by Date"}
+                      </span>
+                      <span className="sm:hidden">
+                        {dateRange.start && dateRange.end
+                          ? `${format(dateRange.start, "MMM d")} - ${format(dateRange.end, "MMM d")}`
+                          : "Date"}
+                      </span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
-                    <div className="p-3 space-y-2">
+                  <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="end">
+                    <div className="p-3 space-y-2 max-h-[70vh] overflow-y-auto">
                       <div>
                         <p className="text-sm font-medium mb-2">Start Date</p>
                         <CalendarComponent

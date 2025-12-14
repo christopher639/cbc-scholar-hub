@@ -408,14 +408,21 @@ const Grades = () => {
                   </div>
 
                   {/* Grade Actions */}
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium text-sm">{grades.find(g => g.id === manageGradeId)?.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {grades.find(g => g.id === manageGradeId)?.learner_count || 0} learners • {grades.find(g => g.id === manageGradeId)?.stream_count || 0} streams
-                      </p>
+                  <div className="p-3 border rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm flex items-center gap-2">
+                          {grades.find(g => g.id === manageGradeId)?.name}
+                          {grades.find(g => g.id === manageGradeId)?.is_last_grade && (
+                            <Badge variant="secondary" className="text-xs">Final Grade</Badge>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {grades.find(g => g.id === manageGradeId)?.learner_count || 0} learners • {grades.find(g => g.id === manageGradeId)?.stream_count || 0} streams
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -426,6 +433,17 @@ const Grades = () => {
                       >
                         <Pencil className="h-4 w-4 mr-1" />
                         Edit
+                      </Button>
+                      <Button
+                        variant={grades.find(g => g.id === manageGradeId)?.is_last_grade ? "secondary" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedGrade(grades.find(g => g.id === manageGradeId));
+                          setLastGradeDialogOpen(true);
+                        }}
+                      >
+                        <ArrowUp className="h-4 w-4 mr-1" />
+                        {grades.find(g => g.id === manageGradeId)?.is_last_grade ? "Remove Final" : "Set as Final"}
                       </Button>
                       <Button
                         variant="destructive"

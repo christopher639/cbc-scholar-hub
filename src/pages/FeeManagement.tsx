@@ -11,7 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Calendar, Receipt, Wallet, Clock, FileText, Search, Printer, XCircle, Smartphone, ChevronDown, ChevronRight, Send, MessageSquare } from "lucide-react";
+import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Calendar, Receipt, Wallet, Clock, FileText, Search, Printer, XCircle, Smartphone, ChevronDown, ChevronRight, Send, MessageSquare, MoreVertical } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useFeePayments } from "@/hooks/useFeePayments";
 import { useFeeStats } from "@/hooks/useFeeStats";
 import { useFeeStructures } from "@/hooks/useFeeStructures";
@@ -827,14 +833,35 @@ const FeeManagement = () => {
                                       </TableCell>
                                       <TableCell className="text-right">
                                         <div className="flex gap-1 justify-end">
-                                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePrintInvoice(invoice)}>
-                                            <Printer className="h-3 w-3" />
-                                          </Button>
-                                          {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
-                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRecordPayment(invoice)}>
-                                              <DollarSign className="h-3 w-3" />
-                                            </Button>
-                                          )}
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                                                <MoreVertical className="h-3 w-3" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                              <DropdownMenuItem onClick={() => handlePrintInvoice(invoice)}>
+                                                <Download className="h-3 w-3 mr-2" />
+                                                Download Invoice
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem onClick={() => handlePrintInvoice(invoice)}>
+                                                <Printer className="h-3 w-3 mr-2" />
+                                                Print Invoice
+                                              </DropdownMenuItem>
+                                              {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                                                <>
+                                                  <DropdownMenuItem onClick={() => handleRecordPayment(invoice)}>
+                                                    <DollarSign className="h-3 w-3 mr-2" />
+                                                    Record Payment
+                                                  </DropdownMenuItem>
+                                                  <DropdownMenuItem onClick={() => handleMpesaPayment(invoice)}>
+                                                    <Smartphone className="h-3 w-3 mr-2" />
+                                                    Pay via M-Pesa
+                                                  </DropdownMenuItem>
+                                                </>
+                                              )}
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
                                         </div>
                                       </TableCell>
                                     </TableRow>
