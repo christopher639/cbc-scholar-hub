@@ -144,7 +144,7 @@ serve(async (req) => {
     // Get school info for logo and name
     const { data: schoolInfo } = await supabase
       .from("school_info")
-      .select("school_name, logo_url")
+      .select("school_name, logo_url, email")
       .maybeSingle();
 
     const schoolName = schoolInfo?.school_name || "School Administration";
@@ -253,8 +253,14 @@ serve(async (req) => {
             recipient.streamName
           );
 
+          // Determine from address - use school email if from verified domain
+          const schoolFromEmail = schoolInfo?.email;
+          const fromAddress = schoolFromEmail && !schoolFromEmail.includes("gmail.com") && !schoolFromEmail.includes("yahoo.com") && !schoolFromEmail.includes("hotmail.com")
+            ? `${schoolName} <${schoolFromEmail}>`
+            : `${schoolName} <onboarding@resend.dev>`;
+
           await resend.emails.send({
-            from: `${schoolName} <onboarding@resend.dev>`,
+            from: fromAddress,
             to: [recipient.email],
             subject: message.subject || "School Communication",
             html: emailHtml,

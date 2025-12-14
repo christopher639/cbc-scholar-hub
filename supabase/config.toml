@@ -65,3 +65,9 @@ verify_jwt = false
 
 [functions.reset-password]
 verify_jwt = false
+
+[functions.send-reply-message]
+verify_jwt = false
+
+[functions.send-report-card-email]
+verify_jwt = false

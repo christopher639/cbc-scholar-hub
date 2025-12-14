@@ -162,8 +162,15 @@ serve(async (req) => {
         console.log("Sending notification email to:", email);
 
         try {
+          // Determine from address - use school email if from verified domain
+          const { data: schoolDetails } = await supabase.from("school_info").select("email").single();
+          const schoolFromEmail = schoolDetails?.email;
+          const fromAddress = schoolFromEmail && !schoolFromEmail.includes("gmail.com") && !schoolFromEmail.includes("yahoo.com") && !schoolFromEmail.includes("hotmail.com")
+            ? `${schoolName} <${schoolFromEmail}>`
+            : `${schoolName} <onboarding@resend.dev>`;
+
           const emailResponse = await resend.emails.send({
-            from: `${schoolName} <onboarding@resend.dev>`,
+            from: fromAddress,
             to: [email],
             subject: emailSubject,
             html: emailHtml,

@@ -91,6 +91,12 @@ serve(async (req) => {
     // Send email
     if (contactMessage.email && resendApiKey) {
       try {
+        // Determine from address - use school email if from verified domain
+        const schoolFromEmail = schoolInfo?.email;
+        const fromAddress = schoolFromEmail && !schoolFromEmail.includes("gmail.com") && !schoolFromEmail.includes("yahoo.com") && !schoolFromEmail.includes("hotmail.com")
+          ? `${schoolName} <${schoolFromEmail}>`
+          : `${schoolName} <onboarding@resend.dev>`;
+
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
@@ -98,7 +104,7 @@ serve(async (req) => {
             "Authorization": `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: `${schoolName} <onboarding@resend.dev>`,
+            from: fromAddress,
             to: [contactMessage.email],
             subject: `Reply from ${schoolName}`,
             html: `
