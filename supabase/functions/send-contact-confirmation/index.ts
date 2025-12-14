@@ -45,8 +45,13 @@ serve(async (req) => {
 
     console.log("Sending contact confirmation email to:", email);
 
+    // Determine from address - use school email if from verified domain, otherwise fallback
+    const fromAddress = schoolEmail && !schoolEmail.includes("gmail.com") && !schoolEmail.includes("yahoo.com") && !schoolEmail.includes("hotmail.com")
+      ? `${schoolName} <${schoolEmail}>`
+      : `${schoolName} <onboarding@resend.dev>`;
+
     const emailResponse = await resend.emails.send({
-      from: `${schoolName} <onboarding@resend.dev>`,
+      from: fromAddress,
       to: [email],
       subject: `Thank you for contacting ${schoolName}`,
       html: `

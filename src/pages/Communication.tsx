@@ -18,7 +18,7 @@ import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useRecentMessages } from "@/hooks/useRecentMessages";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle, Users, GraduationCap, Inbox, Eye, Phone, User, BarChart3, Timer, Play, RefreshCw, Reply, EyeOff } from "lucide-react";
+import { Send, Mail, MessageSquare, Clock, CheckCircle2, XCircle, Users, GraduationCap, Inbox, Eye, Phone, User, BarChart3, Timer, Play, RefreshCw, Reply, EyeOff, FileText, Search, Loader2 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 export default function Communication() {
@@ -38,6 +38,19 @@ export default function Communication() {
   const [replyMessage, setReplyMessage] = useState("");
   const [replyLoading, setReplyLoading] = useState(false);
   const [selectedContactMessage, setSelectedContactMessage] = useState<any>(null);
+  
+  // Report card email states
+  const [reportCardLoading, setReportCardLoading] = useState(false);
+  const [learnerSearch, setLearnerSearch] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [selectedLearner, setSelectedLearner] = useState<any>(null);
+  const [reportCardForm, setReportCardForm] = useState({
+    academicYear: "",
+    term: "term_1",
+    examType: "combined",
+    recipientEmail: "",
+  });
   
   const [formData, setFormData] = useState({
     messageType: "both",
@@ -478,7 +491,132 @@ export default function Communication() {
       case "stream":
         return "Stream Parents";
       default:
-        return recipientType;
+      return recipientType;
+    }
+  };
+
+  // Search learners for report card
+  const handleSearchLearners = async () => {
+    if (!learnerSearch.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    
+    setSearchLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("learners")
+        .select(`
+          id,
+          first_name,
+          last_name,
+          admission_number,
+          photo_url,
+          grade:grades(name),
+          stream:streams(name),
+          parent:parents(email, first_name, last_name)
+        `)
+        .or(`first_name.ilike.%${learnerSearch}%,last_name.ilike.%${learnerSearch}%,admission_number.ilike.%${learnerSearch}%`)
+        .eq("status", "active")
+        .limit(10);
+      
+      if (error) throw error;
+      setSearchResults(data || []);
+    } catch (error: any) {
+      console.error("Search error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to search learners",
+        variant: "destructive",
+      });
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleSelectLearner = (learner: any) => {
+    setSelectedLearner(learner);
+    setSearchResults([]);
+    setLearnerSearch("");
+    // Pre-fill parent email if available
+    if (learner.parent?.email) {
+      setReportCardForm(prev => ({ ...prev, recipientEmail: learner.parent.email }));
+    }
+  };
+
+  const handleSendReportCard = async () => {
+    if (!selectedLearner) {
+      toast({
+        title: "Error",
+        description: "Please select a learner",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!reportCardForm.academicYear) {
+      toast({
+        title: "Error",
+        description: "Please select an academic year",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!reportCardForm.recipientEmail) {
+      toast({
+        title: "Error",
+        description: "Please enter a recipient email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setReportCardLoading(true);
+    try {
+      const response = await supabase.functions.invoke("send-report-card-email", {
+        body: {
+          learnerId: selectedLearner.id,
+          academicYear: reportCardForm.academicYear,
+          term: reportCardForm.term,
+          examType: reportCardForm.examType,
+          recipientEmail: reportCardForm.recipientEmail,
+        },
+      });
+
+      if (response.error) throw response.error;
+
+      const result = response.data;
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+        // Reset form
+        setSelectedLearner(null);
+        setReportCardForm({
+          academicYear: "",
+          term: "term_1",
+          examType: "combined",
+          recipientEmail: "",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || "Failed to send report card",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error sending report card:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send report card email",
+        variant: "destructive",
+      });
+    } finally {
+      setReportCardLoading(false);
     }
   };
 
@@ -537,6 +675,11 @@ export default function Communication() {
                   On
                 </Badge>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="report-card" className="gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Report Card Email</span>
+              <span className="sm:hidden">Report</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1290,6 +1433,222 @@ export default function Communication() {
                     </div>
                   </>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Report Card Email Tab */}
+          <TabsContent value="report-card">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Email Report Card
+                </CardTitle>
+                <CardDescription>
+                  Send a learner's performance report card via email as a beautifully formatted document
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Learner Search */}
+                <div className="space-y-3">
+                  <Label>Search Learner *</Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        placeholder="Search by name or admission number..."
+                        value={learnerSearch}
+                        onChange={(e) => setLearnerSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearchLearners()}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSearchLearners}
+                      disabled={searchLoading}
+                    >
+                      {searchLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Search Results */}
+                  {searchResults.length > 0 && (
+                    <div className="border rounded-lg divide-y max-h-60 overflow-y-auto">
+                      {searchResults.map((learner) => (
+                        <div
+                          key={learner.id}
+                          className="p-3 hover:bg-muted/50 cursor-pointer flex items-center gap-3"
+                          onClick={() => handleSelectLearner(learner)}
+                        >
+                          {learner.photo_url ? (
+                            <img
+                              src={learner.photo_url}
+                              alt=""
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-sm font-medium text-primary">
+                                {learner.first_name?.[0]}{learner.last_name?.[0]}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm">
+                              {learner.first_name} {learner.last_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {learner.admission_number} • {learner.grade?.name} {learner.stream?.name && `- ${learner.stream.name}`}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Selected Learner */}
+                  {selectedLearner && (
+                    <div className="p-4 border rounded-lg bg-primary/5 flex items-center gap-3">
+                      {selectedLearner.photo_url ? (
+                        <img
+                          src={selectedLearner.photo_url}
+                          alt=""
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-lg font-medium text-primary">
+                            {selectedLearner.first_name?.[0]}{selectedLearner.last_name?.[0]}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold">
+                          {selectedLearner.first_name} {selectedLearner.last_name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedLearner.admission_number} • {selectedLearner.grade?.name} {selectedLearner.stream?.name && `- ${selectedLearner.stream.name}`}
+                        </p>
+                        {selectedLearner.parent && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Parent: {selectedLearner.parent.first_name} {selectedLearner.parent.last_name}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedLearner(null);
+                          setReportCardForm(prev => ({ ...prev, recipientEmail: "" }));
+                        }}
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Academic Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Academic Year *</Label>
+                    <Select
+                      value={reportCardForm.academicYear}
+                      onValueChange={(value) => setReportCardForm({ ...reportCardForm, academicYear: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {academicYears.map((year) => (
+                          <SelectItem key={year.id} value={year.year}>
+                            {year.year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Term *</Label>
+                    <Select
+                      value={reportCardForm.term}
+                      onValueChange={(value) => setReportCardForm({ ...reportCardForm, term: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select term" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="term_1">Term 1</SelectItem>
+                        <SelectItem value="term_2">Term 2</SelectItem>
+                        <SelectItem value="term_3">Term 3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Exam Type</Label>
+                    <Select
+                      value={reportCardForm.examType}
+                      onValueChange={(value) => setReportCardForm({ ...reportCardForm, examType: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select exam type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="combined">All Exams (Combined)</SelectItem>
+                        <SelectItem value="opener">Opener</SelectItem>
+                        <SelectItem value="mid_term">Mid-Term</SelectItem>
+                        <SelectItem value="final">Final/End-Term</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Recipient Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="recipientEmail">Recipient Email *</Label>
+                  <Input
+                    id="recipientEmail"
+                    type="email"
+                    placeholder="Enter email address to send report card..."
+                    value={reportCardForm.recipientEmail}
+                    onChange={(e) => setReportCardForm({ ...reportCardForm, recipientEmail: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Parent's email is auto-filled if available. You can also enter a different email address.
+                  </p>
+                </div>
+
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Email Preview:</strong> The report card will include school information, learner details, subject-wise performance with marks for each exam type, overall average, and grading key.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleSendReportCard}
+                  disabled={reportCardLoading || !selectedLearner || !reportCardForm.academicYear || !reportCardForm.recipientEmail}
+                  className="w-full md:w-auto gap-2"
+                >
+                  {reportCardLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4" />
+                      Send Report Card
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
