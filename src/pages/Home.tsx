@@ -339,14 +339,18 @@ export default function Home() {
                   <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary-foreground" />
                 </div>
               )}
-              <div>
-                <h1 className="text-sm sm:text-base md:text-lg font-bold text-foreground leading-tight line-clamp-1">
-                  {schoolInfo?.school_name || "SAGME School"}
-                </h1>
-                {schoolInfo?.motto && (
-                  <p className="hidden sm:block text-[10px] md:text-xs text-muted-foreground line-clamp-1">{schoolInfo.motto}</p>
-                )}
-              </div>
+              {(schoolInfo?.school_name || schoolInfo?.motto) && (
+                <div>
+                  {schoolInfo?.school_name && (
+                    <h1 className="text-sm sm:text-base md:text-lg font-bold text-foreground leading-tight line-clamp-1">
+                      {schoolInfo.school_name}
+                    </h1>
+                  )}
+                  {schoolInfo?.motto && (
+                    <p className="hidden sm:block text-[10px] md:text-xs text-muted-foreground line-clamp-1">{schoolInfo.motto}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             <nav className="hidden lg:flex items-center gap-1">
@@ -420,16 +424,20 @@ export default function Home() {
         
         <div className="relative w-full pt-24 pb-16 flex items-center justify-center min-h-[70vh]">
           <div className="text-center">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight mb-3 drop-shadow-lg">
-              Welcome to{" "}
-              <span className="text-white">
-                {schoolInfo?.school_name || "SAGME School"}
-              </span>
-            </h1>
+            {schoolInfo?.school_name && (
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight mb-3 drop-shadow-lg">
+                Welcome to{" "}
+                <span className="text-white">
+                  {schoolInfo.school_name}
+                </span>
+              </h1>
+            )}
             
-            <p className="text-sm sm:text-base md:text-lg text-white/90 font-medium drop-shadow-md">
-              {schoolInfo?.motto || "Nurturing minds, building futures"}
-            </p>
+            {schoolInfo?.motto && (
+              <p className="text-sm sm:text-base md:text-lg text-white/90 font-medium drop-shadow-md">
+                {schoolInfo.motto}
+              </p>
+            )}
           </div>
         </div>
       </section>
