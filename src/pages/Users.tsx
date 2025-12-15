@@ -632,16 +632,16 @@ const Users = () => {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col gap-3">
-                {/* Header row - title, stats, and create button */}
+                {/* Header row - title, description, stats, and create button - all in one row on lg */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                  <div className="flex items-center justify-between lg:justify-start gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                     <div>
                       <CardTitle className="text-lg sm:text-xl">Users & Roles</CardTitle>
                       <CardDescription className="text-xs sm:text-sm">Manage user access and permissions</CardDescription>
                     </div>
                     
-                    {/* Stats - visible on large screens between title and button */}
-                    <div className="hidden lg:flex items-center gap-2">
+                    {/* Stats - inline with title on lg screens */}
+                    <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-green-500/10 text-green-600 border border-green-500/30">
                         <span className="font-medium text-sm">{users.length}</span>
                         <span className="text-sm">Active</span>
@@ -668,19 +668,8 @@ const Users = () => {
                   </Button>
                 </div>
                 
-                {/* Stats on small screens + tabs row */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  {/* Stats - visible on small/medium screens */}
-                  <div className="flex lg:hidden items-center gap-2 flex-wrap">
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-green-500/10 text-green-600 border border-green-500/30 text-xs sm:text-sm">
-                      <span className="font-medium">{users.length}</span>
-                      <span>Active</span>
-                    </div>
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/30 text-xs sm:text-sm">
-                      <span className="font-medium">{pendingUsers.length}</span>
-                      <span>Pending</span>
-                    </div>
-                  </div>
+                {/* Tabs row */}
+                <div className="flex items-center">
                   <TabsList className="w-full sm:w-auto">
                     <TabsTrigger value="active" className="gap-1 sm:gap-2 flex-1 sm:flex-none text-xs sm:text-sm">
                       <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" />
