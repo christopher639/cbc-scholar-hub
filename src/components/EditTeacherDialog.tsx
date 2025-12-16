@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDepartments } from "@/hooks/useDepartments";
 import { Loader2 } from "lucide-react";
 
 interface EditTeacherDialogProps {
@@ -18,6 +20,7 @@ interface EditTeacherDialogProps {
 export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: EditTeacherDialogProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { departments } = useDepartments();
   const [loading, setLoading] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -33,6 +36,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
     hired_date: "",
     salary: "",
     photo_url: "",
+    department_id: "",
   });
 
   useEffect(() => {
@@ -49,6 +53,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
         hired_date: teacher.hired_date || "",
         salary: teacher.salary?.toString() || "",
         photo_url: teacher.photo_url || "",
+        department_id: teacher.department_id || "",
       });
     }
   }, [teacher]);
@@ -113,6 +118,7 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
         specialization: formData.specialization || null,
         hired_date: formData.hired_date || null,
         photo_url: photoUrl || null,
+        department_id: formData.department_id || null,
       };
 
       // Only update salary if user is admin
@@ -270,6 +276,26 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
                 onChange={handleChange}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="department_id">Department (Optional)</Label>
+            <Select
+              value={formData.department_id}
+              onValueChange={(value) => setFormData({ ...formData, department_id: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">No Department</SelectItem>
+                {departments.map((dept) => (
+                  <SelectItem key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
