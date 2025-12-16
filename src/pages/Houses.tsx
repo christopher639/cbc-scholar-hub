@@ -11,13 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useHouses } from "@/hooks/useHouses";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Home, Users, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Home, Users, Loader2, Download } from "lucide-react";
 import { useVisitorAccess } from "@/hooks/useVisitorAccess";
-
+import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 export default function Houses() {
   const { houses, loading, addHouse, updateHouse, deleteHouse } = useHouses();
   const { toast } = useToast();
   const { checkAccess } = useVisitorAccess();
+  const { schoolInfo } = useSchoolInfo();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState<any>(null);
@@ -28,6 +31,103 @@ export default function Houses() {
   const [filterHouseId, setFilterHouseId] = useState<string>("");
   const [filteredLearners, setFilteredLearners] = useState<any[]>([]);
   const [loadingLearners, setLoadingLearners] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  const getSelectedHouseName = () => {
+    const house = houses.find(h => h.id === filterHouseId);
+    return house?.name || "House";
+  };
+
+  const downloadHouseLearnersPDF = async () => {
+    if (!filterHouseId || filterHouseId === "all" || filteredLearners.length === 0) {
+      toast({ title: "Error", description: "Please select a house with learners", variant: "destructive" });
+      return;
+    }
+
+    setDownloading(true);
+    try {
+      const doc = new jsPDF();
+      const houseName = getSelectedHouseName();
+      
+      // Add school logo if available
+      if (schoolInfo?.logo_url) {
+        try {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = schoolInfo.logo_url!;
+          });
+          doc.addImage(img, "PNG", 85, 10, 40, 40);
+        } catch (e) {
+          console.log("Could not load logo");
+        }
+      }
+
+      // School header
+      let yPos = schoolInfo?.logo_url ? 55 : 20;
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(schoolInfo?.school_name || "School", 105, yPos, { align: "center" });
+      
+      if (schoolInfo?.address) {
+        yPos += 6;
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(schoolInfo.address, 105, yPos, { align: "center" });
+      }
+      
+      // Title
+      yPos += 12;
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${houseName} - Learners List`, 105, yPos, { align: "center" });
+      
+      yPos += 6;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Total: ${filteredLearners.length} learners`, 105, yPos, { align: "center" });
+
+      // Table data
+      const tableData = filteredLearners.map((learner, index) => [
+        index + 1,
+        learner.admission_number,
+        `${learner.first_name} ${learner.last_name}`,
+        learner.grades?.name || "-",
+        learner.streams?.name || "-",
+      ]);
+
+      autoTable(doc, {
+        startY: yPos + 8,
+        head: [["#", "Admission No", "Name", "Grade", "Stream"]],
+        body: tableData,
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+      });
+
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text(
+          `Generated on ${new Date().toLocaleDateString()} | Page ${i} of ${pageCount}`,
+          105,
+          doc.internal.pageSize.height - 10,
+          { align: "center" }
+        );
+      }
+
+      doc.save(`${houseName.toLowerCase().replace(/\s+/g, "-")}-learners.pdf`);
+      toast({ title: "Success", description: "PDF downloaded successfully" });
+    } catch (error: any) {
+      toast({ title: "Error", description: "Failed to generate PDF", variant: "destructive" });
+    }
+    setDownloading(false);
+  };
 
   const handleAdd = async () => {
     if (!checkAccess("add houses")) return;
@@ -160,9 +260,17 @@ export default function Houses() {
           {/* Filter Learners by House */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Users className="h-5 w-5" /> Learners by House
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="h-5 w-5" /> Learners by House
+                </CardTitle>
+                {filterHouseId && filterHouseId !== "all" && filteredLearners.length > 0 && (
+                  <Button size="sm" variant="outline" onClick={downloadHouseLearnersPDF} disabled={downloading}>
+                    {downloading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
+                    Download PDF
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
