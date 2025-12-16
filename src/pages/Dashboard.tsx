@@ -241,6 +241,10 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
+        </div>
+
+        {/* Grade, House & Department Distribution */}
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
           {/* Grade Distribution */}
           <Card>
             <CardHeader>
@@ -252,7 +256,7 @@ const Dashboard = () => {
                 {loading ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-16 w-full" />
+                      <Skeleton key={i} className="h-12 w-full" />
                     ))}
                   </div>
                 ) : gradeDistribution.length === 0 ? (
@@ -260,9 +264,7 @@ const Dashboard = () => {
                 ) : (
                   gradeDistribution.map((grade) => (
                     <div key={grade.grade} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
-                      <div>
-                        <p className="font-medium text-foreground">{grade.grade}</p>
-                      </div>
+                      <p className="font-medium text-foreground">{grade.grade}</p>
                       <Badge variant="secondary">{grade.learners} learners</Badge>
                     </div>
                   ))
@@ -270,10 +272,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* House & Department Distribution */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
           {/* House Distribution */}
           <Card>
             <CardHeader>
