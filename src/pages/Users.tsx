@@ -638,9 +638,10 @@ const Users = () => {
                   <CardDescription className="text-xs sm:text-sm">Manage user access and permissions</CardDescription>
                 </div>
                 
-                {/* Stats and Create button - same row */}
-                <div className="flex flex-row flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
+                {/* Stats, Tabs and Create button - all same row on lg screens */}
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Stats */}
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-green-500/10 text-green-600 border border-green-500/30">
                       <UsersIcon className="h-3.5 w-3.5" />
                       <span className="font-medium text-sm">{users.length}</span>
@@ -651,6 +652,18 @@ const Users = () => {
                       <span className="font-medium text-sm">{pendingUsers.length}</span>
                       <span className="text-sm">Pending</span>
                     </div>
+                    
+                    {/* Tab buttons */}
+                    <TabsList className="ml-0 lg:ml-2">
+                      <TabsTrigger value="active" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+                        <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" />
+                        Active ({users.length})
+                      </TabsTrigger>
+                      <TabsTrigger value="pending" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+                        <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                        Pending ({pendingUsers.length})
+                      </TabsTrigger>
+                    </TabsList>
                   </div>
                   
                   <Button 
@@ -661,25 +674,11 @@ const Users = () => {
                     }} 
                     size="sm"
                     disabled={isVisitor || isFinance}
-                    className="shrink-0"
+                    className="shrink-0 w-full lg:w-auto"
                   >
                     <Plus className="h-4 w-4 mr-1" />
                     Create User
                   </Button>
-                </div>
-                
-                {/* Tabs row */}
-                <div className="flex items-center">
-                  <TabsList className="w-full sm:w-auto">
-                    <TabsTrigger value="active" className="gap-1 sm:gap-2 flex-1 sm:flex-none text-xs sm:text-sm">
-                      <UserCheck className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline">Active</span> ({users.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="pending" className="gap-1 sm:gap-2 flex-1 sm:flex-none text-xs sm:text-sm">
-                      <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline">Pending</span> ({pendingUsers.length})
-                    </TabsTrigger>
-                  </TabsList>
                 </div>
               </div>
             </CardHeader>
