@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
+import { useHouses } from "@/hooks/useHouses";
 
 interface EditLearnerDialogProps {
   open: boolean;
@@ -23,6 +24,7 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
   const [loading, setLoading] = useState(false);
   const { grades } = useGrades();
   const { streams } = useStreams();
+  const { houses } = useHouses();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
   
@@ -34,6 +36,7 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
     gender: "",
     current_grade_id: "",
     current_stream_id: "",
+    house_id: "",
     medical_info: "",
     birth_certificate_number: "",
     is_staff_child: false,
@@ -65,6 +68,7 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
         gender: learner.gender || "",
         current_grade_id: learner.current_grade_id || "",
         current_stream_id: learner.current_stream_id || "",
+        house_id: learner.house_id || "",
         medical_info: learner.medical_info || "",
         birth_certificate_number: learner.birth_certificate_number || "",
         is_staff_child: learner.is_staff_child || false,
@@ -173,6 +177,7 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
           gender: formData.gender as "male" | "female" | "other",
           current_grade_id: formData.current_grade_id || null,
           current_stream_id: formData.current_stream_id || null,
+          house_id: formData.house_id || null,
           medical_info: formData.medical_info || null,
           birth_certificate_number: formData.birth_certificate_number || null,
           is_staff_child: formData.is_staff_child,
@@ -339,6 +344,26 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="house_id">House (Optional)</Label>
+                <Select
+                  value={formData.house_id}
+                  onValueChange={(value) => setFormData({ ...formData, house_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select house" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No House</SelectItem>
+                    {houses.map((house) => (
+                      <SelectItem key={house.id} value={house.id}>
+                        {house.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
