@@ -203,32 +203,32 @@ const Dashboard = () => {
               <CardDescription>Latest learners enrolled in the system</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {loading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-16 w-full" />
+                  <>
+                    {[1, 2, 3, 4].map((i) => (
+                      <Skeleton key={i} className="h-14 w-full" />
                     ))}
-                  </div>
+                  </>
                 ) : recentAdmissions.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-4">No recent admissions</p>
+                  <p className="text-center text-muted-foreground py-4 col-span-full">No recent admissions</p>
                 ) : (
                   recentAdmissions.map((admission, index) => (
-                    <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-sm font-semibold text-primary">
+                    <div key={index} className="flex items-center justify-between border border-border rounded-md px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-semibold text-primary">
                             {admission.first_name?.[0]}{admission.last_name?.[0]}
                           </span>
                         </div>
-                        <div>
-                          <p className="font-medium text-foreground">{admission.first_name} {admission.last_name}</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground text-sm truncate">{admission.first_name} {admission.last_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
                             {admission.current_grade?.name} - {admission.current_stream?.name}
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs text-muted-foreground">{new Date(admission.enrollment_date).toLocaleDateString()}</span>
+                      <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">{new Date(admission.enrollment_date).toLocaleDateString()}</span>
                     </div>
                   ))
                 )}
@@ -252,20 +252,20 @@ const Dashboard = () => {
               <CardDescription>Learner enrollment by grade level</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {loading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-12 w-full" />
+                  <>
+                    {[1, 2, 3, 4].map((i) => (
+                      <Skeleton key={i} className="h-10 w-full" />
                     ))}
-                  </div>
+                  </>
                 ) : gradeDistribution.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-4">No learners enrolled yet</p>
+                  <p className="text-center text-muted-foreground py-4 col-span-full">No learners enrolled yet</p>
                 ) : (
                   gradeDistribution.map((grade) => (
-                    <div key={grade.grade} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
-                      <p className="font-medium text-foreground">{grade.grade}</p>
-                      <Badge variant="secondary">{grade.learners} learners</Badge>
+                    <div key={grade.grade} className="flex items-center justify-between border border-border rounded-md px-3 py-2">
+                      <p className="font-medium text-foreground text-sm">{grade.grade}</p>
+                      <Badge variant="secondary">{grade.learners}</Badge>
                     </div>
                   ))
                 )}
