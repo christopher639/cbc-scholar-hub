@@ -632,24 +632,22 @@ const Users = () => {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col gap-3">
-                {/* Header row - title, description, stats, and create button - all in one row on lg */}
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div>
-                      <CardTitle className="text-lg sm:text-xl">Users & Roles</CardTitle>
-                      <CardDescription className="text-xs sm:text-sm">Manage user access and permissions</CardDescription>
+                {/* Header row - title and description */}
+                <div>
+                  <CardTitle className="text-lg sm:text-xl">Users & Roles</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Manage user access and permissions</CardDescription>
+                </div>
+                
+                {/* Stats and Create button - same row on lg screens */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-green-500/10 text-green-600 border border-green-500/30">
+                      <span className="font-medium text-sm">{users.length}</span>
+                      <span className="text-sm">Active</span>
                     </div>
-                    
-                    {/* Stats - inline with title on lg screens */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-green-500/10 text-green-600 border border-green-500/30">
-                        <span className="font-medium text-sm">{users.length}</span>
-                        <span className="text-sm">Active</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/30">
-                        <span className="font-medium text-sm">{pendingUsers.length}</span>
-                        <span className="text-sm">Pending</span>
-                      </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/30">
+                      <span className="font-medium text-sm">{pendingUsers.length}</span>
+                      <span className="text-sm">Pending</span>
                     </div>
                   </div>
                   
@@ -661,7 +659,7 @@ const Users = () => {
                     }} 
                     size="sm"
                     disabled={isVisitor || isFinance}
-                    className="shrink-0 w-full lg:w-auto"
+                    className="shrink-0 w-full sm:w-auto"
                   >
                     <Plus className="h-4 w-4 sm:mr-1" />
                     <span className="hidden sm:inline">Create User</span>
