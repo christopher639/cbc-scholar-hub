@@ -56,6 +56,8 @@ import Blogs from "./pages/Blogs";
 import BlogDetail from "./pages/BlogDetail";
 import Gallery from "./pages/Gallery";
 import Programs from "./pages/Programs";
+import Houses from "./pages/Houses";
+import Departments from "./pages/Departments";
 import { TeacherPortalLayout } from "./components/TeacherPortalLayout";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import TeacherMarks from "./pages/TeacherMarks";
@@ -145,6 +147,8 @@ function AppRoutes() {
       <Route path="/blogs" element={<ProtectedRoute><AdminRoute><Blogs /></AdminRoute></ProtectedRoute>} />
       <Route path="/programs" element={<ProtectedRoute><AdminRoute><Programs /></AdminRoute></ProtectedRoute>} />
       <Route path="/gallery" element={<ProtectedRoute><AdminRoute><Gallery /></AdminRoute></ProtectedRoute>} />
+      <Route path="/houses" element={<ProtectedRoute><AdminRoute><Houses /></AdminRoute></ProtectedRoute>} />
+      <Route path="/departments" element={<ProtectedRoute><AdminRoute><Departments /></AdminRoute></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

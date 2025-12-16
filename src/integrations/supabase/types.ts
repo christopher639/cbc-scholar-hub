@@ -534,6 +534,30 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       discount_settings: {
         Row: {
           created_at: string | null
@@ -1050,6 +1074,33 @@ export type Database = {
         }
         Relationships: []
       }
+      houses: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoice_line_items: {
         Row: {
           amount: number
@@ -1142,6 +1193,7 @@ export type Database = {
           enrollment_date: string
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
+          house_id: string | null
           id: string
           is_staff_child: boolean | null
           last_name: string
@@ -1170,6 +1222,7 @@ export type Database = {
           enrollment_date?: string
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
+          house_id?: string | null
           id?: string
           is_staff_child?: boolean | null
           last_name: string
@@ -1198,6 +1251,7 @@ export type Database = {
           enrollment_date?: string
           first_name?: string
           gender?: Database["public"]["Enums"]["gender"]
+          house_id?: string | null
           id?: string
           is_staff_child?: boolean | null
           last_name?: string
@@ -1224,6 +1278,13 @@ export type Database = {
             columns: ["current_stream_id"]
             isOneToOne: false
             referencedRelation: "streams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learners_house_id_fkey"
+            columns: ["house_id"]
+            isOneToOne: false
+            referencedRelation: "houses"
             referencedColumns: ["id"]
           },
           {
@@ -2116,6 +2177,7 @@ export type Database = {
       teachers: {
         Row: {
           created_at: string
+          department_id: string | null
           email: string
           employee_number: string | null
           first_name: string
@@ -2133,6 +2195,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          department_id?: string | null
           email: string
           employee_number?: string | null
           first_name: string
@@ -2150,6 +2213,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          department_id?: string | null
           email?: string
           employee_number?: string | null
           first_name?: string
@@ -2165,7 +2229,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teachers_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transfer_records: {
         Row: {

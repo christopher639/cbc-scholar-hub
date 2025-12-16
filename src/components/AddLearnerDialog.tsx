@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { useLearners } from "@/hooks/useLearners";
+import { useHouses } from "@/hooks/useHouses";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { learnerSchema } from "@/lib/validations/learner";
@@ -32,6 +33,7 @@ interface FormData {
   isStaffChild: boolean;
   staffEmployeeNumber: string;
   boardingStatus: string;
+  houseId: string;
   
   // Parent Info
   parentFirstName: string;
@@ -73,6 +75,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
     isStaffChild: false,
     staffEmployeeNumber: "",
     boardingStatus: "day_scholar",
+    houseId: "",
     parentFirstName: "",
     parentLastName: "",
     parentPhone: "",
@@ -94,6 +97,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
 
   const { grades, loading: gradesLoading } = useGrades();
   const { streams, loading: streamsLoading } = useStreams();
+  const { houses } = useHouses();
   const { addLearner, fetchLearners } = useLearners();
   const { toast } = useToast();
   const { checkAccess } = useVisitorAccess();
@@ -166,6 +170,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
       isStaffChild: false,
       staffEmployeeNumber: "",
       boardingStatus: "day_scholar",
+      houseId: "",
       parentFirstName: "",
       parentLastName: "",
       parentPhone: "",
@@ -326,6 +331,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         birth_certificate_number: formData.birthCertificateNumber || null,
         is_staff_child: formData.isStaffChild,
         boarding_status: formData.boardingStatus,
+        house_id: formData.houseId || null,
         previous_school: formData.previousSchool || null,
         previous_grade: formData.previousGrade || null,
         reason_for_transfer: formData.reasonForTransfer || null,
@@ -533,6 +539,27 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                         </SelectContent>
                       </Select>
                     </div>
+                    {houses.length > 0 && (
+                      <div className="space-y-2">
+                        <Label htmlFor="house">House (Optional)</Label>
+                        <Select value={formData.houseId} onValueChange={(value) => setFormData({ ...formData, houseId: value })}>
+                          <SelectTrigger id="house">
+                            <SelectValue placeholder="Select house" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">No House</SelectItem>
+                            {houses.map((house) => (
+                              <SelectItem key={house.id} value={house.id}>
+                                <div className="flex items-center gap-2">
+                                  {house.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: house.color }} />}
+                                  {house.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="space-y-4 p-4 bg-muted rounded-lg">

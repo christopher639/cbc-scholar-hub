@@ -97,6 +97,16 @@ export default function LearnerProfilePage() {
               <p className="font-medium">{learnerDetails?.current_stream?.name || "N/A"}</p>
             </div>
 
+            {learnerDetails?.house && (
+              <div>
+                <p className="text-sm text-muted-foreground">House</p>
+                <div className="flex items-center gap-2">
+                  {learnerDetails.house.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: learnerDetails.house.color }} />}
+                  <p className="font-medium">{learnerDetails.house.name}</p>
+                </div>
+              </div>
+            )}
+
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
               <Badge className="bg-success text-success-foreground">
