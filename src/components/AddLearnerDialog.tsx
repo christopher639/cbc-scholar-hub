@@ -234,6 +234,17 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         return;
       }
     }
+
+    // Validate house requirement for boarders
+    if (formData.boardingStatus === "boarder" && !formData.houseId) {
+      toast({
+        title: "Validation Error",
+        description: "Boarders must be assigned to a house",
+        variant: "destructive",
+      });
+      setCurrentTab("basic");
+      return;
+    }
     
     // Validate form data using Zod schema
     const validationResult = learnerSchema.safeParse(formData);
@@ -541,13 +552,20 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                     </div>
                     {houses.length > 0 && (
                       <div className="space-y-2">
-                        <Label htmlFor="house">House (Optional)</Label>
-                        <Select value={formData.houseId} onValueChange={(value) => setFormData({ ...formData, houseId: value })}>
+                        <Label htmlFor="house">
+                          House {formData.boardingStatus === "boarder" ? "*" : "(Optional)"}
+                        </Label>
+                        <Select 
+                          value={formData.houseId} 
+                          onValueChange={(value) => setFormData({ ...formData, houseId: value === "none" ? "" : value })}
+                        >
                           <SelectTrigger id="house">
                             <SelectValue placeholder="Select house" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">No House</SelectItem>
+                            {formData.boardingStatus !== "boarder" && (
+                              <SelectItem value="none">No House</SelectItem>
+                            )}
                             {houses.map((house) => (
                               <SelectItem key={house.id} value={house.id}>
                                 <div className="flex items-center gap-2">
@@ -558,6 +576,9 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                             ))}
                           </SelectContent>
                         </Select>
+                        {formData.boardingStatus === "boarder" && (
+                          <p className="text-xs text-muted-foreground">Boarders must be assigned to a house</p>
+                        )}
                       </div>
                     )}
                   </div>
