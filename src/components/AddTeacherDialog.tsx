@@ -3,8 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useTeachers } from "@/hooks/useTeachers";
+import { useDepartments } from "@/hooks/useDepartments";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -19,6 +21,7 @@ interface AddTeacherDialogProps {
 export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) {
   const { toast } = useToast();
   const { addTeacher } = useTeachers();
+  const { departments } = useDepartments();
   const { user } = useAuth();
   const { checkAccess } = useVisitorAccess();
   const [loading, setLoading] = useState(false);
@@ -34,6 +37,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
     hired_date: "",
     salary: "",
     photo_url: "",
+    department_id: "",
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -107,6 +111,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
         hired_date: formData.hired_date || null,
         salary: formData.salary ? parseFloat(formData.salary) : null,
         photo_url: photoUrl || null,
+        department_id: formData.department_id || null,
       });
 
       // Send credentials via SMS and Email
@@ -157,6 +162,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
         hired_date: "",
         salary: "",
         photo_url: "",
+        department_id: "",
       });
       setPhotoFile(null);
       setPhotoPreview(null);
@@ -289,6 +295,23 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
               onChange={(e) => setFormData({...formData, salary: e.target.value})}
             />
           </div>
+
+          {departments.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="department">Department (Optional)</Label>
+              <Select value={formData.department_id} onValueChange={(value) => setFormData({...formData, department_id: value})}>
+                <SelectTrigger id="department">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No Department</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="photo">Photo</Label>

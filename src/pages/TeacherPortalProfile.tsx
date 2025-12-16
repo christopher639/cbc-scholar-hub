@@ -262,6 +262,13 @@ export default function TeacherPortalProfile() {
                     : "N/A"}
                 </p>
               </div>
+
+              {teacher?.department && (
+                <div className="space-y-2">
+                  <Label>Department</Label>
+                  <p className="text-sm">{teacher.department.name}</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
