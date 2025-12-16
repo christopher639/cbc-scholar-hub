@@ -350,13 +350,13 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
                 <Label htmlFor="house_id">House (Optional)</Label>
                 <Select
                   value={formData.house_id}
-                  onValueChange={(value) => setFormData({ ...formData, house_id: value })}
+                  onValueChange={(value) => setFormData({ ...formData, house_id: value === "none" ? "" : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select house" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No House</SelectItem>
+                    <SelectItem value="none">No House</SelectItem>
                     {houses.map((house) => (
                       <SelectItem key={house.id} value={house.id}>
                         {house.name}

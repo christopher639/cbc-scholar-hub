@@ -282,13 +282,15 @@ export function EditTeacherDialog({ open, onOpenChange, teacher, onSuccess }: Ed
             <Label htmlFor="department_id">Department (Optional)</Label>
             <Select
               value={formData.department_id}
-              onValueChange={(value) => setFormData({ ...formData, department_id: value })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, department_id: value === "none" ? "" : value })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Department</SelectItem>
+                <SelectItem value="none">No Department</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
