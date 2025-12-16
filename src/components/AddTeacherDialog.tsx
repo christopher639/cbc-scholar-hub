@@ -299,12 +299,15 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
           {departments.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="department">Department (Optional)</Label>
-              <Select value={formData.department_id} onValueChange={(value) => setFormData({...formData, department_id: value})}>
+              <Select 
+                value={formData.department_id} 
+                onValueChange={(value) => setFormData({...formData, department_id: value === "none" ? "" : value})}
+              >
                 <SelectTrigger id="department">
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Department</SelectItem>
+                  <SelectItem value="none">No Department</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
                   ))}
