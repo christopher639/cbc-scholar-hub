@@ -74,7 +74,7 @@ export default function Departments() {
 
   const filterTeachersByDepartment = async (deptId: string) => {
     setFilterDeptId(deptId);
-    if (!deptId) {
+    if (!deptId || deptId === "all") {
       setFilteredTeachers([]);
       return;
     }
@@ -164,7 +164,7 @@ export default function Departments() {
                     <SelectValue placeholder="Select a department to filter" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Departments</SelectItem>
+                    <SelectItem value="all">All Departments</SelectItem>
                     {departments.map((dept) => (
                       <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
                     ))}

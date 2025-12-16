@@ -74,7 +74,7 @@ export default function Houses() {
 
   const filterLearnersByHouse = async (houseId: string) => {
     setFilterHouseId(houseId);
-    if (!houseId) {
+    if (!houseId || houseId === "all") {
       setFilteredLearners([]);
       return;
     }
@@ -172,7 +172,7 @@ export default function Houses() {
                     <SelectValue placeholder="Select a house to filter" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Houses</SelectItem>
+                    <SelectItem value="all">All Houses</SelectItem>
                     {houses.map((house) => (
                       <SelectItem key={house.id} value={house.id}>{house.name}</SelectItem>
                     ))}
