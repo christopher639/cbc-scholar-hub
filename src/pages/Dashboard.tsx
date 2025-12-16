@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, GraduationCap, DollarSign, UserCheck, Activity, Calendar, TrendingDown } from "lucide-react";
+import { Users, GraduationCap, DollarSign, UserCheck, Activity, Calendar, TrendingDown, Home, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,7 +19,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
-  const { stats, recentAdmissions, gradeDistribution, recentPayments, balanceByGrade, loading } = useDashboardStats(dateRange.start, dateRange.end);
+  const { stats, recentAdmissions, gradeDistribution, houseDistribution, departmentDistribution, recentPayments, balanceByGrade, loading } = useDashboardStats(dateRange.start, dateRange.end);
   const { user } = useAuth();
   const { schoolInfo } = useSchoolInfo();
   const isAdmin = user?.role === "admin";
@@ -264,6 +264,79 @@ const Dashboard = () => {
                         <p className="font-medium text-foreground">{grade.grade}</p>
                       </div>
                       <Badge variant="secondary">{grade.learners} learners</Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* House & Department Distribution */}
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+          {/* House Distribution */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Home className="h-5 w-5" />
+                House Distribution
+              </CardTitle>
+              <CardDescription>Learners distributed across houses</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-12 w-full" />
+                    ))}
+                  </div>
+                ) : houseDistribution.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4">No learners assigned to houses</p>
+                ) : (
+                  houseDistribution.map((house) => (
+                    <div key={house.name} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-3">
+                        {house.color && (
+                          <div 
+                            className="h-4 w-4 rounded-full" 
+                            style={{ backgroundColor: house.color }}
+                          />
+                        )}
+                        <p className="font-medium text-foreground">{house.name}</p>
+                      </div>
+                      <Badge variant="secondary">{house.learners} learners</Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Department Distribution */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Department Distribution
+              </CardTitle>
+              <CardDescription>Teachers distributed across departments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-12 w-full" />
+                    ))}
+                  </div>
+                ) : departmentDistribution.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4">No teachers assigned to departments</p>
+                ) : (
+                  departmentDistribution.map((dept) => (
+                    <div key={dept.name} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                      <p className="font-medium text-foreground">{dept.name}</p>
+                      <Badge variant="outline">{dept.teachers} teachers</Badge>
                     </div>
                   ))
                 )}
