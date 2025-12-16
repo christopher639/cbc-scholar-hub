@@ -13,6 +13,8 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
   });
   const [recentAdmissions, setRecentAdmissions] = useState<any[]>([]);
   const [gradeDistribution, setGradeDistribution] = useState<any[]>([]);
+  const [houseDistribution, setHouseDistribution] = useState<any[]>([]);
+  const [departmentDistribution, setDepartmentDistribution] = useState<any[]>([]);
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
   const [balanceByGrade, setBalanceByGrade] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -254,6 +256,58 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
         };
       }).filter(g => g.learners > 0);
 
+      // Get house distribution
+      const { data: housesData } = await supabase
+        .from("houses")
+        .select("id, name, color");
+
+      const { data: learnerHouseCounts } = await supabase
+        .from("learners")
+        .select("house_id")
+        .eq("status", "active")
+        .not("house_id", "is", null);
+
+      const houseCountMap = new Map<string, number>();
+      learnerHouseCounts?.forEach(learner => {
+        if (learner.house_id) {
+          houseCountMap.set(
+            learner.house_id,
+            (houseCountMap.get(learner.house_id) || 0) + 1
+          );
+        }
+      });
+
+      const houseDistributionData = (housesData || []).map((house: any) => ({
+        name: house.name,
+        learners: houseCountMap.get(house.id) || 0,
+        color: house.color,
+      })).filter(h => h.learners > 0);
+
+      // Get department distribution for teachers
+      const { data: departmentsData } = await supabase
+        .from("departments")
+        .select("id, name");
+
+      const { data: teacherDeptCounts } = await supabase
+        .from("teachers")
+        .select("department_id")
+        .not("department_id", "is", null);
+
+      const deptCountMap = new Map<string, number>();
+      teacherDeptCounts?.forEach(teacher => {
+        if (teacher.department_id) {
+          deptCountMap.set(
+            teacher.department_id,
+            (deptCountMap.get(teacher.department_id) || 0) + 1
+          );
+        }
+      });
+
+      const departmentDistributionData = (departmentsData || []).map((dept: any) => ({
+        name: dept.name,
+        teachers: deptCountMap.get(dept.id) || 0,
+      })).filter(d => d.teachers > 0);
+
       // Get recent payments - last 5 fee payments recorded
       const { data: paymentsHistoryData } = await supabase
         .from("fee_payments")
@@ -285,6 +339,8 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
 
       setRecentAdmissions(admissionsData || []);
       setGradeDistribution(distribution);
+      setHouseDistribution(houseDistributionData);
+      setDepartmentDistribution(departmentDistributionData);
       setRecentPayments(paymentsHistoryData || []);
       setBalanceByGrade(balanceByGradeData);
     } catch (error: any) {
@@ -298,5 +354,5 @@ export function useDashboardStats(startDate?: Date, endDate?: Date) {
     }
   };
 
-  return { stats, recentAdmissions, gradeDistribution, recentPayments, balanceByGrade, loading, fetchStats };
+  return { stats, recentAdmissions, gradeDistribution, houseDistribution, departmentDistribution, recentPayments, balanceByGrade, loading, fetchStats };
 }
