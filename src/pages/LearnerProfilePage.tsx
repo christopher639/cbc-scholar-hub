@@ -50,69 +50,42 @@ export default function LearnerProfilePage() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Personal Information</h3>
-            
-            <div className="flex items-start gap-3">
-              <User className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-sm text-muted-foreground">Gender</p>
-                <p className="font-medium capitalize">{learnerDetails?.gender}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Calendar className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-sm text-muted-foreground">Date of Birth</p>
-                <p className="font-medium">
-                  {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"}
-                  {learnerDetails?.date_of_birth && ` (${calculateAge(learnerDetails.date_of_birth)} years)`}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Calendar className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <p className="text-sm text-muted-foreground">Enrollment Date</p>
-                <p className="font-medium">
-                  {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}
-                </p>
-              </div>
-            </div>
+        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="bg-muted/50 rounded-md px-3 py-2">
+            <p className="text-xs text-muted-foreground">Gender</p>
+            <p className="font-medium text-sm capitalize">{learnerDetails?.gender || "N/A"}</p>
           </div>
-
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Academic Information</h3>
-            
-            <div>
-              <p className="text-sm text-muted-foreground">Current Grade</p>
-              <p className="font-medium">{learnerDetails?.current_grade?.name || "N/A"}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground">Stream</p>
-              <p className="font-medium">{learnerDetails?.current_stream?.name || "N/A"}</p>
-            </div>
-
-            {learnerDetails?.house && (
-              <div>
-                <p className="text-sm text-muted-foreground">House</p>
-                <div className="flex items-center gap-2">
-                  {learnerDetails.house.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: learnerDetails.house.color }} />}
-                  <p className="font-medium">{learnerDetails.house.name}</p>
-                </div>
+          <div className="bg-muted/50 rounded-md px-3 py-2">
+            <p className="text-xs text-muted-foreground">Date of Birth</p>
+            <p className="font-medium text-sm">
+              {learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString() : "N/A"}
+              {learnerDetails?.date_of_birth && ` (${calculateAge(learnerDetails.date_of_birth)}y)`}
+            </p>
+          </div>
+          <div className="bg-muted/50 rounded-md px-3 py-2">
+            <p className="text-xs text-muted-foreground">Enrolled</p>
+            <p className="font-medium text-sm">
+              {learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"}
+            </p>
+          </div>
+          <div className="bg-muted/50 rounded-md px-3 py-2">
+            <p className="text-xs text-muted-foreground">Grade & Stream</p>
+            <p className="font-medium text-sm">{learnerDetails?.current_grade?.name || "N/A"} {learnerDetails?.current_stream?.name || ""}</p>
+          </div>
+          {learnerDetails?.house && (
+            <div className="bg-muted/50 rounded-md px-3 py-2">
+              <p className="text-xs text-muted-foreground">House</p>
+              <div className="flex items-center gap-1">
+                {learnerDetails.house.color && <div className="h-2 w-2 rounded-full" style={{ backgroundColor: learnerDetails.house.color }} />}
+                <p className="font-medium text-sm">{learnerDetails.house.name}</p>
               </div>
-            )}
-
-            <div>
-              <p className="text-sm text-muted-foreground">Status</p>
-              <Badge className="bg-success text-success-foreground">
-                {learnerDetails?.status || "Active"}
-              </Badge>
             </div>
+          )}
+          <div className="bg-muted/50 rounded-md px-3 py-2">
+            <p className="text-xs text-muted-foreground">Status</p>
+            <Badge className="bg-success text-success-foreground text-xs h-5">
+              {learnerDetails?.status || "Active"}
+            </Badge>
           </div>
         </div>
       </div>
