@@ -214,7 +214,7 @@ const Dashboard = () => {
                   <p className="text-center text-muted-foreground py-4 col-span-full">No recent admissions</p>
                 ) : (
                   recentAdmissions.map((admission, index) => (
-                    <div key={index} className="flex items-center justify-between border border-border rounded-md px-3 py-2">
+                    <div key={index} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
                       <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-primary">
@@ -263,7 +263,7 @@ const Dashboard = () => {
                   <p className="text-center text-muted-foreground py-4 col-span-full">No learners enrolled yet</p>
                 ) : (
                   gradeDistribution.map((grade) => (
-                    <div key={grade.grade} className="flex items-center justify-between border border-border rounded-md px-3 py-2">
+                    <div key={grade.grade} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
                       <p className="font-medium text-foreground text-sm">{grade.grade}</p>
                       <Badge variant="secondary">{grade.learners}</Badge>
                     </div>
@@ -351,24 +351,24 @@ const Dashboard = () => {
             <CardDescription>Latest fee transactions recorded in the system</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {loading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
+                <>
+                  {[1, 2, 3, 4].map((i) => (
+                    <Skeleton key={i} className="h-14 w-full" />
                   ))}
-                </div>
+                </>
               ) : recentPayments.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">No recent payments</p>
+                <p className="text-center text-muted-foreground py-4 col-span-full">No recent payments</p>
               ) : (
                 recentPayments.map((payment) => (
-                  <div key={payment.id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
-                        <DollarSign className="h-5 w-5 text-success" />
+                  <div key={payment.id} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
+                        <DollarSign className="h-4 w-4 text-success" />
                       </div>
-                      <div>
-                        <p className="font-medium text-foreground flex items-center gap-2">
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground text-sm flex items-center gap-1 truncate">
                           {payment.learner?.first_name} {payment.learner?.last_name}
                           <Badge 
                             variant={
@@ -385,13 +385,13 @@ const Dashboard = () => {
                             {payment.status || 'pending'}
                           </Badge>
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground truncate">
                           {payment.payment_method || 'N/A'} {payment.receipt_number ? `• ${payment.receipt_number}` : ''}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-success">{formatCurrencyCompact(payment.amount_paid)}</p>
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className="font-semibold text-success text-sm">{formatCurrencyCompact(payment.amount_paid)}</p>
                       <p className="text-xs text-muted-foreground">{new Date(payment.payment_date).toLocaleDateString()}</p>
                     </div>
                   </div>
