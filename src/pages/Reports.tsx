@@ -196,7 +196,9 @@ const Reports = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {yearsLoading ? (
-                      <SelectItem value="" disabled>Loading...</SelectItem>
+                      <SelectItem value="__loading__" disabled>
+                        Loading...
+                      </SelectItem>
                     ) : (
                       academicYears.map((year) => (
                         <SelectItem key={year.id} value={year.year}>
