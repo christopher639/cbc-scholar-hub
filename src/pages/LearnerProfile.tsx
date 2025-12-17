@@ -355,46 +355,46 @@ const LearnerProfile = () => {
               {/* Personal Info Tab */}
               <TabsContent value="personal" className="mt-0 space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Personal Details</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">First Name</p>
-                      <p className="font-medium">{learner.first_name}</p>
+                  <h3 className="text-lg font-semibold mb-3">Personal Details</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">First Name</p>
+                      <p className="text-sm font-medium">{learner.first_name}</p>
                     </div>
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Last Name</p>
-                      <p className="font-medium">{learner.last_name}</p>
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Last Name</p>
+                      <p className="text-sm font-medium">{learner.last_name}</p>
                     </div>
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Date of Birth</p>
-                      <p className="font-medium">{new Date(learner.date_of_birth).toLocaleDateString()}</p>
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Date of Birth</p>
+                      <p className="text-sm font-medium">{new Date(learner.date_of_birth).toLocaleDateString()}</p>
                     </div>
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Gender</p>
-                      <p className="font-medium capitalize">{learner.gender}</p>
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Gender</p>
+                      <p className="text-sm font-medium capitalize">{learner.gender}</p>
                     </div>
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Admission Number</p>
-                      <p className="font-medium">{learner.admission_number}</p>
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Admission Number</p>
+                      <p className="text-sm font-medium">{learner.admission_number}</p>
                     </div>
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Enrollment Date</p>
-                      <p className="font-medium">{new Date(learner.enrollment_date).toLocaleDateString()}</p>
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Enrollment Date</p>
+                      <p className="text-sm font-medium">{new Date(learner.enrollment_date).toLocaleDateString()}</p>
                     </div>
                     {learner.birth_certificate_number && (
-                      <div className="p-4 rounded-lg border">
-                        <p className="text-sm text-muted-foreground">Birth Certificate No.</p>
-                        <p className="font-medium">{learner.birth_certificate_number}</p>
+                      <div className="p-2 rounded-lg border">
+                        <p className="text-xs text-muted-foreground">Birth Certificate No.</p>
+                        <p className="text-sm font-medium">{learner.birth_certificate_number}</p>
                       </div>
                     )}
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Boarding Status</p>
-                      <p className="font-medium capitalize">{learner.boarding_status || "Day"}</p>
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Boarding Status</p>
+                      <p className="text-sm font-medium capitalize">{learner.boarding_status || "Day"}</p>
                     </div>
                     {learner.blood_type && (
-                      <div className="p-4 rounded-lg border">
-                        <p className="text-sm text-muted-foreground">Blood Type</p>
-                        <p className="font-medium">{learner.blood_type}</p>
+                      <div className="p-2 rounded-lg border">
+                        <p className="text-xs text-muted-foreground">Blood Type</p>
+                        <p className="text-sm font-medium">{learner.blood_type}</p>
                       </div>
                     )}
                   </div>
@@ -402,21 +402,21 @@ const LearnerProfile = () => {
 
                 {(learner.medical_info || learner.allergies) && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <Heart className="h-5 w-5 text-red-500" />
+                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
+                      <Heart className="h-4 w-4 text-red-500" />
                       Medical Information
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {learner.medical_info && (
-                        <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
-                          <p className="text-sm text-muted-foreground">Medical Notes</p>
-                          <p className="font-medium">{learner.medical_info}</p>
+                        <div className="p-2 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
+                          <p className="text-xs text-muted-foreground">Medical Notes</p>
+                          <p className="text-sm font-medium">{learner.medical_info}</p>
                         </div>
                       )}
                       {learner.allergies && (
-                        <div className="p-4 rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-950/20">
-                          <p className="text-sm text-muted-foreground">Allergies</p>
-                          <p className="font-medium">{learner.allergies}</p>
+                        <div className="p-2 rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+                          <p className="text-xs text-muted-foreground">Allergies</p>
+                          <p className="text-sm font-medium">{learner.allergies}</p>
                         </div>
                       )}
                     </div>
@@ -425,21 +425,21 @@ const LearnerProfile = () => {
 
                 {(learner.emergency_contact || learner.emergency_phone) && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <Phone className="h-5 w-5 text-green-500" />
+                    <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-green-500" />
                       Emergency Contact
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {learner.emergency_contact && (
-                        <div className="p-4 rounded-lg border">
-                          <p className="text-sm text-muted-foreground">Contact Name</p>
-                          <p className="font-medium">{learner.emergency_contact}</p>
+                        <div className="p-2 rounded-lg border">
+                          <p className="text-xs text-muted-foreground">Contact Name</p>
+                          <p className="text-sm font-medium">{learner.emergency_contact}</p>
                         </div>
                       )}
                       {learner.emergency_phone && (
-                        <div className="p-4 rounded-lg border">
-                          <p className="text-sm text-muted-foreground">Contact Phone</p>
-                          <p className="font-medium">{learner.emergency_phone}</p>
+                        <div className="p-2 rounded-lg border">
+                          <p className="text-xs text-muted-foreground">Contact Phone</p>
+                          <p className="text-sm font-medium">{learner.emergency_phone}</p>
                         </div>
                       )}
                     </div>
@@ -448,24 +448,24 @@ const LearnerProfile = () => {
 
                 {(learner.previous_school || learner.previous_grade) && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Previous School Information</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <h3 className="text-base font-semibold mb-3">Previous School Information</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {learner.previous_school && (
-                        <div className="p-4 rounded-lg border">
-                          <p className="text-sm text-muted-foreground">Previous School</p>
-                          <p className="font-medium">{learner.previous_school}</p>
+                        <div className="p-2 rounded-lg border">
+                          <p className="text-xs text-muted-foreground">Previous School</p>
+                          <p className="text-sm font-medium">{learner.previous_school}</p>
                         </div>
                       )}
                       {learner.previous_grade && (
-                        <div className="p-4 rounded-lg border">
-                          <p className="text-sm text-muted-foreground">Previous Grade</p>
-                          <p className="font-medium">{learner.previous_grade}</p>
+                        <div className="p-2 rounded-lg border">
+                          <p className="text-xs text-muted-foreground">Previous Grade</p>
+                          <p className="text-sm font-medium">{learner.previous_grade}</p>
                         </div>
                       )}
                       {learner.reason_for_transfer && (
-                        <div className="p-4 rounded-lg border sm:col-span-2">
-                          <p className="text-sm text-muted-foreground">Reason for Transfer</p>
-                          <p className="font-medium">{learner.reason_for_transfer}</p>
+                        <div className="p-2 rounded-lg border sm:col-span-2">
+                          <p className="text-xs text-muted-foreground">Reason for Transfer</p>
+                          <p className="text-sm font-medium">{learner.reason_for_transfer}</p>
                         </div>
                       )}
                     </div>
@@ -602,90 +602,39 @@ const LearnerProfile = () => {
               </TabsContent>
 
               {/* Fees Tab */}
-              <TabsContent value="fees" className="mt-0 space-y-6">
-                {/* Fee Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-lg border bg-muted/30">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <FileText className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Accumulated</p>
-                        <p className="text-xl font-bold">{formatCurrency(learner.feeInfo?.totalAccumulatedFees || 0)}</p>
-                        <p className="text-xs text-muted-foreground">{learner.feeInfo?.allInvoices?.length || 0} invoices</p>
-                      </div>
-                    </div>
+              <TabsContent value="fees" className="mt-0 space-y-4">
+                {/* Fee Summary Cards - Compact */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-3 rounded-lg border bg-muted/30">
+                    <p className="text-xs text-muted-foreground">Total Accumulated</p>
+                    <p className="text-sm font-semibold text-foreground">{formatCurrency(learner.feeInfo?.totalAccumulatedFees || 0)}</p>
+                    <p className="text-xs text-muted-foreground">{learner.feeInfo?.allInvoices?.length || 0} invoices</p>
                   </div>
-                  <div className="p-4 rounded-lg border bg-green-50 dark:bg-green-950/20">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-green-500/10">
-                        <CreditCard className="h-5 w-5 text-green-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Paid</p>
-                        <p className="text-xl font-bold text-green-600">{formatCurrency(learner.feeInfo?.totalPaid || 0)}</p>
-                        <p className="text-xs text-muted-foreground">{learner.feeInfo?.transactions?.length || 0} payments</p>
-                      </div>
-                    </div>
+                  <div className="p-3 rounded-lg border bg-muted/30">
+                    <p className="text-xs text-muted-foreground">Total Paid</p>
+                    <p className="text-sm font-semibold text-foreground">{formatCurrency(learner.feeInfo?.totalPaid || 0)}</p>
+                    <p className="text-xs text-muted-foreground">{learner.feeInfo?.transactions?.length || 0} payments</p>
                   </div>
-                  <div className="p-4 rounded-lg border bg-red-50 dark:bg-red-950/20">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-red-500/10">
-                        <Wallet className="h-5 w-5 text-red-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Outstanding</p>
-                        <p className={`text-xl font-bold ${(learner.feeInfo?.totalBalance || 0) > 0 ? 'text-destructive' : 'text-green-600'}`}>
-                          {formatCurrency(learner.feeInfo?.totalBalance || 0)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Current Term */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">
-                    Current Term ({learner.currentAcademicYear} - {learner.currentTerm?.replace("_", " ").toUpperCase()})
-                  </h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Term Fees</p>
-                      <p className="text-lg font-bold">{formatCurrency(learner.feeInfo?.currentTermFees || 0)}</p>
-                    </div>
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Paid</p>
-                      <p className="text-lg font-bold text-green-600">{formatCurrency(learner.feeInfo?.currentTermPaid || 0)}</p>
-                    </div>
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Balance</p>
-                      <p className="text-lg font-bold text-destructive">{formatCurrency(learner.feeInfo?.currentTermBalance || 0)}</p>
-                    </div>
+                  <div className="p-3 rounded-lg border bg-muted/30">
+                    <p className="text-xs text-muted-foreground">Outstanding</p>
+                    <p className="text-sm font-semibold text-foreground">{formatCurrency(learner.feeInfo?.totalBalance || 0)}</p>
                   </div>
                 </div>
 
                 {/* Invoice History */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Invoice History</h3>
+                  <h3 className="text-base font-semibold mb-3">Invoice History</h3>
                   {learner.feeInfo?.allInvoices && learner.feeInfo.allInvoices.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {learner.feeInfo.allInvoices.map((invoice: any, idx: number) => (
-                        <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border rounded-lg hover:bg-accent/50 transition-colors gap-3">
+                        <div key={idx} className="flex justify-between items-center p-2 border rounded-lg hover:bg-accent/50 transition-colors">
                           <div>
-                            <p className="font-medium">{invoice.academic_year} - {invoice.term?.replace("_", " ").toUpperCase()}</p>
-                            <p className="text-sm text-muted-foreground">Invoice: {invoice.invoice_number}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Issued: {new Date(invoice.issue_date || invoice.created_at).toLocaleDateString()}
-                            </p>
+                            <p className="text-sm font-medium">{invoice.academic_year} - {invoice.term?.replace("_", " ").toUpperCase()}</p>
+                            <p className="text-xs text-muted-foreground">#{invoice.invoice_number}</p>
                           </div>
-                          <div className="flex flex-col items-start sm:items-end gap-1">
-                            <p className="font-semibold">{formatCurrency(invoice.total_amount)}</p>
-                            <div className="flex gap-2 text-sm">
-                              <span className="text-green-600">Paid: {formatCurrency(invoice.amount_paid)}</span>
-                              <span className="text-destructive">Due: {formatCurrency(invoice.balance_due)}</span>
-                            </div>
-                            <Badge variant={invoice.status === "paid" ? "default" : invoice.status === "partial" ? "secondary" : "outline"}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-foreground">{formatCurrency(invoice.total_amount)}</span>
+                            <Badge variant={invoice.status === "paid" ? "default" : invoice.status === "partial" ? "secondary" : "outline"} className="text-xs">
                               {invoice.status}
                             </Badge>
                           </div>
@@ -693,55 +642,50 @@ const LearnerProfile = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 border rounded-lg">
-                      <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No invoices generated yet</p>
+                    <div className="text-center py-6 border rounded-lg">
+                      <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">No invoices generated yet</p>
                     </div>
                   )}
                 </div>
 
                 {/* Payment History */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Payment History</h3>
+                  <h3 className="text-base font-semibold mb-3">Payment History</h3>
                   {(learner.feeInfo?.transactions?.length > 0 || learner.feeInfo?.feePayments?.length > 0) ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {learner.feeInfo.transactions?.map((transaction: any) => (
-                        <div key={transaction.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border rounded-lg hover:bg-accent/50 transition-colors gap-3">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold text-green-600">+{formatCurrency(transaction.amount_paid)}</p>
-                              <Badge variant="outline" className="text-xs">{transaction.transaction_number}</Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
+                        <div key={transaction.id} className="flex justify-between items-center p-2 border rounded-lg hover:bg-accent/50 transition-colors">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">+{formatCurrency(transaction.amount_paid)}</p>
+                            <p className="text-xs text-muted-foreground">
                               {new Date(transaction.payment_date).toLocaleDateString()} • {transaction.payment_method}
                             </p>
-                            {transaction.receipt_number && (
-                              <Badge variant="secondary" className="text-xs">Receipt: {transaction.receipt_number}</Badge>
-                            )}
                           </div>
+                          {transaction.receipt_number && (
+                            <Badge variant="secondary" className="text-xs">{transaction.receipt_number}</Badge>
+                          )}
                         </div>
                       ))}
                       {learner.feeInfo.feePayments?.map((payment: any) => (
-                        <div key={payment.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 border rounded-lg hover:bg-accent/50 transition-colors gap-3">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold text-green-600">+{formatCurrency(payment.amount_paid)}</p>
-                              {payment.receipt_number && (
-                                <Badge variant="outline" className="text-xs">{payment.receipt_number}</Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
+                        <div key={payment.id} className="flex justify-between items-center p-2 border rounded-lg hover:bg-accent/50 transition-colors">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">+{formatCurrency(payment.amount_paid)}</p>
+                            <p className="text-xs text-muted-foreground">
                               {new Date(payment.payment_date).toLocaleDateString()}
                               {payment.payment_method && ` • ${payment.payment_method}`}
                             </p>
                           </div>
+                          {payment.receipt_number && (
+                            <Badge variant="secondary" className="text-xs">{payment.receipt_number}</Badge>
+                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 border rounded-lg">
-                      <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No payment history available</p>
+                    <div className="text-center py-6 border rounded-lg">
+                      <CreditCard className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">No payment history available</p>
                     </div>
                   )}
                 </div>
@@ -750,43 +694,34 @@ const LearnerProfile = () => {
               {/* Parent Tab */}
               <TabsContent value="parent" className="mt-0">
                 {!learner.parent ? (
-                  <div className="text-center py-12 border rounded-lg">
-                    <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No parent/guardian information available</p>
+                  <div className="text-center py-8 border rounded-lg">
+                    <User className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">No parent/guardian information available</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="p-4 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">Full Name</p>
-                      <p className="font-medium">{learner.parent.first_name} {learner.parent.last_name}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Full Name</p>
+                      <p className="text-sm font-medium">{learner.parent.first_name} {learner.parent.last_name}</p>
                     </div>
-                    <div className="p-4 rounded-lg border">
-                      <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                        <Phone className="h-4 w-4" />
-                        <span className="text-sm">Phone Number</span>
-                      </div>
-                      <p className="font-medium">{learner.parent.phone}</p>
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Phone Number</p>
+                      <p className="text-sm font-medium">{learner.parent.phone}</p>
                     </div>
-                    <div className="p-4 rounded-lg border">
-                      <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                        <Mail className="h-4 w-4" />
-                        <span className="text-sm">Email</span>
-                      </div>
-                      <p className="font-medium">{learner.parent.email}</p>
+                    <div className="p-2 rounded-lg border">
+                      <p className="text-xs text-muted-foreground">Email</p>
+                      <p className="text-sm font-medium truncate">{learner.parent.email}</p>
                     </div>
                     {learner.parent.occupation && (
-                      <div className="p-4 rounded-lg border">
-                        <p className="text-sm text-muted-foreground">Occupation</p>
-                        <p className="font-medium">{learner.parent.occupation}</p>
+                      <div className="p-2 rounded-lg border">
+                        <p className="text-xs text-muted-foreground">Occupation</p>
+                        <p className="text-sm font-medium">{learner.parent.occupation}</p>
                       </div>
                     )}
                     {learner.parent.address && (
-                      <div className="p-4 rounded-lg border sm:col-span-2">
-                        <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                          <MapPin className="h-4 w-4" />
-                          <span className="text-sm">Address</span>
-                        </div>
-                        <p className="font-medium">{learner.parent.address}</p>
+                      <div className="p-2 rounded-lg border col-span-2">
+                        <p className="text-xs text-muted-foreground">Address</p>
+                        <p className="text-sm font-medium">{learner.parent.address}</p>
                       </div>
                     )}
                   </div>

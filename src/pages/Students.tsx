@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical, User, X, ChevronDown } from "lucide-react";
+import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical, User, X, ChevronDown, Loader2 } from "lucide-react";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { AddLearnerDialog } from "@/components/AddLearnerDialog";
@@ -39,6 +39,7 @@ const Learners = () => {
   const [selectedStream, setSelectedStream] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
   const navigate = useNavigate();
   
   const { learners, loading, fetchLearners } = useLearners(selectedGrade, selectedStream);
@@ -64,6 +65,24 @@ const Learners = () => {
     const query = searchQuery.toLowerCase();
     return fullName.includes(query) || admissionNumber.includes(query);
   });
+
+  const handleLearnerClick = async (learnerId: string) => {
+    setNavigatingTo(learnerId);
+    // Pre-fetch learner data before navigating
+    const { supabase } = await import("@/integrations/supabase/client");
+    try {
+      await supabase
+        .from("learners")
+        .select(`*, current_grade:grades(*), current_stream:streams(*), parent:parents(*)`)
+        .eq("id", learnerId)
+        .single();
+      navigate(`/learner/${learnerId}`);
+    } catch {
+      navigate(`/learner/${learnerId}`);
+    } finally {
+      setNavigatingTo(null);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -193,11 +212,13 @@ const Learners = () => {
                     {filteredLearners.map((learner) => (
                       <tr 
                         key={learner.id} 
-                        className="hover:bg-muted/50 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/learner/${learner.id}`)}
+                        className={`hover:bg-muted/50 transition-colors cursor-pointer ${navigatingTo === learner.id ? 'opacity-50' : ''}`}
+                        onClick={() => handleLearnerClick(learner.id)}
                       >
                         <td className="p-3">
-                          {learner.photo_url ? (
+                          {navigatingTo === learner.id ? (
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          ) : learner.photo_url ? (
                             <img 
                               src={learner.photo_url} 
                               alt={`${learner.first_name} ${learner.last_name}`}
