@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 // Global cache for prefetched data
-export const prefetchCache: Record<string, { data: any; timestamp: number }> = {};
+export const prefetchCache: Record<string, { data: any; timestamp: number; ready: boolean }> = {};
 const CACHE_TTL = 30000; // 30 seconds cache validity
 
 // Data fetchers for each route
@@ -148,15 +148,31 @@ const routeFetchers: Record<string, () => Promise<any>> = {
     ]);
     return { academicYears: academicYears.data, academicPeriods: academicPeriods.data };
   },
+  "/bulk-learner-reports": async () => {
+    const [grades, streams] = await Promise.all([
+      supabase.from("grades").select("id, name").order("grade_level"),
+      supabase.from("streams").select("id, name, grade_id"),
+    ]);
+    return { grades: grades.data, streams: streams.data };
+  },
+  "/offline-storage": async () => {
+    return {}; // No prefetch needed
+  },
 };
 
-// Get cached data if valid
+// Check if cached data is valid and ready
 export function getCachedData(path: string): any | null {
   const cached = prefetchCache[path];
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+  if (cached && cached.ready && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.data;
   }
   return null;
+}
+
+// Check if data is ready for a path
+export function isDataReady(path: string): boolean {
+  const cached = prefetchCache[path];
+  return !!(cached && cached.ready && Date.now() - cached.timestamp < CACHE_TTL);
 }
 
 // Clear cache for a specific route
@@ -175,27 +191,39 @@ export function useAdminNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const abortControllerRef = useRef<AbortController | null>(null);
+  const navigationIdRef = useRef(0);
 
-  const prefetchRoute = useCallback(async (path: string): Promise<boolean> => {
+  const prefetchRoute = useCallback(async (path: string, navId: number): Promise<boolean> => {
     const fetcher = routeFetchers[path];
     if (!fetcher) {
-      // No fetcher defined, navigate immediately
+      // No fetcher defined, mark as ready
+      prefetchCache[path] = { data: {}, timestamp: Date.now(), ready: true };
       return true;
     }
 
-    // Check cache first
-    const cached = getCachedData(path);
-    if (cached) {
+    // Check if data is already cached and ready
+    if (isDataReady(path)) {
       return true;
     }
+
+    // Mark as loading
+    prefetchCache[path] = { data: null, timestamp: Date.now(), ready: false };
 
     try {
       const data = await fetcher();
-      prefetchCache[path] = { data, timestamp: Date.now() };
+      
+      // Check if this navigation was cancelled
+      if (navId !== navigationIdRef.current) {
+        return false;
+      }
+      
+      // Mark data as ready
+      prefetchCache[path] = { data, timestamp: Date.now(), ready: true };
       return true;
     } catch (error) {
       console.error(`Failed to prefetch ${path}:`, error);
-      // Navigate anyway on error
+      // Mark as ready anyway to allow navigation (page will handle its own errors)
+      prefetchCache[path] = { data: null, timestamp: Date.now(), ready: true };
       return true;
     }
   }, []);
@@ -209,20 +237,37 @@ export function useAdminNavigation() {
       abortControllerRef.current.abort();
     }
     abortControllerRef.current = new AbortController();
+    
+    // Increment navigation ID to track this specific navigation
+    navigationIdRef.current += 1;
+    const currentNavId = navigationIdRef.current;
 
-    // Set navigating state
+    // Set navigating state - user stays on current page
     setIsNavigating(true);
     setPendingPath(path);
 
     try {
-      // Prefetch data for target route
-      await prefetchRoute(path);
+      // Prefetch data for target route - wait for completion
+      const success = await prefetchRoute(path, currentNavId);
       
-      // Navigate to the new page
-      navigate(path);
+      // Check if this navigation was cancelled
+      if (currentNavId !== navigationIdRef.current) {
+        return;
+      }
+      
+      // Only navigate after data is confirmed ready
+      if (success && isDataReady(path)) {
+        navigate(path);
+      } else {
+        // Even if prefetch had issues, still navigate
+        navigate(path);
+      }
     } finally {
-      setIsNavigating(false);
-      setPendingPath(null);
+      // Only clear state if this is still the current navigation
+      if (currentNavId === navigationIdRef.current) {
+        setIsNavigating(false);
+        setPendingPath(null);
+      }
     }
   }, [navigate, location.pathname, prefetchRoute]);
 
@@ -238,5 +283,6 @@ export function useAdminNavigation() {
     currentPath: location.pathname,
     getCachedData,
     clearRouteCache,
+    isDataReady,
   };
 }
