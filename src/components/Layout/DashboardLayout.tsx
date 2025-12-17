@@ -446,18 +446,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto p-4 sm:p-6 pb-24 lg:pb-6 relative">
+          <div className="flex-1 overflow-auto p-4 sm:p-6 pb-24 lg:pb-6">
             {children}
-            
-            {/* Loading overlay - shows while navigating */}
-            {isNavigating && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-                <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Loading page...</span>
-                </div>
-              </div>
-            )}
           </div>
           
           {/* Bottom Navigation - Mobile Only */}
