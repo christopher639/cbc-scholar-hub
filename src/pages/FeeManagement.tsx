@@ -27,6 +27,7 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { useGrades } from "@/hooks/useGrades";
 import { useFeeBalances } from "@/hooks/useFeeBalances";
+import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 import { GenerateInvoicesDialog } from "@/components/GenerateInvoicesDialog";
@@ -64,6 +65,7 @@ const FeeManagement = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "overview";
   const { toast } = useToast();
+  const { schoolInfo } = useSchoolInfo();
   
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
   const { payments, loading: paymentsLoading, fetchPayments } = useFeePayments();
@@ -394,7 +396,7 @@ const FeeManagement = () => {
 
   const handleDownloadFeeStructure = () => {
     const gradeName = grades.find(g => g.id === structureGradeFilter)?.name || "";
-    generateFeeStructurePDF(filteredStructures, structureYearFilter, gradeName);
+    generateFeeStructurePDF(filteredStructures, schoolInfo, structureYearFilter, gradeName);
   };
 
   return (
