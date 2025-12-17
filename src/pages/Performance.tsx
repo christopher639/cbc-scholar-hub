@@ -1,12 +1,12 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, User, Users, TrendingUp, ClipboardList, Search, MoreHorizontal } from "lucide-react";
+import { Plus, BookOpen, User, Users, FileText, ClipboardList, Search, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import AddPerformanceDialog from "@/components/AddPerformanceDialog";
 import { ManageLearningAreasDialog } from "@/components/ManageLearningAreasDialog";
 import { BulkPerformanceEntry } from "@/components/BulkPerformanceEntry";
-import { PerformanceAnalyticsDialog } from "@/components/PerformanceAnalyticsDialog";
+import { PerformanceReportDialog } from "@/components/PerformanceReportDialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
@@ -31,7 +31,7 @@ const Performance = () => {
   const [isAddPerformanceOpen, setIsAddPerformanceOpen] = useState(false);
   const [isManageLearningAreasOpen, setIsManageLearningAreasOpen] = useState(false);
   const [isBulkEntryOpen, setIsBulkEntryOpen] = useState(false);
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { learningAreas, loading } = useLearningAreas();
   const { user } = useAuth();
@@ -89,9 +89,9 @@ const Performance = () => {
 
           <div className="flex items-center gap-2 flex-wrap">
             {isAdmin && (
-              <Button variant="outline" size="sm" className="h-9" onClick={() => setIsAnalyticsOpen(true)}>
-                <TrendingUp className="h-4 w-4 mr-1.5" />
-                <span className="hidden sm:inline">Analytics</span>
+              <Button variant="outline" size="sm" className="h-9" onClick={() => setIsReportOpen(true)}>
+                <FileText className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Performance Report</span>
               </Button>
             )}
             {isAdmin && (
@@ -259,10 +259,10 @@ const Performance = () => {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2 justify-center"
-                  onClick={() => setIsAnalyticsOpen(true)}
+                  onClick={() => setIsReportOpen(true)}
                 >
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                  <span className="text-sm">View Analytics</span>
+                  <FileText className="h-5 w-5 text-green-600" />
+                  <span className="text-sm">Performance Report</span>
                 </Button>
               )}
               {isAdmin && (
@@ -283,7 +283,7 @@ const Performance = () => {
       <AddPerformanceDialog open={isAddPerformanceOpen} onOpenChange={setIsAddPerformanceOpen} />
       <ManageLearningAreasDialog open={isManageLearningAreasOpen} onOpenChange={setIsManageLearningAreasOpen} />
       <BulkPerformanceEntry open={isBulkEntryOpen} onOpenChange={setIsBulkEntryOpen} />
-      <PerformanceAnalyticsDialog open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen} />
+      <PerformanceReportDialog open={isReportOpen} onOpenChange={setIsReportOpen} />
     </DashboardLayout>
   );
 };
