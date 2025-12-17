@@ -48,43 +48,10 @@ const Performance = () => {
     <DashboardLayout>
       <div className="space-y-4">
         {/* Compact Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">Performance</h1>
-              <p className="text-sm text-muted-foreground">Record and manage learner performance</p>
-            </div>
-            
-            {/* Inline Stats for Large Screens */}
-            <div className="hidden lg:flex items-center gap-4 ml-4 pl-4 border-l">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded">
-                  <BookOpen className="h-3.5 w-3.5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Learning Areas</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : learningAreas.length}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-green-500/10 rounded">
-                  <User className="h-3.5 w-3.5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Assigned Teachers</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : assignedTeachersCount}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-blue-500/10 rounded">
-                  <ClipboardList className="h-3.5 w-3.5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Assessments</p>
-                  <p className="text-sm font-semibold">0</p>
-                </div>
-              </div>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">Performance</h1>
+            <p className="text-sm text-muted-foreground">Record and manage learner performance</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -108,31 +75,6 @@ const Performance = () => {
               <Plus className="h-4 w-4 mr-1.5" />
               <span className="hidden sm:inline">Add Record</span>
             </Button>
-          </div>
-        </div>
-
-        {/* Mobile Stats */}
-        <div className="grid grid-cols-3 gap-2 lg:hidden">
-          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-            <BookOpen className="h-4 w-4 text-primary" />
-            <div>
-              <p className="text-xs text-muted-foreground">Areas</p>
-              <p className="text-sm font-semibold">{loading ? "..." : learningAreas.length}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-            <User className="h-4 w-4 text-green-600" />
-            <div>
-              <p className="text-xs text-muted-foreground">Assigned</p>
-              <p className="text-sm font-semibold">{loading ? "..." : assignedTeachersCount}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-            <ClipboardList className="h-4 w-4 text-blue-600" />
-            <div>
-              <p className="text-xs text-muted-foreground">Exams</p>
-              <p className="text-sm font-semibold">0</p>
-            </div>
           </div>
         </div>
 
