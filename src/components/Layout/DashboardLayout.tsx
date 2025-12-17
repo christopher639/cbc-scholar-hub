@@ -12,6 +12,7 @@ import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { SchoolAssistantChat } from "@/components/SchoolAssistantChat";
 import { NotificationsDropdown } from "@/components/NotificationsDropdown";
 import { AdminSearchBar } from "@/components/AdminSearchBar";
+import { useAdminNavigation } from "@/hooks/useAdminNavigation";
 import {
   Sidebar,
   SidebarContent,
@@ -54,6 +55,7 @@ import {
   Moon,
   Sun,
   Monitor,
+  Loader2,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -140,7 +142,7 @@ const navigation = [
 // Separate item for Public Website at bottom
 const publicWebsiteLink = { name: "Public Website", href: "/", icon: School, roles: ["admin", "visitor"], external: true };
 
-function AppSidebar() {
+function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (path: string) => void; isNavigating: boolean; pendingPath: string | null }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -161,6 +163,11 @@ function AppSidebar() {
   const filteredNav = navigation.filter(
     (item) => !item.roles || item.roles.includes(user?.role || "")
   );
+
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    onNavigate(href);
+  };
 
   return (
     <Sidebar collapsible="icon" className="bg-card">
@@ -188,23 +195,27 @@ function AppSidebar() {
             <SidebarMenu>
               {filteredNav.map((item) => {
                 const isActive = location.pathname === item.href;
+                const isPending = pendingPath === item.href;
                 return (
                   <SidebarMenuItem key={item.name}>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <SidebarMenuButton
-                            asChild
                             isActive={isActive}
                             className={cn(
                               "cursor-pointer",
-                              isActive && "bg-primary text-primary-foreground"
+                              isActive && "bg-primary text-primary-foreground",
+                              isPending && "opacity-70"
                             )}
+                            onClick={(e) => handleNavClick(e, item.href)}
                           >
-                            <Link to={item.href}>
+                            {isPending ? (
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
                               <item.icon className="h-5 w-5" />
-                              <span>{item.name}</span>
-                            </Link>
+                            )}
+                            <span>{item.name}</span>
                           </SidebarMenuButton>
                         </TooltipTrigger>
                         {collapsed && (
@@ -280,6 +291,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const { schoolInfo } = useSchoolInfo();
+  const { navigateTo, isNavigating, pendingPath } = useAdminNavigation();
 
   const handleLogout = async () => {
     // Clear profile cache on logout
@@ -367,7 +379,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider defaultOpen>
       <div className="h-screen w-full flex bg-background overflow-hidden">
-        <AppSidebar />
+        <AppSidebar onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
           <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 bg-card px-3 sm:px-6">
@@ -414,12 +426,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => navigateTo("/profile")} className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
                   {user?.role === "admin" && (
-                    <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => navigateTo("/settings")} className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
                     </DropdownMenuItem>
@@ -439,7 +451,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           
           {/* Bottom Navigation - Mobile Only */}
-          <BottomNavigation />
+          <BottomNavigation onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
         </main>
         <OfflineIndicator />
         {user?.role === "admin" && <SchoolAssistantChat />}
@@ -449,7 +461,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 }
 
 // Bottom Navigation Component for mobile
-function BottomNavigation() {
+function BottomNavigation({ onNavigate, isNavigating, pendingPath }: { onNavigate: (path: string) => void; isNavigating: boolean; pendingPath: string | null }) {
   const location = useLocation();
   const { user } = useAuth();
   
@@ -463,25 +475,36 @@ function BottomNavigation() {
     { name: "Performance", href: "/performance", icon: FileText },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
+
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    onNavigate(href);
+  };
   
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden h-16 items-center justify-around bg-card px-2">
       {bottomNavItems.map((item) => {
         const isActive = location.pathname === item.href;
+        const isPending = pendingPath === item.href;
         return (
-          <Link
+          <button
             key={item.name}
-            to={item.href}
+            onClick={(e) => handleNavClick(e, item.href)}
             className={cn(
               "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors",
               isActive 
                 ? "text-primary bg-primary/10" 
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+              isPending && "opacity-70"
             )}
           >
-            <item.icon className="h-5 w-5" />
+            {isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <item.icon className="h-5 w-5" />
+            )}
             <span className="text-[10px] font-medium">{item.name}</span>
-          </Link>
+          </button>
         );
       })}
     </nav>
