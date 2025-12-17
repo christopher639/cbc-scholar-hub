@@ -278,6 +278,24 @@ const Performance = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Bottom Stats Summary */}
+        <div className="flex items-center justify-center gap-8 py-4 text-center">
+          <div>
+            <p className="text-xs text-muted-foreground">Learning Areas</p>
+            <p className="text-lg font-semibold text-foreground">{loading ? "..." : learningAreas.length}</p>
+          </div>
+          <div className="h-8 w-px bg-border" />
+          <div>
+            <p className="text-xs text-muted-foreground">Assigned</p>
+            <p className="text-lg font-semibold text-foreground">{loading ? "..." : assignedTeachersCount}</p>
+          </div>
+          <div className="h-8 w-px bg-border" />
+          <div>
+            <p className="text-xs text-muted-foreground">Exams</p>
+            <p className="text-lg font-semibold text-foreground">0</p>
+          </div>
+        </div>
       </div>
 
       <AddPerformanceDialog open={isAddPerformanceOpen} onOpenChange={setIsAddPerformanceOpen} />
