@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { useHouses } from "@/hooks/useHouses";
+import { AlertTriangle, Loader2 } from "lucide-react";
 
 interface EditLearnerDialogProps {
   open: boolean;
@@ -22,11 +23,20 @@ interface EditLearnerDialogProps {
 export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: EditLearnerDialogProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [transferring, setTransferring] = useState(false);
   const { grades } = useGrades();
   const { streams } = useStreams();
   const { houses } = useHouses();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  
+  // Transfer state
+  const [showTransferSection, setShowTransferSection] = useState(false);
+  const [transferData, setTransferData] = useState({
+    destination_school: "",
+    transfer_date: new Date().toISOString().split("T")[0],
+    reason: "",
+  });
   
   const [formData, setFormData] = useState({
     admission_number: "",
@@ -88,6 +98,14 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
       if (learner.parent_id) {
         loadParentData(learner.parent_id);
       }
+      
+      // Reset transfer state
+      setShowTransferSection(false);
+      setTransferData({
+        destination_school: "",
+        transfer_date: new Date().toISOString().split("T")[0],
+        reason: "",
+      });
     }
   }, [learner, open]);
 
@@ -228,6 +246,57 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
     }
   };
 
+  const handleTransfer = async () => {
+    if (!transferData.destination_school.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter the destination school",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setTransferring(true);
+
+      // Create transfer record
+      const { error: transferError } = await supabase
+        .from("transfer_records")
+        .insert({
+          learner_id: learner.id,
+          destination_school: transferData.destination_school,
+          reason: transferData.reason || null,
+          transfer_date: transferData.transfer_date,
+        });
+
+      if (transferError) throw transferError;
+
+      // Update learner status to transferred
+      const { error: updateError } = await supabase
+        .from("learners")
+        .update({ status: "transferred" })
+        .eq("id", learner.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Success",
+        description: "Learner has been marked as transferred. They will no longer receive messages.",
+      });
+
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setTransferring(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -237,11 +306,12 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
               <TabsTrigger value="parent">Parent Info</TabsTrigger>
               <TabsTrigger value="academic">Academic</TabsTrigger>
-              <TabsTrigger value="medical">Medical Info</TabsTrigger>
+              <TabsTrigger value="medical">Medical</TabsTrigger>
+              <TabsTrigger value="transfer" className="text-destructive">Transfer</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="space-y-4 mt-4">
@@ -598,6 +668,72 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
                   />
                 </div>
               </div>
+            </TabsContent>
+
+            {/* Transfer Tab */}
+            <TabsContent value="transfer" className="space-y-4 mt-4">
+              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-destructive">Transfer Learner to Another School</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      This action will mark the learner as transferred. They will be removed from active learners 
+                      and their parent will no longer receive messages from the system.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {learner?.status === "transferred" ? (
+                <div className="p-4 bg-muted rounded-lg text-center">
+                  <p className="text-muted-foreground">This learner has already been transferred.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="destination_school">Destination School *</Label>
+                    <Input
+                      id="destination_school"
+                      value={transferData.destination_school}
+                      onChange={(e) => setTransferData({ ...transferData, destination_school: e.target.value })}
+                      placeholder="Enter the name of the school"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="transfer_date">Transfer Date</Label>
+                    <Input
+                      id="transfer_date"
+                      type="date"
+                      value={transferData.transfer_date}
+                      onChange={(e) => setTransferData({ ...transferData, transfer_date: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="transfer_reason">Reason for Transfer (Optional)</Label>
+                    <Textarea
+                      id="transfer_reason"
+                      value={transferData.reason}
+                      onChange={(e) => setTransferData({ ...transferData, reason: e.target.value })}
+                      placeholder="Enter reason for transfer"
+                      rows={3}
+                    />
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleTransfer}
+                    disabled={transferring || !transferData.destination_school.trim()}
+                    className="w-full"
+                  >
+                    {transferring && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {transferring ? "Processing Transfer..." : "Transfer Learner"}
+                  </Button>
+                </>
+              )}
             </TabsContent>
           </Tabs>
 
