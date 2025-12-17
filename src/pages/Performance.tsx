@@ -238,7 +238,7 @@ const Performance = () => {
             <h2 className="text-sm font-medium text-foreground">Quick Actions</h2>
           </div>
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               <Button
                 variant="outline"
                 className="h-auto py-4 flex flex-col items-center gap-2 justify-center"
