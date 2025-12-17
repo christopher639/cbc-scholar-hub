@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Calendar, Receipt, Wallet, Clock, FileText, Search, Printer, XCircle, Smartphone, ChevronDown, ChevronRight, Send, MessageSquare, MoreVertical } from "lucide-react";
+import { DollarSign, TrendingUp, AlertCircle, Download, Plus, Calendar, Receipt, Wallet, Clock, FileText, Search, Printer, XCircle, Smartphone, ChevronDown, ChevronRight, MoreVertical } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -87,9 +87,6 @@ const FeeManagement = () => {
   const [cancelReason, setCancelReason] = useState("");
   const [editFeeStructureOpen, setEditFeeStructureOpen] = useState(false);
   const [selectedFeeStructure, setSelectedFeeStructure] = useState<any>(null);
-  const [bulkCancelDialogOpen, setBulkCancelDialogOpen] = useState(false);
-  const [groupToCancel, setGroupToCancel] = useState<any>(null);
-  const [bulkCancelReason, setBulkCancelReason] = useState("");
   const [mpesaDialogOpen, setMpesaDialogOpen] = useState(false);
   const [mpesaInvoice, setMpesaInvoice] = useState<any>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -120,10 +117,7 @@ const FeeManagement = () => {
       
       const { data } = await supabase
         .from("fee_payments")
-        .select(`
-          *,
-          fee_structure:fee_structures(academic_year, term)
-        `)
+        .select(`*, fee_structure:fee_structures(academic_year, term)`)
         .eq("learner_id", selectedLearnerId)
         .order("payment_date", { ascending: false });
       
@@ -143,32 +137,12 @@ const FeeManagement = () => {
     fetchInvoices();
   };
 
-  const feeStats = [
-    { 
-      label: "Total Collected", 
-      value: statsLoading ? "..." : formatCurrency(stats.totalCollected),
-      icon: DollarSign 
-    },
-    { 
-      label: "Outstanding", 
-      value: statsLoading ? "..." : formatCurrency(stats.outstanding),
-      icon: AlertCircle 
-    },
-    { 
-      label: "Collection Rate", 
-      value: statsLoading ? "..." : `${stats.collectionRate.toFixed(0)}%`,
-      icon: TrendingUp 
-    },
-  ];
-
   // Invoice helpers
   const recentInvoicesStats = useMemo(() => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    const recentInvoices = invoices.filter(
-      (inv) => new Date(inv.created_at) >= thirtyDaysAgo
-    );
+    const recentInvoices = invoices.filter((inv) => new Date(inv.created_at) >= thirtyDaysAgo);
     
     return {
       count: recentInvoices.length,
@@ -389,303 +363,256 @@ const FeeManagement = () => {
   );
 
   const currentTermTransactions = transactions.filter(
-    t => t.invoice?.academic_year === currentPeriod?.academic_year &&
-         t.invoice?.term === currentPeriod?.term
+    t => t.invoice?.academic_year === currentPeriod?.academic_year && t.invoice?.term === currentPeriod?.term
   );
   
   const currentTermFeePayments = feePayments.filter(
-    p => p.fee_structure?.academic_year === currentPeriod?.academic_year &&
-         p.fee_structure?.term === currentPeriod?.term
+    p => p.fee_structure?.academic_year === currentPeriod?.academic_year && p.fee_structure?.term === currentPeriod?.term
   );
   
-  const currentTermPaid = 
-    currentTermTransactions.reduce((sum, t) => sum + Number(t.amount_paid), 0) +
-    currentTermFeePayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
-  
-  const currentTermFees = currentTermInvoice ? Number(currentTermInvoice.total_amount) : 0;
-  const currentTermBalance = currentTermFees - currentTermPaid;
+  const currentTermPaid = currentTermTransactions.reduce((sum, t) => sum + Number(t.amount_paid), 0) +
+                          currentTermFeePayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
+  const currentTermBalance = currentTermInvoice ? Number(currentTermInvoice.total_amount) - currentTermPaid : 0;
 
-  const totalPaidFromTransactions = transactions.reduce((sum, t) => sum + Number(t.amount_paid), 0);
-  const totalPaidFromFeePayments = feePayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
-  const learnerTotalPaid = totalPaidFromTransactions + totalPaidFromFeePayments;
-  
   const learnerTotalDue = learnerInvoices.reduce((sum, inv) => sum + Number(inv.total_amount), 0);
+  const learnerTotalPaid = transactions.reduce((sum, t) => sum + Number(t.amount_paid), 0) +
+                           feePayments.reduce((sum, p) => sum + Number(p.amount_paid), 0);
   const learnerOverallBalance = learnerTotalDue - learnerTotalPaid;
 
-  // Fee structure filtering and download
+  // Fee structure helpers
   const uniqueAcademicYears = useMemo(() => {
-    const years = new Set(structures.map((s) => s.academic_year));
+    const years = new Set(structures.map(s => s.academic_year));
     return Array.from(years).sort().reverse();
   }, [structures]);
 
   const filteredStructures = useMemo(() => {
-    return structures.filter((s) => {
-      const matchesYear = structureYearFilter === "all" || s.academic_year === structureYearFilter;
-      const matchesGrade = structureGradeFilter === "all" || s.grade_id === structureGradeFilter;
-      return matchesYear && matchesGrade;
-    });
+    return structures.filter(s => 
+      s.academic_year === structureYearFilter && 
+      s.grade_id === structureGradeFilter
+    );
   }, [structures, structureYearFilter, structureGradeFilter]);
 
-  const handleDownloadFeeStructure = async () => {
-    try {
-      const { data: school } = await supabase.from("school_info").select("*").single();
-      
-      const academicYear = structureYearFilter !== "all" 
-        ? structureYearFilter 
-        : (currentPeriod?.academic_year || new Date().getFullYear().toString());
-      
-      const gradeName = structureGradeFilter !== "all" 
-        ? grades.find((g) => g.id === structureGradeFilter)?.name 
-        : undefined;
-
-      await generateFeeStructurePDF(
-        filteredStructures,
-        school,
-        academicYear,
-        gradeName
-      );
-
-      toast({
-        title: "Downloaded",
-        description: "Fee structure PDF has been downloaded",
-      });
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate PDF",
-        variant: "destructive",
-      });
-    }
+  const handleDownloadFeeStructure = () => {
+    const gradeName = grades.find(g => g.id === structureGradeFilter)?.name || "";
+    generateFeeStructurePDF(filteredStructures, structureYearFilter, gradeName);
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        {/* Header */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Finance</h1>
-            <p className="text-sm text-muted-foreground">Manage fees, invoices, and payments</p>
+        {/* Compact Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">Finance</h1>
+              <p className="text-sm text-muted-foreground">Manage fees & invoices</p>
+            </div>
+            
+            {/* Inline Stats */}
+            <div className="hidden xl:flex items-center gap-4 ml-4 pl-4 border-l">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-green-500/10 rounded">
+                  <DollarSign className="h-3.5 w-3.5 text-green-600" />
+                </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Collected</p>
+                <p className="text-sm font-semibold">{statsLoading ? "..." : formatCurrency(stats?.totalCollected || 0)}</p>
+              </div>
+            </div>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-red-500/10 rounded">
+                  <AlertCircle className="h-3.5 w-3.5 text-red-600" />
+                </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Outstanding</p>
+                <p className="text-sm font-semibold">{statsLoading ? "..." : formatCurrency(stats?.outstanding || 0)}</p>
+              </div>
+            </div>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-500/10 rounded">
+                  <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
+                </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Rate</p>
+                <p className="text-sm font-semibold">{statsLoading ? "..." : `${(stats?.collectionRate || 0).toFixed(0)}%`}</p>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline text-xs">
+                    {dateRange.start && dateRange.end
+                      ? `${format(dateRange.start, "MMM d")} - ${format(dateRange.end, "MMM d")}`
+                      : "Date Range"}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <div className="p-3 space-y-2">
+                  <div>
+                    <p className="text-sm font-medium mb-2">Start Date</p>
+                    <CalendarComponent
+                      mode="single"
+                      selected={dateRange.start}
+                      onSelect={(date) => setDateRange({ ...dateRange, start: date })}
+                      className="pointer-events-auto"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium mb-2">End Date</p>
+                    <CalendarComponent
+                      mode="single"
+                      selected={dateRange.end}
+                      onSelect={(date) => setDateRange({ ...dateRange, end: date })}
+                      disabled={(date) => dateRange.start ? date < dateRange.start : false}
+                      className="pointer-events-auto"
+                    />
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => setDateRange({})}>
+                    Clear
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button size="sm" className="h-8 gap-1.5" onClick={() => setRecordPaymentOpen(true)}>
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Payment</span>
+            </Button>
           </div>
         </div>
 
-        {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 h-auto">
-            <TabsTrigger value="overview" className="text-sm py-2">Overview</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-sm py-2">Invoices</TabsTrigger>
-            <TabsTrigger value="learner-fees" className="text-sm py-2">Learner Fees</TabsTrigger>
-            <TabsTrigger value="structures" className="text-sm py-2">Fee Structures</TabsTrigger>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <TabsList className="h-9">
+            <TabsTrigger value="overview" className="text-xs h-7">Overview</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-xs h-7">Invoices</TabsTrigger>
+            <TabsTrigger value="learner" className="text-xs h-7">Learner Fees</TabsTrigger>
+            <TabsTrigger value="structures" className="text-xs h-7">Structures</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-4">
-            <div className="flex gap-2 flex-wrap justify-end">
-              {/* Link to Fee Automation on Communication page */}
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="gap-2" 
-                onClick={() => navigate("/communication?tab=automation")}
-              >
-                <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">Fee Automation</span>
-                <span className="sm:hidden">Automation</span>
-              </Button>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <span className="hidden sm:inline">
-                      {dateRange.start && dateRange.end
-                        ? `${format(dateRange.start, "PP")} - ${format(dateRange.end, "PP")}`
-                        : "Filter by Date"}
-                    </span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <div className="p-3 space-y-2">
-                    <div>
-                      <p className="text-sm font-medium mb-2">Start Date</p>
-                      <CalendarComponent
-                        mode="single"
-                        selected={dateRange.start}
-                        onSelect={(date) => setDateRange({ ...dateRange, start: date })}
-                        className="pointer-events-auto"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium mb-2">End Date</p>
-                      <CalendarComponent
-                        mode="single"
-                        selected={dateRange.end}
-                        onSelect={(date) => setDateRange({ ...dateRange, end: date })}
-                        disabled={(date) => dateRange.start ? date < dateRange.start : false}
-                        className="pointer-events-auto"
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setDateRange({})}
-                    >
-                      Clear Filters
-                    </Button>
+          <TabsContent value="overview" className="space-y-4 mt-3">
+            {/* Mobile Stats */}
+            <div className="grid gap-2 grid-cols-3 xl:hidden">
+              <Card className="p-3">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Collected</p>
+                    <p className="text-sm font-bold">{statsLoading ? "..." : formatCurrency(stats?.totalCollected || 0)}</p>
                   </div>
-                </PopoverContent>
-              </Popover>
-              <Button size="sm" className="gap-2" onClick={() => setRecordPaymentOpen(true)}>
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Record Payment</span>
-              </Button>
+                </div>
+              </Card>
+              <Card className="p-3">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Outstanding</p>
+                    <p className="text-sm font-bold">{statsLoading ? "..." : formatCurrency(stats?.outstanding || 0)}</p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-3">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Rate</p>
+                    <p className="text-sm font-bold">{statsLoading ? "..." : `${(stats?.collectionRate || 0).toFixed(0)}%`}</p>
+                  </div>
+                </div>
+              </Card>
             </div>
 
-            {/* Stats */}
-            <div className="grid gap-3 grid-cols-3">
-              {feeStats.map((stat) => (
-                <Card key={stat.label}>
-                  <CardContent className="p-4 sm:p-6 flex items-center gap-3 min-h-[100px]">
-                    <div className="p-2 sm:p-3 bg-primary/10 rounded-full shrink-0 hidden sm:flex">
-                      <stat.icon className="h-5 w-5 text-primary" />
+            {/* Two Column Layout for Large Screens */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              {/* Chart */}
+              <Card>
+                <CardHeader className="py-3 px-4">
+                  <CardTitle className="text-sm font-medium">Payment Trend</CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  {statsLoading ? (
+                    <Skeleton className="h-[180px] w-full" />
+                  ) : trendData.length === 0 ? (
+                    <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">
+                      No data available
                     </div>
-                    <div>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
-                      <p className="text-base sm:text-xl font-bold">{stat.value}</p>
+                  ) : (
+                    <ChartContainer config={{ amount: { label: "Amount", color: "hsl(var(--success))" } }} className="h-[180px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={trendData}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), "MMM dd")} className="text-xs" />
+                          <YAxis tickFormatter={(value) => formatCurrency(value).replace('.00', '')} className="text-xs" />
+                          <ChartTooltip content={<ChartTooltipContent labelFormatter={(value) => format(new Date(value), "PPP")} formatter={(value) => formatCurrency(Number(value))} />} />
+                          <Line type="monotone" dataKey="amount" stroke="hsl(var(--success))" strokeWidth={2} dot={{ fill: "hsl(var(--success))" }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recent Payments */}
+              <Card>
+                <CardHeader className="py-3 px-4">
+                  <CardTitle className="text-sm font-medium">Recent Payments</CardTitle>
+                </CardHeader>
+                <CardContent className="px-0 pb-0">
+                  {paymentsLoading ? (
+                    <div className="px-4 pb-4 space-y-2">
+                      {[1, 2, 3].map((i) => (<Skeleton key={i} className="h-10 w-full" />))}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Fee Payment Trend Graph */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold">Fee Payment Trend</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {statsLoading ? (
-                  <Skeleton className="h-[200px] w-full" />
-                ) : trendData.length === 0 ? (
-                  <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
-                    No payment data available
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      amount: {
-                        label: "Amount",
-                        color: "hsl(var(--success))",
-                      },
-                    }}
-                    className="h-[200px]"
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={trendData}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis
-                          dataKey="date"
-                          tickFormatter={(value) => format(new Date(value), "MMM dd")}
-                          className="text-xs"
-                        />
-                        <YAxis
-                          tickFormatter={(value) => formatCurrency(value).replace('.00', '')}
-                          className="text-xs"
-                        />
-                        <ChartTooltip
-                          content={
-                            <ChartTooltipContent
-                              labelFormatter={(value) => format(new Date(value), "PPP")}
-                              formatter={(value) => formatCurrency(Number(value))}
-                            />
-                          }
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="amount"
-                          stroke="hsl(var(--success))"
-                          strokeWidth={2}
-                          dot={{ fill: "hsl(var(--success))" }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Recent Payments */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold">Recent Payments</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {paymentsLoading ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-12 w-full" />
-                    ))}
-                  </div>
-                ) : payments.length === 0 ? (
-                  <div className="text-center py-4">
-                    <p className="text-muted-foreground text-sm mb-2">No payments recorded yet</p>
-                    <Button size="sm" onClick={() => setRecordPaymentOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Record First Payment
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  ) : payments.length === 0 ? (
+                    <div className="text-center py-8 px-4">
+                      <p className="text-muted-foreground text-sm mb-2">No payments yet</p>
+                      <Button size="sm" onClick={() => setRecordPaymentOpen(true)}>
+                        <Plus className="h-3.5 w-3.5 mr-1" />
+                        Record Payment
+                      </Button>
+                    </div>
+                  ) : (
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-xs">Admission</TableHead>
-                          <TableHead className="text-xs">Name</TableHead>
-                          <TableHead className="text-xs hidden md:table-cell">Grade</TableHead>
-                          <TableHead className="text-xs text-right">Amount</TableHead>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="py-2 text-xs">Admission</TableHead>
+                          <TableHead className="py-2 text-xs">Name</TableHead>
+                          <TableHead className="py-2 text-xs hidden md:table-cell">Grade</TableHead>
+                          <TableHead className="py-2 text-xs text-right">Amount</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {payments.slice(0, 5).map((payment: any) => (
                           <TableRow key={payment.id}>
-                            <TableCell className="text-xs font-mono">
-                              {payment.learner?.admission_number || 'N/A'}
-                            </TableCell>
-                            <TableCell className="text-xs">
-                              {payment.learner?.first_name} {payment.learner?.last_name}
-                            </TableCell>
-                            <TableCell className="text-xs hidden md:table-cell">
-                              {payment.learner?.current_grade?.name || 'N/A'}
-                            </TableCell>
-                            <TableCell className="text-xs text-right font-semibold">
-                              {formatCurrency(Number(payment.amount_paid))}
-                            </TableCell>
+                            <TableCell className="py-2 text-xs font-mono">{payment.learner?.admission_number || 'N/A'}</TableCell>
+                            <TableCell className="py-2 text-xs">{payment.learner?.first_name} {payment.learner?.last_name}</TableCell>
+                            <TableCell className="py-2 text-xs hidden md:table-cell">{payment.learner?.current_grade?.name || 'N/A'}</TableCell>
+                            <TableCell className="py-2 text-xs text-right font-medium">{formatCurrency(Number(payment.amount_paid))}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Invoices Tab */}
-          <TabsContent value="invoices" className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3 justify-between">
+          <TabsContent value="invoices" className="space-y-3 mt-3">
+            <div className="flex flex-col sm:flex-row gap-2 justify-between">
               <div className="flex gap-2 flex-wrap">
-                <div className="relative flex-1 min-w-[150px]">
-                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 h-9 text-sm"
-                  />
+                <div className="relative flex-1 min-w-[140px]">
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-7 h-8 text-xs" />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[100px] h-9 text-sm">
+                  <SelectTrigger className="w-[90px] h-8 text-xs">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -697,86 +624,52 @@ const FeeManagement = () => {
                   </SelectContent>
                 </Select>
                 <Select value={gradeFilter} onValueChange={setGradeFilter}>
-                  <SelectTrigger className="w-[100px] h-9 text-sm">
+                  <SelectTrigger className="w-[90px] h-8 text-xs">
                     <SelectValue placeholder="Grade" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
-                    {grades.map((grade) => (
-                      <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
-                    ))}
+                    {grades.map((grade) => (<SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
-              <Button size="sm" onClick={() => setGenerateDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
+              <Button size="sm" className="h-8" onClick={() => setGenerateDialogOpen(true)}>
+                <Plus className="mr-1 h-3.5 w-3.5" />
                 Generate
               </Button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <Card>
-                <CardContent className="p-3 flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full shrink-0">
-                    <Receipt className="h-4 w-4 text-primary" />
+            {/* Compact Stats */}
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { icon: Receipt, label: "Invoices", value: recentInvoicesStats.count },
+                { icon: TrendingUp, label: "Billed", value: formatCurrency(recentInvoicesStats.totalAmount) },
+                { icon: Wallet, label: "Collected", value: formatCurrency(recentInvoicesStats.totalPaid) },
+                { icon: Clock, label: "Outstanding", value: formatCurrency(recentInvoicesStats.totalBalance) },
+              ].map((stat) => (
+                <Card key={stat.label} className="p-2">
+                  <div className="flex items-center gap-2">
+                    <stat.icon className="h-3.5 w-3.5 text-primary" />
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">{stat.label}</p>
+                      <p className="text-xs font-semibold">{stat.value}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Invoices (30d)</p>
-                    <p className="text-lg font-bold">{recentInvoicesStats.count}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-3 flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full shrink-0">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Total Billed</p>
-                    <p className="text-sm font-bold">{formatCurrency(recentInvoicesStats.totalAmount)}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-3 flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full shrink-0">
-                    <Wallet className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Collected</p>
-                    <p className="text-sm font-bold">{formatCurrency(recentInvoicesStats.totalPaid)}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-3 flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full shrink-0">
-                    <Clock className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Outstanding</p>
-                    <p className="text-sm font-bold">{formatCurrency(recentInvoicesStats.totalBalance)}</p>
-                  </div>
-                </CardContent>
-              </Card>
+                </Card>
+              ))}
             </div>
 
             {/* Invoice Groups */}
             {invoicesLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (<Skeleton key={i} className="h-14 w-full" />))}
               </div>
             ) : groupedInvoices.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <p className="text-muted-foreground text-sm">No invoices found</p>
-                </CardContent>
+              <Card className="py-8 text-center">
+                <p className="text-muted-foreground text-sm">No invoices found</p>
               </Card>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {groupedInvoices.map((group: any) => {
                   const groupKey = `${group.gradeId}-${group.term}-${group.academicYear}`;
                   const isExpanded = expandedGroups.has(groupKey);
@@ -785,91 +678,80 @@ const FeeManagement = () => {
                     <Collapsible key={groupKey} open={isExpanded} onOpenChange={() => toggleGroupExpansion(groupKey)}>
                       <Card>
                         <CollapsibleTrigger asChild>
-                          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                <div>
-                                  <p className="font-semibold text-sm">{group.grade?.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {group.term?.replace("_", " ").toUpperCase()} - {group.academicYear} • {group.invoices.length} invoices
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm font-bold">{formatCurrency(group.totalBalance)}</p>
-                                <p className="text-xs text-muted-foreground">Balance</p>
+                          <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center gap-2">
+                              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                              <div>
+                                <p className="text-sm font-medium">{group.grade?.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {group.term?.replace("_", " ").toUpperCase()} • {group.academicYear} • {group.invoices.length} invoices
+                                </p>
                               </div>
                             </div>
-                          </CardHeader>
+                            <div className="text-right">
+                              <p className="text-sm font-semibold">{formatCurrency(group.totalBalance)}</p>
+                              <p className="text-[10px] text-muted-foreground">Balance</p>
+                            </div>
+                          </div>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                          <CardContent className="pt-0">
-                            <div className="overflow-x-auto -mx-4 sm:mx-0">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead className="text-xs">Invoice #</TableHead>
-                                    <TableHead className="text-xs">Learner</TableHead>
-                                    <TableHead className="text-xs text-right">Total</TableHead>
-                                    <TableHead className="text-xs text-right">Balance</TableHead>
-                                    <TableHead className="text-xs">Status</TableHead>
-                                    <TableHead className="text-xs text-right">Actions</TableHead>
+                          <div className="border-t">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-muted/30">
+                                  <TableHead className="py-2 text-xs">Invoice #</TableHead>
+                                  <TableHead className="py-2 text-xs">Learner</TableHead>
+                                  <TableHead className="py-2 text-xs text-right">Total</TableHead>
+                                  <TableHead className="py-2 text-xs text-right">Balance</TableHead>
+                                  <TableHead className="py-2 text-xs">Status</TableHead>
+                                  <TableHead className="py-2 text-xs w-8"></TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {group.invoices.map((invoice: any) => (
+                                  <TableRow key={invoice.id}>
+                                    <TableCell className="py-2 text-xs font-mono">{invoice.invoice_number}</TableCell>
+                                    <TableCell className="py-2 text-xs">{invoice.learner?.first_name} {invoice.learner?.last_name}</TableCell>
+                                    <TableCell className="py-2 text-xs text-right">{formatCurrency(invoice.total_amount)}</TableCell>
+                                    <TableCell className="py-2 text-xs text-right font-medium">{formatCurrency(invoice.balance_due)}</TableCell>
+                                    <TableCell className="py-2">
+                                      <Badge className={cn("text-[10px] px-1.5 py-0", getStatusBadge(invoice.status))}>{invoice.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="py-2">
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-6 w-6">
+                                            <MoreVertical className="h-3 w-3" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onClick={() => handlePrintInvoice(invoice)}>
+                                            <Download className="h-3 w-3 mr-2" />Download
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => handlePrintInvoice(invoice)}>
+                                            <Printer className="h-3 w-3 mr-2" />Print
+                                          </DropdownMenuItem>
+                                          {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                                            <>
+                                              <DropdownMenuItem onClick={() => handleRecordPayment(invoice)}>
+                                                <DollarSign className="h-3 w-3 mr-2" />Record Payment
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem onClick={() => handleMpesaPayment(invoice)}>
+                                                <Smartphone className="h-3 w-3 mr-2" />M-Pesa
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem onClick={() => handleCancelInvoice(invoice)} className="text-destructive">
+                                                <XCircle className="h-3 w-3 mr-2" />Cancel
+                                              </DropdownMenuItem>
+                                            </>
+                                          )}
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    </TableCell>
                                   </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {group.invoices.map((invoice: any) => (
-                                    <TableRow key={invoice.id}>
-                                      <TableCell className="text-xs font-mono">{invoice.invoice_number}</TableCell>
-                                      <TableCell className="text-xs">
-                                        {invoice.learner?.first_name} {invoice.learner?.last_name}
-                                      </TableCell>
-                                      <TableCell className="text-xs text-right">{formatCurrency(invoice.total_amount)}</TableCell>
-                                      <TableCell className="text-xs text-right font-medium">{formatCurrency(invoice.balance_due)}</TableCell>
-                                      <TableCell>
-                                        <Badge className={cn("text-xs", getStatusBadge(invoice.status))}>
-                                          {invoice.status}
-                                        </Badge>
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                        <div className="flex gap-1 justify-end">
-                                          <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                              <Button variant="ghost" size="icon" className="h-7 w-7">
-                                                <MoreVertical className="h-3 w-3" />
-                                              </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                              <DropdownMenuItem onClick={() => handlePrintInvoice(invoice)}>
-                                                <Download className="h-3 w-3 mr-2" />
-                                                Download Invoice
-                                              </DropdownMenuItem>
-                                              <DropdownMenuItem onClick={() => handlePrintInvoice(invoice)}>
-                                                <Printer className="h-3 w-3 mr-2" />
-                                                Print Invoice
-                                              </DropdownMenuItem>
-                                              {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
-                                                <>
-                                                  <DropdownMenuItem onClick={() => handleRecordPayment(invoice)}>
-                                                    <DollarSign className="h-3 w-3 mr-2" />
-                                                    Record Payment
-                                                  </DropdownMenuItem>
-                                                  <DropdownMenuItem onClick={() => handleMpesaPayment(invoice)}>
-                                                    <Smartphone className="h-3 w-3 mr-2" />
-                                                    Pay via M-Pesa
-                                                  </DropdownMenuItem>
-                                                </>
-                                              )}
-                                            </DropdownMenuContent>
-                                          </DropdownMenu>
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </CardContent>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
                         </CollapsibleContent>
                       </Card>
                     </Collapsible>
@@ -880,119 +762,94 @@ const FeeManagement = () => {
           </TabsContent>
 
           {/* Learner Fees Tab */}
-          <TabsContent value="learner-fees" className="space-y-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold">Select Learner</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="max-w-md">
-                  <Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select a learner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {learners.map((learner) => (
-                        <SelectItem key={learner.id} value={learner.id}>
-                          {learner.admission_number} - {learner.first_name} {learner.last_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
+          <TabsContent value="learner" className="space-y-3 mt-3">
+            <Card className="p-3">
+              <div className="flex items-center gap-3">
+                <Label className="text-sm whitespace-nowrap">Select Learner</Label>
+                <Select value={selectedLearnerId} onValueChange={setSelectedLearnerId}>
+                  <SelectTrigger className="h-8 flex-1">
+                    <SelectValue placeholder="Search learner..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {learners.map((learner) => (
+                      <SelectItem key={learner.id} value={learner.id}>
+                        {learner.admission_number} - {learner.first_name} {learner.last_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </Card>
 
             {selectedLearnerId && selectedLearner && (
               <>
                 {/* Learner Info */}
-                <Card>
-                  <CardContent className="py-3">
-                    <div className="grid gap-3 grid-cols-2 md:grid-cols-4 text-sm">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Name</p>
-                        <p className="font-medium">{selectedLearner.first_name} {selectedLearner.last_name}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Admission Number</p>
-                        <p className="font-medium">{selectedLearner.admission_number}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Grade</p>
-                        <p className="font-medium">{selectedLearner.current_grade?.name || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Academic Year</p>
-                        <p className="font-medium">{currentPeriod?.academic_year || "N/A"}</p>
-                      </div>
+                <Card className="p-3">
+                  <div className="grid gap-3 grid-cols-2 md:grid-cols-4 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Name</p>
+                      <p className="font-medium">{selectedLearner.first_name} {selectedLearner.last_name}</p>
                     </div>
-                  </CardContent>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Admission</p>
+                      <p className="font-medium">{selectedLearner.admission_number}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Grade</p>
+                      <p className="font-medium">{selectedLearner.current_grade?.name || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Year</p>
+                      <p className="font-medium">{currentPeriod?.academic_year || "N/A"}</p>
+                    </div>
+                  </div>
                 </Card>
 
                 {/* Financial Summary */}
-                <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
-                  <Card>
-                    <CardContent className="p-3">
-                      <p className="text-xs text-muted-foreground">Current Term Balance</p>
-                      <p className="text-lg font-bold">{formatCurrency(Math.abs(currentTermBalance))}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3">
-                      <p className="text-xs text-muted-foreground">Overall Balance</p>
-                      <p className="text-lg font-bold">{formatCurrency(Math.abs(learnerOverallBalance))}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3">
-                      <p className="text-xs text-muted-foreground">Total Paid</p>
-                      <p className="text-lg font-bold">{formatCurrency(learnerTotalPaid)}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3">
-                      <p className="text-xs text-muted-foreground">Total Fees</p>
-                      <p className="text-lg font-bold">{formatCurrency(learnerTotalDue)}</p>
-                    </CardContent>
-                  </Card>
+                <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+                  {[
+                    { label: "Current Term Balance", value: formatCurrency(Math.abs(currentTermBalance)) },
+                    { label: "Overall Balance", value: formatCurrency(Math.abs(learnerOverallBalance)) },
+                    { label: "Total Paid", value: formatCurrency(learnerTotalPaid) },
+                    { label: "Total Fees", value: formatCurrency(learnerTotalDue) },
+                  ].map((item) => (
+                    <Card key={item.label} className="p-3">
+                      <p className="text-xs text-muted-foreground">{item.label}</p>
+                      <p className="text-base font-semibold">{item.value}</p>
+                    </Card>
+                  ))}
                 </div>
 
-                {/* Invoices */}
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-semibold">Fee Invoices</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {learnerInvoicesLoading ? (
-                      <p className="text-sm text-muted-foreground">Loading...</p>
-                    ) : learnerInvoices.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No invoices found</p>
-                    ) : (
-                      <div className="overflow-x-auto -mx-4 sm:mx-0">
+                {/* Two Column Layout */}
+                <div className="grid gap-3 lg:grid-cols-2">
+                  {/* Invoices */}
+                  <Card>
+                    <CardHeader className="py-2 px-3">
+                      <CardTitle className="text-sm font-medium">Fee Invoices</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-0 pb-0">
+                      {learnerInvoicesLoading ? (
+                        <p className="text-xs text-muted-foreground px-3 pb-3">Loading...</p>
+                      ) : learnerInvoices.length === 0 ? (
+                        <p className="text-xs text-muted-foreground px-3 pb-3">No invoices found</p>
+                      ) : (
                         <Table>
                           <TableHeader>
-                            <TableRow>
-                              <TableHead className="text-xs">Invoice #</TableHead>
-                              <TableHead className="text-xs">Term</TableHead>
-                              <TableHead className="text-xs text-right">Total</TableHead>
-                              <TableHead className="text-xs text-right">Balance</TableHead>
-                              <TableHead className="text-xs">Status</TableHead>
+                            <TableRow className="bg-muted/30">
+                              <TableHead className="py-1.5 text-xs">Invoice</TableHead>
+                              <TableHead className="py-1.5 text-xs">Term</TableHead>
+                              <TableHead className="py-1.5 text-xs text-right">Balance</TableHead>
+                              <TableHead className="py-1.5 text-xs">Status</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {learnerInvoices.map((invoice) => (
                               <TableRow key={invoice.id}>
-                                <TableCell className="text-xs font-mono">{invoice.invoice_number}</TableCell>
-                                <TableCell className="text-xs">{invoice.term.replace("_", " ").toUpperCase()}</TableCell>
-                                <TableCell className="text-xs text-right">{formatCurrency(Number(invoice.total_amount))}</TableCell>
-                                <TableCell className="text-xs text-right font-medium">{formatCurrency(Number(invoice.balance_due))}</TableCell>
-                                <TableCell>
-                                  <Badge variant={
-                                    invoice.status === 'paid' ? 'default' :
-                                    invoice.status === 'partial' ? 'secondary' :
-                                    invoice.status === 'overdue' ? 'destructive' :
-                                    'outline'
-                                  } className="text-xs">
+                                <TableCell className="py-1.5 text-xs font-mono">{invoice.invoice_number}</TableCell>
+                                <TableCell className="py-1.5 text-xs">{invoice.term.replace("_", " ").toUpperCase()}</TableCell>
+                                <TableCell className="py-1.5 text-xs text-right">{formatCurrency(Number(invoice.balance_due))}</TableCell>
+                                <TableCell className="py-1.5">
+                                  <Badge variant={invoice.status === 'paid' ? 'default' : invoice.status === 'overdue' ? 'destructive' : 'secondary'} className="text-[10px] px-1.5 py-0">
                                     {invoice.status}
                                   </Badge>
                                 </TableCell>
@@ -1000,102 +857,82 @@ const FeeManagement = () => {
                             ))}
                           </TableBody>
                         </Table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      )}
+                    </CardContent>
+                  </Card>
 
-                {/* Payment History */}
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-semibold">Payment History</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {transactionsLoading ? (
-                      <p className="text-sm text-muted-foreground">Loading...</p>
-                    ) : transactions.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No payments recorded</p>
-                    ) : (
-                      <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  {/* Payment History */}
+                  <Card>
+                    <CardHeader className="py-2 px-3">
+                      <CardTitle className="text-sm font-medium">Payment History</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-0 pb-0">
+                      {transactionsLoading ? (
+                        <p className="text-xs text-muted-foreground px-3 pb-3">Loading...</p>
+                      ) : transactions.length === 0 ? (
+                        <p className="text-xs text-muted-foreground px-3 pb-3">No payments recorded</p>
+                      ) : (
                         <Table>
                           <TableHeader>
-                            <TableRow>
-                              <TableHead className="text-xs">Transaction #</TableHead>
-                              <TableHead className="text-xs">Date</TableHead>
-                              <TableHead className="text-xs">Method</TableHead>
-                              <TableHead className="text-xs text-right">Amount</TableHead>
+                            <TableRow className="bg-muted/30">
+                              <TableHead className="py-1.5 text-xs">Trans #</TableHead>
+                              <TableHead className="py-1.5 text-xs">Date</TableHead>
+                              <TableHead className="py-1.5 text-xs text-right">Amount</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {transactions.map((transaction) => (
                               <TableRow key={transaction.id}>
-                                <TableCell className="text-xs font-mono">{transaction.transaction_number}</TableCell>
-                                <TableCell className="text-xs">{format(new Date(transaction.payment_date), "MMM dd, yyyy")}</TableCell>
-                                <TableCell className="text-xs capitalize">{transaction.payment_method}</TableCell>
-                                <TableCell className="text-xs text-right font-medium">
-                                  {formatCurrency(Number(transaction.amount_paid))}
-                                </TableCell>
+                                <TableCell className="py-1.5 text-xs font-mono">{transaction.transaction_number}</TableCell>
+                                <TableCell className="py-1.5 text-xs">{format(new Date(transaction.payment_date), "MMM dd")}</TableCell>
+                                <TableCell className="py-1.5 text-xs text-right font-medium">{formatCurrency(Number(transaction.amount_paid))}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
                         </Table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               </>
             )}
           </TabsContent>
 
           {/* Fee Structures Tab */}
-          <TabsContent value="structures" className="space-y-4">
-            {/* Filter Bar */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                  <div>
-                    <CardTitle className="text-lg font-semibold">Fee Structure</CardTitle>
-                    <CardDescription className="text-sm">Select academic year and grade to view fee structure</CardDescription>
-                  </div>
-                  <Button size="sm" className="gap-2" onClick={() => setEditFeeStructureOpen(true)}>
-                    <Plus className="h-4 w-4" />
-                    Create Fee Structure
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 max-w-md">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Academic Year</Label>
+          <TabsContent value="structures" className="space-y-3 mt-3">
+            <Card className="p-3">
+              <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs whitespace-nowrap">Year</Label>
                     <Select value={structureYearFilter} onValueChange={setStructureYearFilter}>
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select year" />
+                      <SelectTrigger className="h-8 w-[100px]">
+                        <SelectValue placeholder="Year" />
                       </SelectTrigger>
                       <SelectContent>
-                        {uniqueAcademicYears.map((year) => (
-                          <SelectItem key={year} value={year}>{year}</SelectItem>
-                        ))}
+                        {uniqueAcademicYears.map((year) => (<SelectItem key={year} value={year}>{year}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Grade</Label>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs whitespace-nowrap">Grade</Label>
                     <Select value={structureGradeFilter} onValueChange={setStructureGradeFilter}>
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select grade" />
+                      <SelectTrigger className="h-8 w-[100px]">
+                        <SelectValue placeholder="Grade" />
                       </SelectTrigger>
                       <SelectContent>
-                        {grades.map((grade) => (
-                          <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
-                        ))}
+                        {grades.map((grade) => (<SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-              </CardContent>
+                <Button size="sm" className="h-8" onClick={() => setEditFeeStructureOpen(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Create
+                </Button>
+              </div>
             </Card>
 
-            {/* Fee Structure Document Preview */}
             {structureYearFilter && structureYearFilter !== "all" && structureGradeFilter && structureGradeFilter !== "all" ? (
               <FeeStructureDocumentPreview
                 structures={filteredStructures}
@@ -1105,42 +942,24 @@ const FeeManagement = () => {
                 onDownload={handleDownloadFeeStructure}
               />
             ) : (
-              <Card>
-                <CardContent className="py-12">
-                  <div className="text-center">
-                    <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-                    <h3 className="text-base font-medium text-muted-foreground mb-2">No Fee Structure Selected</h3>
-                    <p className="text-sm text-muted-foreground/70 max-w-sm mx-auto">
-                      Please select both academic year and grade above to view the fee structure document
-                    </p>
-                  </div>
-                </CardContent>
+              <Card className="py-10 text-center">
+                <FileText className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                <p className="text-sm text-muted-foreground">Select year and grade to view fee structure</p>
               </Card>
             )}
 
-            {/* Fee Structure Dialog */}
-            <SetFeeStructureDialogEnhanced
-              open={editFeeStructureOpen}
-              onOpenChange={setEditFeeStructureOpen}
-            />
+            <SetFeeStructureDialogEnhanced open={editFeeStructureOpen} onOpenChange={setEditFeeStructureOpen} />
           </TabsContent>
         </Tabs>
 
         {/* Dialogs */}
         <RecordPaymentDialog
           open={recordPaymentOpen || paymentDialogOpen}
-          onOpenChange={(open) => {
-            setRecordPaymentOpen(open);
-            setPaymentDialogOpen(open);
-          }}
+          onOpenChange={(open) => { setRecordPaymentOpen(open); setPaymentDialogOpen(open); }}
           onSuccess={handlePaymentSuccess}
         />
 
-        <GenerateInvoicesDialog
-          open={generateDialogOpen}
-          onOpenChange={setGenerateDialogOpen}
-          onGenerate={handleGenerateInvoices}
-        />
+        <GenerateInvoicesDialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen} onGenerate={handleGenerateInvoices} />
 
         <MpesaPaymentDialog
           open={mpesaDialogOpen}
@@ -1150,22 +969,15 @@ const FeeManagement = () => {
           amount={mpesaInvoice?.balance_due}
         />
 
-        {/* Cancel Invoice Dialog */}
         <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Cancel Invoice</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to cancel invoice {invoiceToCancel?.invoice_number}?
-              </AlertDialogDescription>
+              <AlertDialogDescription>Cancel invoice {invoiceToCancel?.invoice_number}?</AlertDialogDescription>
             </AlertDialogHeader>
             <div className="space-y-2">
-              <Label>Reason for cancellation</Label>
-              <Textarea
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="Enter reason..."
-              />
+              <Label>Reason</Label>
+              <Textarea value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} placeholder="Enter reason..." />
             </div>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
