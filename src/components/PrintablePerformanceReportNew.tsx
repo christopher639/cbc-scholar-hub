@@ -33,6 +33,13 @@ export const PrintablePerformanceReportNew = ({ data, filters }: PrintablePerfor
     ? (data.learners.reduce((sum, l) => sum + l.average, 0) / data.learners.length).toFixed(1)
     : "0";
 
+  const getGradeCategory = (average: number): string => {
+    if (average >= 80) return "E.E";
+    if (average >= 50) return "M.E";
+    if (average >= 30) return "A.E";
+    return "B.E";
+  };
+
   return (
     <div className="p-6 bg-white text-black" style={{ fontSize: "10px" }}>
       {/* Header */}
@@ -103,9 +110,8 @@ export const PrintablePerformanceReportNew = ({ data, filters }: PrintablePerfor
                 {la.code}
               </th>
             ))}
-            <th className="border border-black p-1 text-center">Total</th>
             <th className="border border-black p-1 text-center">Avg</th>
-            <th className="border border-black p-1 text-center">Rank</th>
+            <th className="border border-black p-1 text-center">Remarks</th>
           </tr>
         </thead>
         <tbody>
@@ -121,9 +127,8 @@ export const PrintablePerformanceReportNew = ({ data, filters }: PrintablePerfor
                   {learner.marks[la.code] !== null ? learner.marks[la.code] : ""}
                 </td>
               ))}
-              <td className="border border-black p-1 text-center font-semibold">{learner.total}</td>
               <td className="border border-black p-1 text-center font-semibold">{learner.average}%</td>
-              <td className="border border-black p-1 text-center font-bold">{index + 1}</td>
+              <td className="border border-black p-1 text-center font-semibold">{getGradeCategory(learner.average)}</td>
             </tr>
           ))}
         </tbody>
@@ -162,6 +167,17 @@ export const PrintablePerformanceReportNew = ({ data, filters }: PrintablePerfor
               {la.code} = {la.name}
             </span>
           ))}
+        </div>
+      </div>
+
+      {/* Grading Key */}
+      <div className="mt-2 text-xs">
+        <p className="font-semibold mb-1">Grading Key:</p>
+        <div className="flex flex-wrap gap-4 text-gray-600">
+          <span>E.E = Exceeding Expectation (80-100%)</span>
+          <span>M.E = Meeting Expectation (50-79%)</span>
+          <span>A.E = Approaching Expectation (30-49%)</span>
+          <span>B.E = Below Expectation (0-29%)</span>
         </div>
       </div>
 

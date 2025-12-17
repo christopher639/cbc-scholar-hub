@@ -63,22 +63,8 @@ export function usePerformanceReport() {
         streamName = stream?.name;
       }
 
-      // Fetch learners in the grade/stream
-      let learnersQuery = supabase
-        .from("learners")
-        .select("id, admission_number, first_name, last_name")
-        .eq("current_grade_id", filters.gradeId)
-        .eq("status", "active")
-        .order("first_name");
-
-      if (filters.streamId) {
-        learnersQuery = learnersQuery.eq("current_stream_id", filters.streamId);
-      }
-
-      const { data: learners, error: lError } = await learnersQuery;
-      if (lError) throw lError;
-
-      // Fetch performance records
+      // Fetch performance records FIRST - filter by grade_id in the performance record
+      // This correctly gets records for learners who were in this grade when marks were recorded
       let perfQuery = supabase
         .from("performance_records")
         .select("learner_id, learning_area_id, marks")
@@ -100,6 +86,22 @@ export function usePerformanceReport() {
       const { data: perfRecords, error: pError } = await perfQuery;
       if (pError) throw pError;
 
+      // Get unique learner IDs from performance records
+      const learnerIds = [...new Set(perfRecords?.map(r => r.learner_id) || [])];
+
+      // Fetch learner details for those who have performance records
+      let learners: any[] = [];
+      if (learnerIds.length > 0) {
+        const { data: learnersData, error: lError } = await supabase
+          .from("learners")
+          .select("id, admission_number, first_name, last_name")
+          .in("id", learnerIds)
+          .order("first_name");
+        
+        if (lError) throw lError;
+        learners = learnersData || [];
+      }
+
       // Build marks map: learner_id -> learning_area_id -> marks
       const marksMap = new Map<string, Map<string, number[]>>();
       
@@ -116,7 +118,7 @@ export function usePerformanceReport() {
       });
 
       // Build learner records with marks
-      const learnerRecords: LearnerRecord[] = (learners || []).map((learner) => {
+      const learnerRecords: LearnerRecord[] = learners.map((learner) => {
         const learnerMarksMap = marksMap.get(learner.id);
         const marks: Record<string, number | null> = {};
         let total = 0;
