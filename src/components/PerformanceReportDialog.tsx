@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Download, Search, FileText, Loader2 } from "lucide-react";
+import { Download, Search, FileText, Loader2, GraduationCap } from "lucide-react";
 import { usePerformanceReport } from "@/hooks/usePerformanceReport";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useGrades } from "@/hooks/useGrades";
@@ -11,6 +11,7 @@ import { useStreams } from "@/hooks/useStreams";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReactToPrint } from "react-to-print";
 import { PrintablePerformanceReportNew } from "./PrintablePerformanceReportNew";
+import { PrintableLearnerTranscript } from "./PrintableLearnerTranscript";
 
 interface PerformanceReportDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export const PerformanceReportDialog = ({ open, onOpenChange }: PerformanceRepor
   });
 
   const printRef = useRef<HTMLDivElement>(null);
+  const transcriptsRef = useRef<HTMLDivElement>(null);
   const { reportData, loading, fetchReport } = usePerformanceReport();
   const { academicYears } = useAcademicYears();
   const { grades } = useGrades();
@@ -48,6 +50,11 @@ export const PerformanceReportDialog = ({ open, onOpenChange }: PerformanceRepor
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Performance_Report_${reportData?.gradeName || ""}${reportData?.streamName ? `_${reportData.streamName}` : ""}_${filters.academicYear}_${filters.term}`,
+  });
+
+  const handlePrintTranscripts = useReactToPrint({
+    contentRef: transcriptsRef,
+    documentTitle: `Report_Cards_${reportData?.gradeName || ""}${reportData?.streamName ? `_${reportData.streamName}` : ""}_${filters.academicYear}_${filters.term}`,
   });
 
   const canSearch = filters.academicYear && filters.term && filters.gradeId;
@@ -183,16 +190,22 @@ export const PerformanceReportDialog = ({ open, onOpenChange }: PerformanceRepor
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={handleSearch} disabled={loading || !canSearch}>
                 {loading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Search className="h-4 w-4 mr-1.5" />}
                 {loading ? "Generating..." : "Generate Report"}
               </Button>
               {reportData && reportData.learners.length > 0 && (
-                <Button variant="outline" size="sm" onClick={handlePrint}>
-                  <Download className="h-4 w-4 mr-1.5" />
-                  Download PDF
-                </Button>
+                <>
+                  <Button variant="outline" size="sm" onClick={handlePrint}>
+                    <Download className="h-4 w-4 mr-1.5" />
+                    Download PDF
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handlePrintTranscripts}>
+                    <GraduationCap className="h-4 w-4 mr-1.5" />
+                    Download Report Cards
+                  </Button>
+                </>
               )}
             </div>
 
@@ -285,7 +298,7 @@ export const PerformanceReportDialog = ({ open, onOpenChange }: PerformanceRepor
         </DialogContent>
       </Dialog>
 
-      {/* Hidden Printable Component */}
+      {/* Hidden Printable Component - Performance Report */}
       <div className="hidden">
         <div ref={printRef}>
           {reportData && (
@@ -298,6 +311,26 @@ export const PerformanceReportDialog = ({ open, onOpenChange }: PerformanceRepor
               }}
             />
           )}
+        </div>
+      </div>
+
+      {/* Hidden Printable Component - Individual Transcripts */}
+      <div className="hidden">
+        <div ref={transcriptsRef}>
+          {reportData && reportData.learners.map((learner) => (
+            <PrintableLearnerTranscript
+              key={learner.id}
+              learner={learner}
+              learningAreas={reportData.learningAreas}
+              filters={{
+                academicYear: filters.academicYear,
+                term: getTermLabel(filters.term),
+                examType: getExamTypeLabel(filters.examType || "all"),
+                gradeName: reportData.gradeName,
+                streamName: reportData.streamName,
+              }}
+            />
+          ))}
         </div>
       </div>
     </>
