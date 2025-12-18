@@ -67,14 +67,39 @@ serve(async (req) => {
       `;
     } else if (type === "teacher") {
       // Credentials for teacher
-      smsMessage = `Welcome to ${schoolName}! Your teacher account is ready. Login: Username (TSC): ${credentials.tscNumber}, Password (ID): ${credentials.idNumber}. Portal: ${credentials.portalUrl}. IMPORTANT: Change your password on first login for security.`;
+      smsMessage = `Welcome to ${schoolName}! Dear ${credentials.name}, your teacher account is ready. Employee No: ${credentials.employeeNumber}. Login: Username (TSC): ${credentials.tscNumber}, Password (ID): ${credentials.idNumber}. Portal: ${credentials.portalUrl}. IMPORTANT: Change your password on first login.`;
       emailSubject = `${schoolName} - Teacher Portal Credentials`;
       emailHtml = `
         <h2>Welcome to ${schoolName}!</h2>
-        <p>Your teacher account has been created successfully.</p>
+        <p>Dear <strong>${credentials.name}</strong>, your teacher account has been created successfully.</p>
+        <h3>Your Details:</h3>
+        <ul>
+          <li><strong>Employee Number:</strong> ${credentials.employeeNumber}</li>
+        </ul>
         <h3>Login Credentials:</h3>
         <ul>
           <li><strong>Username (TSC Number):</strong> ${credentials.tscNumber}</li>
+          <li><strong>Password (ID Number):</strong> ${credentials.idNumber}</li>
+        </ul>
+        <p>Portal URL: <a href="${credentials.portalUrl}">${credentials.portalUrl}</a></p>
+        <p><strong>IMPORTANT:</strong> For security reasons, please change your password immediately after your first login.</p>
+        <p>Best regards,<br>${schoolName}</p>
+      `;
+    } else if (type === "staff") {
+      // Credentials for non-teaching staff
+      smsMessage = `Welcome to ${schoolName}! Dear ${credentials.name}, your staff account is ready. Employee No: ${credentials.employeeNumber}. Login: Username: ${credentials.employeeNumber}, Password (ID): ${credentials.idNumber}. Portal: ${credentials.portalUrl}. IMPORTANT: Change your password on first login.`;
+      emailSubject = `${schoolName} - Staff Portal Credentials`;
+      emailHtml = `
+        <h2>Welcome to ${schoolName}!</h2>
+        <p>Dear <strong>${credentials.name}</strong>, your staff account has been created successfully.</p>
+        <h3>Your Details:</h3>
+        <ul>
+          <li><strong>Employee Number:</strong> ${credentials.employeeNumber}</li>
+          <li><strong>Position:</strong> ${credentials.jobTitle}</li>
+        </ul>
+        <h3>Login Credentials:</h3>
+        <ul>
+          <li><strong>Username (Employee Number):</strong> ${credentials.employeeNumber}</li>
           <li><strong>Password (ID Number):</strong> ${credentials.idNumber}</li>
         </ul>
         <p>Portal URL: <a href="${credentials.portalUrl}">${credentials.portalUrl}</a></p>

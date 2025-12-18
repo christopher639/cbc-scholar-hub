@@ -75,6 +75,13 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
     }
 
     setLoading(true);
+    
+    // Auto-generate employee number
+    let employeeNumber = formData.employee_number;
+    if (!employeeNumber) {
+      const { data: genNumber } = await supabase.rpc('generate_employee_number');
+      employeeNumber = genNumber || `EMP-${Date.now()}`;
+    }
     try {
       let photoUrl = formData.photo_url;
 
@@ -101,7 +108,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
 
       const newTeacher = await addTeacher({
         tsc_number: formData.tsc_number,
-        employee_number: formData.employee_number,
+        employee_number: employeeNumber,
         id_number: formData.id_number,
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -123,8 +130,10 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
               phone: formData.phone || null,
               email: formData.email || null,
               credentials: {
+                employeeNumber: employeeNumber,
                 tscNumber: formData.tsc_number,
                 idNumber: formData.id_number,
+                name: `${formData.first_name} ${formData.last_name}`,
                 portalUrl: window.location.origin + "/auth"
               }
             }
@@ -146,7 +155,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
           entity_type: "teacher",
           entity_id: newTeacher.id,
           entity_name: `${formData.first_name} ${formData.last_name}`,
-          details: { employee_number: formData.employee_number }
+          details: { employee_number: employeeNumber }
         });
       }
 
@@ -208,13 +217,12 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="employeeNumber">Employment Number *</Label>
+            <Label htmlFor="employeeNumber">Employment Number (Auto-generated if empty)</Label>
             <Input 
               id="employeeNumber" 
-              placeholder="Enter employment number" 
+              placeholder="Leave empty to auto-generate" 
               value={formData.employee_number}
               onChange={(e) => setFormData({...formData, employee_number: e.target.value})}
-              required 
             />
           </div>
 

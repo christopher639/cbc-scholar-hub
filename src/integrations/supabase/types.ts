@@ -2330,6 +2330,7 @@ export type Database = {
       }
       count_admin_users: { Args: never; Returns: number }
       generate_admission_number: { Args: never; Returns: string }
+      generate_employee_number: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
       generate_learner_invoice:
         | {
