@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,27 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [generatingNumber, setGeneratingNumber] = useState(false);
+
+  // Auto-generate employee number when dialog opens
+  useEffect(() => {
+    const generateEmployeeNumber = async () => {
+      if (open && !formData.employee_number) {
+        setGeneratingNumber(true);
+        try {
+          const { data: genNumber } = await supabase.rpc('generate_employee_number');
+          if (genNumber) {
+            setFormData(prev => ({ ...prev, employee_number: genNumber }));
+          }
+        } catch (error) {
+          console.error("Failed to generate employee number:", error);
+        } finally {
+          setGeneratingNumber(false);
+        }
+      }
+    };
+    generateEmployeeNumber();
+  }, [open]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,12 +97,7 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
 
     setLoading(true);
     
-    // Auto-generate employee number
-    let employeeNumber = formData.employee_number;
-    if (!employeeNumber) {
-      const { data: genNumber } = await supabase.rpc('generate_employee_number');
-      employeeNumber = genNumber || `EMP-${Date.now()}`;
-    }
+    const employeeNumber = formData.employee_number;
     try {
       let photoUrl = formData.photo_url;
 
@@ -217,12 +233,13 @@ export function AddTeacherDialog({ open, onOpenChange }: AddTeacherDialogProps) 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="employeeNumber">Employment Number (Auto-generated if empty)</Label>
+            <Label htmlFor="employeeNumber">Employee Number (Auto-generated)</Label>
             <Input 
               id="employeeNumber" 
-              placeholder="Leave empty to auto-generate" 
+              placeholder={generatingNumber ? "Generating..." : "Employee number"}
               value={formData.employee_number}
-              onChange={(e) => setFormData({...formData, employee_number: e.target.value})}
+              readOnly
+              className="bg-muted"
             />
           </div>
 
