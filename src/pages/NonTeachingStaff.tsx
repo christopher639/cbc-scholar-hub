@@ -50,8 +50,8 @@ export default function NonTeachingStaff() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex items-center gap-6">
             <div>
-              <h1 className="text-xl font-semibold text-foreground">Non-Teaching Staff</h1>
-              <p className="text-sm text-muted-foreground">Manage support staff</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Non-Teaching Staff</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Manage support staff</p>
             </div>
             
             {/* Inline Stats for Large Screens */}
