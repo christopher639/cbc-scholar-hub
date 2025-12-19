@@ -73,8 +73,15 @@ export const PrintableLearnerTranscript = ({
     return "background-color: #fee2e2;";
   };
 
-  // Check if showing combined/all exam types - show columns when Combined Average or All Types is selected
-  const showExamColumns = (filters.examType === "Combined Average" || filters.examType === "All Types" || filters.examType === "combined" || filters.examType === "all") && examTypes.length > 0;
+  // Check if showing combined/all exam types - show columns when Combined or All Types is selected
+  // Values can be: "Combined", "Combined Average", "All Types", "combined", "all"
+  const showExamColumns = (
+    filters.examType === "Combined" || 
+    filters.examType === "Combined Average" || 
+    filters.examType === "All Types" || 
+    filters.examType.toLowerCase() === "combined" || 
+    filters.examType.toLowerCase() === "all"
+  ) && examTypes.length > 0;
 
   // Calculate total and average from available marks
   const subjectsWithMarks = learningAreas.filter(la => learner.marks[la.code] !== null);
