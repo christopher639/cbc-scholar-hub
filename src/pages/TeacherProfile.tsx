@@ -142,13 +142,14 @@ const TeacherProfile = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="icon"
+              className="h-8 w-8"
               onClick={() => navigate("/teachers")}
             >
               <ArrowLeft className="h-4 w-4" />
@@ -157,14 +158,14 @@ const TeacherProfile = () => {
               <img 
                 src={teacher.photo_url} 
                 alt={`${teacher.first_name} ${teacher.last_name}`}
-                className="h-16 w-16 rounded-full object-cover border-2 border-border"
+                className="h-12 w-12 rounded-full object-cover border-2 border-border"
               />
             )}
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">
                 {teacher.first_name} {teacher.last_name}
               </h1>
-              <p className="text-muted-foreground">Teacher Profile</p>
+              <p className="text-xs md:text-sm text-muted-foreground">Teacher Profile</p>
             </div>
           </div>
           
@@ -172,17 +173,19 @@ const TeacherProfile = () => {
             <div className="flex gap-2">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => setEditDialogOpen(true)}
               >
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="h-4 w-4 mr-1.5" />
                 Edit Profile
               </Button>
               {isAdmin && (
                 <Button
                   variant="destructive"
+                  size="sm"
                   onClick={() => setDeleteDialogOpen(true)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-4 w-4 mr-1.5" />
                   Delete
                 </Button>
               )}
@@ -191,36 +194,36 @@ const TeacherProfile = () => {
         </div>
 
         {/* Teacher Information */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 md:grid-cols-2">
           <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Personal Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
+                <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{teacher.email}</p>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm font-medium">{teacher.email}</p>
                 </div>
               </div>
               
               {teacher.phone && (
                 <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="font-medium">{teacher.phone}</p>
+                    <p className="text-xs text-muted-foreground">Phone</p>
+                    <p className="text-sm font-medium">{teacher.phone}</p>
                   </div>
                 </div>
               )}
 
               {teacher.id_number && (
                 <div className="flex items-center gap-3">
-                  <IdCard className="h-4 w-4 text-muted-foreground" />
+                  <IdCard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-muted-foreground">ID Number</p>
-                    <p className="font-medium">{teacher.id_number}</p>
+                    <p className="text-xs text-muted-foreground">ID Number</p>
+                    <p className="text-sm font-medium">{teacher.id_number}</p>
                   </div>
                 </div>
               )}
@@ -228,26 +231,26 @@ const TeacherProfile = () => {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Employment Details</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Employment Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               {teacher.employee_number && (
                 <div className="flex items-center gap-3">
-                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <CreditCard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Employee Number</p>
-                    <p className="font-medium">{teacher.employee_number}</p>
+                    <p className="text-xs text-muted-foreground">Employee Number</p>
+                    <p className="text-sm font-medium">{teacher.employee_number}</p>
                   </div>
                 </div>
               )}
 
               {teacher.hired_date && (
                 <div className="flex items-center gap-3">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Hired Date</p>
-                    <p className="font-medium">
+                    <p className="text-xs text-muted-foreground">Hired Date</p>
+                    <p className="text-sm font-medium">
                       {new Date(teacher.hired_date).toLocaleDateString()}
                     </p>
                   </div>
@@ -256,20 +259,20 @@ const TeacherProfile = () => {
 
               {teacher.specialization && (
                 <div className="flex items-center gap-3">
-                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                  <BookOpen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Specialization</p>
-                    <Badge variant="outline">{teacher.specialization}</Badge>
+                    <p className="text-xs text-muted-foreground">Specialization</p>
+                    <Badge variant="outline" className="text-xs">{teacher.specialization}</Badge>
                   </div>
                 </div>
               )}
 
               {isAdmin && teacher.salary && (
                 <div className="flex items-center gap-3">
-                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <CreditCard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Salary</p>
-                    <p className="font-medium">KES {teacher.salary.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">Salary</p>
+                    <p className="text-sm font-medium">KES {teacher.salary.toLocaleString()}</p>
                   </div>
                 </div>
               )}
