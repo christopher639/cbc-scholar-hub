@@ -62,6 +62,8 @@ export default function LearnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [gradeName, setGradeName] = useState("");
   const [performanceReleases, setPerformanceReleases] = useState<any[]>([]);
+  const [promotionHistory, setPromotionHistory] = useState<any[]>([]);
+  const [allGrades, setAllGrades] = useState<{id: string; name: string; isCurrent: boolean}[]>([]);
 
   useEffect(() => {
     if (learner) {
@@ -142,7 +144,8 @@ export default function LearnerDashboard() {
 
       setFeeBalance(totalFees - totalPaid);
 
-      // Fetch grade name
+      // Fetch grade name for current grade
+      let currentGradeName = "";
       if (learner.current_grade_id) {
         const { data: gradeData } = await supabase
           .from("grades")
@@ -151,9 +154,77 @@ export default function LearnerDashboard() {
           .single();
         
         if (gradeData) {
+          currentGradeName = gradeData.name;
           setGradeName(gradeData.name);
         }
       }
+
+      // Fetch promotion history to get all grades the learner has been through
+      const { data: promotionData } = await supabase
+        .from("promotion_history")
+        .select(`
+          *,
+          from_grade:grades!promotion_history_from_grade_id_fkey(id, name),
+          to_grade:grades!promotion_history_to_grade_id_fkey(id, name)
+        `)
+        .eq("learner_id", learner.id)
+        .order("promotion_date", { ascending: true });
+
+      setPromotionHistory(promotionData || []);
+
+      // Build a list of all grades (current + historical from promotions)
+      const gradesMap = new Map<string, {id: string; name: string; isCurrent: boolean}>();
+      
+      // Add current grade first
+      if (learner.current_grade_id && currentGradeName) {
+        gradesMap.set(learner.current_grade_id, {
+          id: learner.current_grade_id,
+          name: currentGradeName,
+          isCurrent: true
+        });
+      }
+
+      // Add grades from promotion history
+      if (promotionData) {
+        promotionData.forEach((promo: any) => {
+          if (promo.from_grade?.id && promo.from_grade?.name && !gradesMap.has(promo.from_grade.id)) {
+            gradesMap.set(promo.from_grade.id, {
+              id: promo.from_grade.id,
+              name: promo.from_grade.name,
+              isCurrent: promo.from_grade.id === learner.current_grade_id
+            });
+          }
+          if (promo.to_grade?.id && promo.to_grade?.name && !gradesMap.has(promo.to_grade.id)) {
+            gradesMap.set(promo.to_grade.id, {
+              id: promo.to_grade.id,
+              name: promo.to_grade.name,
+              isCurrent: promo.to_grade.id === learner.current_grade_id
+            });
+          }
+        });
+      }
+
+      // Also add grades from performance records (in case promotion history is incomplete)
+      if (performanceData) {
+        performanceData.forEach((record: any) => {
+          if (record.grade?.id && record.grade?.name && !gradesMap.has(record.grade.id)) {
+            gradesMap.set(record.grade.id, {
+              id: record.grade.id,
+              name: record.grade.name,
+              isCurrent: record.grade.id === learner.current_grade_id
+            });
+          }
+        });
+      }
+
+      // Convert to array and sort (current grade first, then alphabetically)
+      const gradesArray = Array.from(gradesMap.values()).sort((a, b) => {
+        if (a.isCurrent && !b.isCurrent) return -1;
+        if (!a.isCurrent && b.isCurrent) return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      setAllGrades(gradesArray);
 
       // Calculate position will be done when filters are applied
     } catch (error) {
@@ -456,7 +527,7 @@ export default function LearnerDashboard() {
   const weakestSubjects = sortedByAverage.slice(-3).reverse();
 
   // Get selected grade name and academic year for display
-  const selectedGradeName = uniqueGrades.find((g: any) => g.id === selectedGrade)?.name || gradeName || "";
+  const selectedGradeName = allGrades.find(g => g.id === selectedGrade)?.name || gradeName || "";
   const selectedAcademicYear = filteredPerformance.length > 0 ? filteredPerformance[0].academic_year : currentPeriod?.year || "";
   const displayTerm = selectedTerm ? selectedTerm.replace("term_", "Term ") : "";
   const displayExamType = selectedExamType !== "all" ? selectedExamType : "";
@@ -498,12 +569,10 @@ export default function LearnerDashboard() {
                 <SelectValue placeholder="Select Grade" />
               </SelectTrigger>
               <SelectContent>
-                {uniqueGrades.map((grade: any) => (
-                  grade.name && (
-                    <SelectItem key={grade.id} value={grade.id}>
-                      {grade.name}
-                    </SelectItem>
-                  )
+                {allGrades.map((grade) => (
+                  <SelectItem key={grade.id} value={grade.id}>
+                    {grade.name}{grade.isCurrent ? " (Current)" : ""}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
