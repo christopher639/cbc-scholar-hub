@@ -275,9 +275,12 @@ export default function TeacherMarks() {
   };
 
   const filteredLearners = learners.filter(learner =>
-    learner.admission_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${learner.first_name} ${learner.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
+    learner.admission_number.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Get max marks for selected exam type
+  const selectedExamTypeObj = examTypes.find(e => e.name === selectedExamType);
+  const maxMarks = selectedExamTypeObj?.max_marks || 100;
 
   if (loadingAreas) {
     return (
@@ -416,7 +419,7 @@ export default function TeacherMarks() {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by admission number or name..."
+                    placeholder="Search by admission number..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-9"
@@ -429,21 +432,20 @@ export default function TeacherMarks() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">#</TableHead>
-                        <TableHead>Admission No.</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead className="w-32">Score (0-100)</TableHead>
+                        <TableHead>Adm No.</TableHead>
+                        <TableHead className="w-32">Score (0-{maxMarks})</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {loading ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center">
+                          <TableCell colSpan={3} className="text-center">
                             <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                           </TableCell>
                         </TableRow>
                       ) : filteredLearners.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-muted-foreground">
+                          <TableCell colSpan={3} className="text-center text-muted-foreground">
                             No learners found
                           </TableCell>
                         </TableRow>
@@ -452,15 +454,15 @@ export default function TeacherMarks() {
                           <TableRow key={learner.id}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell className="font-medium">{learner.admission_number}</TableCell>
-                            <TableCell>{`${learner.first_name} ${learner.last_name}`}</TableCell>
                             <TableCell>
                               <Input
                                 type="number"
                                 min="0"
-                                max="100"
+                                max={maxMarks}
                                 value={scores[learner.id] || ""}
                                 onChange={(e) => handleScoreChange(learner.id, e.target.value)}
-                                placeholder="0-100"
+                                placeholder={`0-${maxMarks}`}
+                                className="w-24"
                               />
                             </TableCell>
                           </TableRow>
