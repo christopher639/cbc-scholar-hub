@@ -11,6 +11,7 @@ import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
+import { useExamTypes } from "@/hooks/useExamTypes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, Search } from "lucide-react";
 
@@ -24,6 +25,7 @@ export default function TeacherMarks() {
   const { grades } = useGrades();
   const { currentPeriod } = useAcademicPeriods();
   const { academicYears, currentYear } = useAcademicYears();
+  const { examTypes } = useExamTypes();
   
   const [selectedGradeId, setSelectedGradeId] = useState<string>("");
   const [selectedStreamId, setSelectedStreamId] = useState<string>("");
@@ -375,9 +377,11 @@ export default function TeacherMarks() {
                     <SelectValue placeholder="Select Exam Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="opener">Opener</SelectItem>
-                    <SelectItem value="mid-term">Mid-Term</SelectItem>
-                    <SelectItem value="final">Final</SelectItem>
+                    {examTypes.filter(e => e.is_active).map((examType) => (
+                      <SelectItem key={examType.id} value={examType.name}>
+                        {examType.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
