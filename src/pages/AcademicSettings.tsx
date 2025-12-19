@@ -1553,44 +1553,71 @@ export default function AcademicSettings() {
                       No grade learning areas registered. Click "Register for Grade" to add.
                     </div>
                   ) : (
-                    <div className="overflow-x-auto -mx-4 sm:mx-0">
-                      <Table className="min-w-[500px] sm:min-w-0">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-xs sm:text-sm">Grade</TableHead>
-                            <TableHead className="text-xs sm:text-sm">Learning Area</TableHead>
-                            <TableHead className="text-xs sm:text-sm">Academic Year</TableHead>
-                            <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {gradeLearningAreas.map((gla) => (
-                            <TableRow key={gla.id}>
-                              <TableCell className="text-xs sm:text-sm">{gla.grades?.name}</TableCell>
-                              <TableCell className="text-xs sm:text-sm">
-                                {gla.learning_areas?.name} ({gla.learning_areas?.code})
-                              </TableCell>
-                              <TableCell className="text-xs sm:text-sm">
-                                <Badge variant="outline">{gla.academic_year}</Badge>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => {
-                                    if (confirm("Remove this learning area from the grade?")) {
-                                      removeGradeLearningArea.mutate(gla.id);
-                                    }
-                                  }}
-                                  disabled={removeGradeLearningArea.isPending}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                    <div className="space-y-6">
+                      {/* Group by grade */}
+                      {(() => {
+                        // Group learning areas by grade
+                        const groupedByGrade = gradeLearningAreas.reduce((acc: Record<string, typeof gradeLearningAreas>, gla) => {
+                          const gradeKey = gla.grades?.name || 'Unknown';
+                          if (!acc[gradeKey]) {
+                            acc[gradeKey] = [];
+                          }
+                          acc[gradeKey].push(gla);
+                          return acc;
+                        }, {});
+
+                        // Sort grades naturally
+                        const sortedGrades = Object.keys(groupedByGrade).sort((a, b) => {
+                          const numA = parseInt(a.replace(/\D/g, '')) || 0;
+                          const numB = parseInt(b.replace(/\D/g, '')) || 0;
+                          return numA - numB;
+                        });
+
+                        return sortedGrades.map(gradeName => (
+                          <div key={gradeName} className="border rounded-lg overflow-hidden">
+                            <div className="bg-primary/10 px-4 py-3 border-b">
+                              <h4 className="font-semibold text-sm flex items-center gap-2">
+                                <BookOpen className="h-4 w-4 text-primary" />
+                                {gradeName}
+                                <Badge variant="secondary" className="ml-2">
+                                  {groupedByGrade[gradeName].length} subject(s)
+                                </Badge>
+                              </h4>
+                            </div>
+                            <div className="p-4">
+                              <div className="flex flex-wrap gap-2">
+                                {groupedByGrade[gradeName].map((gla) => (
+                                  <div 
+                                    key={gla.id} 
+                                    className="flex items-center gap-2 bg-muted/50 px-3 py-2 rounded-lg border"
+                                  >
+                                    <div>
+                                      <span className="text-sm font-medium">{gla.learning_areas?.name}</span>
+                                      <span className="text-xs text-muted-foreground ml-1">({gla.learning_areas?.code})</span>
+                                    </div>
+                                    <Badge variant="outline" className="text-xs">
+                                      {gla.academic_year}
+                                    </Badge>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                                      onClick={() => {
+                                        if (confirm("Remove this learning area from the grade?")) {
+                                          removeGradeLearningArea.mutate(gla.id);
+                                        }
+                                      }}
+                                      disabled={removeGradeLearningArea.isPending}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ));
+                      })()}
                     </div>
                   )}
                 </TabsContent>
