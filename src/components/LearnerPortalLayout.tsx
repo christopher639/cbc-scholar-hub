@@ -269,7 +269,7 @@ export default function LearnerPortalLayout() {
           )}
 
           {/* Fixed Header */}
-          <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
+          <header className="fixed top-0 left-0 right-0 md:left-auto z-50 w-full border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
             <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6 gap-4 w-full">
               {/* Left - Sidebar Trigger (mobile) and School Logo */}
               <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
@@ -336,7 +336,7 @@ export default function LearnerPortalLayout() {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 mb-16 md:mb-0 overflow-auto relative">
+          <main className="flex-1 mb-16 md:mb-0 overflow-auto relative pt-14 md:pt-16">
             <div className={cn("transition-opacity duration-200", isNavigating && "opacity-50 pointer-events-none")}>
               <Outlet context={{ learnerDetails: displayLearner, schoolInfo: displaySchool, refetch: fetchData }} />
             </div>
