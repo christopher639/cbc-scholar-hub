@@ -45,9 +45,9 @@ const navigationItems = [
   { title: "Profile", url: "/learner-portal/profile", icon: UserCircle },
 ];
 
-function LearnerSidebar({ onNavigate, isNavigating, schoolInfo }: { onNavigate: (url: string) => void; isNavigating: boolean; schoolInfo: any }) {
+function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { onNavigate: (url: string) => void; isNavigating: boolean; schoolInfo: any; onLogout: () => void }) {
   const location = useLocation();
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
 
   const isActive = (path: string) => {
@@ -55,6 +55,12 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo }: { onNavigate: 
       return location.pathname === path;
     }
     return location.pathname.startsWith(path);
+  };
+
+  const handleNavigate = (url: string) => {
+    onNavigate(url);
+    // Close mobile sidebar after navigation
+    setOpenMobile(false);
   };
 
   return (
@@ -81,8 +87,8 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo }: { onNavigate: 
         </SidebarTrigger>
       </div>
 
-      <SidebarContent className="bg-card">
-        <SidebarGroup>
+      <SidebarContent className="bg-card flex flex-col">
+        <SidebarGroup className="flex-1">
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
@@ -96,7 +102,7 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo }: { onNavigate: 
                             "cursor-pointer",
                             isActive(item.url) && "bg-primary text-primary-foreground"
                           )}
-                          onClick={() => onNavigate(item.url)}
+                          onClick={() => handleNavigate(item.url)}
                         >
                           <item.icon className="h-5 w-5" />
                           <span>{item.title}</span>
@@ -111,6 +117,34 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo }: { onNavigate: 
                   </TooltipProvider>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Logout at bottom of sidebar */}
+        <SidebarGroup className="mt-auto border-t border-border/30 pt-2">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton
+                        className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={onLogout}
+                      >
+                        <LogOut className="h-5 w-5" />
+                        <span>Logout</span>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    {collapsed && (
+                      <TooltipContent side="right">
+                        Logout
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -255,10 +289,8 @@ export default function LearnerPortalLayout() {
   return (
     <SidebarProvider defaultOpen>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-        {/* Sidebar - Hidden on mobile */}
-        <div className="hidden md:block">
-          <LearnerSidebar onNavigate={handleNavigate} isNavigating={isNavigating} schoolInfo={displaySchool} />
-        </div>
+        {/* Sidebar - visible as drawer on mobile when triggered */}
+        <LearnerSidebar onNavigate={handleNavigate} isNavigating={isNavigating} schoolInfo={displaySchool} onLogout={handleLogout} />
 
         <div className="flex-1 flex flex-col min-h-screen">
           {/* Loading Progress Bar */}
@@ -350,7 +382,7 @@ export default function LearnerPortalLayout() {
           {/* Mobile Bottom Navigation */}
           <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 safe-area-inset-bottom">
             <div className="flex items-center justify-around h-14 px-1">
-              {navigationItems.slice(0, 4).map((item) => (
+              {navigationItems.slice(0, 5).map((item) => (
                 <Button
                   key={item.url}
                   variant="ghost"
@@ -367,15 +399,6 @@ export default function LearnerPortalLayout() {
                   <span className="text-[10px] truncate">{item.title}</span>
                 </Button>
               ))}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="flex flex-col items-center justify-center gap-0.5 h-full flex-1 rounded-lg transition-all min-w-0 px-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="text-[10px] truncate">Logout</span>
-              </Button>
             </div>
           </nav>
         </div>
