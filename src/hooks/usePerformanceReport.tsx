@@ -22,6 +22,7 @@ interface LearnerRecord {
   admission_number: string;
   first_name: string;
   last_name: string;
+  photo_url?: string;
   marks: Record<string, number | null>; // By learning area code
   examMarks: Record<string, Record<string, number | null>>; // By learning area code -> exam type name -> marks
   total: number;
@@ -119,7 +120,7 @@ export function usePerformanceReport() {
       if (learnerIds.length > 0) {
         const { data: learnersData, error: lError } = await supabase
           .from("learners")
-          .select("id, admission_number, first_name, last_name")
+          .select("id, admission_number, first_name, last_name, photo_url")
           .in("id", learnerIds)
           .order("first_name");
         
@@ -201,6 +202,7 @@ export function usePerformanceReport() {
           admission_number: learner.admission_number,
           first_name: learner.first_name,
           last_name: learner.last_name,
+          photo_url: learner.photo_url,
           marks,
           examMarks,
           total: Math.round(totalPercentage * 10) / 10,
