@@ -1014,6 +1014,48 @@ export type Database = {
           },
         ]
       }
+      formula_exam_weights: {
+        Row: {
+          created_at: string
+          exam_type_id: string
+          formula_id: string
+          id: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          exam_type_id: string
+          formula_id: string
+          id?: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          exam_type_id?: string
+          formula_id?: string
+          id?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formula_exam_weights_exam_type_id_fkey"
+            columns: ["exam_type_id"]
+            isOneToOne: false
+            referencedRelation: "exam_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formula_exam_weights_formula_id_fkey"
+            columns: ["formula_id"]
+            isOneToOne: false
+            referencedRelation: "performance_formulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery_images: {
         Row: {
           category: string | null
@@ -1822,6 +1864,36 @@ export type Database = {
           phone?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      performance_formulas: {
+        Row: {
+          created_at: string
+          description: string | null
+          formula_type: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          formula_type?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          formula_type?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }

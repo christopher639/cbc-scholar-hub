@@ -11,16 +11,18 @@ import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { useExamTypes } from "@/hooks/useExamTypes";
 import { useGradingScales } from "@/hooks/useGradingScales";
 import { useLearningAreaRegistration } from "@/hooks/useLearningAreaRegistration";
+import { usePerformanceFormulas } from "@/hooks/usePerformanceFormulas";
 import { useGrades } from "@/hooks/useGrades";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, CheckCircle, Plus, FileText, Trash2, Edit2, Award, BookOpen, User, X } from "lucide-react";
+import { Calendar, CheckCircle, Plus, FileText, Trash2, Edit2, Award, BookOpen, User, X, Calculator } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 export default function AcademicSettings() {
   const { academicYears, currentYear, refetch: refetchYears } = useAcademicYears();
   const { academicPeriods, currentPeriod, refetch: refetchPeriods } = useAcademicPeriods();
@@ -36,6 +38,16 @@ export default function AcademicSettings() {
   } = useLearningAreaRegistration();
   const { grades } = useGrades();
   const { learningAreas } = useLearningAreas();
+  const {
+    formulas,
+    formulaWeights,
+    activeFormula,
+    createFormula,
+    setActiveFormula,
+    deleteFormula,
+    saveFormulaWeight,
+    getFormulaWeights,
+  } = usePerformanceFormulas();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [newYear, setNewYear] = useState("");
@@ -69,6 +81,13 @@ export default function AcademicSettings() {
   const [admissionNumberSearch, setAdmissionNumberSearch] = useState("");
   const [foundLearner, setFoundLearner] = useState<any>(null);
   const [searchingLearner, setSearchingLearner] = useState(false);
+
+  // Formula settings state
+  const [formulaDialogOpen, setFormulaDialogOpen] = useState(false);
+  const [newFormulaName, setNewFormulaName] = useState("");
+  const [newFormulaDescription, setNewFormulaDescription] = useState("");
+  const [selectedFormula, setSelectedFormula] = useState<string | null>(null);
+  const [editingWeights, setEditingWeights] = useState<Record<string, number>>({});
 
   const handleSetActiveYear = async (yearId: string) => {
     try {
@@ -1075,6 +1094,226 @@ export default function AcademicSettings() {
                     ))}
                   </TableBody>
                   </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Formula Settings */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Calculator className="h-4 w-4 sm:h-5 sm:w-5" />
+                    Average Calculation Formula
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
+                    Define how the average is calculated across exam types (weighted or simple average)
+                  </CardDescription>
+                </div>
+                <Dialog open={formulaDialogOpen} onOpenChange={setFormulaDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="w-full sm:w-auto">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Formula
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create Calculation Formula</DialogTitle>
+                      <DialogDescription>
+                        Define a new formula for calculating average marks
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Formula Name *</Label>
+                        <Input
+                          placeholder="e.g., CBC Weighted Average"
+                          value={newFormulaName}
+                          onChange={(e) => setNewFormulaName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Description (Optional)</Label>
+                        <Input
+                          placeholder="Brief description of this formula"
+                          value={newFormulaDescription}
+                          onChange={(e) => setNewFormulaDescription(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setFormulaDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={async () => {
+                          if (!newFormulaName.trim()) {
+                            toast({ title: "Error", description: "Please enter a formula name", variant: "destructive" });
+                            return;
+                          }
+                          await createFormula.mutateAsync({
+                            name: newFormulaName.trim(),
+                            description: newFormulaDescription.trim() || undefined,
+                          });
+                          setNewFormulaName("");
+                          setNewFormulaDescription("");
+                          setFormulaDialogOpen(false);
+                        }}
+                        disabled={createFormula.isPending}
+                      >
+                        Create Formula
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+              {formulas.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  No formulas created yet. Click "New Formula" to create one.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Active Formula Indicator */}
+                  {activeFormula && (
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">Active: {activeFormula.name}</span>
+                    </div>
+                  )}
+                  
+                  {/* Formulas List */}
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <Table className="min-w-[500px] sm:min-w-0">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs sm:text-sm">Name</TableHead>
+                          <TableHead className="text-xs sm:text-sm hidden md:table-cell">Description</TableHead>
+                          <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                          <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {formulas.map((formula) => (
+                          <TableRow key={formula.id}>
+                            <TableCell className="font-medium text-xs sm:text-sm">{formula.name}</TableCell>
+                            <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                              {formula.description || "-"}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={formula.is_active ? "default" : "secondary"}>
+                                {formula.is_active ? "Active" : "Inactive"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                {!formula.is_active && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setActiveFormula.mutateAsync(formula.id)}
+                                    disabled={setActiveFormula.isPending}
+                                  >
+                                    Set Active
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedFormula(formula.id);
+                                    const weights = getFormulaWeights(formula.id);
+                                    const weightMap: Record<string, number> = {};
+                                    weights.forEach(w => {
+                                      weightMap[w.exam_type_id] = w.weight;
+                                    });
+                                    setEditingWeights(weightMap);
+                                  }}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (confirm("Are you sure you want to delete this formula?")) {
+                                      deleteFormula.mutateAsync(formula.id);
+                                    }
+                                  }}
+                                  disabled={deleteFormula.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Weight Editor */}
+                  {selectedFormula && (
+                    <div className="border rounded-lg p-4 mt-4 bg-muted/30">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-medium text-sm">
+                          Configure Exam Type Weights for: {formulas.find(f => f.id === selectedFormula)?.name}
+                        </h4>
+                        <Button size="sm" variant="ghost" onClick={() => setSelectedFormula(null)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        Set the weight (percentage contribution) for each exam type. Weights should sum to 100 for accurate calculation.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {examTypes.filter(et => et.is_active).map(examType => (
+                          <div key={examType.id} className="flex items-center gap-2 bg-background p-2 rounded border">
+                            <Label className="text-xs flex-1">{examType.name}</Label>
+                            <Input
+                              type="number"
+                              className="w-20 h-8 text-xs"
+                              placeholder="Weight %"
+                              value={editingWeights[examType.id] || ""}
+                              onChange={(e) => setEditingWeights(prev => ({
+                                ...prev,
+                                [examType.id]: parseFloat(e.target.value) || 0
+                              }))}
+                            />
+                            <span className="text-xs text-muted-foreground">%</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between mt-4">
+                        <p className="text-xs text-muted-foreground">
+                          Total: {Object.values(editingWeights).reduce((sum, w) => sum + (w || 0), 0)}%
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            for (const [examTypeId, weight] of Object.entries(editingWeights)) {
+                              if (weight > 0) {
+                                await saveFormulaWeight.mutateAsync({
+                                  formulaId: selectedFormula,
+                                  examTypeId,
+                                  weight,
+                                });
+                              }
+                            }
+                            setSelectedFormula(null);
+                            setEditingWeights({});
+                          }}
+                          disabled={saveFormulaWeight.isPending}
+                        >
+                          Save Weights
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
