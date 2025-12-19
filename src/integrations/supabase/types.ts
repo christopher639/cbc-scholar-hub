@@ -592,6 +592,7 @@ export type Database = {
           display_order: number | null
           id: string
           is_active: boolean | null
+          max_marks: number
           name: string
           updated_at: string
         }
@@ -601,6 +602,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          max_marks?: number
           name: string
           updated_at?: string
         }
@@ -610,6 +612,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          max_marks?: number
           name?: string
           updated_at?: string
         }
@@ -1073,6 +1076,42 @@ export type Database = {
           id?: string
           is_last_grade?: boolean | null
           name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      grading_scales: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          grade_name: string
+          id: string
+          max_percentage: number
+          min_percentage: number
+          points: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          grade_name: string
+          id?: string
+          max_percentage: number
+          min_percentage: number
+          points?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          grade_name?: string
+          id?: string
+          max_percentage?: number
+          min_percentage?: number
+          points?: number | null
           updated_at?: string
         }
         Relationships: []

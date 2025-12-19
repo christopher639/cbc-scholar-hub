@@ -3,10 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useExamTypes } from "@/hooks/useExamTypes";
+import { useGradingScales } from "@/hooks/useGradingScales";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { BookOpen } from "lucide-react";
 
@@ -14,6 +16,7 @@ export default function LearnerPerformance() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { examTypes } = useExamTypes();
+  const { gradingScales, getGrade } = useGradingScales();
   const learner = user?.data;
   const [performance, setPerformance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -231,25 +234,39 @@ export default function LearnerPerformance() {
                     <TableRow>
                       <TableHead>Learning Area</TableHead>
                       {activeExamTypes.map(et => (
-                        <TableHead key={et.id} className="text-center">{et.name}</TableHead>
+                        <TableHead key={et.id} className="text-center">
+                          {et.name}
+                          <span className="text-xs text-muted-foreground block">/{et.max_marks || 100}</span>
+                        </TableHead>
                       ))}
                       <TableHead className="text-center">Average</TableHead>
+                      <TableHead className="text-center">Grade</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {tableData.map((area: any) => (
-                      <TableRow key={area.area}>
-                        <TableCell className="font-medium">{area.area}</TableCell>
-                        {activeExamTypes.map(et => (
-                          <TableCell key={et.id} className="text-center">
-                            {area.examScores[et.name] ?? "-"}
+                    {tableData.map((area: any) => {
+                      const gradeInfo = area.average ? getGrade(area.average) : null;
+                      return (
+                        <TableRow key={area.area}>
+                          <TableCell className="font-medium">{area.area}</TableCell>
+                          {activeExamTypes.map(et => (
+                            <TableCell key={et.id} className="text-center">
+                              {area.examScores[et.name] ?? "-"}
+                            </TableCell>
+                          ))}
+                          <TableCell className="text-center font-semibold">
+                            {area.average ?? "-"}
                           </TableCell>
-                        ))}
-                        <TableCell className="text-center font-semibold">
-                          {area.average ?? "-"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          <TableCell className="text-center">
+                            {gradeInfo ? (
+                              <Badge variant="outline" className="font-semibold">
+                                {gradeInfo.grade_name}
+                              </Badge>
+                            ) : "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
