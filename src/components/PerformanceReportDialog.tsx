@@ -8,6 +8,7 @@ import { usePerformanceReport } from "@/hooks/usePerformanceReport";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
+import { useExamTypes } from "@/hooks/useExamTypes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReactToPrint } from "react-to-print";
 import { PrintablePerformanceReportNew } from "./PrintablePerformanceReportNew";
@@ -33,6 +34,7 @@ export const PerformanceReportDialog = ({ open, onOpenChange }: PerformanceRepor
   const { academicYears } = useAcademicYears();
   const { grades } = useGrades();
   const { streams } = useStreams(filters.gradeId || undefined);
+  const { examTypes } = useExamTypes();
 
   const handleSearch = () => {
     if (!filters.academicYear || !filters.term || !filters.gradeId) {
@@ -140,10 +142,12 @@ export const PerformanceReportDialog = ({ open, onOpenChange }: PerformanceRepor
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="opener">Opener</SelectItem>
-                    <SelectItem value="mid_term">Mid-Term</SelectItem>
-                    <SelectItem value="end_term">End-Term</SelectItem>
                     <SelectItem value="combined">Combined Average</SelectItem>
+                    {examTypes.filter(e => e.is_active).map((examType) => (
+                      <SelectItem key={examType.id} value={examType.name}>
+                        {examType.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

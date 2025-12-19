@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
+import { useExamTypes } from "@/hooks/useExamTypes";
 import { z } from "zod";
 
 const performanceSchema = z.object({
@@ -38,6 +39,7 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
   const [checkingExisting, setCheckingExisting] = useState(false);
   const { academicYears, currentYear } = useAcademicYears();
   const { currentPeriod } = useAcademicPeriods();
+  const { examTypes } = useExamTypes();
   
   const [formData, setFormData] = useState({
     admissionNumber: "",
@@ -421,11 +423,11 @@ const AddPerformanceDialog = ({ open, onOpenChange }: AddPerformanceDialogProps)
                   <SelectValue placeholder="Select exam type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="opener">Opener</SelectItem>
-                  <SelectItem value="midterm">Mid-Term</SelectItem>
-                  <SelectItem value="endterm">End-Term</SelectItem>
-                  <SelectItem value="mock">Mock Exam</SelectItem>
-                  <SelectItem value="final">Final Exam</SelectItem>
+                  {examTypes.filter(e => e.is_active).map((examType) => (
+                    <SelectItem key={examType.id} value={examType.name}>
+                      {examType.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
