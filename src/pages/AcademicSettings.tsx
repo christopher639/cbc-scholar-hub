@@ -308,31 +308,31 @@ export default function AcademicSettings() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
         <div>
-          <h1 className="text-3xl font-bold">Academic Settings</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Academic Settings</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Configure active academic year and term for fee calculations
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
           {/* Active Academic Year */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                     Active Academic Year
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
                     Set the current academic year for all fee calculations
                   </CardDescription>
                 </div>
                 <Dialog open={yearDialogOpen} onOpenChange={setYearDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button size="sm">
+                    <Button size="sm" className="w-full sm:w-auto">
                       <Plus className="h-4 w-4 mr-2" />
                       New Year
                     </Button>
@@ -366,7 +366,7 @@ export default function AcademicSettings() {
                 </Dialog>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="space-y-2">
                 <Label>Select Academic Year</Label>
                 <Select
@@ -400,20 +400,20 @@ export default function AcademicSettings() {
 
           {/* Active Term */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                     Active Term
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
                     Set the current term for fee assignments and payments
                   </CardDescription>
                 </div>
                 <Dialog open={termDialogOpen} onOpenChange={setTermDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button size="sm">
+                    <Button size="sm" className="w-full sm:w-auto">
                       <Plus className="h-4 w-4 mr-2" />
                       New Term
                     </Button>
@@ -485,10 +485,10 @@ export default function AcademicSettings() {
                 </Dialog>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               {currentYear ? (
                 <div className="space-y-3">
-                  <Label className="text-sm text-muted-foreground">
+                  <Label className="text-xs sm:text-sm text-muted-foreground">
                     Terms for {currentYear.year}
                   </Label>
                   {academicPeriods
@@ -497,12 +497,12 @@ export default function AcademicSettings() {
                     .map((period) => (
                       <div
                         key={period.id}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors gap-3"
                       >
                         <div className="flex items-center gap-3">
                           <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium text-sm sm:text-base">
                                 {period.term.replace("_", " ").toUpperCase()}
                               </p>
                               {period.is_current && (
@@ -511,13 +511,13 @@ export default function AcademicSettings() {
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                               {new Date(period.start_date).toLocaleDateString()} - {new Date(period.end_date).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor={`term-${period.id}`} className="text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 justify-end">
+                          <Label htmlFor={`term-${period.id}`} className="text-xs sm:text-sm text-muted-foreground">
                             Set as Current
                           </Label>
                           <Switch
@@ -553,21 +553,21 @@ export default function AcademicSettings() {
           </Card>
 
           {/* Exam Types */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <div className="flex items-center justify-between">
+          <Card className="lg:col-span-2">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                     Exam Types
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
                     Manage exam types that will appear when adding learner marks
                   </CardDescription>
                 </div>
                 <Dialog open={examTypeDialogOpen} onOpenChange={setExamTypeDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button size="sm">
+                    <Button size="sm" className="w-full sm:w-auto">
                       <Plus className="h-4 w-4 mr-2" />
                       New Exam Type
                     </Button>
@@ -621,31 +621,32 @@ export default function AcademicSettings() {
                 </Dialog>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
               {examTypes.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-muted-foreground text-sm">
                   No exam types created yet. Click "New Exam Type" to add one.
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead className="text-center">Max Marks</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <Table className="min-w-[600px] sm:min-w-0">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs sm:text-sm">Name</TableHead>
+                        <TableHead className="text-center text-xs sm:text-sm">Max Marks</TableHead>
+                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Description</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
+                      </TableRow>
                   </TableHeader>
                   <TableBody>
                     {examTypes.map((examType) => (
                       <TableRow key={examType.id}>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium text-xs sm:text-sm">
                           {editingExamType?.id === examType.id ? (
                             <Input
                               value={editingExamType.name}
                               onChange={(e) => setEditingExamType({ ...editingExamType, name: e.target.value })}
-                              className="h-8"
+                              className="h-8 text-xs sm:text-sm"
                             />
                           ) : (
                             examType.name
@@ -657,18 +658,18 @@ export default function AcademicSettings() {
                               type="number"
                               value={editingExamType.max_marks}
                               onChange={(e) => setEditingExamType({ ...editingExamType, max_marks: parseInt(e.target.value) || 100 })}
-                              className="h-8 w-20"
+                              className="h-8 w-16 sm:w-20 text-xs sm:text-sm"
                             />
                           ) : (
-                            <Badge variant="outline">{examType.max_marks || 100}</Badge>
+                            <Badge variant="outline" className="text-xs">{examType.max_marks || 100}</Badge>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell text-xs sm:text-sm">
                           {editingExamType?.id === examType.id ? (
                             <Input
                               value={editingExamType.description}
                               onChange={(e) => setEditingExamType({ ...editingExamType, description: e.target.value })}
-                              className="h-8"
+                              className="h-8 text-xs sm:text-sm"
                               placeholder="Description"
                             />
                           ) : (
@@ -724,27 +725,28 @@ export default function AcademicSettings() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>
 
           {/* Grading System */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <div className="flex items-center justify-between">
+          <Card className="lg:col-span-2">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Award className="h-4 w-4 sm:h-5 sm:w-5" />
                     Grading System
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
                     Configure the grading scale used for learner performance reports and transcripts
                   </CardDescription>
                 </div>
                 <Dialog open={gradingDialogOpen} onOpenChange={setGradingDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button size="sm">
+                    <Button size="sm" className="w-full sm:w-auto">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Grade
                     </Button>
@@ -815,21 +817,22 @@ export default function AcademicSettings() {
                 </Dialog>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
               {gradingScales.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-muted-foreground text-sm">
                   No grading scales configured. Click "Add Grade" to create one.
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Grade</TableHead>
-                      <TableHead className="text-center">Range (%)</TableHead>
-                      <TableHead className="text-center">Points</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <Table className="min-w-[500px] sm:min-w-0">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs sm:text-sm">Grade</TableHead>
+                        <TableHead className="text-center text-xs sm:text-sm">Range (%)</TableHead>
+                        <TableHead className="text-center text-xs sm:text-sm">Points</TableHead>
+                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Description</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
+                      </TableRow>
                   </TableHeader>
                   <TableBody>
                     {gradingScales.map((scale) => (
@@ -839,51 +842,51 @@ export default function AcademicSettings() {
                             <Input
                               value={editingGrade.grade_name}
                               onChange={(e) => setEditingGrade({ ...editingGrade, grade_name: e.target.value })}
-                              className="h-8 w-20"
+                              className="h-8 w-16 sm:w-20 text-xs sm:text-sm"
                             />
                           ) : (
-                            <Badge variant="outline" className="text-base">{scale.grade_name}</Badge>
+                            <Badge variant="outline" className="text-xs sm:text-sm">{scale.grade_name}</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center text-xs sm:text-sm">
                           {editingGrade?.id === scale.id ? (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 justify-center">
                               <Input
                                 type="number"
                                 value={editingGrade.min_percentage}
                                 onChange={(e) => setEditingGrade({ ...editingGrade, min_percentage: parseFloat(e.target.value) || 0 })}
-                                className="h-8 w-16"
+                                className="h-8 w-12 sm:w-16 text-xs sm:text-sm"
                               />
-                              <span>-</span>
+                              <span className="text-xs">-</span>
                               <Input
                                 type="number"
                                 value={editingGrade.max_percentage}
                                 onChange={(e) => setEditingGrade({ ...editingGrade, max_percentage: parseFloat(e.target.value) || 0 })}
-                                className="h-8 w-16"
+                                className="h-8 w-12 sm:w-16 text-xs sm:text-sm"
                               />
                             </div>
                           ) : (
                             `${scale.min_percentage} - ${scale.max_percentage}`
                           )}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center text-xs sm:text-sm">
                           {editingGrade?.id === scale.id ? (
                             <Input
                               type="number"
                               value={editingGrade.points}
                               onChange={(e) => setEditingGrade({ ...editingGrade, points: parseFloat(e.target.value) || 0 })}
-                              className="h-8 w-16"
+                              className="h-8 w-12 sm:w-16 text-xs sm:text-sm"
                             />
                           ) : (
                             scale.points || "-"
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell text-xs sm:text-sm">
                           {editingGrade?.id === scale.id ? (
                             <Input
                               value={editingGrade.description}
                               onChange={(e) => setEditingGrade({ ...editingGrade, description: e.target.value })}
-                              className="h-8"
+                              className="h-8 text-xs sm:text-sm"
                               placeholder="Description"
                             />
                           ) : (
@@ -930,7 +933,8 @@ export default function AcademicSettings() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -938,24 +942,24 @@ export default function AcademicSettings() {
 
         {/* Summary Card */}
         <Card>
-          <CardHeader>
-            <CardTitle>Current Academic Configuration</CardTitle>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-base sm:text-lg">Current Academic Configuration</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Academic Year</p>
-                <p className="text-2xl font-bold">{currentYear?.year || "Not Set"}</p>
+          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+              <div className="space-y-1 text-center sm:text-left p-3 bg-muted/50 rounded-lg sm:bg-transparent sm:p-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">Academic Year</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold">{currentYear?.year || "Not Set"}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Current Term</p>
-                <p className="text-2xl font-bold">
+              <div className="space-y-1 text-center sm:text-left p-3 bg-muted/50 rounded-lg sm:bg-transparent sm:p-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">Current Term</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold">
                   {currentPeriod?.term.replace("_", " ").toUpperCase() || "Not Set"}
                 </p>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Status</p>
-                <p className="text-2xl font-bold text-primary">
+              <div className="space-y-1 text-center sm:text-left p-3 bg-muted/50 rounded-lg sm:bg-transparent sm:p-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">Status</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-primary">
                   {currentYear && currentPeriod ? "Active" : "Incomplete"}
                 </p>
               </div>
