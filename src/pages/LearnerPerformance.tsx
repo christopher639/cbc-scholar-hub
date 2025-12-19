@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useExamTypes } from "@/hooks/useExamTypes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,11 +13,17 @@ import { BookOpen } from "lucide-react";
 export default function LearnerPerformance() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { examTypes } = useExamTypes();
   const learner = user?.data;
   const [performance, setPerformance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedTerm, setSelectedTerm] = useState<string>("");
+
+  // Get active exam types sorted by display order
+  const activeExamTypes = examTypes
+    .filter(et => et.is_active)
+    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
   useEffect(() => {
     if (learner) {
@@ -76,7 +83,7 @@ export default function LearnerPerformance() {
     return true;
   });
 
-  // Group by learning area
+  // Group by learning area with dynamic exam types
   const groupedPerformance = filteredPerformance.reduce((acc: any, record) => {
     const areaName = record.learning_area?.name || "Unknown";
     const areaCode = record.learning_area?.code || "N/A";
@@ -84,26 +91,30 @@ export default function LearnerPerformance() {
       acc[areaName] = {
         area: areaName,
         code: areaCode,
-        opener: null,
-        midterm: null,
-        final: null,
+        examScores: {} as Record<string, number | null>,
       };
+      // Initialize all exam types to null
+      activeExamTypes.forEach(et => {
+        acc[areaName].examScores[et.name] = null;
+      });
     }
     
-    const examType = record.exam_type?.toLowerCase();
-    if (examType === "opener") {
-      acc[areaName].opener = record.marks;
-    } else if (examType === "mid-term" || examType === "midterm") {
-      acc[areaName].midterm = record.marks;
-    } else if (examType === "final") {
-      acc[areaName].final = record.marks;
+    // Match exam type (case-insensitive)
+    const recordExamType = record.exam_type?.toLowerCase();
+    const matchedExamType = activeExamTypes.find(
+      et => et.name.toLowerCase() === recordExamType
+    );
+    
+    if (matchedExamType) {
+      acc[areaName].examScores[matchedExamType.name] = record.marks;
     }
     
     return acc;
   }, {});
 
   const tableData = Object.values(groupedPerformance).map((area: any) => {
-    const scores = [area.opener, area.midterm, area.final].filter(s => s !== null);
+    // Calculate average based on exam types with actual marks
+    const scores = Object.values(area.examScores).filter((s): s is number => s !== null);
     const average = scores.length > 0 
       ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length 
       : null;
@@ -219,9 +230,9 @@ export default function LearnerPerformance() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Learning Area</TableHead>
-                      <TableHead className="text-center">Opener</TableHead>
-                      <TableHead className="text-center">Mid-Term</TableHead>
-                      <TableHead className="text-center">Final</TableHead>
+                      {activeExamTypes.map(et => (
+                        <TableHead key={et.id} className="text-center">{et.name}</TableHead>
+                      ))}
                       <TableHead className="text-center">Average</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -229,9 +240,11 @@ export default function LearnerPerformance() {
                     {tableData.map((area: any) => (
                       <TableRow key={area.area}>
                         <TableCell className="font-medium">{area.area}</TableCell>
-                        <TableCell className="text-center">{area.opener ?? "-"}</TableCell>
-                        <TableCell className="text-center">{area.midterm ?? "-"}</TableCell>
-                        <TableCell className="text-center">{area.final ?? "-"}</TableCell>
+                        {activeExamTypes.map(et => (
+                          <TableCell key={et.id} className="text-center">
+                            {area.examScores[et.name] ?? "-"}
+                          </TableCell>
+                        ))}
                         <TableCell className="text-center font-semibold">
                           {area.average ?? "-"}
                         </TableCell>
