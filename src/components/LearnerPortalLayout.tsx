@@ -348,24 +348,34 @@ export default function LearnerPortalLayout() {
           </main>
 
           {/* Mobile Bottom Navigation */}
-          <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
-            <div className="flex items-center justify-around h-16 px-2">
-              {navigationItems.slice(0, 5).map((item) => (
+          <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 safe-area-inset-bottom">
+            <div className="flex items-center justify-around h-14 px-1">
+              {navigationItems.slice(0, 4).map((item) => (
                 <Button
                   key={item.url}
                   variant="ghost"
                   size="sm"
                   onClick={() => handleNavigate(item.url)}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 h-full flex-1 rounded-lg transition-all",
+                    "flex flex-col items-center justify-center gap-0.5 h-full flex-1 rounded-lg transition-all min-w-0 px-1",
                     isActive(item.url) 
                       ? "text-primary bg-primary/10 font-semibold" 
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                   )}
                 >
-                  <item.icon className={cn("h-5 w-5 transition-transform", isActive(item.url) && "scale-110")} />
+                  <item.icon className={cn("h-4 w-4 transition-transform", isActive(item.url) && "scale-110")} />
+                  <span className="text-[10px] truncate">{item.title}</span>
                 </Button>
               ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="flex flex-col items-center justify-center gap-0.5 h-full flex-1 rounded-lg transition-all min-w-0 px-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="text-[10px] truncate">Logout</span>
+              </Button>
             </div>
           </nav>
         </div>
