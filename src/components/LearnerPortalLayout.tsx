@@ -45,7 +45,7 @@ const navigationItems = [
   { title: "Profile", url: "/learner-portal/profile", icon: UserCircle },
 ];
 
-function LearnerSidebar({ onNavigate, isNavigating }: { onNavigate: (url: string) => void; isNavigating: boolean }) {
+function LearnerSidebar({ onNavigate, isNavigating, schoolInfo }: { onNavigate: (url: string) => void; isNavigating: boolean; schoolInfo: any }) {
   const location = useLocation();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -59,13 +59,23 @@ function LearnerSidebar({ onNavigate, isNavigating }: { onNavigate: (url: string
 
   return (
     <Sidebar collapsible="icon" className="bg-card border-r border-border/30">
-      <div className="flex h-16 items-center justify-between px-4">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="font-semibold text-sm">Learner Portal</span>
-          </div>
-        )}
+      <div className="flex h-16 items-center justify-between px-3">
+        <div className="flex items-center gap-2 min-w-0">
+          {schoolInfo?.logo_url ? (
+            <img 
+              src={schoolInfo.logo_url} 
+              alt="School Logo" 
+              className="h-8 w-8 rounded-full object-cover flex-shrink-0 ring-2 ring-primary/20" 
+            />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0 ring-2 ring-primary/20">
+              <GraduationCap className="h-4 w-4 text-primary-foreground" />
+            </div>
+          )}
+          {!collapsed && (
+            <span className="font-semibold text-sm truncate">{schoolInfo?.school_name || "Learner Portal"}</span>
+          )}
+        </div>
         <SidebarTrigger className="ml-auto hidden lg:flex">
           {collapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
         </SidebarTrigger>
@@ -247,7 +257,7 @@ export default function LearnerPortalLayout() {
       <div className="min-h-screen flex w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         {/* Sidebar - Hidden on mobile */}
         <div className="hidden md:block">
-          <LearnerSidebar onNavigate={handleNavigate} isNavigating={isNavigating} />
+          <LearnerSidebar onNavigate={handleNavigate} isNavigating={isNavigating} schoolInfo={displaySchool} />
         </div>
 
         <div className="flex-1 flex flex-col min-h-screen">

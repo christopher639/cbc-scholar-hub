@@ -1,11 +1,13 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Home, BookOpen, FileText, User, Settings, LogOut } from "lucide-react";
+import { Home, BookOpen, FileText, User, Settings, LogOut, GraduationCap, PanelLeft, PanelLeftClose, Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +23,98 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { PortalFooter } from "@/components/PortalFooter";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+
+const navItems = [
+  { path: "/teacher-portal", icon: Home, label: "Dashboard" },
+  { path: "/teacher-portal/marks", icon: BookOpen, label: "Marks" },
+  { path: "/teacher-portal/assignments", icon: FileText, label: "Assignments" },
+  { path: "/teacher-portal/profile", icon: User, label: "Profile" },
+  { path: "/teacher-portal/settings", icon: Settings, label: "Settings" },
+];
+
+function TeacherSidebar({ schoolInfo }: { schoolInfo: any }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  return (
+    <Sidebar collapsible="icon" className="bg-card border-r border-border/30">
+      <div className="flex h-16 items-center justify-between px-3">
+        <div className="flex items-center gap-2 min-w-0">
+          {schoolInfo?.logo_url ? (
+            <img 
+              src={schoolInfo.logo_url} 
+              alt="School Logo" 
+              className="h-8 w-8 rounded-full object-cover flex-shrink-0 ring-2 ring-primary/20" 
+            />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0 ring-2 ring-primary/20">
+              <GraduationCap className="h-4 w-4 text-primary-foreground" />
+            </div>
+          )}
+          {!collapsed && (
+            <span className="font-semibold text-sm truncate">{schoolInfo?.school_name || "Teacher Portal"}</span>
+          )}
+        </div>
+        <SidebarTrigger className="ml-auto hidden lg:flex">
+          {collapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+        </SidebarTrigger>
+      </div>
+
+      <SidebarContent className="bg-card">
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.path}>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton
+                          isActive={isActive(item.path)}
+                          className={cn(
+                            "cursor-pointer",
+                            isActive(item.path) && "bg-primary text-primary-foreground"
+                          )}
+                          onClick={() => navigate(item.path)}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {collapsed && (
+                        <TooltipContent side="right">
+                          {item.label}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+}
 
 export function TeacherPortalLayout() {
   const location = useLocation();
@@ -45,15 +139,12 @@ export function TeacherPortalLayout() {
     try {
       if (!user) return;
       
-      // For teacher sessions, user.id is the teacher's id directly
-      // and user.data contains the teacher info
       if (user.role === "teacher" && user.data) {
         setTeacher(user.data);
         setLoading(false);
         return;
       }
 
-      // Fallback: fetch from database
       const { data: teacherData, error } = await supabase
         .from("teachers")
         .select("*")
@@ -86,13 +177,7 @@ export function TeacherPortalLayout() {
     }
   };
 
-  const navItems = [
-    { path: "/teacher-portal", icon: Home, label: "Dashboard" },
-    { path: "/teacher-portal/marks", icon: BookOpen, label: "Marks" },
-    { path: "/teacher-portal/assignments", icon: FileText, label: "Assignments" },
-    { path: "/teacher-portal/profile", icon: User, label: "Profile" },
-    { path: "/teacher-portal/settings", icon: Settings, label: "Settings" },
-  ];
+  const isActive = (path: string) => location.pathname === path;
 
   if (loading || authLoading) {
     return (
@@ -107,128 +192,121 @@ export function TeacherPortalLayout() {
     : 'T';
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen flex flex-col bg-background">
-        {/* Top Bar - Fixed */}
-        <div className="fixed top-0 left-0 right-0 h-14 bg-card border-b border-border z-50 flex items-center justify-between px-3 md:px-4">
-          <div className="flex items-center gap-2">
-            {schoolInfo?.logo_url && (
-              <img
-                src={schoolInfo.logo_url}
-                alt="School Logo"
-                className="h-7 w-7 md:h-8 md:w-8 object-contain"
-              />
-            )}
-            <span className="font-semibold text-xs md:text-sm truncate max-w-[120px] md:max-w-none">
-              {schoolInfo?.school_name || "School"}
-            </span>
-          </div>
+    <SidebarProvider defaultOpen>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+        {/* Sidebar - Hidden on mobile */}
+        <div className="hidden md:block">
+          <TeacherSidebar schoolInfo={schoolInfo} />
+        </div>
 
-          {/* Large Screen Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-sm">{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Teacher Avatar Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <Avatar className="h-8 w-8 cursor-pointer">
-                  <AvatarImage src={teacher?.photo_url} alt={teacher?.first_name} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                    {teacherInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium hidden sm:inline">
-                  {teacher?.first_name}
-                </span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div className="flex flex-col">
-                  <span>{teacher?.first_name} {teacher?.last_name}</span>
-                  <span className="text-xs text-muted-foreground font-normal">
-                    {teacher?.email}
-                  </span>
+        <div className="flex-1 flex flex-col min-h-screen">
+          {/* Fixed Header */}
+          <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
+            <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6 gap-4 w-full">
+              {/* Left - Sidebar Trigger (mobile) and School Logo */}
+              <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                <SidebarTrigger className="md:hidden">
+                  <Menu className="h-6 w-6" />
+                </SidebarTrigger>
+                
+                {schoolInfo?.logo_url ? (
+                  <img src={schoolInfo.logo_url} alt="School Logo" className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover ring-2 ring-primary/20" />
+                ) : (
+                  <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
+                    <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-xs sm:text-sm md:text-base font-bold leading-tight text-foreground whitespace-nowrap">{schoolInfo?.school_name || "School Portal"}</h1>
+                  <p className="hidden md:block text-xs text-muted-foreground">{schoolInfo?.motto || "Teacher Portal"}</p>
                 </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/teacher-portal/profile")}>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/teacher-portal/settings")}>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+              </div>
 
-        {/* Main Content */}
-        <div className="flex-1 pt-14 pb-16 md:pb-0">
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6">
-            <Outlet context={{ teacher }} />
+              {/* Right - Teacher Avatar Dropdown */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full p-0 hover:bg-transparent">
+                      <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
+                        <AvatarImage src={teacher?.photo_url} alt={teacher?.first_name} />
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-xs md:text-sm">
+                          {teacherInitials}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col">
+                        <span>{teacher?.first_name} {teacher?.last_name}</span>
+                        <span className="text-xs text-muted-foreground font-normal">
+                          {teacher?.email}
+                        </span>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate("/teacher-portal/profile")}>
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/teacher-portal/settings")}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="flex-1 mb-16 md:mb-0 overflow-auto">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6">
+              <Outlet context={{ teacher }} />
+            </div>
+            
+            {/* Footer - Hidden on mobile */}
+            <div className="hidden md:block">
+              <PortalFooter schoolInfo={schoolInfo} />
+            </div>
           </main>
-          
-          {/* Footer - Hidden on mobile (bottom nav takes that space) */}
-          <div className="hidden md:block">
-            <PortalFooter schoolInfo={schoolInfo} />
-          </div>
-        </div>
 
-        {/* Bottom Navigation - Mobile Only - Icons with Tooltips */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-card border-t border-border z-50">
-          <div className="flex items-center justify-around h-full px-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Tooltip key={item.path}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => navigate(item.path)}
-                      className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
-                        isActive 
-                          ? "bg-primary text-primary-foreground" 
-                          : "text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    {item.label}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
-        </nav>
+          {/* Mobile Bottom Navigation */}
+          <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
+            <div className="flex items-center justify-around h-16 px-2">
+              {navItems.map((item) => (
+                <TooltipProvider key={item.path}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(item.path)}
+                        className={cn(
+                          "flex flex-col items-center justify-center gap-1 h-full flex-1 rounded-lg transition-all",
+                          isActive(item.path) 
+                            ? "text-primary bg-primary/10 font-semibold" 
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                        )}
+                      >
+                        <item.icon className={cn("h-5 w-5 transition-transform", isActive(item.path) && "scale-110")} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      {item.label}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
+          </nav>
+        </div>
       </div>
-    </TooltipProvider>
+    </SidebarProvider>
   );
 }
