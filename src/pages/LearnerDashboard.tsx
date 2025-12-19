@@ -545,10 +545,10 @@ export default function LearnerDashboard() {
     <div className="w-full min-h-screen px-3 md:px-6 pt-2 pb-4 md:pb-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">
             Welcome back, {learnerDetails?.first_name}!
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {selectedGradeName && displayTerm && selectedAcademicYear
               ? `This is your ${selectedGradeName} ${displayTerm} ${selectedAcademicYear} overview`
               : currentPeriod && gradeName

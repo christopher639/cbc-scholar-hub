@@ -44,7 +44,7 @@ export default function LearnerProfilePage() {
 
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-semibold text-foreground">
+            <h1 className="text-xl md:text-2xl font-semibold text-foreground">
               {learnerDetails?.first_name} {learnerDetails?.last_name}
             </h1>
             <Badge className={`text-xs ${getStatusColor(learnerDetails?.status)}`}>
