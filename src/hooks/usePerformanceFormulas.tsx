@@ -283,44 +283,35 @@ export function usePerformanceFormulas() {
     },
   });
 
-  // Calculate weighted average based on active formula
+  // Calculate simple average: (sum of all exam scores) / (number of exam types with scores)
+  // Formula: Subject Average = (Opener + Mid-Term + End Term + RAT + ...) / total number of exam types
   const calculateWeightedAverage = (
     examScores: Record<string, number | null>,
     examTypes: { id: string; name: string; max_marks: number }[]
   ): number | null => {
-    if (!activeFormula) {
-      // Fallback: simple average
-      const scores = Object.values(examScores).filter((s): s is number => s !== null);
-      if (scores.length === 0) return null;
-      return scores.reduce((sum, s) => sum + s, 0) / scores.length;
-    }
-
-    const weights = getFormulaWeights(activeFormula.id);
-    if (weights.length === 0) {
-      // No weights defined, use simple average
-      const scores = Object.values(examScores).filter((s): s is number => s !== null);
-      if (scores.length === 0) return null;
-      return scores.reduce((sum, s) => sum + s, 0) / scores.length;
-    }
-
-    let totalWeight = 0;
-    let weightedSum = 0;
-
-    weights.forEach(w => {
-      const examType = examTypes.find(et => et.id === w.exam_type_id);
-      if (!examType) return;
-      
-      const score = examScores[examType.name];
+    // Get all scores that are not null
+    const validScores: { score: number; maxMarks: number }[] = [];
+    
+    examTypes.forEach(et => {
+      const score = examScores[et.name];
       if (score !== null && score !== undefined) {
-        // Normalize score to percentage based on max_marks
-        const normalizedScore = (score / (examType.max_marks || 100)) * 100;
-        weightedSum += normalizedScore * w.weight;
-        totalWeight += w.weight;
+        validScores.push({
+          score: Number(score),
+          maxMarks: et.max_marks || 100
+        });
       }
     });
-
-    if (totalWeight === 0) return null;
-    return weightedSum / totalWeight;
+    
+    if (validScores.length === 0) return null;
+    
+    // Calculate percentage for each exam and sum them
+    // Then divide by the number of exams to get average percentage
+    const totalPercentage = validScores.reduce((sum, item) => {
+      const percentage = (item.score / item.maxMarks) * 100;
+      return sum + percentage;
+    }, 0);
+    
+    return totalPercentage / validScores.length;
   };
 
   return {
