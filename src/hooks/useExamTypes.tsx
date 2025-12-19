@@ -2,12 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-interface ExamType {
+export interface ExamType {
   id: string;
   name: string;
   description: string | null;
   display_order: number | null;
   is_active: boolean | null;
+  max_marks: number;
   created_at: string;
   updated_at: string;
 }
@@ -30,7 +31,7 @@ export function useExamTypes() {
   });
 
   const addExamType = useMutation({
-    mutationFn: async ({ name, description }: { name: string; description?: string }) => {
+    mutationFn: async ({ name, description, max_marks }: { name: string; description?: string; max_marks?: number }) => {
       const maxOrder = examTypes.length > 0 
         ? Math.max(...examTypes.map(e => e.display_order || 0)) 
         : 0;
@@ -40,6 +41,7 @@ export function useExamTypes() {
         .insert({ 
           name, 
           description,
+          max_marks: max_marks || 100,
           display_order: maxOrder + 1 
         })
         .select()
@@ -65,16 +67,18 @@ export function useExamTypes() {
   });
 
   const updateExamType = useMutation({
-    mutationFn: async ({ id, name, description, is_active }: { 
+    mutationFn: async ({ id, name, description, is_active, max_marks }: { 
       id: string; 
       name?: string; 
       description?: string;
       is_active?: boolean;
+      max_marks?: number;
     }) => {
       const updates: any = {};
       if (name !== undefined) updates.name = name;
       if (description !== undefined) updates.description = description;
       if (is_active !== undefined) updates.is_active = is_active;
+      if (max_marks !== undefined) updates.max_marks = max_marks;
 
       const { data, error } = await supabase
         .from("exam_types")

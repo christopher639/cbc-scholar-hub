@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { useExamTypes } from "@/hooks/useExamTypes";
+import { useGradingScales } from "@/hooks/useGradingScales";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, CheckCircle, Plus, FileText, Trash2, Edit2 } from "lucide-react";
+import { Calendar, CheckCircle, Plus, FileText, Trash2, Edit2, Award } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,6 +20,7 @@ export default function AcademicSettings() {
   const { academicYears, currentYear, refetch: refetchYears } = useAcademicYears();
   const { academicPeriods, currentPeriod, refetch: refetchPeriods } = useAcademicPeriods();
   const { examTypes, addExamType, updateExamType, deleteExamType } = useExamTypes();
+  const { gradingScales, addGradingScale, updateGradingScale, deleteGradingScale } = useGradingScales();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [newYear, setNewYear] = useState("");
@@ -31,7 +33,17 @@ export default function AcademicSettings() {
   const [examTypeDialogOpen, setExamTypeDialogOpen] = useState(false);
   const [newExamTypeName, setNewExamTypeName] = useState("");
   const [newExamTypeDescription, setNewExamTypeDescription] = useState("");
-  const [editingExamType, setEditingExamType] = useState<{ id: string; name: string; description: string } | null>(null);
+  const [newExamTypeMaxMarks, setNewExamTypeMaxMarks] = useState("100");
+  const [editingExamType, setEditingExamType] = useState<{ id: string; name: string; description: string; max_marks: number } | null>(null);
+  
+  // Grading scale state
+  const [gradingDialogOpen, setGradingDialogOpen] = useState(false);
+  const [newGradeName, setNewGradeName] = useState("");
+  const [newGradeMinPct, setNewGradeMinPct] = useState("");
+  const [newGradeMaxPct, setNewGradeMaxPct] = useState("");
+  const [newGradePoints, setNewGradePoints] = useState("");
+  const [newGradeDescription, setNewGradeDescription] = useState("");
+  const [editingGrade, setEditingGrade] = useState<{ id: string; grade_name: string; min_percentage: number; max_percentage: number; points: number; description: string } | null>(null);
 
   const handleSetActiveYear = async (yearId: string) => {
     try {
@@ -197,11 +209,13 @@ export default function AcademicSettings() {
 
     await addExamType.mutateAsync({ 
       name: newExamTypeName.trim(), 
-      description: newExamTypeDescription.trim() || undefined 
+      description: newExamTypeDescription.trim() || undefined,
+      max_marks: parseInt(newExamTypeMaxMarks) || 100
     });
     
     setNewExamTypeName("");
     setNewExamTypeDescription("");
+    setNewExamTypeMaxMarks("100");
     setExamTypeDialogOpen(false);
   };
 
@@ -218,10 +232,65 @@ export default function AcademicSettings() {
     await updateExamType.mutateAsync({ 
       id: editingExamType.id,
       name: editingExamType.name.trim(), 
-      description: editingExamType.description.trim() || undefined 
+      description: editingExamType.description.trim() || undefined,
+      max_marks: editingExamType.max_marks
     });
     
     setEditingExamType(null);
+  };
+
+  const handleCreateGradingScale = async () => {
+    if (!newGradeName.trim() || !newGradeMinPct || !newGradeMaxPct) {
+      toast({
+        title: "Error",
+        description: "Please fill in grade name and percentage range",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await addGradingScale.mutateAsync({
+      grade_name: newGradeName.trim(),
+      min_percentage: parseFloat(newGradeMinPct),
+      max_percentage: parseFloat(newGradeMaxPct),
+      points: parseFloat(newGradePoints) || 0,
+      description: newGradeDescription.trim() || undefined
+    });
+
+    setNewGradeName("");
+    setNewGradeMinPct("");
+    setNewGradeMaxPct("");
+    setNewGradePoints("");
+    setNewGradeDescription("");
+    setGradingDialogOpen(false);
+  };
+
+  const handleUpdateGradingScale = async () => {
+    if (!editingGrade || !editingGrade.grade_name.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a grade name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await updateGradingScale.mutateAsync({
+      id: editingGrade.id,
+      grade_name: editingGrade.grade_name.trim(),
+      min_percentage: editingGrade.min_percentage,
+      max_percentage: editingGrade.max_percentage,
+      points: editingGrade.points,
+      description: editingGrade.description.trim() || undefined
+    });
+
+    setEditingGrade(null);
+  };
+
+  const handleDeleteGradingScale = async (id: string) => {
+    if (confirm("Are you sure you want to delete this grading scale?")) {
+      await deleteGradingScale.mutateAsync(id);
+    }
   };
 
   const handleDeleteExamType = async (id: string) => {
@@ -520,6 +589,18 @@ export default function AcademicSettings() {
                         />
                       </div>
                       <div className="space-y-2">
+                        <Label>Max Marks *</Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g., 100, 50, 30"
+                          value={newExamTypeMaxMarks}
+                          onChange={(e) => setNewExamTypeMaxMarks(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          The maximum marks for this exam type (e.g., 30, 70, 100)
+                        </p>
+                      </div>
+                      <div className="space-y-2">
                         <Label>Description (Optional)</Label>
                         <Input
                           placeholder="Brief description of this exam type"
@@ -550,6 +631,7 @@ export default function AcademicSettings() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
+                      <TableHead className="text-center">Max Marks</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -567,6 +649,18 @@ export default function AcademicSettings() {
                             />
                           ) : (
                             examType.name
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {editingExamType?.id === examType.id ? (
+                            <Input
+                              type="number"
+                              value={editingExamType.max_marks}
+                              onChange={(e) => setEditingExamType({ ...editingExamType, max_marks: parseInt(e.target.value) || 100 })}
+                              className="h-8 w-20"
+                            />
+                          ) : (
+                            <Badge variant="outline">{examType.max_marks || 100}</Badge>
                           )}
                         </TableCell>
                         <TableCell>
@@ -607,10 +701,11 @@ export default function AcademicSettings() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => setEditingExamType({
+                              onClick={() => setEditingExamType({
                                   id: examType.id,
                                   name: examType.name,
-                                  description: examType.description || ""
+                                  description: examType.description || "",
+                                  max_marks: examType.max_marks || 100
                                 })}
                               >
                                 <Edit2 className="h-4 w-4" />
@@ -620,6 +715,212 @@ export default function AcademicSettings() {
                                 variant="destructive"
                                 onClick={() => handleDeleteExamType(examType.id)}
                                 disabled={deleteExamType.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Grading System */}
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    Grading System
+                  </CardTitle>
+                  <CardDescription>
+                    Configure the grading scale used for learner performance reports and transcripts
+                  </CardDescription>
+                </div>
+                <Dialog open={gradingDialogOpen} onOpenChange={setGradingDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Grade
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Grading Scale</DialogTitle>
+                      <DialogDescription>
+                        Define a grade with its percentage range
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Grade Name *</Label>
+                        <Input
+                          placeholder="e.g., E.E, M.E, A, B+"
+                          value={newGradeName}
+                          onChange={(e) => setNewGradeName(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Min Percentage *</Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 80"
+                            value={newGradeMinPct}
+                            onChange={(e) => setNewGradeMinPct(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Max Percentage *</Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 100"
+                            value={newGradeMaxPct}
+                            onChange={(e) => setNewGradeMaxPct(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Points (Optional)</Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g., 1, 2, 3"
+                          value={newGradePoints}
+                          onChange={(e) => setNewGradePoints(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Description (Optional)</Label>
+                        <Input
+                          placeholder="e.g., Exceeding Expectations"
+                          value={newGradeDescription}
+                          onChange={(e) => setNewGradeDescription(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setGradingDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateGradingScale} disabled={addGradingScale.isPending}>
+                        Add Grade
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {gradingScales.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No grading scales configured. Click "Add Grade" to create one.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Grade</TableHead>
+                      <TableHead className="text-center">Range (%)</TableHead>
+                      <TableHead className="text-center">Points</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {gradingScales.map((scale) => (
+                      <TableRow key={scale.id}>
+                        <TableCell className="font-medium">
+                          {editingGrade?.id === scale.id ? (
+                            <Input
+                              value={editingGrade.grade_name}
+                              onChange={(e) => setEditingGrade({ ...editingGrade, grade_name: e.target.value })}
+                              className="h-8 w-20"
+                            />
+                          ) : (
+                            <Badge variant="outline" className="text-base">{scale.grade_name}</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {editingGrade?.id === scale.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                value={editingGrade.min_percentage}
+                                onChange={(e) => setEditingGrade({ ...editingGrade, min_percentage: parseFloat(e.target.value) || 0 })}
+                                className="h-8 w-16"
+                              />
+                              <span>-</span>
+                              <Input
+                                type="number"
+                                value={editingGrade.max_percentage}
+                                onChange={(e) => setEditingGrade({ ...editingGrade, max_percentage: parseFloat(e.target.value) || 0 })}
+                                className="h-8 w-16"
+                              />
+                            </div>
+                          ) : (
+                            `${scale.min_percentage} - ${scale.max_percentage}`
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {editingGrade?.id === scale.id ? (
+                            <Input
+                              type="number"
+                              value={editingGrade.points}
+                              onChange={(e) => setEditingGrade({ ...editingGrade, points: parseFloat(e.target.value) || 0 })}
+                              className="h-8 w-16"
+                            />
+                          ) : (
+                            scale.points || "-"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingGrade?.id === scale.id ? (
+                            <Input
+                              value={editingGrade.description}
+                              onChange={(e) => setEditingGrade({ ...editingGrade, description: e.target.value })}
+                              className="h-8"
+                              placeholder="Description"
+                            />
+                          ) : (
+                            scale.description || "-"
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {editingGrade?.id === scale.id ? (
+                            <div className="flex justify-end gap-2">
+                              <Button size="sm" variant="outline" onClick={() => setEditingGrade(null)}>
+                                Cancel
+                              </Button>
+                              <Button size="sm" onClick={handleUpdateGradingScale} disabled={updateGradingScale.isPending}>
+                                Save
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditingGrade({
+                                  id: scale.id,
+                                  grade_name: scale.grade_name,
+                                  min_percentage: scale.min_percentage,
+                                  max_percentage: scale.max_percentage,
+                                  points: scale.points || 0,
+                                  description: scale.description || ""
+                                })}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteGradingScale(scale.id)}
+                                disabled={deleteGradingScale.isPending}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

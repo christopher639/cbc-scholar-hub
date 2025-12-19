@@ -1,4 +1,5 @@
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import { useGradingScales } from "@/hooks/useGradingScales";
 
 interface LearnerRecord {
   id: string;
@@ -28,16 +29,15 @@ interface PrintablePerformanceReportProps {
 
 export const PrintablePerformanceReportNew = ({ data, filters }: PrintablePerformanceReportProps) => {
   const { schoolInfo } = useSchoolInfo();
+  const { gradingScales, getGrade } = useGradingScales();
 
   const classAverage = data.learners.length > 0
     ? (data.learners.reduce((sum, l) => sum + l.average, 0) / data.learners.length).toFixed(1)
     : "0";
 
   const getGradeCategory = (average: number): string => {
-    if (average >= 80) return "E.E";
-    if (average >= 50) return "M.E";
-    if (average >= 30) return "A.E";
-    return "B.E";
+    const grade = getGrade(average);
+    return grade?.grade_name || "-";
   };
 
   return (
@@ -174,10 +174,11 @@ export const PrintablePerformanceReportNew = ({ data, filters }: PrintablePerfor
       <div className="mt-2 text-xs">
         <p className="font-semibold mb-1">Grading Key:</p>
         <div className="flex flex-wrap gap-4 text-gray-600">
-          <span>E.E = Exceeding Expectation (80-100%)</span>
-          <span>M.E = Meeting Expectation (50-79%)</span>
-          <span>A.E = Approaching Expectation (30-49%)</span>
-          <span>B.E = Below Expectation (0-29%)</span>
+          {gradingScales.map(scale => (
+            <span key={scale.id}>
+              {scale.grade_name} = {scale.description || `${scale.min_percentage}-${scale.max_percentage}%`}
+            </span>
+          ))}
         </div>
       </div>
 
