@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Printer, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { useExamTypes } from "@/hooks/useExamTypes";
 import { useGradingScales } from "@/hooks/useGradingScales";
@@ -313,16 +313,10 @@ export function PrintablePerformanceReport({
 
   return (
     <>
-      <div className="flex gap-2">
-        <Button onClick={handlePrint} variant="outline" size="sm">
-          <Printer className="mr-2 h-4 w-4" />
-          Print Report
-        </Button>
-        <Button onClick={handlePrint} variant="default" size="sm">
-          <Download className="mr-2 h-4 w-4" />
-          Download PDF
-        </Button>
-      </div>
+      <Button onClick={handlePrint} variant="default" size="sm">
+        <Download className="mr-2 h-4 w-4" />
+        Download Report
+      </Button>
 
       <div style={{ display: "none" }}>
         <div ref={printRef}>
