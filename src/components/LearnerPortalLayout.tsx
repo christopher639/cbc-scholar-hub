@@ -368,7 +368,7 @@ export default function LearnerPortalLayout() {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 mb-16 md:mb-0 overflow-auto relative pt-14 md:pt-16">
+          <main className="flex-1 mb-14 md:mb-0 overflow-auto relative pt-14 md:pt-16">
             <div className={cn("transition-opacity duration-200", isNavigating && "opacity-50 pointer-events-none")}>
               <Outlet context={{ learnerDetails: displayLearner, schoolInfo: displaySchool, refetch: fetchData }} />
             </div>
@@ -379,24 +379,23 @@ export default function LearnerPortalLayout() {
             </div>
           </main>
 
-          {/* Mobile Bottom Navigation */}
+          {/* Mobile Bottom Navigation - Icons only */}
           <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 safe-area-inset-bottom">
-            <div className="flex items-center justify-around h-16 px-1">
+            <div className="flex items-center justify-around h-14 px-2">
               {navigationItems.slice(0, 5).map((item) => (
                 <Button
                   key={item.url}
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => handleNavigate(item.url)}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 h-full flex-1 rounded-lg transition-all min-w-0 px-1",
+                    "h-10 w-10 rounded-full transition-all",
                     isActive(item.url) 
-                      ? "text-primary bg-primary/10 font-semibold" 
+                      ? "text-primary bg-primary/15 shadow-sm" 
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                   )}
                 >
                   <item.icon className={cn("h-5 w-5 transition-transform", isActive(item.url) && "scale-110")} />
-                  <span className="text-xs truncate">{item.title}</span>
                 </Button>
               ))}
             </div>

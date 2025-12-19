@@ -234,127 +234,141 @@ export default function LearnerPerformance() {
   }
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
-      <div>
-        <h1 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">Academic Performance</h1>
-        <p className="text-sm text-muted-foreground">Your exam results and grades</p>
+    <div className="min-h-full">
+      {/* Fixed Header Section */}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border/30 px-3 sm:px-4 py-3 sm:py-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">Academic Performance</h1>
+              <p className="text-sm text-muted-foreground">Your exam results and grades</p>
+            </div>
+
+            {/* Filters */}
+            <div className="flex gap-2 sm:gap-3">
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-[120px] sm:w-[150px] h-9 text-sm bg-card">
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueYears.map(year => (
+                    <SelectItem key={year} value={year}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                <SelectTrigger className="w-[100px] sm:w-[130px] h-9 text-sm bg-card">
+                  <SelectValue placeholder="Term" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueTerms.map(term => (
+                    <SelectItem key={term} value={term}>{getTermLabel(term)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 sm:gap-4">
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-full sm:w-[180px] h-10 text-sm">
-            <SelectValue placeholder="Select Year" />
-          </SelectTrigger>
-          <SelectContent>
-            {uniqueYears.map(year => (
-              <SelectItem key={year} value={year}>{year}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Scrollable Content */}
+      <div className="px-3 sm:px-4 py-4 space-y-4 max-w-7xl mx-auto">
+        {tableData.length > 0 ? (
+          <>
+            {/* Graph Overview - Hidden on very small screens */}
+            {chartData.length > 0 && (
+              <Card className="hidden sm:block shadow-sm">
+                <CardHeader className="p-4 pb-2">
+                  <CardTitle className="text-base font-semibold">Performance Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 pt-0">
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="code" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-popover border border-border rounded-lg p-2 shadow-lg">
+                                <p className="font-semibold text-sm">{payload[0].payload.area}</p>
+                                <p className="text-sm text-muted-foreground">Average: {payload[0].value}%</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Line type="monotone" dataKey="average" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
 
-        <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-          <SelectTrigger className="w-full sm:w-[180px] h-10 text-sm">
-            <SelectValue placeholder="Select Term" />
-          </SelectTrigger>
-          <SelectContent>
-            {uniqueTerms.map(term => (
-              <SelectItem key={term} value={term}>{getTermLabel(term)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {tableData.length > 0 ? (
-        <>
-          {/* Graph Overview */}
-          <Card>
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Performance Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 sm:p-6 pt-0">
-              <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="code" tick={{ fontSize: 11 }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-background border rounded-lg p-2 shadow-lg">
-                            <p className="font-semibold text-sm">{payload[0].payload.area}</p>
-                            <p className="text-sm">Average: {payload[0].value}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Line type="linear" dataKey="average" stroke="hsl(var(--primary))" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Performance Table */}
-          <Card>
-            <CardHeader className="p-3 sm:p-6">
-              <CardTitle className="text-sm sm:text-base">
-                Performance Records - {selectedYear} {selectedTerm && `- ${getTermLabel(selectedTerm)}`}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 sm:p-6 sm:pt-0">
-              <div className="overflow-x-auto max-w-full">
-                <div className="min-w-[600px]">
-                  <Table className="text-sm">
+            {/* Performance Table */}
+            <Card className="shadow-sm overflow-hidden">
+              <CardHeader className="p-3 sm:p-4 border-b border-border/30 bg-muted/30">
+                <CardTitle className="text-sm sm:text-base font-semibold">
+                  {selectedYear} {selectedTerm && `• ${getTermLabel(selectedTerm)}`}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="whitespace-nowrap text-sm sticky left-0 bg-card z-10 min-w-[140px]">Learning Area</TableHead>
+                      <TableRow className="bg-muted/20">
+                        <TableHead className="text-xs sm:text-sm font-semibold sticky left-0 bg-muted/20 z-10 min-w-[100px] sm:min-w-[140px] py-2 px-2 sm:px-3">Subject</TableHead>
                         {activeExamTypes.map(et => {
                           const released = isReleased(selectedYear, selectedTerm, et.name);
                           return (
-                            <TableHead key={et.id} className="text-center whitespace-nowrap px-2 min-w-[70px]">
-                              <div className="flex items-center justify-center gap-1">
-                                <span className="text-sm">{et.name}</span>
-                                {!released && <Lock className="h-3 w-3 text-muted-foreground" />}
+                            <TableHead key={et.id} className="text-center text-xs sm:text-sm font-semibold px-1 sm:px-2 min-w-[50px] sm:min-w-[65px] py-2">
+                              <div className="flex flex-col items-center gap-0.5">
+                                <div className="flex items-center gap-0.5">
+                                  <span className="truncate max-w-[40px] sm:max-w-none">{et.name}</span>
+                                  {!released && <Lock className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
+                                </div>
+                                <span className="text-[10px] sm:text-xs text-muted-foreground">/{et.max_marks || 100}</span>
                               </div>
-                              <span className="text-xs text-muted-foreground block">/{et.max_marks || 100}</span>
                             </TableHead>
                           );
                         })}
-                        <TableHead className="text-center whitespace-nowrap text-sm min-w-[60px]">Avg</TableHead>
-                        <TableHead className="text-center whitespace-nowrap text-sm min-w-[60px]">Grade</TableHead>
+                        <TableHead className="text-center text-xs sm:text-sm font-semibold min-w-[45px] sm:min-w-[55px] py-2 px-1 sm:px-2">Avg</TableHead>
+                        <TableHead className="text-center text-xs sm:text-sm font-semibold min-w-[45px] sm:min-w-[55px] py-2 px-1 sm:px-2">Grade</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {tableData.map((area: any) => {
+                      {tableData.map((area: any, idx: number) => {
                         const gradeInfo = area.average ? getGrade(area.average) : null;
                         return (
-                          <TableRow key={area.area}>
-                            <TableCell className="font-medium whitespace-nowrap text-sm sticky left-0 bg-card z-10">{area.area}</TableCell>
+                          <TableRow key={area.area} className={idx % 2 === 0 ? "bg-background" : "bg-muted/10"}>
+                            <TableCell className="font-medium text-xs sm:text-sm sticky left-0 z-10 py-2 px-2 sm:px-3 truncate max-w-[100px] sm:max-w-[140px]" style={{ backgroundColor: idx % 2 === 0 ? "hsl(var(--background))" : "hsl(var(--muted) / 0.1)" }}>
+                              {area.area}
+                            </TableCell>
                             {activeExamTypes.map(et => {
                               const released = isReleased(selectedYear, selectedTerm, et.name);
                               const score = area.examScores[et.name];
                               return (
-                                <TableCell key={et.id} className="text-center px-2 text-sm">
+                                <TableCell key={et.id} className="text-center text-xs sm:text-sm py-2 px-1 sm:px-2">
                                   {released ? (
-                                    score ?? "-"
+                                    <span className={score !== null ? "font-medium" : "text-muted-foreground"}>{score ?? "-"}</span>
                                   ) : (
-                                    <Lock className="h-4 w-4 text-muted-foreground mx-auto" />
+                                    <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground mx-auto" />
                                   )}
                                 </TableCell>
                               );
                             })}
-                            <TableCell className="text-center font-semibold text-sm">
-                              {area.average ?? "-"}
+                            <TableCell className="text-center font-semibold text-xs sm:text-sm py-2 px-1 sm:px-2">
+                              <span className={area.average !== null ? "text-primary" : "text-muted-foreground"}>{area.average ?? "-"}</span>
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center py-2 px-1 sm:px-2">
                               {gradeInfo ? (
-                                <Badge variant="outline" className="font-semibold text-xs px-2">
+                                <Badge variant="outline" className="font-semibold text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
                                   {gradeInfo.grade_name}
                                 </Badge>
-                              ) : "-"}
+                              ) : <span className="text-muted-foreground text-xs">-</span>}
                             </TableCell>
                           </TableRow>
                         );
@@ -362,21 +376,23 @@ export default function LearnerPerformance() {
                     </TableBody>
                   </Table>
                 </div>
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <Card className="shadow-sm">
+            <CardContent className="py-12">
+              <div className="text-center">
+                <div className="mx-auto h-14 w-14 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                  <BookOpen className="h-7 w-7 text-muted-foreground" />
+                </div>
+                <h3 className="text-base font-semibold mb-1">No performance records yet</h3>
+                <p className="text-sm text-muted-foreground">Your exam results will appear here once available</p>
               </div>
             </CardContent>
           </Card>
-        </>
-      ) : (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center">
-              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No performance records yet</h3>
-              <p className="text-muted-foreground">Your exam results will appear here</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        )}
+      </div>
     </div>
   );
 }
