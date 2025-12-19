@@ -2650,6 +2650,19 @@ export type Database = {
           }
       generate_transaction_number: { Args: never; Returns: string }
       get_active_learner_count: { Args: never; Returns: number }
+      get_active_learners_for_teacher_session: {
+        Args: {
+          p_grade_id: string
+          p_session_token: string
+          p_stream_id: string
+        }
+        Returns: {
+          admission_number: string
+          first_name: string
+          id: string
+          last_name: string
+        }[]
+      }
       get_unique_visitor_count: { Args: never; Returns: number }
       has_role: {
         Args: {
