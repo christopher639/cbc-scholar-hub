@@ -115,9 +115,9 @@ export default function LearnerFeeStructures() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Fee Structures</h1>
-        <p className="text-muted-foreground">Browse and filter fee structures by grade, year, and term</p>
+      <div className="mb-6">
+        <h1 className="text-xl md:text-2xl font-bold mb-2">Fee Structures</h1>
+        <p className="text-sm text-muted-foreground">Browse and filter fee structures by grade, year, and term</p>
       </div>
 
       {/* Filters */}
