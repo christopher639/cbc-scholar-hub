@@ -5,25 +5,48 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users, Sparkles, Lock } from "lucide-react";
+import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users, Sparkles, Lock, BookOpen, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
-
-
-const getGradeCategory = (marks: number) => {
-  if (marks >= 80) return { label: "E.E", description: "Exceeding Expectation", color: "text-green-600" };
-  if (marks >= 50) return { label: "M.E", description: "Meeting Expectation", color: "text-blue-600" };
-  if (marks >= 30) return { label: "A.E", description: "Approaching Expectation", color: "text-yellow-600" };
-  return { label: "B.E", description: "Below Expectation", color: "text-red-600" };
-};
+import { useExamTypes } from "@/hooks/useExamTypes";
+import { useGradingScales } from "@/hooks/useGradingScales";
+import { usePerformanceFormulas } from "@/hooks/usePerformanceFormulas";
 
 export default function LearnerDashboard() {
   const { learnerDetails } = useOutletContext<any>();
   const { user } = useAuth();
   const learner = user?.data;
   const navigate = useNavigate();
+  
+  // Hooks for grading and formulas
+  const { examTypes: allExamTypes } = useExamTypes();
+  const { gradingScales, getGrade } = useGradingScales();
+  const { activeFormula, getFormulaWeights, calculateWeightedAverage } = usePerformanceFormulas();
+  
+  // Get active exam types only
+  const activeExamTypes = allExamTypes.filter(et => et.is_active);
+  
+  // Helper function to get grade from grading scales
+  const getGradeFromScale = (percentage: number) => {
+    const scale = getGrade(percentage);
+    if (scale) {
+      return {
+        label: scale.grade_name,
+        description: scale.description || scale.grade_name,
+        color: percentage >= 80 ? "text-green-600" : 
+               percentage >= 50 ? "text-blue-600" : 
+               percentage >= 30 ? "text-yellow-600" : "text-red-600",
+        points: scale.points
+      };
+    }
+    // Fallback if no grading scale matches
+    if (percentage >= 80) return { label: "E.E", description: "Exceeding Expectation", color: "text-green-600", points: 4 };
+    if (percentage >= 50) return { label: "M.E", description: "Meeting Expectation", color: "text-blue-600", points: 3 };
+    if (percentage >= 30) return { label: "A.E", description: "Approaching Expectation", color: "text-yellow-600", points: 2 };
+    return { label: "B.E", description: "Below Expectation", color: "text-red-600", points: 1 };
+  };
   
   const [stats, setStats] = useState({
     totalSubjects: 0,
@@ -263,11 +286,11 @@ export default function LearnerDashboard() {
   );
   
   const uniqueTerms = ["term_1", "term_2", "term_3"];
-  const examTypes = [
+  
+  // Dynamic exam types from database
+  const examTypeOptions = [
     { value: "all", label: "All Exams" },
-    { value: "opener", label: "Opener" },
-    { value: "mid-term", label: "Mid-Term" },
-    { value: "final", label: "Final" }
+    ...activeExamTypes.map(et => ({ value: et.name, label: et.name }))
   ];
 
   // Calculate filtered stats based on selected filters
@@ -280,42 +303,50 @@ export default function LearnerDashboard() {
       : 0
   };
 
-  const averageGrade = filteredStats.averageScore > 0 ? getGradeCategory(filteredStats.averageScore) : null;
+  const averageGrade = filteredStats.averageScore > 0 ? getGradeFromScale(filteredStats.averageScore) : null;
 
-  // Group by learning area
+  // Group by learning area with dynamic exam types
   const groupedPerformance = filteredPerformance.reduce((acc: any, record) => {
     const areaName = record.learning_area?.name || "Unknown";
     const areaCode = record.learning_area?.code || "N/A";
+    const learningAreaId = record.learning_area_id;
+    
     if (!acc[areaName]) {
       acc[areaName] = {
         area: areaName,
         code: areaCode,
-        opener: null,
-        midterm: null,
-        final: null,
+        learning_area_id: learningAreaId,
+        examScores: {} as Record<string, number | null>,
       };
+      // Initialize all exam types with null
+      activeExamTypes.forEach(et => {
+        acc[areaName].examScores[et.name] = null;
+      });
     }
     
-    const examType = record.exam_type?.toLowerCase();
-    if (examType === "opener") {
-      acc[areaName].opener = record.marks;
-    } else if (examType === "mid-term" || examType === "midterm") {
-      acc[areaName].midterm = record.marks;
-    } else if (examType === "final") {
-      acc[areaName].final = record.marks;
+    // Match exam type by name (case-insensitive)
+    const examTypeName = record.exam_type;
+    const matchedExamType = activeExamTypes.find(
+      et => et.name.toLowerCase() === examTypeName?.toLowerCase()
+    );
+    
+    if (matchedExamType) {
+      acc[areaName].examScores[matchedExamType.name] = Number(record.marks);
     }
     
     return acc;
   }, {});
 
+  // Calculate averages using the formula system
   const tableData = Object.values(groupedPerformance).map((area: any) => {
-    const scores = [area.opener, area.midterm, area.final].filter(s => s !== null);
-    const average = scores.length > 0 
-      ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length 
-      : null;
+    // Use weighted average from formula if available
+    const weightedAvg = calculateWeightedAverage(
+      area.examScores,
+      activeExamTypes.map(et => ({ id: et.id, name: et.name, max_marks: et.max_marks }))
+    );
     
-    const avgRounded = average !== null ? Math.round(average * 10) / 10 : null;
-    const grade = avgRounded !== null ? getGradeCategory(avgRounded) : null;
+    const avgRounded = weightedAvg !== null ? Math.round(weightedAvg * 10) / 10 : null;
+    const grade = avgRounded !== null ? getGradeFromScale(avgRounded) : null;
     
     return {
       ...area,
@@ -495,7 +526,7 @@ export default function LearnerDashboard() {
                 <SelectValue placeholder="Exam Type" />
               </SelectTrigger>
               <SelectContent>
-                {examTypes.map((type) => (
+                {examTypeOptions.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
                   </SelectItem>
@@ -527,16 +558,72 @@ export default function LearnerDashboard() {
         </CardContent>
       </Card>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-4">
-        <Card className="border-0 shadow-none">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+      {/* Performance Summary Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="bg-primary/5 border-0">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <BookOpen className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Total Subjects</p>
+                <p className="text-xl font-bold">{filteredStats.totalSubjects}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-blue-500/5 border-0">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <BarChart3 className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Overall Average</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold">{filteredStats.averageScore}%</p>
+                  {averageGrade && (
+                    <span className={`text-xs font-semibold ${averageGrade.color}`}>
+                      {averageGrade.label}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-green-500/5 border-0">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <Award className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Best Subject</p>
+                <p className="text-sm font-bold truncate max-w-[100px]">
+                  {bestSubjects[0]?.area || "N/A"}
+                </p>
+                {bestSubjects[0] && (
+                  <p className="text-xs text-muted-foreground">{bestSubjects[0].average}%</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-destructive/5 border-0">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-destructive/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-destructive" />
+              </div>
               <div>
                 <p className="text-xs text-muted-foreground">Fee Balance</p>
                 <p className="text-sm font-bold text-destructive">KES {feeBalance.toLocaleString()}</p>
               </div>
-              <DollarSign className="h-6 w-6 text-destructive" />
             </div>
           </CardContent>
         </Card>
@@ -560,8 +647,20 @@ export default function LearnerDashboard() {
             <div className="space-y-2">
               {bestSubjects.length > 0 ? bestSubjects.map((subject, idx) => (
                 <div key={idx} className="flex items-center justify-between p-2 bg-primary/5 rounded">
-                  <span className="text-sm font-medium">{subject.area}</span>
-                  <Badge variant="default" className="text-xs">{subject.average}%</Badge>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-5 h-5 flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm font-medium">{subject.area}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="default" className="text-xs">{subject.average}%</Badge>
+                    {subject.grade && (
+                      <span className={`text-xs font-semibold ${subject.grade.color}`}>
+                        {subject.grade.label}
+                      </span>
+                    )}
+                  </div>
                 </div>
               )) : (
                 <p className="text-sm text-muted-foreground">No performance data available</p>
@@ -586,8 +685,20 @@ export default function LearnerDashboard() {
             <div className="space-y-2">
               {weakestSubjects.length > 0 ? weakestSubjects.map((subject, idx) => (
                 <div key={idx} className="flex items-center justify-between p-2 bg-destructive/5 rounded">
-                  <span className="text-sm font-medium">{subject.area}</span>
-                  <Badge variant="destructive" className="text-xs">{subject.average}%</Badge>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-destructive bg-destructive/10 rounded-full w-5 h-5 flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm font-medium">{subject.area}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="destructive" className="text-xs">{subject.average}%</Badge>
+                    {subject.grade && (
+                      <span className={`text-xs font-semibold ${subject.grade.color}`}>
+                        {subject.grade.label}
+                      </span>
+                    )}
+                  </div>
                 </div>
               )) : (
                 <p className="text-sm text-muted-foreground">No performance data available</p>
@@ -600,14 +711,22 @@ export default function LearnerDashboard() {
       {/* Performance Table and Graphs - 3 column layout on large screens, stacked on small */}
       {tableData.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-          {/* Performance Table */}
-          <Card>
+          {/* Performance Table with Dynamic Exam Types */}
+          <Card className="lg:col-span-2">
             <CardHeader className="py-3 md:py-6">
-              <CardTitle className="text-sm md:text-base">Detailed Performance</CardTitle>
+              <CardTitle className="text-sm md:text-base flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-primary" />
+                Detailed Performance Overview
+              </CardTitle>
               <CardDescription className="text-xs md:text-sm">
                 {selectedGradeName && displayTerm && selectedAcademicYear
                   ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}${displayExamType ? ` - ${displayExamType}` : ""}`
                   : "Select filters to view performance"}
+                {activeFormula && (
+                  <span className="ml-2 text-primary font-medium">
+                    (Using {activeFormula.name} formula)
+                  </span>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 md:p-6">
@@ -615,25 +734,31 @@ export default function LearnerDashboard() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b">
-                      <TableHead className="h-7 py-1 px-2 text-[10px] md:text-sm md:px-4 md:py-2 whitespace-nowrap">Subject</TableHead>
-                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Opener</TableHead>
-                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Mid</TableHead>
-                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Final</TableHead>
-                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Avg</TableHead>
-                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">Grade</TableHead>
+                      <TableHead className="h-7 py-1 px-2 text-[10px] md:text-sm md:px-4 md:py-2 whitespace-nowrap sticky left-0 bg-background">Subject</TableHead>
+                      {activeExamTypes.map(et => (
+                        <TableHead key={et.id} className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap">
+                          {et.name}
+                        </TableHead>
+                      ))}
+                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap bg-primary/5">Avg</TableHead>
+                      <TableHead className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center whitespace-nowrap bg-primary/5">Grade</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {tableData.map((area: any, idx: number) => (
-                      <TableRow key={idx} className="border-b">
-                        <TableCell className="h-7 py-1 px-2 text-[10px] md:text-sm md:px-4 md:py-2 font-medium whitespace-nowrap">{area.area}</TableCell>
-                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">{area.opener ?? "-"}</TableCell>
-                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">{area.midterm ?? "-"}</TableCell>
-                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">{area.final ?? "-"}</TableCell>
-                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center font-semibold">
-                          {area.average ? `${area.average}%` : "-"}
+                      <TableRow key={idx} className="border-b hover:bg-muted/50">
+                        <TableCell className="h-7 py-1 px-2 text-[10px] md:text-sm md:px-4 md:py-2 font-medium whitespace-nowrap sticky left-0 bg-background">
+                          {area.area}
                         </TableCell>
-                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">
+                        {activeExamTypes.map(et => (
+                          <TableCell key={et.id} className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">
+                            {area.examScores[et.name] !== null ? area.examScores[et.name] : "-"}
+                          </TableCell>
+                        ))}
+                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center font-semibold bg-primary/5">
+                          {area.average !== null ? `${area.average}%` : "-"}
+                        </TableCell>
+                        <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center bg-primary/5">
                           {area.grade ? (
                             <span className={`font-semibold ${area.grade.color}`} title={area.grade.description}>
                               {area.grade.label}
@@ -642,6 +767,35 @@ export default function LearnerDashboard() {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {/* Summary Row */}
+                    <TableRow className="bg-muted/30 font-semibold">
+                      <TableCell className="h-7 py-1 px-2 text-[10px] md:text-sm md:px-4 md:py-2 whitespace-nowrap sticky left-0 bg-muted/30">
+                        Overall Average
+                      </TableCell>
+                      {activeExamTypes.map(et => {
+                        const examScores = tableData
+                          .map((a: any) => a.examScores[et.name])
+                          .filter((s: number | null) => s !== null) as number[];
+                        const examAvg = examScores.length > 0 
+                          ? Math.round((examScores.reduce((a, b) => a + b, 0) / examScores.length) * 10) / 10
+                          : null;
+                        return (
+                          <TableCell key={et.id} className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">
+                            {examAvg !== null ? `${examAvg}%` : "-"}
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center bg-primary/10">
+                        {filteredStats.averageScore}%
+                      </TableCell>
+                      <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center bg-primary/10">
+                        {averageGrade ? (
+                          <span className={`font-semibold ${averageGrade.color}`}>
+                            {averageGrade.label}
+                          </span>
+                        ) : "-"}
+                      </TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </div>
@@ -682,7 +836,7 @@ export default function LearnerDashboard() {
                       if (active && payload && payload.length) {
                         const learnerScore = payload.find(p => p.dataKey === 'average');
                         const classAvg = payload.find(p => p.dataKey === 'classAverage');
-                        const grade = learnerScore ? getGradeCategory(learnerScore.value as number) : null;
+                        const grade = learnerScore ? getGradeFromScale(learnerScore.value as number) : null;
                         
                         return (
                           <div className="bg-background border rounded-lg p-2 shadow-lg">
@@ -753,7 +907,7 @@ export default function LearnerDashboard() {
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const data = payload[0].payload;
-                        const grade = getGradeCategory(data.average);
+                        const grade = getGradeFromScale(data.average);
                         
                         return (
                           <div className="bg-background border rounded-lg p-2 shadow-lg">
