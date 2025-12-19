@@ -326,13 +326,16 @@ export default function LearnerDashboard() {
 
   // Helper function to check if marks are released
   const isMarksReleased = (record: any) => {
-    return performanceReleases.some(release => {
+    const recordExam = String(record.exam_type || "").toLowerCase().trim();
+
+    return performanceReleases.some((release) => {
+      const releaseExam = String(release.exam_type || "").toLowerCase().trim();
       const matchesYear = release.academic_year === record.academic_year;
       const matchesTerm = release.term === record.term;
-      const matchesExamType = release.exam_type === record.exam_type;
+      const matchesExamType = releaseExam === recordExam;
       const matchesGrade = !release.grade_id || release.grade_id === record.grade_id;
       const matchesStream = !release.stream_id || release.stream_id === record.stream_id;
-      
+
       return matchesYear && matchesTerm && matchesExamType && matchesGrade && matchesStream;
     });
   };
@@ -364,17 +367,7 @@ export default function LearnerDashboard() {
     ...activeExamTypes.map(et => ({ value: et.name, label: et.name }))
   ];
 
-  // Calculate filtered stats based on selected filters
-  const filteredStats = {
-    totalSubjects: filteredPerformance.length 
-      ? new Set(filteredPerformance.map(p => p.learning_area_id)).size 
-      : 0,
-    averageScore: filteredPerformance.length
-      ? Math.round(filteredPerformance.reduce((sum, p) => sum + Number(p.marks), 0) / filteredPerformance.length)
-      : 0
-  };
-
-  const averageGrade = filteredStats.averageScore > 0 ? getGradeFromScale(filteredStats.averageScore) : null;
+  // Stats computed after tableData (needs grouped performance averages)
 
   // Group by learning area with dynamic exam types
   const groupedPerformance = filteredPerformance.reduce((acc: any, record) => {
@@ -425,6 +418,22 @@ export default function LearnerDashboard() {
       grade: grade,
     };
   });
+
+  // Calculate filtered stats based on selected filters
+  // Use per-subject weighted averages so we don't double-count multiple exams per subject.
+  const subjectsWithAverage = tableData.filter((a: any) => a.average !== null);
+
+  const filteredStats = {
+    totalSubjects: tableData.length,
+    averageScore: subjectsWithAverage.length
+      ? Math.round(
+          subjectsWithAverage.reduce((sum: number, a: any) => sum + Number(a.average), 0) /
+            subjectsWithAverage.length
+        )
+      : 0,
+  };
+
+  const averageGrade = filteredStats.averageScore > 0 ? getGradeFromScale(filteredStats.averageScore) : null;
 
   // Fetch class averages for comparison
   const [classAverages, setClassAverages] = useState<any[]>([]);
