@@ -1050,6 +1050,51 @@ export type Database = {
         }
         Relationships: []
       }
+      grade_learning_areas: {
+        Row: {
+          academic_year: string
+          created_at: string
+          grade_id: string
+          id: string
+          is_mandatory: boolean | null
+          learning_area_id: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          grade_id: string
+          id?: string
+          is_mandatory?: boolean | null
+          learning_area_id: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          grade_id?: string
+          id?: string
+          is_mandatory?: boolean | null
+          learning_area_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grade_learning_areas_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grade_learning_areas_learning_area_id_fkey"
+            columns: ["learning_area_id"]
+            isOneToOne: false
+            referencedRelation: "learning_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grades: {
         Row: {
           created_at: string
@@ -1207,6 +1252,61 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "student_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learner_learning_areas: {
+        Row: {
+          academic_year: string
+          created_at: string
+          grade_id: string
+          id: string
+          is_optional: boolean | null
+          learner_id: string
+          learning_area_id: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          grade_id: string
+          id?: string
+          is_optional?: boolean | null
+          learner_id: string
+          learning_area_id: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          grade_id?: string
+          id?: string
+          is_optional?: boolean | null
+          learner_id?: string
+          learning_area_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learner_learning_areas_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learner_learning_areas_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: false
+            referencedRelation: "learners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learner_learning_areas_learning_area_id_fkey"
+            columns: ["learning_area_id"]
+            isOneToOne: false
+            referencedRelation: "learning_areas"
             referencedColumns: ["id"]
           },
         ]
