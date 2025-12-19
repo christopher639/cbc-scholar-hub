@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useExamTypes } from "@/hooks/useExamTypes";
 import { useGradingScales } from "@/hooks/useGradingScales";
+import { useLearningAreaRegistration } from "@/hooks/useLearningAreaRegistration";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,8 +18,10 @@ export default function LearnerPerformance() {
   const { toast } = useToast();
   const { examTypes } = useExamTypes();
   const { gradingScales, getGrade } = useGradingScales();
+  const { getAllRegisteredLearningAreas } = useLearningAreaRegistration();
   const learner = user?.data;
   const [performance, setPerformance] = useState<any[]>([]);
+  const [registeredLearningAreas, setRegisteredLearningAreas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedTerm, setSelectedTerm] = useState<string>("");
@@ -33,6 +36,17 @@ export default function LearnerPerformance() {
       fetchPerformance();
     }
   }, [learner]);
+
+  // Fetch registered learning areas when year changes
+  useEffect(() => {
+    if (learner && selectedYear) {
+      const gradeId = learner.current_grade_id;
+      if (gradeId) {
+        const registered = getAllRegisteredLearningAreas(learner.id, gradeId, selectedYear);
+        setRegisteredLearningAreas(registered);
+      }
+    }
+  }, [learner, selectedYear, getAllRegisteredLearningAreas]);
 
   const fetchPerformance = async () => {
     if (!learner) return;
@@ -87,33 +101,61 @@ export default function LearnerPerformance() {
   });
 
   // Group by learning area with dynamic exam types
-  const groupedPerformance = filteredPerformance.reduce((acc: any, record) => {
-    const areaName = record.learning_area?.name || "Unknown";
-    const areaCode = record.learning_area?.code || "N/A";
-    if (!acc[areaName]) {
-      acc[areaName] = {
-        area: areaName,
-        code: areaCode,
-        examScores: {} as Record<string, number | null>,
-      };
-      // Initialize all exam types to null
-      activeExamTypes.forEach(et => {
-        acc[areaName].examScores[et.name] = null;
-      });
-    }
+  // Use registered learning areas if available, otherwise use performance records
+  const groupedPerformance = (() => {
+    const acc: any = {};
     
-    // Match exam type (case-insensitive)
-    const recordExamType = record.exam_type?.toLowerCase();
-    const matchedExamType = activeExamTypes.find(
-      et => et.name.toLowerCase() === recordExamType
-    );
+    // First, add all registered learning areas (even without marks)
+    registeredLearningAreas.forEach(reg => {
+      const la = reg.learning_area;
+      if (la && !acc[la.name]) {
+        acc[la.name] = {
+          area: la.name,
+          code: la.code,
+          examScores: {} as Record<string, number | null>,
+          source: reg.source,
+        };
+        activeExamTypes.forEach(et => {
+          acc[la.name].examScores[et.name] = null;
+        });
+      }
+    });
     
-    if (matchedExamType) {
-      acc[areaName].examScores[matchedExamType.name] = record.marks;
-    }
+    // Then add marks from performance records
+    filteredPerformance.forEach(record => {
+      const areaName = record.learning_area?.name || "Unknown";
+      const areaCode = record.learning_area?.code || "N/A";
+      
+      // Only include if registered OR if no registrations exist
+      const isRegistered = registeredLearningAreas.length === 0 || 
+        registeredLearningAreas.some(r => r.learning_area?.name === areaName);
+      
+      if (!isRegistered) return;
+      
+      if (!acc[areaName]) {
+        acc[areaName] = {
+          area: areaName,
+          code: areaCode,
+          examScores: {} as Record<string, number | null>,
+        };
+        activeExamTypes.forEach(et => {
+          acc[areaName].examScores[et.name] = null;
+        });
+      }
+      
+      // Match exam type (case-insensitive)
+      const recordExamType = record.exam_type?.toLowerCase();
+      const matchedExamType = activeExamTypes.find(
+        et => et.name.toLowerCase() === recordExamType
+      );
+      
+      if (matchedExamType) {
+        acc[areaName].examScores[matchedExamType.name] = record.marks;
+      }
+    });
     
     return acc;
-  }, {});
+  })();
 
   const tableData = Object.values(groupedPerformance).map((area: any) => {
     // Calculate average based on exam types with actual marks
@@ -128,12 +170,14 @@ export default function LearnerPerformance() {
     };
   });
 
-  // Chart data
-  const chartData = tableData.map(area => ({
-    code: area.code,
-    area: area.area,
-    average: area.average || 0
-  }));
+  // Chart data (only include areas with marks for the chart)
+  const chartData = tableData
+    .filter(area => area.average !== null)
+    .map(area => ({
+      code: area.code,
+      area: area.area,
+      average: area.average || 0
+    }));
 
   const getTermLabel = (term: string) => {
     const termMap: Record<string, string> = {

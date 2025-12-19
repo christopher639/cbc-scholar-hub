@@ -10,17 +10,32 @@ import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { useExamTypes } from "@/hooks/useExamTypes";
 import { useGradingScales } from "@/hooks/useGradingScales";
+import { useLearningAreaRegistration } from "@/hooks/useLearningAreaRegistration";
+import { useGrades } from "@/hooks/useGrades";
+import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, CheckCircle, Plus, FileText, Trash2, Edit2, Award } from "lucide-react";
+import { Calendar, CheckCircle, Plus, FileText, Trash2, Edit2, Award, BookOpen, User, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function AcademicSettings() {
   const { academicYears, currentYear, refetch: refetchYears } = useAcademicYears();
   const { academicPeriods, currentPeriod, refetch: refetchPeriods } = useAcademicPeriods();
   const { examTypes, addExamType, updateExamType, deleteExamType } = useExamTypes();
   const { gradingScales, addGradingScale, updateGradingScale, deleteGradingScale } = useGradingScales();
+  const { 
+    gradeLearningAreas, 
+    learnerLearningAreas, 
+    addGradeLearningAreas, 
+    removeGradeLearningArea,
+    addLearnerLearningAreas,
+    removeLearnerLearningArea 
+  } = useLearningAreaRegistration();
+  const { grades } = useGrades();
+  const { learningAreas } = useLearningAreas();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [newYear, setNewYear] = useState("");
@@ -44,6 +59,16 @@ export default function AcademicSettings() {
   const [newGradePoints, setNewGradePoints] = useState("");
   const [newGradeDescription, setNewGradeDescription] = useState("");
   const [editingGrade, setEditingGrade] = useState<{ id: string; grade_name: string; min_percentage: number; max_percentage: number; points: number; description: string } | null>(null);
+
+  // Learning area registration state
+  const [gradeRegDialogOpen, setGradeRegDialogOpen] = useState(false);
+  const [learnerRegDialogOpen, setLearnerRegDialogOpen] = useState(false);
+  const [selectedRegGrade, setSelectedRegGrade] = useState("");
+  const [selectedRegYear, setSelectedRegYear] = useState("");
+  const [selectedRegLearningAreas, setSelectedRegLearningAreas] = useState<string[]>([]);
+  const [admissionNumberSearch, setAdmissionNumberSearch] = useState("");
+  const [foundLearner, setFoundLearner] = useState<any>(null);
+  const [searchingLearner, setSearchingLearner] = useState(false);
 
   const handleSetActiveYear = async (yearId: string) => {
     try {
@@ -304,6 +329,122 @@ export default function AcademicSettings() {
       id,
       is_active: !currentStatus
     });
+  };
+
+  // Learning area registration handlers
+  const handleSearchLearner = async () => {
+    if (!admissionNumberSearch.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an admission number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSearchingLearner(true);
+    try {
+      const { data, error } = await supabase
+        .from("learners")
+        .select("id, first_name, last_name, admission_number, current_grade_id, grades:current_grade_id(id, name)")
+        .eq("admission_number", admissionNumberSearch.trim())
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setFoundLearner(data);
+        if (data.current_grade_id) {
+          setSelectedRegGrade(data.current_grade_id);
+        }
+      } else {
+        toast({
+          title: "Not Found",
+          description: "No learner found with that admission number",
+          variant: "destructive",
+        });
+        setFoundLearner(null);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSearchingLearner(false);
+    }
+  };
+
+  const handleRegisterGradeLearningAreas = async () => {
+    if (!selectedRegGrade || !selectedRegYear || selectedRegLearningAreas.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select grade, academic year, and at least one learning area",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await addGradeLearningAreas.mutateAsync({
+      gradeId: selectedRegGrade,
+      academicYear: selectedRegYear,
+      learningAreaIds: selectedRegLearningAreas
+    });
+
+    setGradeRegDialogOpen(false);
+    setSelectedRegGrade("");
+    setSelectedRegYear("");
+    setSelectedRegLearningAreas([]);
+  };
+
+  const handleRegisterLearnerLearningAreas = async () => {
+    if (!foundLearner || !selectedRegGrade || !selectedRegYear || selectedRegLearningAreas.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please find a learner and select academic year and learning areas",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await addLearnerLearningAreas.mutateAsync({
+      learnerId: foundLearner.id,
+      gradeId: selectedRegGrade,
+      academicYear: selectedRegYear,
+      learningAreaIds: selectedRegLearningAreas
+    });
+
+    setLearnerRegDialogOpen(false);
+    setFoundLearner(null);
+    setAdmissionNumberSearch("");
+    setSelectedRegGrade("");
+    setSelectedRegYear("");
+    setSelectedRegLearningAreas([]);
+  };
+
+  const toggleLearningAreaSelection = (laId: string) => {
+    setSelectedRegLearningAreas(prev => 
+      prev.includes(laId) 
+        ? prev.filter(id => id !== laId)
+        : [...prev, laId]
+    );
+  };
+
+  // Get already registered learning areas for the selected grade/year
+  const getAlreadyRegisteredForGrade = () => {
+    if (!selectedRegGrade || !selectedRegYear) return [];
+    return gradeLearningAreas
+      .filter(gla => gla.grade_id === selectedRegGrade && gla.academic_year === selectedRegYear)
+      .map(gla => gla.learning_area_id);
+  };
+
+  // Get already registered learning areas for the found learner
+  const getAlreadyRegisteredForLearner = () => {
+    if (!foundLearner || !selectedRegYear) return [];
+    return learnerLearningAreas
+      .filter(lla => lla.learner_id === foundLearner.id && lla.academic_year === selectedRegYear)
+      .map(lla => lla.learning_area_id);
   };
 
   return (
@@ -936,6 +1077,339 @@ export default function AcademicSettings() {
                   </Table>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Learning Area Registration */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
+                    Learning Area Registration
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
+                    Register learning areas for grades or individual learners per academic year
+                  </CardDescription>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Grade Registration Dialog */}
+                  <Dialog open={gradeRegDialogOpen} onOpenChange={setGradeRegDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="w-full sm:w-auto">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Register for Grade
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Register Learning Areas for Grade</DialogTitle>
+                        <DialogDescription>
+                          All learners in this grade will be expected to have marks for selected learning areas
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Academic Year *</Label>
+                            <Select value={selectedRegYear} onValueChange={setSelectedRegYear}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select year" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {academicYears.map((year) => (
+                                  <SelectItem key={year.id} value={year.year}>
+                                    {year.year}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Grade *</Label>
+                            <Select value={selectedRegGrade} onValueChange={setSelectedRegGrade}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select grade" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {grades.map((grade) => (
+                                  <SelectItem key={grade.id} value={grade.id}>
+                                    {grade.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Select Learning Areas *</Label>
+                          <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
+                            {learningAreas.map((la) => {
+                              const alreadyRegistered = getAlreadyRegisteredForGrade().includes(la.id);
+                              return (
+                                <div key={la.id} className="flex items-center space-x-2">
+                                  <Checkbox 
+                                    id={`grade-la-${la.id}`}
+                                    checked={selectedRegLearningAreas.includes(la.id) || alreadyRegistered}
+                                    onCheckedChange={() => !alreadyRegistered && toggleLearningAreaSelection(la.id)}
+                                    disabled={alreadyRegistered}
+                                  />
+                                  <label 
+                                    htmlFor={`grade-la-${la.id}`} 
+                                    className={`text-sm cursor-pointer ${alreadyRegistered ? 'text-muted-foreground' : ''}`}
+                                  >
+                                    {la.name} ({la.code}) {alreadyRegistered && <Badge variant="secondary" className="ml-2 text-xs">Registered</Badge>}
+                                  </label>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Selected: {selectedRegLearningAreas.length} learning area(s)
+                          </p>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => {
+                          setGradeRegDialogOpen(false);
+                          setSelectedRegLearningAreas([]);
+                        }}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleRegisterGradeLearningAreas} disabled={addGradeLearningAreas.isPending}>
+                          Register
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Learner Registration Dialog */}
+                  <Dialog open={learnerRegDialogOpen} onOpenChange={setLearnerRegDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="w-full sm:w-auto">
+                        <User className="h-4 w-4 mr-2" />
+                        Register for Learner
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Register Learning Areas for Individual Learner</DialogTitle>
+                        <DialogDescription>
+                          Register specific learning areas for a learner (e.g., optional subjects)
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Find Learner by Admission Number *</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Enter admission number"
+                              value={admissionNumberSearch}
+                              onChange={(e) => setAdmissionNumberSearch(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleSearchLearner()}
+                            />
+                            <Button onClick={handleSearchLearner} disabled={searchingLearner}>
+                              {searchingLearner ? "Searching..." : "Search"}
+                            </Button>
+                          </div>
+                        </div>
+
+                        {foundLearner && (
+                          <>
+                            <div className="p-3 bg-muted/50 rounded-md">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium">{foundLearner.first_name} {foundLearner.last_name}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Adm: {foundLearner.admission_number} | Grade: {foundLearner.grades?.name || 'N/A'}
+                                  </p>
+                                </div>
+                                <Button size="sm" variant="ghost" onClick={() => {
+                                  setFoundLearner(null);
+                                  setAdmissionNumberSearch("");
+                                }}>
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Academic Year *</Label>
+                              <Select value={selectedRegYear} onValueChange={setSelectedRegYear}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select year" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {academicYears.map((year) => (
+                                    <SelectItem key={year.id} value={year.year}>
+                                      {year.year}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Select Learning Areas *</Label>
+                              <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
+                                {learningAreas.map((la) => {
+                                  const alreadyRegistered = getAlreadyRegisteredForLearner().includes(la.id);
+                                  return (
+                                    <div key={la.id} className="flex items-center space-x-2">
+                                      <Checkbox 
+                                        id={`learner-la-${la.id}`}
+                                        checked={selectedRegLearningAreas.includes(la.id) || alreadyRegistered}
+                                        onCheckedChange={() => !alreadyRegistered && toggleLearningAreaSelection(la.id)}
+                                        disabled={alreadyRegistered}
+                                      />
+                                      <label 
+                                        htmlFor={`learner-la-${la.id}`} 
+                                        className={`text-sm cursor-pointer ${alreadyRegistered ? 'text-muted-foreground' : ''}`}
+                                      >
+                                        {la.name} ({la.code}) {alreadyRegistered && <Badge variant="secondary" className="ml-2 text-xs">Registered</Badge>}
+                                      </label>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                Selected: {selectedRegLearningAreas.length} learning area(s)
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => {
+                          setLearnerRegDialogOpen(false);
+                          setFoundLearner(null);
+                          setAdmissionNumberSearch("");
+                          setSelectedRegLearningAreas([]);
+                        }}>
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handleRegisterLearnerLearningAreas} 
+                          disabled={addLearnerLearningAreas.isPending || !foundLearner}
+                        >
+                          Register
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+              <Tabs defaultValue="grade" className="w-full">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="grade">Grade Registrations</TabsTrigger>
+                  <TabsTrigger value="learner">Individual Registrations</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="grade">
+                  {gradeLearningAreas.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      No grade learning areas registered. Click "Register for Grade" to add.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto -mx-4 sm:mx-0">
+                      <Table className="min-w-[500px] sm:min-w-0">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs sm:text-sm">Grade</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Learning Area</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Academic Year</TableHead>
+                            <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {gradeLearningAreas.map((gla) => (
+                            <TableRow key={gla.id}>
+                              <TableCell className="text-xs sm:text-sm">{gla.grades?.name}</TableCell>
+                              <TableCell className="text-xs sm:text-sm">
+                                {gla.learning_areas?.name} ({gla.learning_areas?.code})
+                              </TableCell>
+                              <TableCell className="text-xs sm:text-sm">
+                                <Badge variant="outline">{gla.academic_year}</Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (confirm("Remove this learning area from the grade?")) {
+                                      removeGradeLearningArea.mutate(gla.id);
+                                    }
+                                  }}
+                                  disabled={removeGradeLearningArea.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="learner">
+                  {learnerLearningAreas.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      No individual learning areas registered. Click "Register for Learner" to add.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto -mx-4 sm:mx-0">
+                      <Table className="min-w-[600px] sm:min-w-0">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs sm:text-sm">Learner</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Adm No.</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Learning Area</TableHead>
+                            <TableHead className="text-xs sm:text-sm">Year</TableHead>
+                            <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {learnerLearningAreas.map((lla) => (
+                            <TableRow key={lla.id}>
+                              <TableCell className="text-xs sm:text-sm">
+                                {lla.learners?.first_name} {lla.learners?.last_name}
+                              </TableCell>
+                              <TableCell className="text-xs sm:text-sm">
+                                {lla.learners?.admission_number}
+                              </TableCell>
+                              <TableCell className="text-xs sm:text-sm">
+                                {lla.learning_areas?.name} ({lla.learning_areas?.code})
+                              </TableCell>
+                              <TableCell className="text-xs sm:text-sm">
+                                <Badge variant="outline">{lla.academic_year}</Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (confirm("Remove this learning area from the learner?")) {
+                                      removeLearnerLearningArea.mutate(lla.id);
+                                    }
+                                  }}
+                                  disabled={removeLearnerLearningArea.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </div>
