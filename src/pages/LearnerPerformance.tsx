@@ -4,13 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useExamTypes } from "@/hooks/useExamTypes";
 import { useGradingScales } from "@/hooks/useGradingScales";
+import { usePerformanceFormulas } from "@/hooks/usePerformanceFormulas";
 import { useLearningAreaRegistration } from "@/hooks/useLearningAreaRegistration";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { BookOpen, Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -20,6 +20,7 @@ export default function LearnerPerformance() {
   const { toast } = useToast();
   const { examTypes } = useExamTypes();
   const { gradingScales, getGrade } = useGradingScales();
+  const { activeFormula, getFormulaWeights, calculateWeightedAverage } = usePerformanceFormulas();
   const { getAllRegisteredLearningAreas } = useLearningAreaRegistration();
   const learner = user?.data;
   const [performance, setPerformance] = useState<any[]>([]);
@@ -53,15 +54,10 @@ export default function LearnerPerformance() {
     });
   };
 
-  // Get active exam types sorted by display order
+  // Get ALL active exam types sorted by display order (show all columns)
   const activeExamTypes = examTypes
     .filter(et => et.is_active)
     .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-
-  // Filter to only show released exam types
-  const releasedExamTypes = activeExamTypes.filter(et => 
-    isReleased(selectedYear, selectedTerm, et.name)
-  );
 
   useEffect(() => {
     if (learner) {
@@ -132,8 +128,7 @@ export default function LearnerPerformance() {
     return true;
   });
 
-  // Group by learning area with dynamic exam types
-  // Use registered learning areas if available, otherwise use performance records
+  // Group by learning area with ALL exam types as columns
   const groupedPerformance = (() => {
     const acc: any = {};
     
@@ -147,13 +142,14 @@ export default function LearnerPerformance() {
           examScores: {} as Record<string, number | null>,
           source: reg.source,
         };
-        releasedExamTypes.forEach(et => {
+        // Initialize ALL active exam types
+        activeExamTypes.forEach(et => {
           acc[la.name].examScores[et.name] = null;
         });
       }
     });
     
-    // Then add marks from performance records
+    // Then add marks from performance records (only if released)
     filteredPerformance.forEach(record => {
       const areaName = record.learning_area?.name || "Unknown";
       const areaCode = record.learning_area?.code || "N/A";
@@ -170,18 +166,19 @@ export default function LearnerPerformance() {
           code: areaCode,
           examScores: {} as Record<string, number | null>,
         };
-        releasedExamTypes.forEach(et => {
+        // Initialize ALL active exam types
+        activeExamTypes.forEach(et => {
           acc[areaName].examScores[et.name] = null;
         });
       }
       
-      // Match exam type only if released
+      // Match exam type - only add marks if RELEASED
       const recordExamType = record.exam_type?.toLowerCase();
-      const matchedExamType = releasedExamTypes.find(
+      const matchedExamType = activeExamTypes.find(
         et => et.name.toLowerCase() === recordExamType
       );
       
-      if (matchedExamType) {
+      if (matchedExamType && isReleased(selectedYear, selectedTerm, matchedExamType.name)) {
         acc[areaName].examScores[matchedExamType.name] = record.marks;
       }
     });
@@ -189,12 +186,16 @@ export default function LearnerPerformance() {
     return acc;
   })();
 
+  // Prepare exam types data for weighted average calculation
+  const examTypesForCalc = activeExamTypes.map(et => ({
+    id: et.id,
+    name: et.name,
+    max_marks: et.max_marks || 100,
+  }));
+
   const tableData = Object.values(groupedPerformance).map((area: any) => {
-    // Calculate average based on exam types with actual marks
-    const scores = Object.values(area.examScores).filter((s): s is number => s !== null);
-    const average = scores.length > 0 
-      ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length 
-      : null;
+    // Use weighted average calculation from formula if available
+    const average = calculateWeightedAverage(area.examScores, examTypesForCalc);
     
     return {
       ...area,
@@ -309,12 +310,18 @@ export default function LearnerPerformance() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Learning Area</TableHead>
-                      {releasedExamTypes.map(et => (
-                        <TableHead key={et.id} className="text-center">
-                          {et.name}
-                          <span className="text-xs text-muted-foreground block">/{et.max_marks || 100}</span>
-                        </TableHead>
-                      ))}
+                      {activeExamTypes.map(et => {
+                        const released = isReleased(selectedYear, selectedTerm, et.name);
+                        return (
+                          <TableHead key={et.id} className="text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {et.name}
+                              {!released && <Lock className="h-3 w-3 text-muted-foreground" />}
+                            </div>
+                            <span className="text-xs text-muted-foreground block">/{et.max_marks || 100}</span>
+                          </TableHead>
+                        );
+                      })}
                       <TableHead className="text-center">Average</TableHead>
                       <TableHead className="text-center">Grade</TableHead>
                     </TableRow>
@@ -325,11 +332,19 @@ export default function LearnerPerformance() {
                       return (
                         <TableRow key={area.area}>
                           <TableCell className="font-medium">{area.area}</TableCell>
-                          {releasedExamTypes.map(et => (
-                            <TableCell key={et.id} className="text-center">
-                              {area.examScores[et.name] ?? "-"}
-                            </TableCell>
-                          ))}
+                          {activeExamTypes.map(et => {
+                            const released = isReleased(selectedYear, selectedTerm, et.name);
+                            const score = area.examScores[et.name];
+                            return (
+                              <TableCell key={et.id} className="text-center">
+                                {released ? (
+                                  score ?? "-"
+                                ) : (
+                                  <Lock className="h-4 w-4 text-muted-foreground mx-auto" />
+                                )}
+                              </TableCell>
+                            );
+                          })}
                           <TableCell className="text-center font-semibold">
                             {area.average ?? "-"}
                           </TableCell>
