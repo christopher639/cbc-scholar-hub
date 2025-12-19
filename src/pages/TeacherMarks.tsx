@@ -95,16 +95,30 @@ export default function TeacherMarks() {
     }
   }, [selectedGradeId, selectedStreamId, selectedLearningAreaId, selectedAcademicYear, selectedTerm, selectedExamType]);
 
+  // Helper to get session token
+  const getTeacherSessionToken = () => {
+    return localStorage.getItem("teacher_session");
+  };
+
   const fetchLearnersOnly = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("learners")
-        .select("id, admission_number, first_name, last_name")
-        .eq("current_grade_id", selectedGradeId)
-        .eq("current_stream_id", selectedStreamId)
-        .eq("status", "active")
-        .order("admission_number", { ascending: true });
+      const sessionToken = getTeacherSessionToken();
+      if (!sessionToken) {
+        toast({
+          title: "Session Error",
+          description: "Please log in again",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Use the secure RPC function that bypasses RLS
+      const { data, error } = await supabase.rpc("get_active_learners_for_teacher_session", {
+        p_session_token: sessionToken,
+        p_grade_id: selectedGradeId,
+        p_stream_id: selectedStreamId,
+      });
 
       if (error) throw error;
       setLearners(data || []);
@@ -123,20 +137,29 @@ export default function TeacherMarks() {
   const fetchLearners = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("learners")
-        .select("id, admission_number, first_name, last_name")
-        .eq("current_grade_id", selectedGradeId)
-        .eq("current_stream_id", selectedStreamId)
-        .eq("status", "active")
-        .order("admission_number", { ascending: true });
+      const sessionToken = getTeacherSessionToken();
+      if (!sessionToken) {
+        toast({
+          title: "Session Error",
+          description: "Please log in again",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Use the secure RPC function that bypasses RLS
+      const { data, error } = await supabase.rpc("get_active_learners_for_teacher_session", {
+        p_session_token: sessionToken,
+        p_grade_id: selectedGradeId,
+        p_stream_id: selectedStreamId,
+      });
 
       if (error) throw error;
       setLearners(data || []);
 
       // Fetch existing performance records for these learners
       if (data && data.length > 0) {
-        const learnerIds = data.map(l => l.id);
+        const learnerIds = data.map((l: any) => l.id);
         const { data: existingRecords } = await supabase
           .from("performance_records")
           .select("learner_id, marks")
