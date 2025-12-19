@@ -12,8 +12,10 @@ import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useExamTypes } from "@/hooks/useExamTypes";
+import { useLearningAreaRegistration } from "@/hooks/useLearningAreaRegistration";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface BulkPerformanceEntryProps {
   open: boolean;
@@ -26,6 +28,7 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
   const { currentPeriod } = useAcademicPeriods();
   const { academicYears, currentYear } = useAcademicYears();
   const { learningAreas } = useLearningAreas();
+  const { gradeLearningAreas, learnerLearningAreas } = useLearningAreaRegistration();
   const { examTypes } = useExamTypes();
   
   const [selectedGradeId, setSelectedGradeId] = useState<string>("");
@@ -64,6 +67,34 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
     }
   }, [selectedGradeId, selectedStreamId, selectedLearningAreaId, selectedAcademicYear, selectedTerm, selectedExamType]);
 
+  // Get learners registered for the selected learning area (grade-level or individual)
+  const getRegisteredLearnerIds = (): Set<string> => {
+    const registeredIds = new Set<string>();
+    
+    // Check grade-level registrations
+    const gradeRegistration = gradeLearningAreas.find(
+      gla => gla.grade_id === selectedGradeId && 
+             gla.learning_area_id === selectedLearningAreaId && 
+             gla.academic_year === selectedAcademicYear
+    );
+    
+    if (gradeRegistration) {
+      // If learning area is registered for the whole grade, all learners in that grade are registered
+      return new Set(['ALL_GRADE_LEARNERS']);
+    }
+    
+    // Check individual learner registrations
+    learnerLearningAreas.forEach(lla => {
+      if (lla.learning_area_id === selectedLearningAreaId && 
+          lla.grade_id === selectedGradeId && 
+          lla.academic_year === selectedAcademicYear) {
+        registeredIds.add(lla.learner_id);
+      }
+    });
+    
+    return registeredIds;
+  };
+
   const fetchLearnersOnly = async () => {
     setLoading(true);
     try {
@@ -101,11 +132,25 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
         .order("admission_number", { ascending: true });
 
       if (error) throw error;
-      setLearners(data || []);
+      
+      // Filter learners based on learning area registration
+      const registeredIds = getRegisteredLearnerIds();
+      let filteredData = data || [];
+      
+      if (!registeredIds.has('ALL_GRADE_LEARNERS') && registeredIds.size > 0) {
+        // Only show individually registered learners
+        filteredData = (data || []).filter(l => registeredIds.has(l.id));
+      } else if (!registeredIds.has('ALL_GRADE_LEARNERS') && registeredIds.size === 0) {
+        // No registrations found for this learning area
+        filteredData = [];
+      }
+      // If 'ALL_GRADE_LEARNERS' is in set, show all learners (grade-level registration)
+      
+      setLearners(filteredData);
 
       // Fetch existing performance records for these learners
-      if (data && data.length > 0) {
-        const learnerIds = data.map(l => l.id);
+      if (filteredData && filteredData.length > 0) {
+        const learnerIds = filteredData.map(l => l.id);
         const { data: existingRecords } = await supabase
           .from("performance_records")
           .select("learner_id, marks")
@@ -125,6 +170,8 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
         } else {
           setScores({});
         }
+      } else {
+        setScores({});
       }
     } catch (error: any) {
       toast({
@@ -407,9 +454,19 @@ export function BulkPerformanceEntry({ open, onOpenChange }: BulkPerformanceEntr
             </>
           )}
 
-          {!loading && learners.length === 0 && selectedGradeId && selectedStreamId && (
+          {!loading && learners.length === 0 && selectedGradeId && selectedStreamId && selectedLearningAreaId && selectedAcademicYear && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                No learners are registered for this learning area in the selected grade and academic year. 
+                Please register learners for this learning area in Academic Settings first.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {!loading && learners.length === 0 && selectedGradeId && selectedStreamId && !selectedLearningAreaId && (
             <div className="text-center py-8 text-muted-foreground">
-              No active learners found in this grade and stream
+              Please select a learning area to load registered learners
             </div>
           )}
         </div>
