@@ -38,12 +38,10 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Users from "./pages/Users";
-import LearnerPerformance from "./pages/LearnerPerformance";
 import LearnerPortalLayout from "./components/LearnerPortalLayout";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import LearnerFeeStructures from "./pages/LearnerFeeStructures";
 import LearnerFeesPage from "./pages/LearnerFeesPage";
-import LearnerAITutor from "./pages/LearnerAITutor";
 import Profile from "./pages/Profile";
 import AcademicYears from "./pages/AcademicYears";
 import Communication from "./pages/Communication";
@@ -101,10 +99,8 @@ function AppRoutes() {
       <Route path="/learner-portal" element={<ProtectedRoute><LearnerPortalLayout /></ProtectedRoute>}>
         <Route index element={<LearnerDashboard />} />
         <Route path="profile" element={<LearnerProfilePage />} />
-        <Route path="performance" element={<LearnerPerformance />} />
         <Route path="fees" element={<LearnerFeesPage />} />
         <Route path="fee-structures" element={<LearnerFeeStructures />} />
-        <Route path="ai-tutor" element={<LearnerAITutor />} />
         <Route path="settings" element={<LearnerSettings />} />
       </Route>
 

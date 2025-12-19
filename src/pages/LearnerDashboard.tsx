@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users, Sparkles, Lock, BookOpen, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users, Lock, BookOpen, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -18,7 +18,6 @@ export default function LearnerDashboard() {
   const { learnerDetails } = useOutletContext<any>();
   const { user } = useAuth();
   const learner = user?.data;
-  const navigate = useNavigate();
   
   // Hooks for grading and formulas
   const { examTypes: allExamTypes } = useExamTypes();
@@ -543,27 +542,17 @@ export default function LearnerDashboard() {
 
   return (
     <div className="w-full min-h-screen px-2 sm:px-3 md:px-6 pt-2 pb-4 md:pb-6 space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-        <div className="min-w-0">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">
-            Welcome back, {learnerDetails?.first_name}!
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            {selectedGradeName && displayTerm && selectedAcademicYear
-              ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}`
-              : currentPeriod && gradeName
-              ? `${gradeName} ${currentPeriod.term.replace("term_", "Term ")} ${currentPeriod.year}`
-              : "Your academic overview"}
-          </p>
-        </div>
-        <Button 
-          onClick={() => navigate("/learner-portal/ai-tutor")}
-          size="sm"
-          className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 h-8 sm:h-9"
-        >
-          <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          <span className="text-xs sm:text-sm">AI Tutor</span>
-        </Button>
+      <div className="min-w-0">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">
+          Welcome back, {learnerDetails?.first_name}!
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          {selectedGradeName && displayTerm && selectedAcademicYear
+            ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}`
+            : currentPeriod && gradeName
+            ? `${gradeName} ${currentPeriod.term.replace("term_", "Term ")} ${currentPeriod.year}`
+            : "Your academic overview"}
+        </p>
       </div>
 
       {/* Filters */}

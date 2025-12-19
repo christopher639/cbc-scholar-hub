@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User, Settings, GraduationCap, Home, BookOpen, DollarSign, Search, UserCircle, Sparkles, Menu, PanelLeft, PanelLeftClose } from "lucide-react";
+import { LogOut, User, Settings, GraduationCap, Home, DollarSign, Search, UserCircle, Menu, PanelLeft, PanelLeftClose } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { LearnerChangePasswordDialog } from "@/components/LearnerChangePasswordDialog";
@@ -37,8 +37,6 @@ import {
 
 const navigationItems = [
   { title: "Dashboard", url: "/learner-portal", icon: Home },
-  { title: "Performance", url: "/learner-portal/performance", icon: BookOpen },
-  { title: "AI Tutor", url: "/learner-portal/ai-tutor", icon: Sparkles },
   { title: "My Fees", url: "/learner-portal/fees", icon: DollarSign },
   { title: "Fee Structures", url: "/learner-portal/fee-structures", icon: Search },
   { title: "Settings", url: "/learner-portal/settings", icon: Settings },
