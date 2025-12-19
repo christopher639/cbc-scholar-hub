@@ -187,24 +187,24 @@ export default function LearnerAITutor() {
     }
 
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">
+      <div className="flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[60vh] gap-4 sm:gap-6 px-3 sm:px-4">
         <div className="text-center">
-          <div className="p-3 rounded-full bg-primary/10 w-fit mx-auto mb-4">
-            <Sparkles className="h-8 w-8 text-primary" />
+          <div className="p-2 sm:p-3 rounded-full bg-primary/10 w-fit mx-auto mb-3 sm:mb-4">
+            <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">AI Tutor</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">AI Tutor</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Choose a subject to practice, {learnerInfo.name}!
           </p>
         </div>
 
         {learningAreas.length === 0 ? (
-          <div className="text-center p-4">
-            <p className="text-muted-foreground">No subjects found yet.</p>
-            <p className="text-sm text-muted-foreground mt-1">Your subjects will appear here once you have performance records.</p>
+          <div className="text-center p-3 sm:p-4">
+            <p className="text-sm text-muted-foreground">No subjects found yet.</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">Your subjects will appear here once you have performance records.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-md">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 w-full max-w-md">
             {learningAreas.map((area, index) => {
               const colors = [
                 "bg-blue-500/10 text-blue-600",
@@ -220,21 +220,21 @@ export default function LearnerAITutor() {
                 <Button
                   key={area.id}
                   variant="outline"
-                  className={`h-auto py-4 flex flex-col gap-2 hover:scale-105 transition-transform ${color}`}
+                  className={`h-auto py-3 sm:py-4 flex flex-col gap-1.5 sm:gap-2 hover:scale-105 transition-transform ${color}`}
                   onClick={() => startSession(area)}
                 >
-                  <div className={`p-2 rounded-full ${color}`}>
-                    <BookOpen className="h-4 w-4" />
+                  <div className={`p-1.5 sm:p-2 rounded-full ${color}`}>
+                    <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </div>
-                  <span className="text-sm font-medium">{area.name}</span>
-                  <span className="text-xs opacity-70">{area.code}</span>
+                  <span className="text-xs sm:text-sm font-medium truncate max-w-full">{area.name}</span>
+                  <span className="text-[10px] sm:text-xs opacity-70">{area.code}</span>
                 </Button>
               );
             })}
           </div>
         )}
 
-        <p className="text-xs text-muted-foreground text-center max-w-sm">
+        <p className="text-[10px] sm:text-xs text-muted-foreground text-center max-w-sm px-2">
           Practice the subjects you've been learning in {gradeName || "your grade"}
         </p>
       </div>
@@ -259,23 +259,23 @@ export default function LearnerAITutor() {
   const currentColor = subjectColors[learningAreas.findIndex(a => a.id === selectedSubject?.id) % subjectColors.length] || "bg-primary/10 text-primary";
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] md:h-[calc(100vh-140px)]">
+    <div className="flex flex-col h-[calc(100vh-200px)] sm:h-[calc(100vh-180px)] md:h-[calc(100vh-140px)]">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-full ${currentColor}`}>
-            <BookOpen className="h-4 w-4" />
+      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4 pb-2 sm:pb-3 border-b">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${currentColor}`}>
+            <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </div>
-          <div>
-            <h1 className="text-lg font-semibold">{selectedSubject?.name} Tutor</h1>
-            <p className="text-xs text-muted-foreground">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-semibold truncate">{selectedSubject?.name} Tutor</h1>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
               Practicing for {gradeName || "your grade"}
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={resetSession} className="text-muted-foreground">
-          <RotateCcw className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">Change Subject</span>
+        <Button variant="ghost" size="sm" onClick={resetSession} className="text-muted-foreground flex-shrink-0 h-8 px-2 sm:px-3">
+          <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline ml-1">Change Subject</span>
         </Button>
       </div>
 
@@ -331,32 +331,32 @@ export default function LearnerAITutor() {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="pt-4 border-t mt-auto px-4 md:px-6">
+      <div className="pt-3 sm:pt-4 border-t mt-auto">
         <div className="flex gap-2 items-center">
           <Input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type your answer or ask a question..."
+            placeholder="Type your answer..."
             disabled={isLoading}
-            className="flex-1 text-base md:text-lg h-12 md:h-14 px-4"
+            className="flex-1 text-sm sm:text-base md:text-lg h-10 sm:h-12 md:h-14 px-3 sm:px-4"
           />
           <Button
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
             size="icon"
-            className="h-12 w-12 md:h-14 md:w-14"
+            className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 flex-shrink-0"
           >
             {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
             ) : (
-              <Send className="h-5 w-5" />
+              <Send className="h-4 w-4 sm:h-5 sm:w-5" />
             )}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2 text-center">
-          AI responses are generated. Always verify important information with your teachers.
+        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1.5 sm:mt-2 text-center">
+          AI responses are generated. Always verify with your teachers.
         </p>
       </div>
     </div>

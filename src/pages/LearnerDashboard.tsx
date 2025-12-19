@@ -542,44 +542,45 @@ export default function LearnerDashboard() {
   const displayExamType = selectedExamType !== "all" ? selectedExamType : "";
 
   return (
-    <div className="w-full min-h-screen px-3 md:px-6 pt-2 pb-4 md:pb-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">
+    <div className="w-full min-h-screen px-2 sm:px-3 md:px-6 pt-2 pb-4 md:pb-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">
             Welcome back, {learnerDetails?.first_name}!
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {selectedGradeName && displayTerm && selectedAcademicYear
-              ? `This is your ${selectedGradeName} ${displayTerm} ${selectedAcademicYear} overview`
+              ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}`
               : currentPeriod && gradeName
-              ? `This is your ${gradeName} ${currentPeriod.term.replace("term_", "Term ")} ${currentPeriod.year} overview`
-              : "Here's your academic overview"}
+              ? `${gradeName} ${currentPeriod.term.replace("term_", "Term ")} ${currentPeriod.year}`
+              : "Your academic overview"}
           </p>
         </div>
         <Button 
           onClick={() => navigate("/learner-portal/ai-tutor")}
-          className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          size="sm"
+          className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 h-8 sm:h-9"
         >
-          <Sparkles className="h-4 w-4" />
-          <span className="hidden sm:inline">AI Tutor</span>
+          <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span className="text-xs sm:text-sm">AI Tutor</span>
         </Button>
       </div>
 
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle>Performance Filters</CardTitle>
-          <CardDescription>Select grade, term, and exam type to view performance data</CardDescription>
+        <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
+          <CardTitle className="text-sm sm:text-base">Performance Filters</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Select grade, term, and exam type</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <CardContent className="p-3 sm:p-6 pt-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
             <Select value={selectedGrade} onValueChange={setSelectedGrade}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Grade" />
+              <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
+                <SelectValue placeholder="Grade" />
               </SelectTrigger>
               <SelectContent>
                 {allGrades.map((grade) => (
-                  <SelectItem key={grade.id} value={grade.id}>
+                  <SelectItem key={grade.id} value={grade.id} className="text-xs sm:text-sm">
                     {grade.name}{grade.isCurrent ? " (Current)" : ""}
                   </SelectItem>
                 ))}
@@ -587,12 +588,12 @@ export default function LearnerDashboard() {
             </Select>
 
             <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Term" />
+              <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
+                <SelectValue placeholder="Term" />
               </SelectTrigger>
               <SelectContent>
                 {uniqueTerms.map((term) => (
-                  <SelectItem key={term} value={term}>
+                  <SelectItem key={term} value={term} className="text-xs sm:text-sm">
                     {term.replace("term_", "Term ")}
                   </SelectItem>
                 ))}
@@ -600,12 +601,12 @@ export default function LearnerDashboard() {
             </Select>
 
             <Select value={selectedExamType} onValueChange={setSelectedExamType}>
-              <SelectTrigger>
+              <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm col-span-2 sm:col-span-1">
                 <SelectValue placeholder="Exam Type" />
               </SelectTrigger>
               <SelectContent>
                 {examTypeOptions.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
+                  <SelectItem key={type.value} value={type.value} className="text-xs sm:text-sm">
                     {type.label}
                   </SelectItem>
                 ))}
@@ -613,19 +614,19 @@ export default function LearnerDashboard() {
             </Select>
 
             <Card className="border-0 shadow-none bg-primary/5">
-              <CardContent className="pt-6 pb-4">
-                <p className="text-xs text-muted-foreground">Subjects</p>
-                <p className="text-xl font-bold">{filteredStats.totalSubjects}</p>
+              <CardContent className="p-3 sm:pt-6 sm:pb-4">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Subjects</p>
+                <p className="text-lg sm:text-xl font-bold">{filteredStats.totalSubjects}</p>
               </CardContent>
             </Card>
 
             <Card className="border-0 shadow-none bg-primary/5">
-              <CardContent className="pt-6 pb-4">
-                <p className="text-xs text-muted-foreground">Average</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xl font-bold">{filteredStats.averageScore}%</p>
+              <CardContent className="p-3 sm:pt-6 sm:pb-4">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Average</p>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <p className="text-lg sm:text-xl font-bold">{filteredStats.averageScore}%</p>
                   {averageGrade && (
-                    <span className={`text-xs font-semibold ${averageGrade.color}`} title={averageGrade.description}>
+                    <span className={`text-[10px] sm:text-xs font-semibold ${averageGrade.color}`} title={averageGrade.description}>
                       {averageGrade.label}
                     </span>
                   )}
@@ -637,33 +638,33 @@ export default function LearnerDashboard() {
       </Card>
 
       {/* Performance Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         <Card className="bg-primary/5 border-0">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <BookOpen className="h-5 w-5 text-primary" />
+          <CardContent className="p-3 sm:pt-4 sm:pb-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Total Subjects</p>
-                <p className="text-xl font-bold">{filteredStats.totalSubjects}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Total Subjects</p>
+                <p className="text-lg sm:text-xl font-bold">{filteredStats.totalSubjects}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-blue-500/5 border-0">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <BarChart3 className="h-5 w-5 text-blue-500" />
+          <CardContent className="p-3 sm:pt-4 sm:pb-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg flex-shrink-0">
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Overall Average</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xl font-bold">{filteredStats.averageScore}%</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Overall Average</p>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <p className="text-lg sm:text-xl font-bold">{filteredStats.averageScore}%</p>
                   {averageGrade && (
-                    <span className={`text-xs font-semibold ${averageGrade.color}`}>
+                    <span className={`text-[10px] sm:text-xs font-semibold ${averageGrade.color}`}>
                       {averageGrade.label}
                     </span>
                   )}
@@ -674,18 +675,18 @@ export default function LearnerDashboard() {
         </Card>
 
         <Card className="bg-green-500/5 border-0">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <Award className="h-5 w-5 text-green-500" />
+          <CardContent className="p-3 sm:pt-4 sm:pb-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-green-500/10 rounded-lg flex-shrink-0">
+                <Award className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Best Subject</p>
-                <p className="text-sm font-bold truncate max-w-[100px]">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Best Subject</p>
+                <p className="text-xs sm:text-sm font-bold truncate">
                   {bestSubjects[0]?.area || "N/A"}
                 </p>
                 {bestSubjects[0] && (
-                  <p className="text-xs text-muted-foreground">{bestSubjects[0].average}%</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">{bestSubjects[0].average}%</p>
                 )}
               </div>
             </div>
@@ -693,14 +694,14 @@ export default function LearnerDashboard() {
         </Card>
 
         <Card className="bg-destructive/5 border-0">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-destructive/10 rounded-lg">
-                <DollarSign className="h-5 w-5 text-destructive" />
+          <CardContent className="p-3 sm:pt-4 sm:pb-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-destructive/10 rounded-lg flex-shrink-0">
+                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Fee Balance</p>
-                <p className="text-sm font-bold text-destructive">KES {feeBalance.toLocaleString()}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Fee Balance</p>
+                <p className="text-xs sm:text-sm font-bold text-destructive">KES {feeBalance.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -708,78 +709,79 @@ export default function LearnerDashboard() {
       </div>
 
       {/* Best & Weakest Subjects */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Award className="h-4 w-4 text-primary" />
-              Top Performing Subjects
+          <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+              Top Performing
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               {selectedGradeName && displayTerm && selectedAcademicYear
                 ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}`
-                : "Select filters to view top subjects"}
+                : "Select filters to view"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="space-y-1.5 sm:space-y-2">
               {bestSubjects.length > 0 ? bestSubjects.map((subject, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-primary/5 rounded">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-primary bg-primary/10 rounded-full w-5 h-5 flex items-center justify-center">
+                <div key={idx} className="flex items-center justify-between p-1.5 sm:p-2 bg-primary/5 rounded">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <span className="text-[10px] sm:text-xs font-bold text-primary bg-primary/10 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center flex-shrink-0">
                       {idx + 1}
                     </span>
-                    <span className="text-sm font-medium">{subject.area}</span>
+                    <span className="text-xs sm:text-sm font-medium truncate">{subject.area}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="default" className="text-xs">{subject.average}%</Badge>
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    <Badge variant="default" className="text-[10px] sm:text-xs px-1.5 sm:px-2">{subject.average}%</Badge>
                     {subject.grade && (
-                      <span className={`text-xs font-semibold ${subject.grade.color}`}>
+                      <span className={`text-[10px] sm:text-xs font-semibold ${subject.grade.color}`}>
                         {subject.grade.label}
                       </span>
                     )}
                   </div>
                 </div>
               )) : (
-                <p className="text-sm text-muted-foreground">No performance data available</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">No data available</p>
               )}
             </div>
           </CardContent>
         </Card>
 
+
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <AlertCircle className="h-4 w-4 text-destructive" />
-              Areas for Improvement
+          <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
+              Needs Improvement
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               {selectedGradeName && displayTerm && selectedAcademicYear
                 ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}`
-                : "Select filters to view areas for improvement"}
+                : "Select filters to view"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="space-y-1.5 sm:space-y-2">
               {weakestSubjects.length > 0 ? weakestSubjects.map((subject, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-destructive/5 rounded">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-destructive bg-destructive/10 rounded-full w-5 h-5 flex items-center justify-center">
+                <div key={idx} className="flex items-center justify-between p-1.5 sm:p-2 bg-destructive/5 rounded">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <span className="text-[10px] sm:text-xs font-bold text-destructive bg-destructive/10 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center flex-shrink-0">
                       {idx + 1}
                     </span>
-                    <span className="text-sm font-medium">{subject.area}</span>
+                    <span className="text-xs sm:text-sm font-medium truncate">{subject.area}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="destructive" className="text-xs">{subject.average}%</Badge>
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    <Badge variant="destructive" className="text-[10px] sm:text-xs px-1.5 sm:px-2">{subject.average}%</Badge>
                     {subject.grade && (
-                      <span className={`text-xs font-semibold ${subject.grade.color}`}>
+                      <span className={`text-[10px] sm:text-xs font-semibold ${subject.grade.color}`}>
                         {subject.grade.label}
                       </span>
                     )}
                   </div>
                 </div>
               )) : (
-                <p className="text-sm text-muted-foreground">No performance data available</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">No data available</p>
               )}
             </div>
           </CardContent>
@@ -788,26 +790,26 @@ export default function LearnerDashboard() {
 
       {/* Performance Table and Graphs - 3 column layout on large screens, stacked on small */}
       {tableData.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
           {/* Performance Table with Dynamic Exam Types */}
           <Card className="lg:col-span-2">
-            <CardHeader className="py-3 md:py-6">
-              <CardTitle className="text-sm md:text-base flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                Detailed Performance Overview
+            <CardHeader className="p-3 sm:py-3 md:p-6">
+              <CardTitle className="text-xs sm:text-sm md:text-base flex items-center gap-1.5 sm:gap-2">
+                <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                Performance Overview
               </CardTitle>
-              <CardDescription className="text-xs md:text-sm">
+              <CardDescription className="text-[10px] sm:text-xs md:text-sm">
                 {selectedGradeName && displayTerm && selectedAcademicYear
                   ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}${displayExamType ? ` - ${displayExamType}` : ""}`
                   : "Select filters to view performance"}
                 {activeFormula && (
-                  <span className="ml-2 text-primary font-medium">
-                    (Using {activeFormula.name} formula)
+                  <span className="ml-1 sm:ml-2 text-primary font-medium">
+                    ({activeFormula.name})
                   </span>
                 )}
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-0 md:p-6">
+            <CardContent className="p-0 sm:p-3 md:p-6 md:pt-0">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -882,19 +884,19 @@ export default function LearnerDashboard() {
           
         {/* Performance Overview Graph */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Performance Overview
+          <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
+            <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base">
+              <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 text-primary" />
+              Graph Overview
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-[10px] sm:text-xs md:text-sm">
               {selectedGradeName && displayTerm && selectedAcademicYear
-                ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}${displayExamType ? ` - ${displayExamType}` : ""}`
-                : "Filter to view performance"}
+                ? `${selectedGradeName} ${displayTerm}`
+                : "Filter to view"}
             </CardDescription>
           </CardHeader>
           
-          <CardContent>
+          <CardContent className="p-3 sm:p-6 pt-0">
             {filteredPerformance.length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">No performance records for selected filters</p>
             ) : (
