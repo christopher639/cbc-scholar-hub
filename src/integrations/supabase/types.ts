@@ -1922,6 +1922,60 @@ export type Database = {
           },
         ]
       }
+      performance_releases: {
+        Row: {
+          academic_year: string
+          created_at: string
+          exam_type: string
+          grade_id: string | null
+          id: string
+          released_at: string
+          released_by: string
+          stream_id: string | null
+          term: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          exam_type: string
+          grade_id?: string | null
+          id?: string
+          released_at?: string
+          released_by: string
+          stream_id?: string | null
+          term: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          exam_type?: string
+          grade_id?: string | null
+          id?: string
+          released_at?: string
+          released_by?: string
+          stream_id?: string | null
+          term?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_releases_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_releases_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           activation_status: string | null

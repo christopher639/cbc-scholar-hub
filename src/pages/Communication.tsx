@@ -31,7 +31,6 @@ export default function Communication() {
   const [loading, setLoading] = useState(false);
   const [showRepliedMessages, setShowRepliedMessages] = useState(false);
   const [showAllRecentMessages, setShowAllRecentMessages] = useState(false);
-  const [performanceLoading, setPerformanceLoading] = useState(false);
   const [automationLoading, setAutomationLoading] = useState(false);
   const [runNowLoading, setRunNowLoading] = useState(false);
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
@@ -61,14 +60,6 @@ export default function Communication() {
     message: "",
   });
 
-  const [performanceForm, setPerformanceForm] = useState({
-    academicYear: "",
-    term: "term_1",
-    examType: "combined",
-    scope: "school" as "school" | "grade" | "stream",
-    gradeId: "",
-    streamId: "",
-  });
 
   // Fetch fee reminder automation settings
   const { data: automationSettings, isLoading: automationSettingsLoading, refetch: refetchAutomation } = useQuery({
@@ -201,79 +192,6 @@ export default function Communication() {
     ? streams.filter((stream) => stream.grade_id === formData.gradeId)
     : [];
 
-  const performanceFilteredStreams = performanceForm.gradeId
-    ? streams.filter((stream) => stream.grade_id === performanceForm.gradeId)
-    : [];
-
-  const handleSendPerformanceSms = async () => {
-    if (!performanceForm.academicYear) {
-      toast({
-        title: "Error",
-        description: "Please select an academic year",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (performanceForm.scope === "grade" && !performanceForm.gradeId) {
-      toast({
-        title: "Error",
-        description: "Please select a grade",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (performanceForm.scope === "stream" && (!performanceForm.gradeId || !performanceForm.streamId)) {
-      toast({
-        title: "Error",
-        description: "Please select both grade and stream",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setPerformanceLoading(true);
-
-    try {
-      const response = await supabase.functions.invoke("send-performance-sms", {
-        body: {
-          academicYear: performanceForm.academicYear,
-          term: performanceForm.term,
-          examType: performanceForm.examType,
-          scope: performanceForm.scope,
-          gradeId: performanceForm.gradeId || undefined,
-          streamId: performanceForm.streamId || undefined,
-        },
-      });
-
-      if (response.error) throw response.error;
-
-      const result = response.data;
-
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: result.message,
-        });
-      } else {
-        toast({
-          title: "Notice",
-          description: result.message || "No messages sent",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error("Error sending performance SMS:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send performance SMS",
-        variant: "destructive",
-      });
-    } finally {
-      setPerformanceLoading(false);
-    }
-  };
 
   const handleSaveAutomation = async () => {
     setAutomationLoading(true);
@@ -660,11 +578,6 @@ export default function Communication() {
               <Send className="h-4 w-4" />
               <span className="hidden sm:inline">Send Bulk Message</span>
               <span className="sm:hidden">Bulk SMS</span>
-            </TabsTrigger>
-            <TabsTrigger value="performance" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Performance SMS</span>
-              <span className="sm:hidden">Marks</span>
             </TabsTrigger>
             <TabsTrigger value="automation" className="gap-2">
               <Timer className="h-4 w-4" />
@@ -1083,159 +996,6 @@ export default function Communication() {
             </div>
           </TabsContent>
 
-          {/* Performance SMS Tab */}
-          <TabsContent value="performance">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Send Performance Records SMS
-                </CardTitle>
-                <CardDescription>
-                  Send learner performance results to parents via SMS
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Academic Year *</Label>
-                    <Select
-                      value={performanceForm.academicYear}
-                      onValueChange={(value) => setPerformanceForm({ ...performanceForm, academicYear: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {academicYears.map((year) => (
-                          <SelectItem key={year.id} value={year.year}>
-                            {year.year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Term *</Label>
-                    <Select
-                      value={performanceForm.term}
-                      onValueChange={(value) => setPerformanceForm({ ...performanceForm, term: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select term" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="term_1">Term 1</SelectItem>
-                        <SelectItem value="term_2">Term 2</SelectItem>
-                        <SelectItem value="term_3">Term 3</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Exam Type *</Label>
-                    <Select
-                      value={performanceForm.examType}
-                      onValueChange={(value) => setPerformanceForm({ ...performanceForm, examType: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select exam type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="combined">All Exams (Combined)</SelectItem>
-                        <SelectItem value="opener">Opener</SelectItem>
-                        <SelectItem value="mid_term">Mid-Term</SelectItem>
-                        <SelectItem value="final">Final/End-Term</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Send To *</Label>
-                  <RadioGroup
-                    value={performanceForm.scope}
-                    onValueChange={(value: "school" | "grade" | "stream") =>
-                      setPerformanceForm({ ...performanceForm, scope: value, gradeId: "", streamId: "" })
-                    }
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="school" id="perf-school" />
-                      <Label htmlFor="perf-school" className="cursor-pointer">Whole School (All Parents)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="grade" id="perf-grade" />
-                      <Label htmlFor="perf-grade" className="cursor-pointer">Specific Grade</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="stream" id="perf-stream" />
-                      <Label htmlFor="perf-stream" className="cursor-pointer">Specific Stream</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {(performanceForm.scope === "grade" || performanceForm.scope === "stream") && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Select Grade *</Label>
-                      <Select
-                        value={performanceForm.gradeId}
-                        onValueChange={(value) => setPerformanceForm({ ...performanceForm, gradeId: value, streamId: "" })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {grades.map((grade) => (
-                            <SelectItem key={grade.id} value={grade.id}>
-                              {grade.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {performanceForm.scope === "stream" && performanceForm.gradeId && (
-                      <div className="space-y-2">
-                        <Label>Select Stream *</Label>
-                        <Select
-                          value={performanceForm.streamId}
-                          onValueChange={(value) => setPerformanceForm({ ...performanceForm, streamId: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose a stream" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {performanceFilteredStreams.map((stream) => (
-                              <SelectItem key={stream.id} value={stream.id}>
-                                {stream.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    <strong>SMS Preview:</strong> Parents will receive a message with their learner's average score, grade category (E.E/M.E/A.E/B.E), and top 3 subjects for the selected period.
-                  </p>
-                </div>
-
-                <Button
-                  onClick={handleSendPerformanceSms}
-                  disabled={performanceLoading}
-                  className="w-full md:w-auto gap-2"
-                >
-                  <Send className="h-4 w-4" />
-                  {performanceLoading ? "Sending..." : "Send Performance SMS"}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Fee Automation Tab */}
           <TabsContent value="automation" className="space-y-4">

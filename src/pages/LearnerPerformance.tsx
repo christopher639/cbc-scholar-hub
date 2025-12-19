@@ -10,8 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Lock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function LearnerPerformance() {
   const { user } = useAuth();
@@ -26,10 +28,40 @@ export default function LearnerPerformance() {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedTerm, setSelectedTerm] = useState<string>("");
 
+  // Fetch released marks
+  const { data: releases = [] } = useQuery({
+    queryKey: ["performance-releases"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("performance_releases")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Check if marks are released for given filters
+  const isReleased = (year: string, term: string, examType: string) => {
+    if (!learner) return false;
+    return releases.some((r: any) => {
+      const matchesYear = r.academic_year === year;
+      const matchesTerm = r.term === term;
+      const matchesExam = r.exam_type.toLowerCase() === examType.toLowerCase();
+      const matchesScope = !r.grade_id || r.grade_id === learner.current_grade_id;
+      const matchesStream = !r.stream_id || r.stream_id === learner.current_stream_id;
+      return matchesYear && matchesTerm && matchesExam && matchesScope && matchesStream;
+    });
+  };
+
   // Get active exam types sorted by display order
   const activeExamTypes = examTypes
     .filter(et => et.is_active)
     .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+  // Filter to only show released exam types
+  const releasedExamTypes = activeExamTypes.filter(et => 
+    isReleased(selectedYear, selectedTerm, et.name)
+  );
 
   useEffect(() => {
     if (learner) {
@@ -115,7 +147,7 @@ export default function LearnerPerformance() {
           examScores: {} as Record<string, number | null>,
           source: reg.source,
         };
-        activeExamTypes.forEach(et => {
+        releasedExamTypes.forEach(et => {
           acc[la.name].examScores[et.name] = null;
         });
       }
@@ -138,14 +170,14 @@ export default function LearnerPerformance() {
           code: areaCode,
           examScores: {} as Record<string, number | null>,
         };
-        activeExamTypes.forEach(et => {
+        releasedExamTypes.forEach(et => {
           acc[areaName].examScores[et.name] = null;
         });
       }
       
-      // Match exam type (case-insensitive)
+      // Match exam type only if released
       const recordExamType = record.exam_type?.toLowerCase();
-      const matchedExamType = activeExamTypes.find(
+      const matchedExamType = releasedExamTypes.find(
         et => et.name.toLowerCase() === recordExamType
       );
       
