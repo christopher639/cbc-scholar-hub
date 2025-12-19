@@ -2,6 +2,8 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer, Download } from "lucide-react";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
+import { useExamTypes } from "@/hooks/useExamTypes";
+import { useGradingScales } from "@/hooks/useGradingScales";
 import { useReactToPrint } from "react-to-print";
 
 interface PrintablePerformanceReportProps {
@@ -29,6 +31,13 @@ export function PrintablePerformanceReport({
 }: PrintablePerformanceReportProps) {
   const printRef = useRef<HTMLDivElement>(null);
   const { schoolInfo } = useSchoolInfo();
+  const { examTypes } = useExamTypes();
+  const { gradingScales, getGrade } = useGradingScales();
+
+  // Get active exam types sorted by display order
+  const activeExamTypes = examTypes
+    .filter(et => et.is_active)
+    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -140,13 +149,13 @@ export function PrintablePerformanceReport({
       }
       th, td {
         border: 1px solid #ddd;
-        padding: 4px;
+        padding: 3px;
         text-align: center;
       }
       th {
         background-color: #f5f5f5;
         font-weight: bold;
-        font-size: 8px;
+        font-size: 7px;
       }
       td:first-child {
         text-align: left;
@@ -169,8 +178,8 @@ export function PrintablePerformanceReport({
         margin-bottom: 4px;
       }
       .grading-key-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        display: flex;
+        flex-wrap: wrap;
         gap: 8px;
         font-size: 7px;
       }
@@ -230,40 +239,75 @@ export function PrintablePerformanceReport({
   };
 
   const getGradeLabel = (marks: number) => {
-    if (marks >= 80) return "E.E";
-    if (marks >= 50) return "M.E";
-    if (marks >= 30) return "A.E";
-    return "B.E";
+    const gradeInfo = getGrade(marks);
+    return gradeInfo?.grade_name || "-";
   };
 
-  // Group performance by learning area
+  // Group performance by learning area with all exam types as columns
   const groupedPerformance = performance.reduce((acc: any, record: any) => {
     const areaId = record.learning_area_id;
+    const areaName = record.learning_area?.name || "N/A";
+    
     if (!acc[areaId]) {
       acc[areaId] = {
-        name: record.learning_area?.name || "N/A",
+        name: areaName,
         code: record.learning_area?.code || "N/A",
-        opener: null,
-        midterm: null,
-        final: null
+        examScores: {} as Record<string, { score: number | null; maxMarks: number }>,
+      };
+      // Initialize all exam types
+      activeExamTypes.forEach(et => {
+        acc[areaId].examScores[et.name] = { score: null, maxMarks: et.max_marks || 100 };
+      });
+    }
+    
+    // Match exam type
+    const recordExamType = record.exam_type?.toLowerCase().trim();
+    const matchedExamType = activeExamTypes.find(
+      et => et.name.toLowerCase().trim() === recordExamType
+    );
+    
+    if (matchedExamType) {
+      acc[areaId].examScores[matchedExamType.name] = {
+        score: record.marks,
+        maxMarks: matchedExamType.max_marks || 100,
       };
     }
-    const examType = record.exam_type?.toLowerCase();
-    if (examType === "opener") acc[areaId].opener = record.marks;
-    if (examType === "mid-term") acc[areaId].midterm = record.marks;
-    if (examType === "final") acc[areaId].final = record.marks;
+    
     return acc;
   }, {});
 
+  // Calculate average: (sum of all exam percentages) / (number of exams with scores)
   const tableData = Object.values(groupedPerformance).map((area: any) => {
-    const scores = [area.opener, area.midterm, area.final].filter((s) => s !== null);
-    const average = scores.length > 0 ? scores.reduce((sum: number, s: number) => sum + s, 0) / scores.length : 0;
-    return { ...area, average: Math.round(average * 10) / 10 };
+    const validScores: { score: number; maxMarks: number }[] = [];
+    
+    Object.values(area.examScores).forEach((examData: any) => {
+      if (examData.score !== null && examData.score !== undefined) {
+        validScores.push({
+          score: Number(examData.score),
+          maxMarks: examData.maxMarks,
+        });
+      }
+    });
+    
+    let average = 0;
+    if (validScores.length > 0) {
+      const totalPercentage = validScores.reduce((sum, item) => {
+        const percentage = (item.score / item.maxMarks) * 100;
+        return sum + percentage;
+      }, 0);
+      average = totalPercentage / validScores.length;
+    }
+    
+    return { 
+      ...area, 
+      average: Math.round(average * 10) / 10 
+    };
   });
 
   // Calculate overall average
-  const overallAverage = tableData.length > 0
-    ? tableData.reduce((sum, area) => sum + (area.average || 0), 0) / tableData.length
+  const areasWithMarks = tableData.filter((area: any) => area.average > 0);
+  const overallAverage = areasWithMarks.length > 0
+    ? areasWithMarks.reduce((sum: number, area: any) => sum + (area.average || 0), 0) / areasWithMarks.length
     : 0;
   const overallGrade = getGradeLabel(overallAverage);
 
@@ -349,10 +393,13 @@ export function PrintablePerformanceReport({
           <table>
             <thead>
               <tr>
-                <th>Learning Area</th>
-                <th>Opener</th>
-                <th>Mid-Term</th>
-                <th>Final</th>
+                <th style={{ textAlign: "left" }}>Learning Area</th>
+                {activeExamTypes.map(et => (
+                  <th key={et.id}>
+                    {et.name}
+                    <div style={{ fontSize: "6px", fontWeight: "normal" }}>/{et.max_marks || 100}</div>
+                  </th>
+                ))}
                 <th>Average</th>
                 <th>Grade</th>
               </tr>
@@ -361,20 +408,25 @@ export function PrintablePerformanceReport({
               {tableData.map((area: any, index: number) => (
                 <tr key={index}>
                   <td style={{ textAlign: "left" }}>{area.name}</td>
-                  <td>{area.opener !== null ? area.opener : "-"}</td>
-                  <td>{area.midterm !== null ? area.midterm : "-"}</td>
-                  <td>{area.final !== null ? area.final : "-"}</td>
-                  <td style={{ fontWeight: "bold" }}>{area.average.toFixed(1)}</td>
-                  <td className={getGradeClass(area.average)}>
-                    <strong>{getGradeLabel(area.average)}</strong>
+                  {activeExamTypes.map(et => {
+                    const examData = area.examScores[et.name];
+                    return (
+                      <td key={et.id}>
+                        {examData?.score !== null ? examData.score : "-"}
+                      </td>
+                    );
+                  })}
+                  <td style={{ fontWeight: "bold" }}>{area.average > 0 ? area.average.toFixed(1) : "-"}</td>
+                  <td className={area.average > 0 ? getGradeClass(area.average) : ""}>
+                    <strong>{area.average > 0 ? getGradeLabel(area.average) : "-"}</strong>
                   </td>
                 </tr>
               ))}
               <tr className="overall-row">
                 <td style={{ textAlign: "left" }}>OVERALL</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
+                {activeExamTypes.map(et => (
+                  <td key={et.id}>-</td>
+                ))}
                 <td>{overallAverage.toFixed(1)}</td>
                 <td className={getGradeClass(overallAverage)}>
                   <strong>{overallGrade}</strong>
@@ -401,18 +453,30 @@ export function PrintablePerformanceReport({
           <div className="grading-key">
             <h4>Grading Key</h4>
             <div className="grading-key-grid">
-              <div className="grading-key-item">
-                <strong>E.E</strong><br/>80-100%<br/>Exceeding Expectation
-              </div>
-              <div className="grading-key-item">
-                <strong>M.E</strong><br/>50-79%<br/>Meeting Expectation
-              </div>
-              <div className="grading-key-item">
-                <strong>A.E</strong><br/>30-49%<br/>Approaching Expectation
-              </div>
-              <div className="grading-key-item">
-                <strong>B.E</strong><br/>0-29%<br/>Below Expectation
-              </div>
+              {gradingScales.length > 0 ? (
+                gradingScales
+                  .sort((a, b) => b.min_percentage - a.min_percentage)
+                  .map(scale => (
+                    <div key={scale.id} className="grading-key-item">
+                      <strong>{scale.grade_name}</strong> {scale.min_percentage}-{scale.max_percentage}% {scale.description && `(${scale.description})`}
+                    </div>
+                  ))
+              ) : (
+                <>
+                  <div className="grading-key-item">
+                    <strong>E.E</strong> 80-100% Exceeding Expectation
+                  </div>
+                  <div className="grading-key-item">
+                    <strong>M.E</strong> 50-79% Meeting Expectation
+                  </div>
+                  <div className="grading-key-item">
+                    <strong>A.E</strong> 30-49% Approaching Expectation
+                  </div>
+                  <div className="grading-key-item">
+                    <strong>B.E</strong> 0-29% Below Expectation
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

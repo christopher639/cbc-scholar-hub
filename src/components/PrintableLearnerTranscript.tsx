@@ -1,12 +1,20 @@
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { useGradingScales } from "@/hooks/useGradingScales";
 
+interface ExamTypeInfo {
+  id: string;
+  name: string;
+  max_marks: number;
+  display_order: number;
+}
+
 interface LearnerRecord {
   id: string;
   admission_number: string;
   first_name: string;
   last_name: string;
   marks: Record<string, number | null>;
+  examMarks?: Record<string, Record<string, number | null>>;
   total: number;
   average: number;
 }
@@ -19,7 +27,8 @@ interface LearningArea {
 
 interface PrintableLearnerTranscriptProps {
   learner: LearnerRecord;
-  learningAreas: LearningArea[]; // Only registered learning areas should be passed here
+  learningAreas: LearningArea[];
+  examTypes?: ExamTypeInfo[];
   filters: {
     academicYear: string;
     term: string;
@@ -32,6 +41,7 @@ interface PrintableLearnerTranscriptProps {
 export const PrintableLearnerTranscript = ({
   learner,
   learningAreas,
+  examTypes = [],
   filters,
 }: PrintableLearnerTranscriptProps) => {
   const { schoolInfo } = useSchoolInfo();
@@ -44,19 +54,23 @@ export const PrintableLearnerTranscript = ({
         return { grade: scale.grade_name, description: scale.description || '' };
       }
     }
-    // Fallback if no scale matches
     return { grade: '-', description: '' };
   };
 
+  // Check if showing combined/all exam types
+  const showExamColumns = (filters.examType === "Combined Average" || filters.examType === "All Types") && examTypes.length > 0;
+
   // Calculate total and average from available marks
   const subjectsWithMarks = learningAreas.filter(la => learner.marks[la.code] !== null);
-  const totalMarks = subjectsWithMarks.reduce((sum, la) => sum + (learner.marks[la.code] || 0), 0);
-  const averageMarks = subjectsWithMarks.length > 0 ? totalMarks / subjectsWithMarks.length : 0;
+  const averageMarks = subjectsWithMarks.length > 0 
+    ? subjectsWithMarks.reduce((sum, la) => sum + (learner.marks[la.code] || 0), 0) / subjectsWithMarks.length 
+    : 0;
 
-  // Determine compact mode based on number of subjects
-  const isCompact = learningAreas.length > 10;
+  // Determine compact mode based on number of subjects and exam columns
+  const totalColumns = learningAreas.length + (showExamColumns ? examTypes.length : 0);
+  const isCompact = totalColumns > 12 || learningAreas.length > 10;
   const cellPadding = isCompact ? "px-1 py-0.5" : "p-1";
-  const fontSize = isCompact ? "9px" : "10px";
+  const fontSize = isCompact ? "8px" : "9px";
 
   return (
     <div 
@@ -64,7 +78,7 @@ export const PrintableLearnerTranscript = ({
       style={{ 
         fontSize, 
         pageBreakAfter: "always",
-        padding: isCompact ? "12px 16px" : "16px 20px",
+        padding: isCompact ? "10px 12px" : "14px 18px",
         maxHeight: "100vh",
         overflow: "hidden"
       }}
@@ -96,7 +110,7 @@ export const PrintableLearnerTranscript = ({
 
       {/* Title Bar */}
       <div className="text-center mb-2 border-y border-black py-1">
-        <h2 className="text-sm font-bold uppercase">ACADEMIC TRANSCRIPT</h2>
+        <h2 className="text-sm font-bold uppercase">ACADEMIC REPORT CARD</h2>
         <p className="text-xs">
           {filters.academicYear} - {filters.term} | {filters.examType}
         </p>
@@ -112,35 +126,45 @@ export const PrintableLearnerTranscript = ({
         </div>
       </div>
 
-      {/* Performance Table - Compact */}
+      {/* Performance Table - With Exam Type Columns */}
       <table className="w-full border-collapse border border-black mb-2" style={{ fontSize }}>
         <thead>
           <tr className="bg-gray-100">
-            <th className={`border border-black ${cellPadding} text-left font-semibold w-6`}>#</th>
-            <th className={`border border-black ${cellPadding} text-left font-semibold`}>Code</th>
-            <th className={`border border-black ${cellPadding} text-left font-semibold`}>Subject</th>
-            <th className={`border border-black ${cellPadding} text-center font-semibold w-12`}>Marks</th>
-            <th className={`border border-black ${cellPadding} text-center font-semibold w-10`}>Grade</th>
-            <th className={`border border-black ${cellPadding} text-left font-semibold`}>Remarks</th>
+            <th className={`border border-black ${cellPadding} text-left font-semibold w-5`}>#</th>
+            <th className={`border border-black ${cellPadding} text-left font-semibold`} style={{ minWidth: "60px" }}>Subject</th>
+            {showExamColumns && examTypes.map(et => (
+              <th key={et.id} className={`border border-black ${cellPadding} text-center font-semibold`}>
+                <div>{et.name}</div>
+                <div style={{ fontSize: "6px", fontWeight: "normal" }}>/{et.max_marks}</div>
+              </th>
+            ))}
+            <th className={`border border-black ${cellPadding} text-center font-semibold w-10`}>Avg</th>
+            <th className={`border border-black ${cellPadding} text-center font-semibold w-8`}>Grade</th>
           </tr>
         </thead>
         <tbody>
           {learningAreas.map((la, index) => {
-            const marks = learner.marks[la.code];
-            const gradeInfo = marks !== null ? getGradeFromScale(marks) : null;
+            const avgMarks = learner.marks[la.code];
+            const gradeInfo = avgMarks !== null ? getGradeFromScale(avgMarks) : null;
+            const examData = learner.examMarks?.[la.code] || {};
+            
             return (
               <tr key={la.id}>
                 <td className={`border border-black ${cellPadding} text-center`}>{index + 1}</td>
-                <td className={`border border-black ${cellPadding} font-mono text-xs`}>{la.code}</td>
                 <td className={`border border-black ${cellPadding}`}>{la.name}</td>
+                {showExamColumns && examTypes.map(et => {
+                  const score = examData[et.name];
+                  return (
+                    <td key={et.id} className={`border border-black ${cellPadding} text-center`}>
+                      {score !== null && score !== undefined ? score : "—"}
+                    </td>
+                  );
+                })}
                 <td className={`border border-black ${cellPadding} text-center font-semibold`}>
-                  {marks !== null ? marks : "—"}
+                  {avgMarks !== null ? avgMarks : "—"}
                 </td>
                 <td className={`border border-black ${cellPadding} text-center font-semibold`}>
                   {gradeInfo ? gradeInfo.grade : "—"}
-                </td>
-                <td className={`border border-black ${cellPadding} text-xs`}>
-                  {gradeInfo ? gradeInfo.description : "—"}
                 </td>
               </tr>
             );
@@ -148,10 +172,11 @@ export const PrintableLearnerTranscript = ({
         </tbody>
         <tfoot>
           <tr className="bg-gray-100 font-bold">
-            <td colSpan={3} className={`border border-black ${cellPadding} text-right`}>AVERAGE:</td>
+            <td colSpan={showExamColumns ? 2 + examTypes.length : 2} className={`border border-black ${cellPadding} text-right`}>
+              OVERALL AVERAGE:
+            </td>
             <td className={`border border-black ${cellPadding} text-center`}>{averageMarks.toFixed(1)}%</td>
             <td className={`border border-black ${cellPadding} text-center`}>{getGradeFromScale(averageMarks).grade}</td>
-            <td className={`border border-black ${cellPadding}`}>{getGradeFromScale(averageMarks).description}</td>
           </tr>
         </tfoot>
       </table>
@@ -175,19 +200,19 @@ export const PrintableLearnerTranscript = ({
 
       {/* Signatures - Compact */}
       <div className="flex justify-between mt-3 text-xs">
-        <div className="w-36">
+        <div className="w-32">
           <div className="border-t border-black pt-0.5">Class Teacher</div>
         </div>
-        <div className="w-36">
+        <div className="w-32">
           <div className="border-t border-black pt-0.5">Principal</div>
         </div>
-        <div className="w-36">
+        <div className="w-32">
           <div className="border-t border-black pt-0.5">Date: {new Date().toLocaleDateString()}</div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="mt-2 pt-1 border-t border-black text-center" style={{ fontSize: "8px" }}>
+      <div className="mt-2 pt-1 border-t border-black text-center" style={{ fontSize: "7px" }}>
         <p className="text-gray-500">Computer generated document | {new Date().toLocaleString()}</p>
       </div>
     </div>
