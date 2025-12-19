@@ -1,12 +1,20 @@
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { useGradingScales } from "@/hooks/useGradingScales";
 
+interface ExamTypeInfo {
+  id: string;
+  name: string;
+  max_marks: number;
+  display_order: number;
+}
+
 interface LearnerRecord {
   id: string;
   admission_number: string;
   first_name: string;
   last_name: string;
   marks: Record<string, number | null>;
+  examMarks?: Record<string, Record<string, number | null>>;
   total: number;
   average: number;
 }
@@ -14,6 +22,7 @@ interface LearnerRecord {
 interface ReportData {
   learners: LearnerRecord[];
   learningAreas: Array<{ id: string; code: string; name: string }>;
+  examTypes?: ExamTypeInfo[];
   gradeName: string;
   streamName?: string;
 }
@@ -39,6 +48,10 @@ export const PrintablePerformanceReportNew = ({ data, filters }: PrintablePerfor
     const grade = getGrade(average);
     return grade?.grade_name || "-";
   };
+
+  // Check if showing combined/all exam types
+  const showExamColumns = filters.examType === "Combined Average" || filters.examType === "All Types";
+  const examTypes = data.examTypes || [];
 
   return (
     <div className="p-6 bg-white text-black" style={{ fontSize: "10px" }}>
@@ -99,19 +112,19 @@ export const PrintablePerformanceReportNew = ({ data, filters }: PrintablePerfor
       </div>
 
       {/* Performance Table */}
-      <table className="w-full border-collapse" style={{ fontSize: "9px" }}>
+      <table className="w-full border-collapse" style={{ fontSize: "8px" }}>
         <thead>
           <tr className="bg-gray-100">
             <th className="border border-black p-1 text-left">#</th>
             <th className="border border-black p-1 text-left">Adm No.</th>
-            <th className="border border-black p-1 text-left" style={{ minWidth: "100px" }}>Learner Name</th>
+            <th className="border border-black p-1 text-left" style={{ minWidth: "80px" }}>Name</th>
             {data.learningAreas.map((la) => (
               <th key={la.id} className="border border-black p-1 text-center" title={la.name}>
                 {la.code}
               </th>
             ))}
             <th className="border border-black p-1 text-center">Avg</th>
-            <th className="border border-black p-1 text-center">Remarks</th>
+            <th className="border border-black p-1 text-center">Grade</th>
           </tr>
         </thead>
         <tbody>

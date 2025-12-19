@@ -10,12 +10,20 @@ interface ReportFilters {
   streamId?: string;
 }
 
+interface ExamTypeInfo {
+  id: string;
+  name: string;
+  max_marks: number;
+  display_order: number;
+}
+
 interface LearnerRecord {
   id: string;
   admission_number: string;
   first_name: string;
   last_name: string;
-  marks: Record<string, number | null>;
+  marks: Record<string, number | null>; // By learning area code
+  examMarks: Record<string, Record<string, number | null>>; // By learning area code -> exam type name -> marks
   total: number;
   average: number;
 }
@@ -23,6 +31,7 @@ interface LearnerRecord {
 interface ReportData {
   learners: LearnerRecord[];
   learningAreas: Array<{ id: string; code: string; name: string }>;
+  examTypes: ExamTypeInfo[];
   filters: ReportFilters;
   gradeName: string;
   streamName?: string;
@@ -45,6 +54,22 @@ export function usePerformanceReport() {
 
       if (laError) throw laError;
 
+      // Fetch exam types
+      const { data: examTypesData, error: etError } = await supabase
+        .from("exam_types")
+        .select("id, name, max_marks, display_order")
+        .eq("is_active", true)
+        .order("display_order");
+
+      if (etError) throw etError;
+
+      const examTypes: ExamTypeInfo[] = (examTypesData || []).map(et => ({
+        id: et.id,
+        name: et.name,
+        max_marks: et.max_marks || 100,
+        display_order: et.display_order || 0,
+      }));
+
       // Fetch grade name
       const { data: grade } = await supabase
         .from("grades")
@@ -63,11 +88,10 @@ export function usePerformanceReport() {
         streamName = stream?.name;
       }
 
-      // Fetch performance records FIRST - filter by grade_id in the performance record
-      // This correctly gets records for learners who were in this grade when marks were recorded
+      // Fetch performance records - filter by grade_id in the performance record
       let perfQuery = supabase
         .from("performance_records")
-        .select("learner_id, learning_area_id, marks")
+        .select("learner_id, learning_area_id, marks, exam_type")
         .eq("academic_year", filters.academicYear)
         .eq("grade_id", filters.gradeId);
 
@@ -75,6 +99,7 @@ export function usePerformanceReport() {
         perfQuery = perfQuery.eq("term", filters.term as any);
       }
 
+      // Only filter by exam_type if not "all" or "combined"
       if (filters.examType !== "all" && filters.examType !== "combined") {
         perfQuery = perfQuery.eq("exam_type", filters.examType);
       }
@@ -102,8 +127,8 @@ export function usePerformanceReport() {
         learners = learnersData || [];
       }
 
-      // Build marks map: learner_id -> learning_area_id -> marks
-      const marksMap = new Map<string, Map<string, number[]>>();
+      // Build marks map: learner_id -> learning_area_id -> exam_type -> marks
+      const marksMap = new Map<string, Map<string, Map<string, number>>>();
       
       perfRecords?.forEach((record) => {
         if (!marksMap.has(record.learner_id)) {
@@ -112,26 +137,60 @@ export function usePerformanceReport() {
         const learnerMarks = marksMap.get(record.learner_id)!;
         
         if (!learnerMarks.has(record.learning_area_id)) {
-          learnerMarks.set(record.learning_area_id, []);
+          learnerMarks.set(record.learning_area_id, new Map());
         }
-        learnerMarks.get(record.learning_area_id)!.push(Number(record.marks));
+        const areaMarks = learnerMarks.get(record.learning_area_id)!;
+        
+        const examType = record.exam_type || "Unknown";
+        areaMarks.set(examType, Number(record.marks));
       });
 
       // Build learner records with marks
       const learnerRecords: LearnerRecord[] = learners.map((learner) => {
         const learnerMarksMap = marksMap.get(learner.id);
         const marks: Record<string, number | null> = {};
-        let total = 0;
+        const examMarks: Record<string, Record<string, number | null>> = {};
+        let totalPercentage = 0;
         let subjectCount = 0;
 
         learningAreas?.forEach((la) => {
-          const subjectMarks = learnerMarksMap?.get(la.id);
-          if (subjectMarks && subjectMarks.length > 0) {
-            // Average if combined/multiple entries
-            const avg = subjectMarks.reduce((a, b) => a + b, 0) / subjectMarks.length;
-            marks[la.code] = Math.round(avg * 10) / 10;
-            total += marks[la.code]!;
-            subjectCount++;
+          const areaMarksMap = learnerMarksMap?.get(la.id);
+          
+          // Initialize exam marks for this learning area
+          examMarks[la.code] = {};
+          examTypes.forEach(et => {
+            examMarks[la.code][et.name] = null;
+          });
+          
+          if (areaMarksMap && areaMarksMap.size > 0) {
+            // Fill in actual marks for each exam type
+            let areaTotal = 0;
+            let examCount = 0;
+            
+            areaMarksMap.forEach((score, examTypeName) => {
+              // Find matching exam type (case-insensitive)
+              const matchedExamType = examTypes.find(
+                et => et.name.toLowerCase().trim() === examTypeName.toLowerCase().trim()
+              );
+              
+              if (matchedExamType) {
+                examMarks[la.code][matchedExamType.name] = score;
+                // Calculate percentage for this exam
+                const percentage = (score / matchedExamType.max_marks) * 100;
+                areaTotal += percentage;
+                examCount++;
+              }
+            });
+            
+            // Calculate average for this learning area
+            if (examCount > 0) {
+              const areaAverage = areaTotal / examCount;
+              marks[la.code] = Math.round(areaAverage * 10) / 10;
+              totalPercentage += areaAverage;
+              subjectCount++;
+            } else {
+              marks[la.code] = null;
+            }
           } else {
             marks[la.code] = null;
           }
@@ -143,8 +202,9 @@ export function usePerformanceReport() {
           first_name: learner.first_name,
           last_name: learner.last_name,
           marks,
-          total: Math.round(total * 10) / 10,
-          average: subjectCount > 0 ? Math.round((total / subjectCount) * 10) / 10 : 0,
+          examMarks,
+          total: Math.round(totalPercentage * 10) / 10,
+          average: subjectCount > 0 ? Math.round((totalPercentage / subjectCount) * 10) / 10 : 0,
         };
       });
 
@@ -154,6 +214,7 @@ export function usePerformanceReport() {
       setReportData({
         learners: learnerRecords,
         learningAreas: learningAreas || [],
+        examTypes,
         filters,
         gradeName: grade?.name || "",
         streamName,

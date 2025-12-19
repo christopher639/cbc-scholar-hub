@@ -326,6 +326,7 @@ export const PerformanceReportDialog = ({ open, onOpenChange }: PerformanceRepor
               key={learner.id}
               learner={learner}
               learningAreas={reportData.learningAreas}
+              examTypes={reportData.examTypes}
               filters={{
                 academicYear: filters.academicYear,
                 term: getTermLabel(filters.term),
