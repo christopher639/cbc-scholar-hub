@@ -64,6 +64,7 @@ import TeacherMarks from "./pages/TeacherMarks";
 import TeacherAssignments from "./pages/TeacherAssignments";
 import TeacherPortalProfile from "./pages/TeacherPortalProfile";
 import TeacherSettings from "./pages/TeacherSettings";
+import ReleaseMarks from "./pages/ReleaseMarks";
 
 const queryClient = new QueryClient();
 
@@ -124,6 +125,7 @@ function AppRoutes() {
       <Route path="/grades/:grade" element={<ProtectedRoute><GradeDetail /></ProtectedRoute>} />
       <Route path="/grades/:grade/:stream" element={<ProtectedRoute><StreamDetail /></ProtectedRoute>} />
       <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
+      <Route path="/release-marks" element={<ProtectedRoute><AdminRoute><ReleaseMarks /></AdminRoute></ProtectedRoute>} />
       <Route path="/teachers" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
       <Route path="/teachers/:id" element={<ProtectedRoute><TeacherProfile /></ProtectedRoute>} />
       <Route path="/non-teaching-staff" element={<ProtectedRoute><NonTeachingStaff /></ProtectedRoute>} />
