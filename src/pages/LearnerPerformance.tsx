@@ -309,7 +309,7 @@ export default function LearnerPerformance() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Learning Area</TableHead>
-                      {activeExamTypes.map(et => (
+                      {releasedExamTypes.map(et => (
                         <TableHead key={et.id} className="text-center">
                           {et.name}
                           <span className="text-xs text-muted-foreground block">/{et.max_marks || 100}</span>
@@ -325,7 +325,7 @@ export default function LearnerPerformance() {
                       return (
                         <TableRow key={area.area}>
                           <TableCell className="font-medium">{area.area}</TableCell>
-                          {activeExamTypes.map(et => (
+                          {releasedExamTypes.map(et => (
                             <TableCell key={et.id} className="text-center">
                               {area.examScores[et.name] ?? "-"}
                             </TableCell>

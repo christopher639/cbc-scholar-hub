@@ -111,64 +111,49 @@ const Performance = () => {
                 )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="py-2 text-xs">Code</TableHead>
-                      <TableHead className="py-2 text-xs">Name</TableHead>
-                      <TableHead className="py-2 text-xs hidden md:table-cell">Description</TableHead>
-                      <TableHead className="py-2 text-xs">Assigned Teacher</TableHead>
-                      <TableHead className="w-12 py-2 text-xs">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredAreas.map((area) => (
-                      <TableRow key={area.id} className="h-12">
-                        <TableCell className="py-1.5">
-                          <Badge variant="secondary" className="text-xs font-mono">{area.code}</Badge>
-                        </TableCell>
-                        <TableCell className="py-1.5 text-sm font-medium">{area.name}</TableCell>
-                        <TableCell className="py-1.5 text-sm text-muted-foreground hidden md:table-cell">
-                          {area.description || "—"}
-                        </TableCell>
-                        <TableCell className="py-1.5">
-                          {area.teacher ? (
-                            <div className="flex items-center gap-1.5">
-                              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                                <User className="h-3 w-3 text-primary" />
-                              </div>
-                              <span className="text-sm">{area.teacher.first_name} {area.teacher.last_name}</span>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Not assigned</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4">
+                {filteredAreas.map((area) => (
+                  <div key={area.id} className="border rounded-lg p-3 bg-card hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge variant="secondary" className="text-xs font-mono">{area.code}</Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setIsBulkEntryOpen(true)}>
+                            <ClipboardList className="h-4 w-4 mr-2" />
+                            Record Marks
+                          </DropdownMenuItem>
+                          {isAdmin && (
+                            <DropdownMenuItem onClick={() => setIsManageLearningAreasOpen(true)}>
+                              <BookOpen className="h-4 w-4 mr-2" />
+                              Edit Area
+                            </DropdownMenuItem>
                           )}
-                        </TableCell>
-                        <TableCell className="py-1.5">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setIsBulkEntryOpen(true)}>
-                                <ClipboardList className="h-4 w-4 mr-2" />
-                                Record Marks
-                              </DropdownMenuItem>
-                              {isAdmin && (
-                                <DropdownMenuItem onClick={() => setIsManageLearningAreasOpen(true)}>
-                                  <BookOpen className="h-4 w-4 mr-2" />
-                                  Edit Area
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <h3 className="text-sm font-medium mb-1 truncate" title={area.name}>{area.name}</h3>
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-2 min-h-[2.5rem]">
+                      {area.description || "No description"}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-auto">
+                      {area.teacher ? (
+                        <>
+                          <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="h-3 w-3 text-primary" />
+                          </div>
+                          <span className="text-xs truncate">{area.teacher.first_name} {area.teacher.last_name}</span>
+                        </>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Not assigned</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
