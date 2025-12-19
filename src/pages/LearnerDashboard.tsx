@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users, Sparkles } from "lucide-react";
+import { TrendingUp, TrendingDown, Award, AlertCircle, Target, DollarSign, Users, Sparkles, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -38,6 +38,7 @@ export default function LearnerDashboard() {
   const [currentPeriod, setCurrentPeriod] = useState<{ year: string; term: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [gradeName, setGradeName] = useState("");
+  const [performanceReleases, setPerformanceReleases] = useState<any[]>([]);
 
   useEffect(() => {
     if (learner) {
@@ -65,6 +66,13 @@ export default function LearnerDashboard() {
         });
       }
       
+      // Fetch performance releases
+      const { data: releasesData } = await supabase
+        .from("performance_releases")
+        .select("*");
+      
+      setPerformanceReleases(releasesData || []);
+
       // Fetch performance data
       const { data: performanceData } = await supabase
         .from("performance_records")
@@ -222,17 +230,33 @@ export default function LearnerDashboard() {
     calculatePosition();
   }, [learner, selectedGrade, selectedTerm, selectedExamType]);
 
-  const filteredPerformance = performance.filter(record => {
+  // Helper function to check if marks are released
+  const isMarksReleased = (record: any) => {
+    return performanceReleases.some(release => {
+      const matchesYear = release.academic_year === record.academic_year;
+      const matchesTerm = release.term === record.term;
+      const matchesExamType = release.exam_type === record.exam_type;
+      const matchesGrade = !release.grade_id || release.grade_id === record.grade_id;
+      const matchesStream = !release.stream_id || release.stream_id === record.stream_id;
+      
+      return matchesYear && matchesTerm && matchesExamType && matchesGrade && matchesStream;
+    });
+  };
+
+  // Only show released performance records
+  const releasedPerformance = performance.filter(record => isMarksReleased(record));
+
+  const filteredPerformance = releasedPerformance.filter(record => {
     if (selectedGrade && record.grade_id !== selectedGrade) return false;
     if (selectedTerm && record.term !== selectedTerm) return false;
     if (selectedExamType !== "all" && record.exam_type !== selectedExamType) return false;
     return true;
   });
 
-  // Get unique grades from performance records - properly deduplicated
+  // Get unique grades from released performance records - properly deduplicated
   const uniqueGrades = Array.from(
     new Map(
-      performance
+      releasedPerformance
         .filter(p => p.grade_id && p.grade?.name)
         .map(p => [p.grade_id, { id: p.grade_id, name: p.grade.name }])
     ).values()
@@ -352,8 +376,8 @@ export default function LearnerDashboard() {
     fetchClassAverages();
   }, [learner, selectedGrade, selectedTerm, selectedExamType]);
 
-  // Performance over time data - group by grade, academic year, term, exam type
-  const performanceOverTime = performance.reduce((acc: any[], record) => {
+  // Performance over time data - group by grade, academic year, term, exam type (only released)
+  const performanceOverTime = releasedPerformance.reduce((acc: any[], record) => {
     const recordGradeName = record.grade?.name || 'N/A';
     const key = `${recordGradeName}-${record.academic_year}-${record.term}-${record.exam_type || 'unknown'}`;
     const existing = acc.find(item => item.key === key);
