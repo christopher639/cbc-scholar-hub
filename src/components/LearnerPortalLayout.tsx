@@ -304,21 +304,21 @@ export default function LearnerPortalLayout() {
           <header className="fixed top-0 left-0 right-0 md:left-auto z-50 w-full border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
             <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6 gap-4 w-full">
               {/* Left - Sidebar Trigger (mobile) and School Logo */}
-              <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+              <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
                 <SidebarTrigger className="md:hidden">
                   <Menu className="h-6 w-6" />
                 </SidebarTrigger>
                 
                 {displaySchool?.logo_url ? (
-                  <img src={displaySchool.logo_url} alt="School Logo" className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover ring-2 ring-primary/20" />
+                  <img src={displaySchool.logo_url} alt="School Logo" className="h-10 w-10 md:h-10 md:w-10 rounded-full object-cover ring-2 ring-primary/20" />
                 ) : (
-                  <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
-                    <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
+                  <div className="h-10 w-10 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
+                    <GraduationCap className="h-5 w-5 md:h-5 md:w-5 text-primary-foreground" />
                   </div>
                 )}
                 <div>
-                  <h1 className="text-xs sm:text-sm md:text-base font-bold leading-tight text-foreground whitespace-nowrap">{displaySchool?.school_name || "School Portal"}</h1>
-                  <p className="hidden md:block text-xs text-muted-foreground">{displaySchool?.motto || "Learner Portal"}</p>
+                  <h1 className="text-sm md:text-base font-bold leading-tight text-foreground">{displaySchool?.school_name || "School Portal"}</h1>
+                  <p className="hidden md:block text-sm text-muted-foreground">{displaySchool?.motto || "Learner Portal"}</p>
                 </div>
               </div>
 
@@ -381,7 +381,7 @@ export default function LearnerPortalLayout() {
 
           {/* Mobile Bottom Navigation */}
           <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 safe-area-inset-bottom">
-            <div className="flex items-center justify-around h-14 px-1">
+            <div className="flex items-center justify-around h-16 px-1">
               {navigationItems.slice(0, 5).map((item) => (
                 <Button
                   key={item.url}
@@ -389,14 +389,14 @@ export default function LearnerPortalLayout() {
                   size="sm"
                   onClick={() => handleNavigate(item.url)}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-0.5 h-full flex-1 rounded-lg transition-all min-w-0 px-1",
+                    "flex flex-col items-center justify-center gap-1 h-full flex-1 rounded-lg transition-all min-w-0 px-1",
                     isActive(item.url) 
                       ? "text-primary bg-primary/10 font-semibold" 
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                   )}
                 >
-                  <item.icon className={cn("h-4 w-4 transition-transform", isActive(item.url) && "scale-110")} />
-                  <span className="text-[10px] truncate">{item.title}</span>
+                  <item.icon className={cn("h-5 w-5 transition-transform", isActive(item.url) && "scale-110")} />
+                  <span className="text-xs truncate">{item.title}</span>
                 </Button>
               ))}
             </div>

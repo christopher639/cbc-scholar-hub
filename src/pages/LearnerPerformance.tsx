@@ -234,16 +234,16 @@ export default function LearnerPerformance() {
   }
 
   return (
-    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold mb-1 sm:mb-2">Academic Performance</h1>
-        <p className="text-xs sm:text-sm text-muted-foreground">Your exam results and grades</p>
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">Academic Performance</h1>
+        <p className="text-sm text-muted-foreground">Your exam results and grades</p>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 sm:gap-4">
+      <div className="flex flex-wrap gap-3 sm:gap-4">
         <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-full sm:w-[180px] h-9 sm:h-10 text-xs sm:text-sm">
+          <SelectTrigger className="w-full sm:w-[180px] h-10 text-sm">
             <SelectValue placeholder="Select Year" />
           </SelectTrigger>
           <SelectContent>
@@ -254,7 +254,7 @@ export default function LearnerPerformance() {
         </Select>
 
         <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-          <SelectTrigger className="w-full sm:w-[180px] h-9 sm:h-10 text-xs sm:text-sm">
+          <SelectTrigger className="w-full sm:w-[180px] h-10 text-sm">
             <SelectValue placeholder="Select Term" />
           </SelectTrigger>
           <SelectContent>
@@ -269,22 +269,22 @@ export default function LearnerPerformance() {
         <>
           {/* Graph Overview */}
           <Card>
-            <CardHeader className="p-3 sm:p-6">
-              <CardTitle className="text-sm sm:text-base">Performance Overview</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Performance Overview</CardTitle>
             </CardHeader>
-            <CardContent className="p-2 sm:p-6 pt-0">
-              <ResponsiveContainer width="100%" height={200} className="sm:h-[300px]">
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="code" tick={{ fontSize: 10 }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+                  <XAxis dataKey="code" tick={{ fontSize: 11 }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
                           <div className="bg-background border rounded-lg p-2 shadow-lg">
-                            <p className="font-semibold text-xs sm:text-sm">{payload[0].payload.area}</p>
-                            <p className="text-xs sm:text-sm">Average: {payload[0].value}</p>
+                            <p className="font-semibold text-sm">{payload[0].payload.area}</p>
+                            <p className="text-sm">Average: {payload[0].value}</p>
                           </div>
                         );
                       }
@@ -305,61 +305,63 @@ export default function LearnerPerformance() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 sm:p-6 sm:pt-0">
-              <div className="overflow-x-auto -mx-0">
-                <Table className="text-xs sm:text-sm">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="whitespace-nowrap text-xs sm:text-sm sticky left-0 bg-background z-10">Learning Area</TableHead>
-                      {activeExamTypes.map(et => {
-                        const released = isReleased(selectedYear, selectedTerm, et.name);
+              <div className="overflow-x-auto max-w-full">
+                <div className="min-w-[600px]">
+                  <Table className="text-sm">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="whitespace-nowrap text-sm sticky left-0 bg-card z-10 min-w-[140px]">Learning Area</TableHead>
+                        {activeExamTypes.map(et => {
+                          const released = isReleased(selectedYear, selectedTerm, et.name);
+                          return (
+                            <TableHead key={et.id} className="text-center whitespace-nowrap px-2 min-w-[70px]">
+                              <div className="flex items-center justify-center gap-1">
+                                <span className="text-sm">{et.name}</span>
+                                {!released && <Lock className="h-3 w-3 text-muted-foreground" />}
+                              </div>
+                              <span className="text-xs text-muted-foreground block">/{et.max_marks || 100}</span>
+                            </TableHead>
+                          );
+                        })}
+                        <TableHead className="text-center whitespace-nowrap text-sm min-w-[60px]">Avg</TableHead>
+                        <TableHead className="text-center whitespace-nowrap text-sm min-w-[60px]">Grade</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {tableData.map((area: any) => {
+                        const gradeInfo = area.average ? getGrade(area.average) : null;
                         return (
-                          <TableHead key={et.id} className="text-center whitespace-nowrap px-1 sm:px-2">
-                            <div className="flex items-center justify-center gap-0.5 sm:gap-1">
-                              <span className="text-xs sm:text-sm">{et.name}</span>
-                              {!released && <Lock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-muted-foreground" />}
-                            </div>
-                            <span className="text-[10px] sm:text-xs text-muted-foreground block">/{et.max_marks || 100}</span>
-                          </TableHead>
+                          <TableRow key={area.area}>
+                            <TableCell className="font-medium whitespace-nowrap text-sm sticky left-0 bg-card z-10">{area.area}</TableCell>
+                            {activeExamTypes.map(et => {
+                              const released = isReleased(selectedYear, selectedTerm, et.name);
+                              const score = area.examScores[et.name];
+                              return (
+                                <TableCell key={et.id} className="text-center px-2 text-sm">
+                                  {released ? (
+                                    score ?? "-"
+                                  ) : (
+                                    <Lock className="h-4 w-4 text-muted-foreground mx-auto" />
+                                  )}
+                                </TableCell>
+                              );
+                            })}
+                            <TableCell className="text-center font-semibold text-sm">
+                              {area.average ?? "-"}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {gradeInfo ? (
+                                <Badge variant="outline" className="font-semibold text-xs px-2">
+                                  {gradeInfo.grade_name}
+                                </Badge>
+                              ) : "-"}
+                            </TableCell>
+                          </TableRow>
                         );
                       })}
-                      <TableHead className="text-center whitespace-nowrap text-xs sm:text-sm">Avg</TableHead>
-                      <TableHead className="text-center whitespace-nowrap text-xs sm:text-sm">Grade</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tableData.map((area: any) => {
-                      const gradeInfo = area.average ? getGrade(area.average) : null;
-                      return (
-                        <TableRow key={area.area}>
-                          <TableCell className="font-medium whitespace-nowrap text-xs sm:text-sm sticky left-0 bg-background z-10">{area.area}</TableCell>
-                          {activeExamTypes.map(et => {
-                            const released = isReleased(selectedYear, selectedTerm, et.name);
-                            const score = area.examScores[et.name];
-                            return (
-                              <TableCell key={et.id} className="text-center px-1 sm:px-2 text-xs sm:text-sm">
-                                {released ? (
-                                  score ?? "-"
-                                ) : (
-                                  <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground mx-auto" />
-                                )}
-                              </TableCell>
-                            );
-                          })}
-                          <TableCell className="text-center font-semibold text-xs sm:text-sm">
-                            {area.average ?? "-"}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {gradeInfo ? (
-                              <Badge variant="outline" className="font-semibold text-[10px] sm:text-xs px-1 sm:px-2">
-                                {gradeInfo.grade_name}
-                              </Badge>
-                            ) : "-"}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </CardContent>
           </Card>
