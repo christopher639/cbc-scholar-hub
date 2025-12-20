@@ -101,56 +101,6 @@ const BulkLearnerReports = () => {
           </Button>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-primary/10">
-                  <FileText className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Reports</p>
-                  <p className="text-2xl font-bold">{recentReports.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-green-500/10">
-                  <Calendar className="h-6 w-6 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Latest Release</p>
-                  <p className="text-2xl font-bold">
-                    {recentReports.length > 0 
-                      ? format(new Date(recentReports[0].released_at), "MMM d, yyyy")
-                      : "N/A"
-                    }
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-blue-500/10">
-                  <Users className="h-6 w-6 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Learners Covered</p>
-                  <p className="text-2xl font-bold">
-                    {recentReports.reduce((acc, r) => acc + (r.learner_count || 0), 0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Recent Reports */}
         <Card>
           <CardHeader>
