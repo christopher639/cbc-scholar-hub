@@ -179,14 +179,14 @@ export default function TeacherAssignments() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-4 flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Assignments</h1>

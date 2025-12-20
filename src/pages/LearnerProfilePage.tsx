@@ -55,7 +55,7 @@ export default function LearnerProfilePage() {
   };
 
   return (
-    <div className="min-h-full pb-8">
+    <div className="min-h-full pb-8 px-1">
       {/* Hero Section with Gradient Background */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-6 md:p-8 mb-6">
         {/* Decorative Pattern */}

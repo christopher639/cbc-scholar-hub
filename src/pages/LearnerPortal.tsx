@@ -320,7 +320,7 @@ export default function LearnerPortal() {
   }
 
   return (
-    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+    <div className="px-1 py-2 sm:py-4">
       <Tabs value={getActiveTab()} className="space-y-4 sm:space-y-6">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
           <TabsTrigger value="performance" className="flex items-center justify-center gap-1 md:gap-2">
