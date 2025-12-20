@@ -209,138 +209,134 @@ const LearnerProfile = () => {
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
-        {/* Back Button & Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
+        {/* Hero Section with Gradient Background - Similar to Learner Portal */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-6 md:p-8">
+          {/* Decorative Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-0 w-60 h-60 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
+            <div className="absolute top-1/2 right-1/4 w-20 h-20 bg-white rounded-full" />
+          </div>
+
+          {/* Back Button */}
+          <div className="relative mb-4">
             <Link to="/learners">
-              <Button variant="outline" size="icon" className="h-9 w-9">
+              <Button variant="ghost" size="sm" className="gap-2 text-white hover:bg-white/20">
                 <ArrowLeft className="h-4 w-4" />
+                Back to Learners
               </Button>
             </Link>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Learner Profile</h1>
-              <p className="text-sm sm:text-base text-muted-foreground">View and manage learner information</p>
-            </div>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => setPromotionHistoryOpen(true)} variant="outline" className="gap-2">
-              <History className="h-4 w-4" />
-              <span className="hidden sm:inline">History</span>
-            </Button>
-            <Button onClick={() => setEditDialogOpen(true)} className="gap-2">
-              <Edit className="h-4 w-4" />
-              <span className="hidden sm:inline">Edit</span>
-            </Button>
+          
+          <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6">
+            {/* Large Avatar */}
+            <div className="relative">
+              {learner.photo_url ? (
+                <img 
+                  src={learner.photo_url} 
+                  alt={`${learner.first_name} ${learner.last_name}`}
+                  className="h-32 w-32 md:h-40 md:w-40 object-cover rounded-xl ring-4 ring-white/30 shadow-2xl"
+                />
+              ) : (
+                <div className="h-32 w-32 md:h-40 md:w-40 rounded-xl ring-4 ring-white/30 shadow-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <span className="text-4xl md:text-5xl font-bold text-white">
+                    {learner.first_name[0]}{learner.last_name[0]}
+                  </span>
+                </div>
+              )}
+              <Badge className={`absolute -bottom-2 left-1/2 -translate-x-1/2 ${learner.status === "alumni" ? "bg-purple-600" : "bg-emerald-500"} text-white shadow-lg text-xs px-3`}>
+                {learner.status === "alumni" ? "Alumni" : "Active"}
+              </Badge>
+            </div>
+
+            {/* Hero Info */}
+            <div className="flex-1 text-center md:text-left text-white">
+              <h1 className="text-2xl md:text-3xl font-bold mb-1">
+                {learner.first_name} {learner.last_name}
+              </h1>
+              <p className="text-white/80 font-mono text-sm mb-4">
+                #{learner.admission_number}
+              </p>
+              
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
+                <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                  <GraduationCap className="h-3.5 w-3.5 mr-1.5" />
+                  {learner.current_grade?.name || "N/A"}
+                  {learner.current_stream?.name && ` • ${learner.current_stream.name}`}
+                </Badge>
+                
+                {learner.house && (
+                  <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                    {learner.house.name}
+                  </Badge>
+                )}
+                
+                {learner.is_staff_child && (
+                  <Badge className="bg-amber-500/80 text-white border-amber-300/30 backdrop-blur-sm">
+                    Staff Child
+                  </Badge>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                <Button onClick={() => setPromotionHistoryOpen(true)} variant="secondary" size="sm" className="gap-2 bg-white/20 text-white hover:bg-white/30 border-0">
+                  <History className="h-4 w-4" />
+                  <span className="hidden sm:inline">History</span>
+                </Button>
+                <Button onClick={() => setEditDialogOpen(true)} size="sm" className="gap-2 bg-white text-primary hover:bg-white/90">
+                  <Edit className="h-4 w-4" />
+                  <span className="hidden sm:inline">Edit</span>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Profile Header */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Profile Card */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center">
-                {learner.photo_url ? (
-                  <img 
-                    src={learner.photo_url} 
-                    alt={`${learner.first_name} ${learner.last_name}`}
-                    className="w-52 h-52 sm:w-60 sm:h-60 object-cover rounded-xl border-4 border-border shadow-lg mb-4"
-                  />
-                ) : (
-                  <div className="w-52 h-52 sm:w-60 sm:h-60 rounded-xl border-4 border-border shadow-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <span className="text-6xl sm:text-7xl font-bold text-primary">
-                      {learner.first_name[0]}{learner.last_name[0]}
-                    </span>
-                  </div>
-                )}
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-                  {learner.first_name} {learner.last_name}
-                </h2>
-                <p className="text-muted-foreground mb-3">#{learner.admission_number}</p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  <Badge variant="secondary">
-                    {learner.current_grade?.name} - {learner.current_stream?.name}
-                  </Badge>
-                  {learner.status === "alumni" ? (
-                    <Badge className="bg-purple-600">Alumni</Badge>
-                  ) : (
-                    <Badge>Active</Badge>
-                  )}
-                  {learner.is_staff_child && (
-                    <Badge variant="outline">Staff Child</Badge>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Info Cards */}
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Quick Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Calendar className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Date of Birth</p>
-                    <p className="text-sm font-medium">{new Date(learner.date_of_birth).toLocaleDateString()}</p>
-                    <p className="text-xs text-muted-foreground">({calculateAge(learner.date_of_birth)} years)</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <User className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Gender</p>
-                    <p className="text-sm font-medium capitalize">{learner.gender}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <GraduationCap className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Enrolled</p>
-                    <p className="text-sm font-medium">{new Date(learner.enrollment_date).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <BookOpen className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Academic Year</p>
-                    <p className="text-sm font-medium">{learner.currentAcademicYear || "N/A"}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Clock className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Current Term</p>
-                    <p className="text-sm font-medium">{learner.currentTerm?.replace("_", " ").toUpperCase() || "N/A"}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Wallet className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Fee Balance</p>
-                    <p className="text-sm font-medium">
-                      {formatCurrency(learner.feeInfo?.totalBalance || 0)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Quick Stats Row - Same as Learner Portal */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="bg-card rounded-xl border p-4 text-center">
+            <div className="h-10 w-10 rounded-full bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto mb-2">
+              <Calendar className="h-5 w-5" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-0.5">Age</p>
+            <p className="font-semibold text-sm text-foreground">{calculateAge(learner.date_of_birth)} years</p>
+          </div>
+          <div className="bg-card rounded-xl border p-4 text-center">
+            <div className="h-10 w-10 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center mx-auto mb-2">
+              <User className="h-5 w-5" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-0.5">Gender</p>
+            <p className="font-semibold text-sm text-foreground capitalize">{learner.gender}</p>
+          </div>
+          <div className="bg-card rounded-xl border p-4 text-center">
+            <div className="h-10 w-10 rounded-full bg-green-500/10 text-green-600 flex items-center justify-center mx-auto mb-2">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-0.5">Enrolled</p>
+            <p className="font-semibold text-sm text-foreground">{new Date(learner.enrollment_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
+          </div>
+          <div className="bg-card rounded-xl border p-4 text-center">
+            <div className="h-10 w-10 rounded-full bg-purple-500/10 text-purple-600 flex items-center justify-center mx-auto mb-2">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-0.5">Academic Year</p>
+            <p className="font-semibold text-sm text-foreground">{learner.currentAcademicYear || "N/A"}</p>
+          </div>
+          <div className="bg-card rounded-xl border p-4 text-center">
+            <div className="h-10 w-10 rounded-full bg-orange-500/10 text-orange-600 flex items-center justify-center mx-auto mb-2">
+              <Clock className="h-5 w-5" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-0.5">Current Term</p>
+            <p className="font-semibold text-sm text-foreground">{learner.currentTerm?.replace("_", " ").toUpperCase() || "N/A"}</p>
+          </div>
+          <div className="bg-card rounded-xl border p-4 text-center">
+            <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2">
+              <Wallet className="h-5 w-5" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-0.5">Fee Balance</p>
+            <p className="font-semibold text-sm text-foreground">{formatCurrency(learner.feeInfo?.totalBalance || 0)}</p>
+          </div>
         </div>
 
         {/* Tabbed Content */}
