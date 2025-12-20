@@ -493,6 +493,7 @@ export default function ReleaseMarks() {
                         {et.name}
                       </SelectItem>
                     ))}
+                    <SelectItem value="combined">Combined (All Exams)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
