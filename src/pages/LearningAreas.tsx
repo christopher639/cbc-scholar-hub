@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,11 @@ import {
   Pencil, 
   Trash2, 
   Search,
-  Loader2 
+  Loader2,
+  Filter,
+  GraduationCap,
+  Users,
+  MoreHorizontal
 } from "lucide-react";
 import {
   Dialog,
@@ -45,6 +49,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const LearningAreas = () => {
   const { toast } = useToast();
@@ -150,159 +160,218 @@ const LearningAreas = () => {
 
   const assignedCount = learningAreas.filter(a => a.teacher_id).length;
 
+  // Split filtered areas into columns
+  const getColumns = (items: any[], numCols: number) => {
+    const cols: any[][] = Array.from({ length: numCols }, () => []);
+    items.forEach((item, idx) => {
+      cols[idx % numCols].push({ ...item, originalIndex: idx });
+    });
+    return cols;
+  };
+
+  const renderTable = (items: any[]) => (
+    <Card className="overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="w-10 py-2 text-xs font-medium">#</TableHead>
+            <TableHead className="py-2 text-xs font-medium">Code</TableHead>
+            <TableHead className="py-2 text-xs font-medium">Name</TableHead>
+            <TableHead className="py-2 text-xs font-medium hidden md:table-cell">Teacher</TableHead>
+            <TableHead className="py-2 text-xs font-medium w-10"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((area) => (
+            <TableRow key={area.id} className="hover:bg-muted/30">
+              <TableCell className="py-2 text-sm text-muted-foreground">{area.originalIndex + 1}</TableCell>
+              <TableCell className="py-2">
+                <Badge variant="secondary" className="font-mono text-xs">{area.code}</Badge>
+              </TableCell>
+              <TableCell className="py-2">
+                <div>
+                  <p className="text-sm font-medium">{area.name}</p>
+                  <p className="text-xs text-muted-foreground md:hidden">
+                    {area.teacher ? `${area.teacher.first_name} ${area.teacher.last_name}` : 'Unassigned'}
+                  </p>
+                </div>
+              </TableCell>
+              <TableCell className="py-2 hidden md:table-cell">
+                {area.teacher ? (
+                  <span className="text-sm">{area.teacher.first_name} {area.teacher.last_name}</span>
+                ) : (
+                  <span className="text-sm text-muted-foreground italic">Unassigned</span>
+                )}
+              </TableCell>
+              <TableCell className="py-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleEdit(area)}>
+                      <Pencil className="mr-2 h-3.5 w-3.5" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setDeleteConfirmId(area.id)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Card>
+  );
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Learning Areas</h1>
-            <p className="text-muted-foreground">Create and manage learning areas for performance tracking</p>
+      <div className="space-y-4">
+        {/* Compact Header with Stats - matching Teachers page */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Learning Areas</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Manage learning areas</p>
+            </div>
+            
+            {/* Inline Stats for Large Screens */}
+            <div className="hidden lg:flex items-center gap-4 ml-4 pl-4 border-l">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-primary/10 rounded">
+                  <BookOpen className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-sm font-semibold">{loading ? "..." : learningAreas.length}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-green-500/10 rounded">
+                  <GraduationCap className="h-3.5 w-3.5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">With Teachers</p>
+                  <p className="text-sm font-semibold">{loading ? "..." : assignedCount}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-orange-500/10 rounded">
+                  <Users className="h-3.5 w-3.5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Unassigned</p>
+                  <p className="text-sm font-semibold">{loading ? "..." : learningAreas.length - assignedCount}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Learning Area
-          </Button>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{loading ? "..." : learningAreas.length}</div>
-              <p className="text-sm text-muted-foreground">Total Areas</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{loading ? "..." : assignedCount}</div>
-              <p className="text-sm text-muted-foreground">With Teachers</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{loading ? "..." : learningAreas.length - assignedCount}</div>
-              <p className="text-sm text-muted-foreground">Unassigned</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{teachers.length}</div>
-              <p className="text-sm text-muted-foreground">Available Teachers</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search */}
-        <Card>
-          <CardContent className="pt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 lg:w-64">
+              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search learning areas..."
-                className="pl-10"
+                placeholder="Search areas..."
+                className="pl-8 h-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-          </CardContent>
-        </Card>
+            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
+              <Filter className="h-4 w-4" />
+            </Button>
+            <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="h-9">
+              <Plus className="h-4 w-4 mr-1" />
+              Add Area
+            </Button>
+          </div>
+        </div>
 
-        {/* Learning Areas Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
-              All Learning Areas
-            </CardTitle>
-            <CardDescription>
-              Manage learning areas for your school
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
-                ))}
+        {/* Mobile Stats */}
+        <div className="grid grid-cols-3 gap-2 lg:hidden">
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-lg font-bold">{loading ? "..." : learningAreas.length}</p>
               </div>
-            ) : filteredAreas.length === 0 ? (
-              <div className="text-center py-12">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-medium mb-2">No Learning Areas Found</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {searchQuery ? "Try a different search term" : "Get started by adding your first learning area"}
+            </div>
+          </Card>
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="h-4 w-4 text-green-600" />
+              <div>
+                <p className="text-xs text-muted-foreground">Assigned</p>
+                <p className="text-lg font-bold">{loading ? "..." : assignedCount}</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-orange-600" />
+              <div>
+                <p className="text-xs text-muted-foreground">Unassigned</p>
+                <p className="text-lg font-bold">{loading ? "..." : learningAreas.length - assignedCount}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Learning Areas Tables in Columns */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="p-4">
+                <div className="space-y-2">
+                  {[1, 2, 3, 4].map((j) => (
+                    <Skeleton key={j} className="h-10 w-full" />
+                  ))}
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : filteredAreas.length === 0 ? (
+          <Card>
+            <CardContent className="py-12">
+              <div className="text-center">
+                <BookOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground text-sm mb-3">
+                  {searchQuery ? "No learning areas match your search" : "No learning areas found"}
                 </p>
                 {!searchQuery && (
-                  <Button onClick={() => setIsAddDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Learning Area
+                  <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add First Area
                   </Button>
                 )}
               </div>
-            ) : (
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="w-12">#</TableHead>
-                      <TableHead className="w-24">Code</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead className="hidden sm:table-cell">Teacher</TableHead>
-                      <TableHead className="hidden md:table-cell">Description</TableHead>
-                      <TableHead className="w-20 text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredAreas.map((area, index) => (
-                      <TableRow key={area.id}>
-                        <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="font-mono">{area.code}</Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{area.name}</TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          {area.teacher ? (
-                            <span className="text-sm">
-                              {area.teacher.first_name} {area.teacher.last_name}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-muted-foreground italic">Unassigned</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <span className="text-sm text-muted-foreground line-clamp-1">
-                            {area.description || "—"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleEdit(area)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                              onClick={() => setDeleteConfirmId(area.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* 2 columns on sm, 3 on lg */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {getColumns(filteredAreas, 3).map((col, colIdx) => (
+                <div key={colIdx} className={colIdx === 2 ? "hidden lg:block" : ""}>
+                  {col.length > 0 && renderTable(col)}
+                </div>
+              ))}
+            </div>
+            {/* Single column on mobile */}
+            <div className="sm:hidden">
+              {renderTable(filteredAreas.map((area, idx) => ({ ...area, originalIndex: idx })))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Add Dialog */}
