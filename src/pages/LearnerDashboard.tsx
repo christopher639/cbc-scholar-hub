@@ -821,7 +821,7 @@ export default function LearnerDashboard() {
                         </TableCell>
                         {activeExamTypes.map(et => (
                           <TableCell key={et.id} className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">
-                            {area.examScores[et.name] !== null ? area.examScores[et.name] : "-"}
+                            {area.examScores[et.name] !== null ? `${area.examScores[et.name]}/${et.max_marks || 100}` : "-"}
                           </TableCell>
                         ))}
                         <TableCell className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center font-semibold bg-primary/5">
@@ -842,11 +842,12 @@ export default function LearnerDashboard() {
                         Overall Average
                       </TableCell>
                       {activeExamTypes.map(et => {
+                        const maxMarks = et.max_marks || 100;
                         const examScores = tableData
                           .map((a: any) => a.examScores[et.name])
                           .filter((s: number | null) => s !== null) as number[];
                         const examAvg = examScores.length > 0 
-                          ? Math.round((examScores.reduce((a, b) => a + b, 0) / examScores.length) * 10) / 10
+                          ? Math.round(((examScores.reduce((a, b) => a + b, 0) / examScores.length) / maxMarks * 100) * 10) / 10
                           : null;
                         return (
                           <TableCell key={et.id} className="h-7 py-1 px-1 text-[10px] md:text-sm md:px-4 md:py-2 text-center">
