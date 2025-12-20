@@ -241,46 +241,70 @@ const BulkLearnerReports = () => {
           </Button>
         </div>
 
+        {/* Compact Filters - matching PerformanceReportDialog style */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Report Filters
-            </CardTitle>
-            <CardDescription>
-              Select criteria to generate bulk learner performance reports
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="grade">Grade *</Label>
-                <Select value={selectedGrade} onValueChange={handleGradeChange}>
-                  <SelectTrigger id="grade">
-                    <SelectValue placeholder="Select grade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {grades.map((grade) => (
-                      <SelectItem key={grade.id} value={grade.id}>
-                        {grade.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              {/* Filter Row */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Academic Year *</Label>
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {academicYears.map((year) => (
+                        <SelectItem key={year.id} value={year.year}>
+                          {year.year} {year.is_active && "(Current)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="stream">Stream (Optional)</Label>
-                <div className="flex gap-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Term *</Label>
+                  <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select term" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="term_1">Term 1</SelectItem>
+                      <SelectItem value="term_2">Term 2</SelectItem>
+                      <SelectItem value="term_3">Term 3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Grade *</Label>
+                  <Select value={selectedGrade} onValueChange={handleGradeChange}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select grade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grades.map((grade) => (
+                        <SelectItem key={grade.id} value={grade.id}>
+                          {grade.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Stream</Label>
                   <Select 
                     value={selectedStream} 
                     onValueChange={setSelectedStream}
                     disabled={!selectedGrade}
                   >
-                    <SelectTrigger id="stream">
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder="All streams" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="all">All Streams</SelectItem>
                       {streams.map((stream) => (
                         <SelectItem key={stream.id} value={stream.id}>
                           {stream.name}
@@ -288,76 +312,39 @@ const BulkLearnerReports = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  {selectedStream && (
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => setSelectedStream("")}
-                      type="button"
-                    >
-                      ×
-                    </Button>
-                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Options</Label>
+                  <div className="flex items-center h-9 px-3 border rounded-md bg-background">
+                    <Checkbox
+                      id="combine"
+                      checked={combineExamTypes}
+                      onCheckedChange={(checked) => setCombineExamTypes(checked as boolean)}
+                      className="mr-2"
+                    />
+                    <Label htmlFor="combine" className="text-xs cursor-pointer whitespace-nowrap">
+                      Combine exams
+                    </Label>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="year">Academic Year *</Label>
-                <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger id="year">
-                    <SelectValue placeholder="Select academic year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {academicYears.map((year) => (
-                      <SelectItem key={year.id} value={year.year}>
-                        {year.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="term">Term *</Label>
-                <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                  <SelectTrigger id="term">
-                    <SelectValue placeholder="Select term" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="term_1">Term 1</SelectItem>
-                    <SelectItem value="term_2">Term 2</SelectItem>
-                    <SelectItem value="term_3">Term 3</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-4 md:col-span-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="combine"
-                    checked={combineExamTypes}
-                    onCheckedChange={(checked) => setCombineExamTypes(checked as boolean)}
-                  />
-                  <Label htmlFor="combine" className="cursor-pointer">
-                    Combine all exam types (Opening, Mid-term, Final)
-                  </Label>
-                </div>
-              </div>
-
-              <div className="md:col-span-2 flex gap-4">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-2">
                 <Button 
+                  size="sm"
                   onClick={handleGenerateReport} 
                   disabled={loading || !selectedGrade || !selectedYear || !selectedTerm}
-                  className="flex-1"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
                       Generating...
                     </>
                   ) : (
                     <>
-                      <FileText className="mr-2 h-4 w-4" />
+                      <FileText className="h-4 w-4 mr-1.5" />
                       Generate Reports
                     </>
                   )}
@@ -365,12 +352,12 @@ const BulkLearnerReports = () => {
                 
                 {reportData.length > 0 && (
                   <>
-                    <Button onClick={handlePrint} variant="outline">
-                      <Download className="mr-2 h-4 w-4" />
-                      Download/Print All Reports
+                    <Button size="sm" variant="outline" onClick={handlePrint}>
+                      <Download className="h-4 w-4 mr-1.5" />
+                      Download Reports
                     </Button>
-                    <Button onClick={handlePrintMarksSheet} variant="default">
-                      <Download className="mr-2 h-4 w-4" />
+                    <Button size="sm" variant="outline" onClick={handlePrintMarksSheet}>
+                      <Download className="h-4 w-4 mr-1.5" />
                       Download Marks Sheet
                     </Button>
                   </>
