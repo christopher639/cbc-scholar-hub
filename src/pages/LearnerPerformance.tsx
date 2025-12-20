@@ -324,13 +324,12 @@ export default function LearnerPerformance() {
                         {activeExamTypes.map(et => {
                           const released = isReleased(selectedYear, selectedTerm, et.name);
                           return (
-                            <TableHead key={et.id} className="text-center text-xs sm:text-sm font-semibold px-1 sm:px-2 min-w-[50px] sm:min-w-[65px] py-2">
+                            <TableHead key={et.id} className="text-center text-xs sm:text-sm font-semibold px-1 sm:px-2 min-w-[60px] sm:min-w-[75px] py-2">
                               <div className="flex flex-col items-center gap-0.5">
                                 <div className="flex items-center gap-0.5">
                                   <span className="truncate max-w-[40px] sm:max-w-none">{et.name}</span>
                                   {!released && <Lock className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
                                 </div>
-                                <span className="text-[10px] sm:text-xs text-muted-foreground">/{et.max_marks || 100}</span>
                               </div>
                             </TableHead>
                           );
@@ -350,10 +349,13 @@ export default function LearnerPerformance() {
                             {activeExamTypes.map(et => {
                               const released = isReleased(selectedYear, selectedTerm, et.name);
                               const score = area.examScores[et.name];
+                              const maxMarks = et.max_marks || 100;
                               return (
                                 <TableCell key={et.id} className="text-center text-xs sm:text-sm py-2 px-1 sm:px-2">
                                   {released ? (
-                                    <span className={score !== null ? "font-medium" : "text-muted-foreground"}>{score ?? "-"}</span>
+                                    <span className={score !== null ? "font-medium" : "text-muted-foreground"}>
+                                      {score !== null ? `${score}/${maxMarks}` : "-"}
+                                    </span>
                                   ) : (
                                     <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground mx-auto" />
                                   )}
@@ -373,6 +375,60 @@ export default function LearnerPerformance() {
                           </TableRow>
                         );
                       })}
+                      {/* Overall Average Row */}
+                      {tableData.length > 0 && (
+                        <TableRow className="bg-primary/5 border-t-2 border-primary/20 font-semibold">
+                          <TableCell className="text-xs sm:text-sm sticky left-0 z-10 py-2 px-2 sm:px-3 bg-primary/5">
+                            Overall Average
+                          </TableCell>
+                          {activeExamTypes.map(et => {
+                            const released = isReleased(selectedYear, selectedTerm, et.name);
+                            const maxMarks = et.max_marks || 100;
+                            // Calculate average for this exam type across all subjects
+                            const scores = tableData
+                              .map((area: any) => area.examScores[et.name])
+                              .filter((score: number | null) => score !== null) as number[];
+                            const avgScore = scores.length > 0 
+                              ? Math.round((scores.reduce((a: number, b: number) => a + b, 0) / scores.length) * 10) / 10
+                              : null;
+                            const percentage = avgScore !== null ? Math.round((avgScore / maxMarks) * 100) : null;
+                            return (
+                              <TableCell key={et.id} className="text-center text-xs sm:text-sm py-2 px-1 sm:px-2">
+                                {released ? (
+                                  <span className={avgScore !== null ? "text-primary" : "text-muted-foreground"}>
+                                    {avgScore !== null ? `${percentage}%` : "-"}
+                                  </span>
+                                ) : (
+                                  <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground mx-auto" />
+                                )}
+                              </TableCell>
+                            );
+                          })}
+                          <TableCell className="text-center text-xs sm:text-sm py-2 px-1 sm:px-2">
+                            {(() => {
+                              const averages = tableData.filter((a: any) => a.average !== null).map((a: any) => a.average);
+                              const overallAvg = averages.length > 0 
+                                ? Math.round((averages.reduce((a: number, b: number) => a + b, 0) / averages.length) * 10) / 10
+                                : null;
+                              return <span className={overallAvg !== null ? "text-primary" : "text-muted-foreground"}>{overallAvg ?? "-"}</span>;
+                            })()}
+                          </TableCell>
+                          <TableCell className="text-center py-2 px-1 sm:px-2">
+                            {(() => {
+                              const averages = tableData.filter((a: any) => a.average !== null).map((a: any) => a.average);
+                              const overallAvg = averages.length > 0 
+                                ? Math.round((averages.reduce((a: number, b: number) => a + b, 0) / averages.length) * 10) / 10
+                                : null;
+                              const gradeInfo = overallAvg ? getGrade(overallAvg) : null;
+                              return gradeInfo ? (
+                                <Badge variant="outline" className="font-semibold text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-primary/10">
+                                  {gradeInfo.grade_name}
+                                </Badge>
+                              ) : <span className="text-muted-foreground text-xs">-</span>;
+                            })()}
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
