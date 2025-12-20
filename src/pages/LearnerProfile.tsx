@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useExamTypes } from "@/hooks/useExamTypes";
 
 const LearnerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +27,7 @@ const LearnerProfile = () => {
   const { learner, loading, refetch } = useLearnerDetail(id || "");
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("2025/2026");
   const [selectedTerm, setSelectedTerm] = useState("term_1");
+  const { examTypes } = useExamTypes();
 
   // Fetch available academic years
   const { data: academicYears = [] } = useQuery({
@@ -41,7 +43,10 @@ const LearnerProfile = () => {
     }
   });
 
-  // Group performance records by learning area with deviation calculation
+  // Get active exam types for dynamic columns
+  const activeExamTypes = examTypes.filter(et => et.is_active !== false);
+
+  // Group performance records by learning area with dynamic exam types
   const groupPerformanceByArea = (records: any[], allRecords: any[], currentYear: string, currentTerm: string) => {
     const grouped = records.reduce((acc: any, record: any) => {
       const areaName = record.learning_area?.name || "Unknown";
@@ -52,25 +57,21 @@ const LearnerProfile = () => {
           learning_area: areaName,
           academic_year: record.academic_year,
           term: record.term,
-          opener: null,
-          midterm: null,
-          final: null,
+          examScores: {} as Record<string, number | null>,
           remarks: null,
         };
+        // Initialize all exam types with null
+        activeExamTypes.forEach(et => {
+          acc[key].examScores[et.name.toLowerCase()] = null;
+        });
       }
       
-      if (record.exam_type === "opener") {
-        acc[key].opener = record.marks;
-        if (record.remarks) acc[key].remarks = record.remarks;
+      // Map exam_type to the corresponding score - use lowercase for matching
+      const examTypeName = record.exam_type?.toLowerCase();
+      if (examTypeName && acc[key].examScores !== undefined) {
+        acc[key].examScores[examTypeName] = record.marks;
       }
-      if (record.exam_type === "midterm") {
-        acc[key].midterm = record.marks;
-        if (record.remarks) acc[key].remarks = record.remarks;
-      }
-      if (record.exam_type === "final") {
-        acc[key].final = record.marks;
-        if (record.remarks) acc[key].remarks = record.remarks;
-      }
+      if (record.remarks) acc[key].remarks = record.remarks;
       
       return acc;
     }, {});
@@ -102,7 +103,7 @@ const LearnerProfile = () => {
     });
 
     return Object.values(grouped).map((row: any) => {
-      const scores = [row.opener, row.midterm, row.final].filter((s: any) => s !== null);
+      const scores = Object.values(row.examScores).filter((s: any) => s !== null) as number[];
       const average = scores.length > 0 
         ? Math.round((scores.reduce((sum: number, s: number) => sum + s, 0) / scores.length) * 10) / 10
         : 0;
@@ -525,9 +526,11 @@ const LearnerProfile = () => {
                           <TableHeader>
                             <TableRow>
                               <TableHead>Learning Area</TableHead>
-                              <TableHead className="text-center">Opener</TableHead>
-                              <TableHead className="text-center">Midterm</TableHead>
-                              <TableHead className="text-center">Final</TableHead>
+                              {activeExamTypes.map((examType) => (
+                                <TableHead key={examType.id} className="text-center">
+                                  {examType.name}
+                                </TableHead>
+                              ))}
                               <TableHead className="text-center">Average</TableHead>
                               <TableHead className="hidden lg:table-cell">Remarks</TableHead>
                             </TableRow>
@@ -538,21 +541,16 @@ const LearnerProfile = () => {
                               .map((row: any, index: number) => (
                                 <TableRow key={index}>
                                   <TableCell className="font-medium">{row.learning_area}</TableCell>
-                                  <TableCell className="text-center">
-                                    {row.opener !== null ? (
-                                      <Badge className={getGradeColor(row.opener)}>{row.opener}%</Badge>
-                                    ) : "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {row.midterm !== null ? (
-                                      <Badge className={getGradeColor(row.midterm)}>{row.midterm}%</Badge>
-                                    ) : "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {row.final !== null ? (
-                                      <Badge className={getGradeColor(row.final)}>{row.final}%</Badge>
-                                    ) : "-"}
-                                  </TableCell>
+                                  {activeExamTypes.map((examType) => {
+                                    const score = row.examScores?.[examType.name.toLowerCase()];
+                                    return (
+                                      <TableCell key={examType.id} className="text-center">
+                                        {score !== null && score !== undefined ? (
+                                          <Badge className={getGradeColor(score)}>{score}%</Badge>
+                                        ) : "-"}
+                                      </TableCell>
+                                    );
+                                  })}
                                   <TableCell className="text-center">
                                     {row.average > 0 ? (
                                       <div className="flex items-center justify-center gap-1">
@@ -582,15 +580,39 @@ const LearnerProfile = () => {
                         <div className="h-[300px] mt-6">
                           <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={groupPerformanceByArea(learner.performance, learner.performance, selectedAcademicYear, selectedTerm)
-                              .filter((row: any) => row.academic_year === selectedAcademicYear && row.term === selectedTerm)}>
+                              .filter((row: any) => row.academic_year === selectedAcademicYear && row.term === selectedTerm)
+                              .map((row: any) => {
+                                // Transform examScores into flat object for chart
+                                const chartRow: any = { learning_area: row.learning_area, average: row.average };
+                                activeExamTypes.forEach(et => {
+                                  chartRow[et.name.toLowerCase()] = row.examScores?.[et.name.toLowerCase()] ?? null;
+                                });
+                                return chartRow;
+                              })}>
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="learning_area" angle={-45} textAnchor="end" height={100} />
                               <YAxis domain={[0, 100]} />
                               <Tooltip />
                               <Legend />
-                              <Line type="linear" dataKey="opener" stroke="hsl(var(--primary))" strokeWidth={2} name="Opener" />
-                              <Line type="linear" dataKey="midterm" stroke="hsl(var(--accent))" strokeWidth={2} name="Mid-Term" />
-                              <Line type="linear" dataKey="final" stroke="hsl(var(--secondary))" strokeWidth={2} name="Final" />
+                              {activeExamTypes.map((examType, idx) => {
+                                const colors = [
+                                  "hsl(var(--primary))",
+                                  "hsl(var(--chart-2))",
+                                  "hsl(var(--chart-3))",
+                                  "hsl(var(--chart-4))",
+                                  "hsl(var(--chart-5))",
+                                ];
+                                return (
+                                  <Line 
+                                    key={examType.id}
+                                    type="linear" 
+                                    dataKey={examType.name.toLowerCase()} 
+                                    stroke={colors[idx % colors.length]} 
+                                    strokeWidth={2} 
+                                    name={examType.name} 
+                                  />
+                                );
+                              })}
                               <Line type="linear" dataKey="average" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Average" />
                             </LineChart>
                           </ResponsiveContainer>
