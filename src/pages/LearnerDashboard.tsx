@@ -487,13 +487,21 @@ export default function LearnerDashboard() {
   }, [learner, selectedGrade, selectedTerm, selectedExamType]);
 
   // Performance over time data - group by grade, academic year, term, exam type (only released)
+  // Calculate overall average percentage for each period using max_marks
   const performanceOverTime = releasedPerformance.reduce((acc: any[], record) => {
     const recordGradeName = record.grade?.name || 'N/A';
     const key = `${recordGradeName}-${record.academic_year}-${record.term}-${record.exam_type || 'unknown'}`;
     const existing = acc.find(item => item.key === key);
     
+    // Find the max marks for this exam type
+    const examType = activeExamTypes.find(et => et.name.toLowerCase() === (record.exam_type || '').toLowerCase());
+    const maxMarks = examType?.max_marks || 100;
+    
+    // Calculate percentage for this record
+    const percentage = (Number(record.marks) / maxMarks) * 100;
+    
     if (existing) {
-      existing.total += Number(record.marks);
+      existing.totalPercentage += percentage;
       existing.count += 1;
     } else {
       acc.push({
@@ -502,7 +510,7 @@ export default function LearnerDashboard() {
         term: record.term,
         exam_type: record.exam_type || 'unknown',
         grade: recordGradeName,
-        total: Number(record.marks),
+        totalPercentage: percentage,
         count: 1
       });
     }
@@ -510,7 +518,7 @@ export default function LearnerDashboard() {
     return acc;
   }, []).map(item => ({
     ...item,
-    average: Math.round((item.total / item.count) * 10) / 10,
+    average: Math.round((item.totalPercentage / item.count) * 10) / 10,
     label: `${item.grade} ${item.term.replace('term_', 'T')} ${item.exam_type}`
   })).sort((a, b) => {
     if (a.grade !== b.grade) return a.grade.localeCompare(b.grade);

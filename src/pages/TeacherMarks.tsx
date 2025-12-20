@@ -43,30 +43,55 @@ export default function TeacherMarks() {
   
   const { streams } = useStreams(selectedGradeId);
 
-  // Fetch learning areas assigned to this teacher
+  // Fetch learning areas assigned to this teacher AND registered for the selected grade
   useEffect(() => {
-    if (teacher?.id) {
-      fetchTeacherLearningAreas();
+    if (teacher?.id && selectedGradeId) {
+      fetchTeacherLearningAreasForGrade();
+    } else if (teacher?.id && !selectedGradeId) {
+      // Reset to empty when no grade is selected
+      setTeacherLearningAreas([]);
+      setLoadingAreas(false);
     }
-  }, [teacher?.id]);
+  }, [teacher?.id, selectedGradeId]);
 
-  const fetchTeacherLearningAreas = async () => {
-    if (!teacher?.id) return;
+  const fetchTeacherLearningAreasForGrade = async () => {
+    if (!teacher?.id || !selectedGradeId) return;
     
     setLoadingAreas(true);
     try {
-      const { data, error } = await supabase
+      // First, get learning areas assigned to this teacher
+      const { data: teacherAreas, error: teacherError } = await supabase
         .from("learning_areas")
-        .select("*")
+        .select("id, name, code")
         .eq("teacher_id", teacher.id)
         .order("name");
 
-      if (error) throw error;
-      setTeacherLearningAreas(data || []);
+      if (teacherError) throw teacherError;
+
+      if (!teacherAreas || teacherAreas.length === 0) {
+        setTeacherLearningAreas([]);
+        setLoadingAreas(false);
+        return;
+      }
+
+      // Then filter to only include learning areas registered for the selected grade
+      const { data: gradeAreas, error: gradeError } = await supabase
+        .from("grade_learning_areas")
+        .select("learning_area_id")
+        .eq("grade_id", selectedGradeId);
+
+      if (gradeError) throw gradeError;
+
+      const gradeAreaIds = new Set((gradeAreas || []).map(ga => ga.learning_area_id));
+      
+      // Filter teacher's learning areas to only those registered for this grade
+      const filteredAreas = teacherAreas.filter(area => gradeAreaIds.has(area.id));
+      
+      setTeacherLearningAreas(filteredAreas);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to load your assigned learning areas",
+        description: "Failed to load learning areas for this grade",
         variant: "destructive",
       });
     } finally {
@@ -346,7 +371,14 @@ export default function TeacherMarks() {
 
               <div>
                 <Label>Grade *</Label>
-                <Select value={selectedGradeId} onValueChange={setSelectedGradeId}>
+                <Select 
+                  value={selectedGradeId} 
+                  onValueChange={(value) => {
+                    setSelectedGradeId(value);
+                    setSelectedLearningAreaId(""); // Reset learning area when grade changes
+                    setSelectedStreamId(""); // Reset stream when grade changes
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select Grade" />
                   </SelectTrigger>
@@ -382,9 +414,21 @@ export default function TeacherMarks() {
 
               <div>
                 <Label>Learning Area *</Label>
-                <Select value={selectedLearningAreaId} onValueChange={setSelectedLearningAreaId}>
+                <Select 
+                  value={selectedLearningAreaId} 
+                  onValueChange={setSelectedLearningAreaId}
+                  disabled={!selectedGradeId || loadingAreas}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select Learning Area" />
+                    <SelectValue placeholder={
+                      !selectedGradeId 
+                        ? "Select grade first" 
+                        : loadingAreas 
+                          ? "Loading..." 
+                          : teacherLearningAreas.length === 0 
+                            ? "No areas for this grade" 
+                            : "Select Learning Area"
+                    } />
                   </SelectTrigger>
                   <SelectContent>
                     {teacherLearningAreas.map((area) => (
@@ -394,6 +438,11 @@ export default function TeacherMarks() {
                     ))}
                   </SelectContent>
                 </Select>
+                {selectedGradeId && !loadingAreas && teacherLearningAreas.length === 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    No learning areas registered for this grade that you're assigned to.
+                  </p>
+                )}
               </div>
 
               <div>
