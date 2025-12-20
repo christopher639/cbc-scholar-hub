@@ -298,7 +298,7 @@ export function TeacherPortalLayout() {
 
           {/* Main Content */}
           <main className="flex-1 mb-14 md:mb-0 overflow-auto pt-14 md:pt-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6">
+            <div className="max-w-7xl mx-auto px-1 sm:px-2 md:px-4 py-2 md:py-4">
               <Outlet context={{ teacher }} />
             </div>
             
