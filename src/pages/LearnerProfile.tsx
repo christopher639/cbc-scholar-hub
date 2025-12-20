@@ -244,11 +244,11 @@ const LearnerProfile = () => {
                   <img 
                     src={learner.photo_url} 
                     alt={`${learner.first_name} ${learner.last_name}`}
-                    className="w-40 h-40 sm:w-48 sm:h-48 object-cover rounded-xl border-4 border-border shadow-lg mb-4"
+                    className="w-52 h-52 sm:w-60 sm:h-60 object-cover rounded-xl border-4 border-border shadow-lg mb-4"
                   />
                 ) : (
-                  <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-xl border-4 border-border shadow-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <span className="text-5xl sm:text-6xl font-bold text-primary">
+                  <div className="w-52 h-52 sm:w-60 sm:h-60 rounded-xl border-4 border-border shadow-lg bg-primary/10 flex items-center justify-center mb-4">
+                    <span className="text-6xl sm:text-7xl font-bold text-primary">
                       {learner.first_name[0]}{learner.last_name[0]}
                     </span>
                   </div>
