@@ -1,8 +1,25 @@
 import { useOutletContext } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
-import { User, Calendar, GraduationCap, Home, Phone, Hash, MapPin } from "lucide-react";
+import { 
+  User, 
+  Calendar, 
+  GraduationCap, 
+  Home, 
+  Phone, 
+  Mail, 
+  Briefcase,
+  Heart,
+  Shield,
+  AlertCircle,
+  Droplets,
+  Clock,
+  Building2,
+  UserCircle,
+  MapPin,
+  Cake,
+  Users
+} from "lucide-react";
 
 export default function LearnerProfilePage() {
   const { learnerDetails } = useOutletContext<any>();
@@ -21,168 +38,380 @@ export default function LearnerProfilePage() {
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "active":
-        return "bg-green-500/10 text-green-700 border-green-500/20";
+        return "bg-emerald-500 text-white";
       case "inactive":
-        return "bg-red-500/10 text-red-700 border-red-500/20";
+        return "bg-rose-500 text-white";
       case "transferred":
-        return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+        return "bg-amber-500 text-white";
       default:
         return "bg-muted text-muted-foreground";
     }
   };
 
-  return (
-    <div className="space-y-4 pb-6">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <Avatar className="h-20 w-20 rounded-lg border-2 border-primary/20">
-          <AvatarImage src={learnerDetails?.photo_url} alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} className="object-cover" />
-          <AvatarFallback className="text-xl bg-primary/10 text-primary font-semibold rounded-lg">
-            {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
-          </AvatarFallback>
-        </Avatar>
+  const getBoardingBadge = (status: string) => {
+    return status === "boarder" 
+      ? "bg-indigo-500/10 text-indigo-600 border-indigo-200" 
+      : "bg-sky-500/10 text-sky-600 border-sky-200";
+  };
 
-        <div className="flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-semibold text-foreground">
-              {learnerDetails?.first_name} {learnerDetails?.last_name}
-            </h1>
-            <Badge className={`text-xs ${getStatusColor(learnerDetails?.status)}`}>
+  return (
+    <div className="min-h-full pb-8">
+      {/* Hero Section with Gradient Background */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-6 md:p-8 mb-6">
+        {/* Decorative Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-60 h-60 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
+          <div className="absolute top-1/2 right-1/4 w-20 h-20 bg-white rounded-full" />
+        </div>
+        
+        <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6">
+          {/* Large Avatar */}
+          <div className="relative">
+            <Avatar className="h-28 w-28 md:h-32 md:w-32 ring-4 ring-white/30 shadow-2xl">
+              <AvatarImage 
+                src={learnerDetails?.photo_url} 
+                alt={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`} 
+                className="object-cover" 
+              />
+              <AvatarFallback className="text-3xl md:text-4xl bg-white/20 text-white font-bold backdrop-blur-sm">
+                {learnerDetails?.first_name?.[0]}{learnerDetails?.last_name?.[0]}
+              </AvatarFallback>
+            </Avatar>
+            <Badge className={`absolute -bottom-2 left-1/2 -translate-x-1/2 ${getStatusColor(learnerDetails?.status)} shadow-lg text-xs px-3`}>
               {learnerDetails?.status || "Active"}
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            <span className="font-medium text-primary">{learnerDetails?.admission_number}</span>
-          </p>
-          <div className="flex flex-wrap items-center gap-2 mt-2">
-            <Badge variant="secondary" className="text-xs">
-              <GraduationCap className="h-3 w-3 mr-1" />
-              {learnerDetails?.current_grade?.name || "N/A"} {learnerDetails?.current_stream?.name ? `- ${learnerDetails.current_stream.name}` : ""}
-            </Badge>
-            {learnerDetails?.house && (
-              <Badge variant="outline" className="text-xs">
-                <Home className="h-3 w-3 mr-1" />
-                {learnerDetails.house.name}
+
+          {/* Hero Info */}
+          <div className="flex-1 text-center md:text-left text-white">
+            <h1 className="text-2xl md:text-3xl font-bold mb-1">
+              {learnerDetails?.first_name} {learnerDetails?.last_name}
+            </h1>
+            <p className="text-white/80 font-mono text-sm mb-4">
+              #{learnerDetails?.admission_number}
+            </p>
+            
+            <div className="flex flex-wrap justify-center md:justify-start gap-2">
+              <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                <GraduationCap className="h-3.5 w-3.5 mr-1.5" />
+                {learnerDetails?.current_grade?.name || "N/A"}
+                {learnerDetails?.current_stream?.name && ` • ${learnerDetails.current_stream.name}`}
               </Badge>
-            )}
+              
+              {learnerDetails?.house && (
+                <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                  <Home className="h-3.5 w-3.5 mr-1.5" />
+                  {learnerDetails.house.name}
+                </Badge>
+              )}
+              
+              <Badge className={`${getBoardingBadge(learnerDetails?.boarding_status)} backdrop-blur-sm`}>
+                <Building2 className="h-3.5 w-3.5 mr-1.5" />
+                {learnerDetails?.boarding_status === "boarder" ? "Boarder" : "Day Scholar"}
+              </Badge>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Info Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Personal Information */}
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-              <User className="h-4 w-4 text-primary" />
-              Personal Information
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="Gender" value={learnerDetails?.gender} capitalize />
-              <InfoItem 
-                label="Date of Birth" 
-                value={learnerDetails?.date_of_birth ? `${new Date(learnerDetails.date_of_birth).toLocaleDateString()} (${calculateAge(learnerDetails.date_of_birth)}y)` : "N/A"} 
-              />
-              <InfoItem 
-                label="Blood Type" 
-                value={learnerDetails?.blood_type || "N/A"} 
-              />
-              <InfoItem 
-                label="Boarding Status" 
-                value={learnerDetails?.boarding_status} 
-                capitalize 
-              />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Personal Details */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Quick Stats Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <QuickStatCard 
+              icon={<Cake className="h-5 w-5" />}
+              label="Age"
+              value={learnerDetails?.date_of_birth ? `${calculateAge(learnerDetails.date_of_birth)} years` : "N/A"}
+              color="bg-rose-500/10 text-rose-600"
+            />
+            <QuickStatCard 
+              icon={<Calendar className="h-5 w-5" />}
+              label="Enrolled"
+              value={learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : "N/A"}
+              color="bg-blue-500/10 text-blue-600"
+            />
+            <QuickStatCard 
+              icon={<Droplets className="h-5 w-5" />}
+              label="Blood Type"
+              value={learnerDetails?.blood_type || "N/A"}
+              color="bg-red-500/10 text-red-600"
+            />
+            <QuickStatCard 
+              icon={<UserCircle className="h-5 w-5" />}
+              label="Gender"
+              value={learnerDetails?.gender ? learnerDetails.gender.charAt(0).toUpperCase() + learnerDetails.gender.slice(1) : "N/A"}
+              color="bg-purple-500/10 text-purple-600"
+            />
+          </div>
 
-        {/* Academic Information */}
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-primary" />
-              Academic Information
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="Admission Number" value={learnerDetails?.admission_number} mono />
-              <InfoItem 
-                label="Enrollment Date" 
-                value={learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString() : "N/A"} 
-              />
-              <InfoItem label="Grade" value={learnerDetails?.current_grade?.name || "N/A"} />
-              <InfoItem label="Stream" value={learnerDetails?.current_stream?.name || "N/A"} />
+          {/* Personal Information Section */}
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="bg-muted/50 px-5 py-4 border-b">
+              <h2 className="font-semibold text-foreground flex items-center gap-2">
+                <User className="h-4 w-4 text-primary" />
+                Personal Information
+              </h2>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <DetailRow 
+                  icon={<User className="h-4 w-4" />}
+                  label="Full Name"
+                  value={`${learnerDetails?.first_name} ${learnerDetails?.last_name}`}
+                />
+                <DetailRow 
+                  icon={<Calendar className="h-4 w-4" />}
+                  label="Date of Birth"
+                  value={learnerDetails?.date_of_birth ? new Date(learnerDetails.date_of_birth).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : "N/A"}
+                />
+                <DetailRow 
+                  icon={<UserCircle className="h-4 w-4" />}
+                  label="Gender"
+                  value={learnerDetails?.gender}
+                  capitalize
+                />
+                <DetailRow 
+                  icon={<Droplets className="h-4 w-4" />}
+                  label="Blood Type"
+                  value={learnerDetails?.blood_type || "Not specified"}
+                />
+              </div>
+            </div>
+          </div>
 
-        {/* Emergency Contact */}
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-              <Phone className="h-4 w-4 text-primary" />
-              Emergency Contact
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="Contact Name" value={learnerDetails?.emergency_contact || "N/A"} />
-              <InfoItem label="Phone" value={learnerDetails?.emergency_phone || "N/A"} />
+          {/* Academic Information Section */}
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="bg-muted/50 px-5 py-4 border-b">
+              <h2 className="font-semibold text-foreground flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-primary" />
+                Academic Information
+              </h2>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <DetailRow 
+                  icon={<span className="text-xs font-mono font-bold">#</span>}
+                  label="Admission Number"
+                  value={learnerDetails?.admission_number}
+                  mono
+                />
+                <DetailRow 
+                  icon={<Clock className="h-4 w-4" />}
+                  label="Enrollment Date"
+                  value={learnerDetails?.enrollment_date ? new Date(learnerDetails.enrollment_date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : "N/A"}
+                />
+                <DetailRow 
+                  icon={<GraduationCap className="h-4 w-4" />}
+                  label="Current Grade"
+                  value={learnerDetails?.current_grade?.name || "Not assigned"}
+                />
+                <DetailRow 
+                  icon={<Users className="h-4 w-4" />}
+                  label="Stream"
+                  value={learnerDetails?.current_stream?.name || "Not assigned"}
+                />
+                <DetailRow 
+                  icon={<Building2 className="h-4 w-4" />}
+                  label="Boarding Status"
+                  value={learnerDetails?.boarding_status === "boarder" ? "Boarder" : "Day Scholar"}
+                />
+                <DetailRow 
+                  icon={<Home className="h-4 w-4" />}
+                  label="House"
+                  value={learnerDetails?.house?.name || "Not assigned"}
+                />
+              </div>
+            </div>
+          </div>
 
-        {/* Medical Information */}
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-              <Hash className="h-4 w-4 text-primary" />
-              Additional Information
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="Allergies" value={learnerDetails?.allergies || "None"} />
-              <InfoItem label="Medical Info" value={learnerDetails?.medical_info || "None"} />
+          {/* Medical Information Section */}
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="bg-muted/50 px-5 py-4 border-b">
+              <h2 className="font-semibold text-foreground flex items-center gap-2">
+                <Heart className="h-4 w-4 text-primary" />
+                Health & Medical
+              </h2>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <DetailRow 
+                  icon={<AlertCircle className="h-4 w-4" />}
+                  label="Allergies"
+                  value={learnerDetails?.allergies || "None reported"}
+                />
+                <DetailRow 
+                  icon={<Heart className="h-4 w-4" />}
+                  label="Medical Information"
+                  value={learnerDetails?.medical_info || "None reported"}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Emergency & Parent Info */}
+        <div className="space-y-6">
+          {/* Emergency Contact Card */}
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-950/30 dark:to-orange-950/30 rounded-xl border border-rose-200/50 dark:border-rose-800/30 overflow-hidden">
+            <div className="px-5 py-4 border-b border-rose-200/50 dark:border-rose-800/30">
+              <h2 className="font-semibold text-foreground flex items-center gap-2">
+                <Shield className="h-4 w-4 text-rose-600" />
+                Emergency Contact
+              </h2>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Contact Name</p>
+                <p className="font-medium text-foreground">
+                  {learnerDetails?.emergency_contact || "Not specified"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Phone Number</p>
+                <a 
+                  href={`tel:${learnerDetails?.emergency_phone}`}
+                  className="font-medium text-rose-600 hover:text-rose-700 flex items-center gap-2"
+                >
+                  <Phone className="h-4 w-4" />
+                  {learnerDetails?.emergency_phone || "Not specified"}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Parent/Guardian Card */}
+          {learnerDetails?.parent && (
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl border border-blue-200/50 dark:border-blue-800/30 overflow-hidden">
+              <div className="px-5 py-4 border-b border-blue-200/50 dark:border-blue-800/30">
+                <h2 className="font-semibold text-foreground flex items-center gap-2">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  Parent / Guardian
+                </h2>
+              </div>
+              <div className="p-5">
+                {/* Parent Avatar & Name */}
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-blue-200/50 dark:border-blue-800/30">
+                  <Avatar className="h-12 w-12 bg-blue-500/20">
+                    <AvatarFallback className="bg-blue-500/20 text-blue-700 font-semibold">
+                      {learnerDetails.parent.first_name?.[0]}{learnerDetails.parent.last_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold text-foreground">
+                      {learnerDetails.parent.first_name} {learnerDetails.parent.last_name}
+                    </p>
+                    {learnerDetails.parent.occupation && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Briefcase className="h-3 w-3" />
+                        {learnerDetails.parent.occupation}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <a 
+                    href={`tel:${learnerDetails.parent.phone}`}
+                    className="flex items-center gap-3 text-sm text-foreground hover:text-blue-600 transition-colors"
+                  >
+                    <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Phone className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <span>{learnerDetails.parent.phone}</span>
+                  </a>
+                  
+                  <a 
+                    href={`mailto:${learnerDetails.parent.email}`}
+                    className="flex items-center gap-3 text-sm text-foreground hover:text-blue-600 transition-colors"
+                  >
+                    <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Mail className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <span className="truncate">{learnerDetails.parent.email}</span>
+                  </a>
+                  
+                  {learnerDetails.parent.address && (
+                    <div className="flex items-start gap-3 text-sm text-foreground">
+                      <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                        <MapPin className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <span>{learnerDetails.parent.address}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Staff Child Badge */}
+          {learnerDetails?.is_staff_child && (
+            <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 rounded-xl border border-amber-200/50 dark:border-amber-800/30 p-5">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Briefcase className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Staff Child</p>
+                  <p className="text-xs text-muted-foreground">Eligible for staff discount</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* Parent/Guardian Information */}
-      {learnerDetails?.parent && (
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-              <User className="h-4 w-4 text-primary" />
-              Parent/Guardian Information
-            </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <InfoItem label="Name" value={`${learnerDetails.parent.first_name} ${learnerDetails.parent.last_name}`} />
-              <InfoItem label="Phone" value={learnerDetails.parent.phone} />
-              <InfoItem label="Email" value={learnerDetails.parent.email} />
-              <InfoItem label="Occupation" value={learnerDetails.parent.occupation || "N/A"} />
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
 
-function InfoItem({ 
+function QuickStatCard({ 
+  icon, 
+  label, 
+  value, 
+  color 
+}: { 
+  icon: React.ReactNode; 
+  label: string; 
+  value: string; 
+  color: string;
+}) {
+  return (
+    <div className="bg-card rounded-xl border p-4 text-center">
+      <div className={`h-10 w-10 rounded-full ${color} flex items-center justify-center mx-auto mb-2`}>
+        {icon}
+      </div>
+      <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+      <p className="font-semibold text-sm text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function DetailRow({ 
+  icon, 
   label, 
   value, 
   capitalize = false, 
   mono = false 
 }: { 
+  icon: React.ReactNode;
   label: string; 
   value?: string | null; 
   capitalize?: boolean; 
   mono?: boolean;
 }) {
   return (
-    <div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`text-sm font-medium ${capitalize ? "capitalize" : ""} ${mono ? "font-mono" : ""}`}>
-        {value || "N/A"}
-      </p>
+    <div className="flex items-start gap-3">
+      <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+        <p className={`text-sm font-medium text-foreground ${capitalize ? "capitalize" : ""} ${mono ? "font-mono" : ""}`}>
+          {value || "N/A"}
+        </p>
+      </div>
     </div>
   );
 }
