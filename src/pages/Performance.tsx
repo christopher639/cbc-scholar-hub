@@ -1,25 +1,17 @@
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, User, Users, FileText, ClipboardList, Search, MoreHorizontal } from "lucide-react";
+import { Plus, BookOpen, User, FileText, Search, MoreHorizontal, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import AddPerformanceDialog from "@/components/AddPerformanceDialog";
 import { ManageLearningAreasDialog } from "@/components/ManageLearningAreasDialog";
-import { BulkPerformanceEntry } from "@/components/BulkPerformanceEntry";
 import { PerformanceReportDialog } from "@/components/PerformanceReportDialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,12 +21,11 @@ import {
 
 const Performance = () => {
   const [isAddPerformanceOpen, setIsAddPerformanceOpen] = useState(false);
-  const [isManageLearningAreasOpen, setIsManageLearningAreasOpen] = useState(false);
-  const [isBulkEntryOpen, setIsBulkEntryOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { learningAreas, loading } = useLearningAreas();
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const isAdmin = user?.role === 'admin';
   const assignedTeachersCount = learningAreas.filter(a => a.teacher_id).length;
@@ -62,18 +53,14 @@ const Performance = () => {
               </Button>
             )}
             {isAdmin && (
-              <Button variant="outline" size="sm" className="h-9" onClick={() => setIsManageLearningAreasOpen(true)}>
+              <Button variant="outline" size="sm" className="h-9" onClick={() => navigate("/learning-areas")}>
                 <BookOpen className="h-4 w-4 mr-1.5" />
                 <span className="hidden sm:inline">Learning Areas</span>
               </Button>
             )}
-            <Button variant="outline" size="sm" className="h-9" onClick={() => setIsBulkEntryOpen(true)}>
-              <Users className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">Bulk Entry</span>
-            </Button>
             <Button size="sm" className="h-9" onClick={() => setIsAddPerformanceOpen(true)}>
               <Plus className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">Add Record</span>
+              <span className="hidden sm:inline">Record</span>
             </Button>
           </div>
         </div>
@@ -104,7 +91,7 @@ const Performance = () => {
                 <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground mb-3">No learning areas found</p>
                 {isAdmin && (
-                  <Button size="sm" onClick={() => setIsManageLearningAreasOpen(true)}>
+                  <Button size="sm" onClick={() => navigate("/learning-areas")}>
                     <Plus className="h-4 w-4 mr-1.5" />
                     Add Learning Area
                   </Button>
@@ -123,14 +110,14 @@ const Performance = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setIsBulkEntryOpen(true)}>
-                            <ClipboardList className="h-4 w-4 mr-2" />
+                          <DropdownMenuItem onClick={() => setIsAddPerformanceOpen(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
                             Record Marks
                           </DropdownMenuItem>
                           {isAdmin && (
-                            <DropdownMenuItem onClick={() => setIsManageLearningAreasOpen(true)}>
-                              <BookOpen className="h-4 w-4 mr-2" />
-                              Edit Area
+                            <DropdownMenuItem onClick={() => navigate("/learning-areas")}>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Manage Areas
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
@@ -165,22 +152,14 @@ const Performance = () => {
             <h2 className="text-sm font-medium text-foreground">Quick Actions</h2>
           </div>
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <Button
                 variant="outline"
                 className="h-auto py-4 flex flex-col items-center gap-2 justify-center"
                 onClick={() => setIsAddPerformanceOpen(true)}
               >
                 <Plus className="h-5 w-5 text-primary" />
-                <span className="text-sm">Add Single Record</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-auto py-4 flex flex-col items-center gap-2 justify-center"
-                onClick={() => setIsBulkEntryOpen(true)}
-              >
-                <Users className="h-5 w-5 text-blue-600" />
-                <span className="text-sm">Bulk Entry</span>
+                <span className="text-sm">Record Marks</span>
               </Button>
               {isAdmin && (
                 <Button
@@ -196,10 +175,10 @@ const Performance = () => {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2 justify-center"
-                  onClick={() => setIsManageLearningAreasOpen(true)}
+                  onClick={() => navigate("/learning-areas")}
                 >
                   <BookOpen className="h-5 w-5 text-amber-600" />
-                  <span className="text-sm">Manage Areas</span>
+                  <span className="text-sm">Manage Learning Areas</span>
                 </Button>
               )}
             </div>
@@ -217,17 +196,10 @@ const Performance = () => {
             <p className="text-xs text-muted-foreground">Assigned</p>
             <p className="text-lg font-semibold text-foreground">{loading ? "..." : assignedTeachersCount}</p>
           </div>
-          <div className="h-8 w-px bg-border" />
-          <div>
-            <p className="text-xs text-muted-foreground">Exams</p>
-            <p className="text-lg font-semibold text-foreground">0</p>
-          </div>
         </div>
       </div>
 
       <AddPerformanceDialog open={isAddPerformanceOpen} onOpenChange={setIsAddPerformanceOpen} />
-      <ManageLearningAreasDialog open={isManageLearningAreasOpen} onOpenChange={setIsManageLearningAreasOpen} />
-      <BulkPerformanceEntry open={isBulkEntryOpen} onOpenChange={setIsBulkEntryOpen} />
       <PerformanceReportDialog open={isReportOpen} onOpenChange={setIsReportOpen} />
     </DashboardLayout>
   );

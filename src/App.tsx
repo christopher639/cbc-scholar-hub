@@ -18,6 +18,7 @@ import Grades from "./pages/Grades";
 import GradeDetail from "./pages/GradeDetail";
 import StreamDetail from "./pages/StreamDetail";
 import Performance from "./pages/Performance";
+import LearningAreasPage from "./pages/LearningAreas";
 import Admissions from "./pages/Admissions";
 import FeeManagement from "./pages/FeeManagement";
 import Reports from "./pages/Reports";
@@ -121,7 +122,8 @@ function AppRoutes() {
       <Route path="/grades/:grade" element={<ProtectedRoute><GradeDetail /></ProtectedRoute>} />
       <Route path="/grades/:grade/:stream" element={<ProtectedRoute><StreamDetail /></ProtectedRoute>} />
       <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
-      <Route path="/release-marks" element={<ProtectedRoute><AdminRoute><ReleaseMarks /></AdminRoute></ProtectedRoute>} />
+          <Route path="/release-marks" element={<ProtectedRoute><AdminRoute><ReleaseMarks /></AdminRoute></ProtectedRoute>} />
+          <Route path="/learning-areas" element={<ProtectedRoute><AdminRoute><LearningAreasPage /></AdminRoute></ProtectedRoute>} />
       <Route path="/teachers" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
       <Route path="/teachers/:id" element={<ProtectedRoute><TeacherProfile /></ProtectedRoute>} />
       <Route path="/non-teaching-staff" element={<ProtectedRoute><NonTeachingStaff /></ProtectedRoute>} />

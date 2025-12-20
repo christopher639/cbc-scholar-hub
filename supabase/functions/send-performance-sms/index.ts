@@ -21,9 +21,18 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const apiKey = Deno.env.get("TEXT_SMS_API_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const apiKey = Deno.env.get("TEXT_SMS_API_KEY");
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error("Supabase credentials not configured");
+    }
+    
+    if (!apiKey) {
+      throw new Error("TEXT_SMS_API_KEY is not configured");
+    }
+    
     const partnerId = "15265";
     const shortcode = "TextSMS";
 
@@ -47,7 +56,7 @@ serve(async (req) => {
 
     const learningAreaMap = new Map(learningAreas?.map(la => [la.id, la]) || []);
 
-    // Build learner query based on scope
+    // Build learner query based on scope - include parent phone directly from learners table
     let learnersQuery = supabase
       .from("learners")
       .select(`
@@ -57,6 +66,8 @@ serve(async (req) => {
         admission_number,
         current_grade_id,
         current_stream_id,
+        emergency_phone,
+        emergency_contact,
         parent:parents(phone, first_name, last_name),
         grade:grades(name),
         stream:streams(name)
@@ -75,6 +86,8 @@ serve(async (req) => {
       console.error("Error fetching learners:", learnersError);
       throw learnersError;
     }
+
+    console.log(`Found ${learners?.length || 0} learners`);
 
     if (!learners || learners.length === 0) {
       return new Response(
@@ -108,6 +121,8 @@ serve(async (req) => {
       throw perfError;
     }
 
+    console.log(`Found ${performanceRecords?.length || 0} performance records`);
+
     // Group performance by learner and learning area
     const performanceByLearner = new Map<string, Map<string, any[]>>();
     
@@ -124,7 +139,7 @@ serve(async (req) => {
       learnerPerf.get(laId)!.push(record);
     });
 
-    // Format phone number
+    // Format phone number - support Kenya phone numbers
     const formatPhone = (phone: string): string | null => {
       if (!phone) return null;
       let cleaned = phone.replace(/\D/g, "");
@@ -140,17 +155,51 @@ serve(async (req) => {
     // Prepare SMS list
     const smsList: any[] = [];
     let clientSmsId = 1;
+    let learnersWithoutPhone = 0;
+    let learnersProcessed = 0;
 
     for (const learner of learners) {
+      // Try to get phone from parent first, then fallback to emergency_phone
       const parent = learner.parent as any;
-      if (!parent?.phone) continue;
+      let phoneNumber = parent?.phone || learner.emergency_phone;
+      let parentName = parent?.first_name || learner.emergency_contact || "Parent";
 
-      const formattedPhone = formatPhone(parent.phone);
-      if (!formattedPhone) continue;
+      if (!phoneNumber) {
+        learnersWithoutPhone++;
+        console.log(`Learner ${learner.first_name} ${learner.last_name} has no phone number`);
+        continue;
+      }
+
+      const formattedPhone = formatPhone(phoneNumber);
+      if (!formattedPhone) {
+        learnersWithoutPhone++;
+        console.log(`Invalid phone for ${learner.first_name} ${learner.last_name}: ${phoneNumber}`);
+        continue;
+      }
 
       const learnerPerfMap = performanceByLearner.get(learner.id);
       
-      if (!learnerPerfMap || learnerPerfMap.size === 0) continue;
+      // If learner has no performance records, send a message indicating that
+      if (!learnerPerfMap || learnerPerfMap.size === 0) {
+        const termLabel = term.replace("_", " ").toUpperCase();
+        const examLabel = examType === "combined" 
+          ? "Combined" 
+          : examType.replace("_", "-").toUpperCase();
+        
+        const message = `${schoolName}: Dear ${parentName}, ${learner.first_name} ${learner.last_name} has no ${examLabel} exam records for ${termLabel} ${academicYear}. Please contact school for more info.`;
+
+        smsList.push({
+          partnerID: partnerId,
+          apikey: apiKey,
+          pass_type: "plain",
+          clientsmsid: clientSmsId++,
+          mobile: formattedPhone,
+          message: message,
+          shortcode: shortcode,
+        });
+        learnersProcessed++;
+        continue;
+      }
 
       // Build subject-wise performance summary
       const subjectSummary: { code: string; name: string; marks: number; examTypes: string[] }[] = [];
@@ -191,11 +240,11 @@ serve(async (req) => {
 
       const termLabel = term.replace("_", " ").toUpperCase();
       const examLabel = examType === "combined" 
-        ? "Combined (Opener+Mid+Final)" 
+        ? "Combined (All Exams)" 
         : examType.replace("_", "-").toUpperCase();
 
       // Build comprehensive message with all subjects
-      let message = `${schoolName}: Dear ${parent.first_name}, ${learner.first_name}'s ${termLabel} ${examLabel} Results:\n`;
+      let message = `${schoolName}: Dear ${parentName}, ${learner.first_name}'s ${termLabel} ${examLabel} Results:\n`;
       message += `Subjects: ${subjectList}\n`;
       message += `Overall Avg: ${totalAvg.toFixed(1)}% (${gradeCategory})\n`;
       message += `Total: ${subjectSummary.length} subjects`;
@@ -209,11 +258,17 @@ serve(async (req) => {
         message: message.substring(0, 480), // Allow 3 SMS parts for complete data
         shortcode: shortcode,
       });
+      learnersProcessed++;
     }
+
+    console.log(`Processed ${learnersProcessed} learners, ${learnersWithoutPhone} without valid phone, ${smsList.length} SMS to send`);
 
     if (smsList.length === 0) {
       return new Response(
-        JSON.stringify({ success: false, message: "No parents with valid phone numbers or performance records found" }),
+        JSON.stringify({ 
+          success: false, 
+          message: `No SMS to send. ${learnersWithoutPhone} learners have no valid phone numbers.` 
+        }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
