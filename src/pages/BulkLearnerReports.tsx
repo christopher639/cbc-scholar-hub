@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileText, Loader2, Filter, TrendingUp } from "lucide-react";
+import { Download, FileText, Loader2, Filter, TrendingUp, ClipboardList } from "lucide-react";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
@@ -16,6 +16,7 @@ import { useReactToPrint } from "react-to-print";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { LearnerJourneyDialog } from "@/components/LearnerJourneyDialog";
 import { PrintablePerformanceReport } from "@/components/PrintablePerformanceReport";
+import { PerformanceReportDialog } from "@/components/PerformanceReportDialog";
 
 const BulkLearnerReports = () => {
   const { grades, loading: gradesLoading } = useGrades();
@@ -36,6 +37,7 @@ const BulkLearnerReports = () => {
   const [reportData, setReportData] = useState<any[]>([]);
   const [selectedLearnerId, setSelectedLearnerId] = useState<string>("");
   const [journeyDialogOpen, setJourneyDialogOpen] = useState(false);
+  const [performanceReportOpen, setPerformanceReportOpen] = useState(false);
   
   const printRef = useRef<HTMLDivElement>(null);
   const marksSheetRef = useRef<HTMLDivElement>(null);
@@ -228,9 +230,15 @@ const BulkLearnerReports = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Bulk Learner Reports</h1>
-          <p className="text-muted-foreground">Generate performance reports for multiple learners</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Learner Reports</h1>
+            <p className="text-muted-foreground">Generate performance reports for multiple learners</p>
+          </div>
+          <Button onClick={() => setPerformanceReportOpen(true)} className="gap-2">
+            <ClipboardList className="h-4 w-4" />
+            Performance Report
+          </Button>
         </div>
 
         <Card>
@@ -434,6 +442,12 @@ const BulkLearnerReports = () => {
           open={journeyDialogOpen}
           onOpenChange={setJourneyDialogOpen}
           learnerId={selectedLearnerId}
+        />
+
+        {/* Performance Report Dialog */}
+        <PerformanceReportDialog
+          open={performanceReportOpen}
+          onOpenChange={setPerformanceReportOpen}
         />
 
         {/* Hidden print area */}
