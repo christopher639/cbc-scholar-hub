@@ -349,19 +349,6 @@ const BulkLearnerReports = () => {
                     </>
                   )}
                 </Button>
-                
-                {reportData.length > 0 && (
-                  <>
-                    <Button size="sm" variant="outline" onClick={handlePrint}>
-                      <Download className="h-4 w-4 mr-1.5" />
-                      Download Reports
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={handlePrintMarksSheet}>
-                      <Download className="h-4 w-4 mr-1.5" />
-                      Download Marks Sheet
-                    </Button>
-                  </>
-                )}
               </div>
             </div>
           </CardContent>
