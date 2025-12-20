@@ -253,11 +253,8 @@ serve(async (req) => {
             recipient.streamName
           );
 
-          // Determine from address - use school email if from verified domain
-          const schoolFromEmail = schoolInfo?.email;
-          const fromAddress = schoolFromEmail && !schoolFromEmail.includes("gmail.com") && !schoolFromEmail.includes("yahoo.com") && !schoolFromEmail.includes("hotmail.com")
-            ? `${schoolName} <${schoolFromEmail}>`
-            : `${schoolName} <onboarding@resend.dev>`;
+          // Use verified domain email address
+          const fromAddress = `${schoolName} <noreply@sangeschool.com>`;
 
           await resend.emails.send({
             from: fromAddress,
