@@ -120,7 +120,7 @@ const navigation = [
   { name: "Learners", href: "/learners", icon: Users, roles: ["admin", "teacher", "finance", "visitor"] },
   { name: "Grades & Streams", href: "/grades", icon: GraduationCap, roles: ["admin", "teacher", "finance", "visitor"] },
   { name: "Houses", href: "/houses", icon: Home, roles: ["admin", "finance", "visitor"] },
-  { name: "Performance", href: "/performance", icon: FileText, roles: ["admin", "teacher", "finance", "visitor"] },
+  { name: "Learning Areas", href: "/learning-areas", icon: BookOpen, roles: ["admin", "finance", "visitor"] },
   { name: "Release Marks", href: "/release-marks", icon: Unlock, roles: ["admin", "finance", "visitor"] },
   { name: "Teachers", href: "/teachers", icon: UserCog, roles: ["admin", "finance", "visitor"] },
   { name: "Departments", href: "/departments", icon: Building2, roles: ["admin", "finance", "visitor"] },

@@ -4,12 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Download, Users, DollarSign, GraduationCap, Calendar, TrendingUp, AlertCircle } from "lucide-react";
+import { FileText, Download, Users, DollarSign, GraduationCap, Calendar, TrendingUp, AlertCircle, ClipboardList } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/currency";
+import { PerformanceReportDialog } from "@/components/PerformanceReportDialog";
 
 const Reports = () => {
   const { toast } = useToast();
@@ -17,6 +18,7 @@ const Reports = () => {
   const [academicYear, setAcademicYear] = useState("");
   const [term, setTerm] = useState("all");
   const [loading, setLoading] = useState(false);
+  const [performanceReportOpen, setPerformanceReportOpen] = useState(false);
   const [analytics, setAnalytics] = useState({
     learnerStats: {
       total: 0,
@@ -171,10 +173,16 @@ const Reports = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Reports & Analytics</h1>
             <p className="text-sm text-muted-foreground">Generate comprehensive reports for decision making</p>
           </div>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Export All
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setPerformanceReportOpen(true)} className="gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Performance Report
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Export All
+            </Button>
+          </div>
         </div>
 
         {/* Time Period Filter */}
@@ -339,6 +347,11 @@ const Reports = () => {
           </CardContent>
         </Card>
       </div>
+      
+      <PerformanceReportDialog
+        open={performanceReportOpen}
+        onOpenChange={setPerformanceReportOpen}
+      />
     </DashboardLayout>
   );
 };

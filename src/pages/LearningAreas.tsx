@@ -14,12 +14,9 @@ import { useTeachers } from "@/hooks/useTeachers";
 import { 
   Plus, 
   BookOpen, 
-  User, 
   Pencil, 
   Trash2, 
   Search,
-  X,
-  Save,
   Loader2 
 } from "lucide-react";
 import {
@@ -40,10 +37,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const LearningAreas = () => {
   const { toast } = useToast();
-  const { learningAreas, loading, addLearningArea, updateLearningArea, deleteLearningArea, fetchLearningAreas } = useLearningAreas();
+  const { learningAreas, loading, addLearningArea, updateLearningArea, deleteLearningArea } = useLearningAreas();
   const { teachers } = useTeachers();
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -203,7 +208,7 @@ const LearningAreas = () => {
           </CardContent>
         </Card>
 
-        {/* Learning Areas Grid */}
+        {/* Learning Areas Table */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -211,14 +216,14 @@ const LearningAreas = () => {
               All Learning Areas
             </CardTitle>
             <CardDescription>
-              Click on a learning area to edit or delete it
+              Manage learning areas for your school
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Skeleton key={i} className="h-32 w-full rounded-lg" />
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
                 ))}
               </div>
             ) : filteredAreas.length === 0 ? (
@@ -236,53 +241,64 @@ const LearningAreas = () => {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredAreas.map((area) => (
-                  <div
-                    key={area.id}
-                    className="border rounded-lg p-4 bg-card hover:border-primary/50 transition-colors group"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <Badge variant="secondary" className="font-mono">{area.code}</Badge>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => handleEdit(area)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteConfirmId(area.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <h3 className="font-medium mb-1 line-clamp-1">{area.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2 min-h-[2.5rem]">
-                      {area.description || "No description provided"}
-                    </p>
-                    <div className="flex items-center gap-2 pt-2 border-t">
-                      {area.teacher ? (
-                        <>
-                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User className="h-3 w-3 text-primary" />
-                          </div>
-                          <span className="text-sm truncate">
-                            {area.teacher.first_name} {area.teacher.last_name}
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead className="w-24">Code</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead className="hidden sm:table-cell">Teacher</TableHead>
+                      <TableHead className="hidden md:table-cell">Description</TableHead>
+                      <TableHead className="w-20 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAreas.map((area, index) => (
+                      <TableRow key={area.id}>
+                        <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="font-mono">{area.code}</Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">{area.name}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {area.teacher ? (
+                            <span className="text-sm">
+                              {area.teacher.first_name} {area.teacher.last_name}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground italic">Unassigned</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <span className="text-sm text-muted-foreground line-clamp-1">
+                            {area.description || "—"}
                           </span>
-                        </>
-                      ) : (
-                        <span className="text-sm text-muted-foreground italic">No teacher assigned</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleEdit(area)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              onClick={() => setDeleteConfirmId(area.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>
