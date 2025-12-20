@@ -46,6 +46,12 @@ const LearnerProfile = () => {
   // Get active exam types for dynamic columns
   const activeExamTypes = examTypes.filter(et => et.is_active !== false);
 
+  // Create a map of exam type names to their max marks
+  const examTypeMaxMarks: Record<string, number> = {};
+  activeExamTypes.forEach(et => {
+    examTypeMaxMarks[et.name.toLowerCase()] = et.max_marks || 100;
+  });
+
   // Group performance records by learning area with dynamic exam types
   const groupPerformanceByArea = (records: any[], allRecords: any[], currentYear: string, currentTerm: string) => {
     const grouped = records.reduce((acc: any, record: any) => {
@@ -91,10 +97,14 @@ const LearnerProfile = () => {
     const previousAverages: Record<string, any> = {};
     previousTermRecords.forEach((record: any) => {
       const areaName = record.learning_area?.name || "Unknown";
+      const examTypeName = record.exam_type?.toLowerCase();
+      const maxMarks = examTypeMaxMarks[examTypeName] || 100;
+      const percentage = (Number(record.marks) / maxMarks) * 100;
+      
       if (!previousAverages[areaName]) {
         previousAverages[areaName] = { total: 0, count: 0 };
       }
-      previousAverages[areaName].total += Number(record.marks);
+      previousAverages[areaName].total += percentage;
       previousAverages[areaName].count += 1;
     });
     
@@ -103,10 +113,20 @@ const LearnerProfile = () => {
     });
 
     return Object.values(grouped).map((row: any) => {
-      const scores = Object.values(row.examScores).filter((s: any) => s !== null) as number[];
-      const average = scores.length > 0 
-        ? Math.round((scores.reduce((sum: number, s: number) => sum + s, 0) / scores.length) * 10) / 10
-        : 0;
+      // Calculate weighted average as percentage
+      let totalPercentage = 0;
+      let count = 0;
+      
+      Object.entries(row.examScores).forEach(([examType, score]) => {
+        if (score !== null && score !== undefined) {
+          const maxMarks = examTypeMaxMarks[examType] || 100;
+          const percentage = (Number(score) / maxMarks) * 100;
+          totalPercentage += percentage;
+          count += 1;
+        }
+      });
+      
+      const average = count > 0 ? Math.round((totalPercentage / count) * 10) / 10 : 0;
       
       const previousAverage = previousAverages[row.learning_area];
       const deviation = average > 0 && previousAverage 
@@ -528,10 +548,13 @@ const LearnerProfile = () => {
                               <TableHead>Learning Area</TableHead>
                               {activeExamTypes.map((examType) => (
                                 <TableHead key={examType.id} className="text-center">
-                                  {examType.name}
+                                  <div className="flex flex-col items-center">
+                                    <span>{examType.name}</span>
+                                    <span className="text-xs text-muted-foreground">/{examType.max_marks || 100}</span>
+                                  </div>
                                 </TableHead>
                               ))}
-                              <TableHead className="text-center">Average</TableHead>
+                              <TableHead className="text-center">Average %</TableHead>
                               <TableHead className="hidden lg:table-cell">Remarks</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -543,10 +566,16 @@ const LearnerProfile = () => {
                                   <TableCell className="font-medium">{row.learning_area}</TableCell>
                                   {activeExamTypes.map((examType) => {
                                     const score = row.examScores?.[examType.name.toLowerCase()];
+                                    const maxMarks = examType.max_marks || 100;
+                                    const percentage = score !== null && score !== undefined 
+                                      ? Math.round((score / maxMarks) * 100) 
+                                      : null;
                                     return (
                                       <TableCell key={examType.id} className="text-center">
                                         {score !== null && score !== undefined ? (
-                                          <Badge className={getGradeColor(score)}>{score}%</Badge>
+                                          <Badge className={getGradeColor(percentage || 0)}>
+                                            {score}/{maxMarks}
+                                          </Badge>
                                         ) : "-"}
                                       </TableCell>
                                     );
