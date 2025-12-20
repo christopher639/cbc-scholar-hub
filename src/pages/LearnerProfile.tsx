@@ -244,11 +244,11 @@ const LearnerProfile = () => {
                   <img 
                     src={learner.photo_url} 
                     alt={`${learner.first_name} ${learner.last_name}`}
-                    className="w-32 h-32 sm:w-40 sm:h-40 object-cover rounded-xl border-4 border-border shadow-lg mb-4"
+                    className="w-40 h-40 sm:w-48 sm:h-48 object-cover rounded-xl border-4 border-border shadow-lg mb-4"
                   />
                 ) : (
-                  <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-xl border-4 border-border shadow-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <span className="text-4xl sm:text-5xl font-bold text-primary">
+                  <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-xl border-4 border-border shadow-lg bg-primary/10 flex items-center justify-center mb-4">
+                    <span className="text-5xl sm:text-6xl font-bold text-primary">
                       {learner.first_name[0]}{learner.last_name[0]}
                     </span>
                   </div>
@@ -292,8 +292,8 @@ const LearnerProfile = () => {
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-blue-500/10">
-                    <User className="h-4 w-4 text-blue-500" />
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <User className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Gender</p>
@@ -301,8 +301,8 @@ const LearnerProfile = () => {
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <GraduationCap className="h-4 w-4 text-green-500" />
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <GraduationCap className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Enrolled</p>
@@ -310,8 +310,8 @@ const LearnerProfile = () => {
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-orange-500/10">
-                    <BookOpen className="h-4 w-4 text-orange-500" />
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <BookOpen className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Academic Year</p>
@@ -319,8 +319,8 @@ const LearnerProfile = () => {
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-purple-500/10">
-                    <Clock className="h-4 w-4 text-purple-500" />
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Clock className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Current Term</p>
@@ -328,12 +328,12 @@ const LearnerProfile = () => {
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="p-2 rounded-lg bg-red-500/10">
-                    <Wallet className="h-4 w-4 text-red-500" />
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Wallet className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Fee Balance</p>
-                    <p className={`text-sm font-medium ${(learner.feeInfo?.totalBalance || 0) > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                    <p className="text-sm font-medium">
                       {formatCurrency(learner.feeInfo?.totalBalance || 0)}
                     </p>
                   </div>
