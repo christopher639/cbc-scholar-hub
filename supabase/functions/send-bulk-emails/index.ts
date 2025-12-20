@@ -254,7 +254,7 @@ serve(async (req) => {
           );
 
           // Use verified domain email address
-          const fromAddress = `${schoolName} <noreply@sangeschool.com>`;
+          const fromAddress = `${schoolName} <noreply@samge.sc.ke>`;
 
           await resend.emails.send({
             from: fromAddress,
