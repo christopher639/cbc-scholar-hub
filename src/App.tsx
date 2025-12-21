@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { SessionTimeoutWarning } from "@/components/SessionTimeoutWarning";
+import { AppearanceLoader } from "@/components/AppearanceLoader";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Learners from "./pages/Students";
@@ -158,6 +159,7 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
+            <AppearanceLoader />
             <Toaster />
             <Sonner />
             <SessionTimeoutWrapper>

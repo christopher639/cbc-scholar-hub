@@ -195,6 +195,27 @@ export type Database = {
           },
         ]
       }
+      appearance_settings: {
+        Row: {
+          created_at: string
+          id: string
+          primary_color: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          primary_color?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          primary_color?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       assignment_submissions: {
         Row: {
           assignment_id: string
