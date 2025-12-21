@@ -16,12 +16,12 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, trend, colorClass = "text-primary" }: StatCardProps) {
   return (
-    <Card className="overflow-hidden h-full">
-      <CardContent className="p-4 sm:p-6 h-full">
-        <div className="flex items-start justify-between h-full">
+    <Card className="overflow-hidden h-full min-h-[90px] sm:min-h-0">
+      <CardContent className="p-4 sm:p-6 h-full flex flex-col justify-center">
+        <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
-            <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-bold text-foreground truncate">{value}</h3>
+            <h3 className="mt-1 sm:mt-2 text-base sm:text-lg font-bold text-foreground sm:whitespace-nowrap">{value}</h3>
             {trend && (
               <p className={cn("mt-1 sm:mt-2 text-xs sm:text-sm font-medium", trend.positive ? "text-success" : "text-destructive")}>
                 {trend.positive ? "+" : "-"}{trend.value}

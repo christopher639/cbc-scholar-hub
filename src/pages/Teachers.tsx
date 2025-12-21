@@ -63,30 +63,30 @@ const Teachers = () => {
             {/* Inline Stats for Large Screens */}
             <div className="hidden lg:flex items-center gap-4 ml-4 pl-4 border-l">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded">
-                  <Users className="h-3.5 w-3.5 text-primary" />
+                <div className="p-2 bg-primary/10 rounded">
+                  <Users className="h-4 w-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Total</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : teachers.length}</p>
+                  <p className="text-base font-bold">{loading ? "..." : teachers.length}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-green-500/10 rounded">
-                  <GraduationCap className="h-3.5 w-3.5 text-green-600" />
+                <div className="p-2 bg-green-500/10 rounded">
+                  <GraduationCap className="h-4 w-4 text-green-600" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">With Subjects</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : withAssignments}</p>
+                  <p className="text-base font-bold">{loading ? "..." : withAssignments}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-blue-500/10 rounded">
-                  <CalendarDays className="h-3.5 w-3.5 text-blue-600" />
+                <div className="p-2 bg-blue-500/10 rounded">
+                  <CalendarDays className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">This Month</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : thisMonth}</p>
+                  <p className="text-base font-bold">{loading ? "..." : thisMonth}</p>
                 </div>
               </div>
             </div>
@@ -116,28 +116,28 @@ const Teachers = () => {
         <div className="grid grid-cols-3 gap-2 lg:hidden">
           <Card className="p-3">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
+              <Users className="h-5 w-5 text-primary" />
               <div>
                 <p className="text-xs text-muted-foreground">Total</p>
-                <p className="text-lg font-bold">{loading ? "..." : teachers.length}</p>
+                <p className="text-xl font-bold">{loading ? "..." : teachers.length}</p>
               </div>
             </div>
           </Card>
           <Card className="p-3">
             <div className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-green-600" />
+              <GraduationCap className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-xs text-muted-foreground">Subjects</p>
-                <p className="text-lg font-bold">{loading ? "..." : withAssignments}</p>
+                <p className="text-xl font-bold">{loading ? "..." : withAssignments}</p>
               </div>
             </div>
           </Card>
           <Card className="p-3">
             <div className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-blue-600" />
+              <CalendarDays className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-xs text-muted-foreground">New</p>
-                <p className="text-lg font-bold">{loading ? "..." : thisMonth}</p>
+                <p className="text-xl font-bold">{loading ? "..." : thisMonth}</p>
               </div>
             </div>
           </Card>
