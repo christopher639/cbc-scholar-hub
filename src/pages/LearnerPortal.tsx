@@ -302,10 +302,10 @@ export default function LearnerPortal() {
   };
 
   const getGradeColor = (marks: number) => {
-    if (marks >= 80) return "bg-green-500/10 text-green-700 dark:text-green-400";
+    if (marks >= 80) return "bg-primary/10 text-primary";
     if (marks >= 60) return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
     if (marks >= 50) return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
-    return "bg-red-500/10 text-red-700 dark:text-red-400";
+    return "bg-destructive/10 text-destructive";
   };
 
   if (loading) {
@@ -507,7 +507,7 @@ export default function LearnerPortal() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <div className="text-2xl font-bold text-primary">
                   {formatCurrency(feeInfo?.totalPaid || 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">Total payments made</p>
@@ -520,7 +520,7 @@ export default function LearnerPortal() {
                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className={`text-2xl font-bold ${(feeInfo?.balance || 0) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                <div className={`text-2xl font-bold ${(feeInfo?.balance || 0) > 0 ? 'text-destructive' : 'text-primary'}`}>
                   {formatCurrency(feeInfo?.balance || 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">Amount remaining</p>

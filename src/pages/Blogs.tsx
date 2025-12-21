@@ -342,7 +342,7 @@ const Blogs = () => {
                             onClick={() => togglePublish(blog)}
                             className={`px-2 py-1 text-xs rounded-full ${
                               blog.is_published
-                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                ? "bg-primary/10 text-primary"
                                 : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                             }`}
                           >
