@@ -421,17 +421,17 @@ const Dashboard = () => {
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Link to="/admissions">
-                <Button className="h-auto flex-col items-start gap-2 p-4 w-full">
+                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full">
                   <UserCheck className="h-5 w-5" />
                   <span className="font-semibold">New Admission</span>
-                  <span className="text-xs text-primary-foreground/80">Register a new learner</span>
+                  <span className="text-xs text-muted-foreground">Register a new learner</span>
                 </Button>
               </Link>
               <Link to="/fees">
-                <Button variant="secondary" className="h-auto flex-col items-start gap-2 p-4 w-full">
+                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full">
                   <DollarSign className="h-5 w-5" />
                   <span className="font-semibold">Process Payment</span>
-                  <span className="text-xs text-secondary-foreground/80">Record fee payment</span>
+                  <span className="text-xs text-muted-foreground">Record fee payment</span>
                 </Button>
               </Link>
               <Link to="/students">
