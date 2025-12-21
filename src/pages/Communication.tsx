@@ -387,11 +387,11 @@ export default function Communication() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "sent":
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+        return <CheckCircle2 className="h-4 w-4 text-primary" />;
       case "pending":
         return <Clock className="h-4 w-4 text-yellow-500" />;
       case "failed":
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-destructive" />;
       default:
         return null;
     }
@@ -584,7 +584,7 @@ export default function Communication() {
               <span className="hidden sm:inline">Fee Automation</span>
               <span className="sm:hidden">Auto</span>
               {automationSettings?.is_enabled && (
-                <Badge className="ml-1 h-5 min-w-5 text-xs bg-green-500">
+                <Badge className="ml-1 h-5 min-w-5 text-xs bg-primary">
                   On
                 </Badge>
               )}
@@ -971,7 +971,7 @@ export default function Communication() {
                                 {format(new Date(msg.created_at), "MMM d, h:mm a")}
                               </span>
                               {msg.sent_count !== null && (
-                                <span className="text-green-600">
+                                <span className="text-primary">
                                   Sent: {msg.sent_count}
                                 </span>
                               )}
@@ -1021,8 +1021,8 @@ export default function Communication() {
                         <div className="flex items-center gap-2 mt-1">
                           {automationSettings?.is_enabled ? (
                             <>
-                              <CheckCircle2 className="h-5 w-5 text-green-500" />
-                              <span className="font-semibold text-green-600">Active</span>
+                              <CheckCircle2 className="h-5 w-5 text-primary" />
+                              <span className="font-semibold text-primary">Active</span>
                             </>
                           ) : (
                             <>

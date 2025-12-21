@@ -37,10 +37,10 @@ export function LearnerJourneyDialog({
   };
 
   const getGradeColor = (average: number) => {
-    if (average >= 80) return "text-green-600 bg-green-50 dark:bg-green-950/20";
+    if (average >= 80) return "text-primary bg-primary/10";
     if (average >= 60) return "text-blue-600 bg-blue-50 dark:bg-blue-950/20";
     if (average >= 40) return "text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20";
-    return "text-red-600 bg-red-50 dark:bg-red-950/20";
+    return "text-destructive bg-destructive/10";
   };
 
   return (

@@ -143,10 +143,10 @@ const LearnerProfile = () => {
   };
 
   const getGradeColor = (marks: number) => {
-    if (marks >= 80) return "bg-green-500/10 text-green-700 dark:text-green-400";
+    if (marks >= 80) return "bg-primary/10 text-primary";
     if (marks >= 60) return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
     if (marks >= 50) return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
-    return "bg-red-500/10 text-red-700 dark:text-red-400";
+    return "bg-destructive/10 text-destructive";
   };
 
   const getTermLabel = (term: string) => {
@@ -310,7 +310,7 @@ const LearnerProfile = () => {
             <p className="font-semibold text-sm text-foreground capitalize">{learner.gender}</p>
           </div>
           <div className="bg-card rounded-xl border p-4 text-center">
-            <div className="h-10 w-10 rounded-full bg-green-500/10 text-green-600 flex items-center justify-center mx-auto mb-2">
+            <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2">
               <GraduationCap className="h-5 w-5" />
             </div>
             <p className="text-xs text-muted-foreground mb-0.5">Enrolled</p>
@@ -443,7 +443,7 @@ const LearnerProfile = () => {
                 {(learner.emergency_contact || learner.emergency_phone) && (
                   <div>
                     <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-green-500" />
+                      <Phone className="h-4 w-4 text-primary" />
                       Emergency Contact
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -582,9 +582,9 @@ const LearnerProfile = () => {
                                         <Badge className={getGradeColor(row.average)}>{row.average.toFixed(1)}%</Badge>
                                         {row.deviation !== null && (
                                           row.deviation > 0 ? (
-                                            <ArrowUp className="h-3 w-3 text-green-600" />
+                                            <ArrowUp className="h-3 w-3 text-primary" />
                                           ) : row.deviation < 0 ? (
-                                            <ArrowDown className="h-3 w-3 text-red-600" />
+                                            <ArrowDown className="h-3 w-3 text-destructive" />
                                           ) : null
                                         )}
                                       </div>

@@ -208,10 +208,10 @@ const FeeManagement = () => {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      paid: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      paid: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
       partial: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      overdue: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-      cancelled: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+      overdue: "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive",
+      cancelled: "bg-muted text-muted-foreground",
       generated: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
     };
     return styles[status] || styles.generated;
@@ -413,8 +413,8 @@ const FeeManagement = () => {
             {/* Inline Stats */}
             <div className="hidden xl:flex items-center gap-4 ml-4 pl-4 border-l">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-green-500/10 rounded">
-                  <DollarSign className="h-3.5 w-3.5 text-green-600" />
+                <div className="p-1.5 bg-primary/10 rounded">
+                  <DollarSign className="h-3.5 w-3.5 text-primary" />
                 </div>
               <div>
                 <p className="text-xs text-muted-foreground">Collected</p>
@@ -503,7 +503,7 @@ const FeeManagement = () => {
             <div className="grid gap-2 grid-cols-3 xl:hidden">
               <Card className="p-3">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-green-600" />
+                  <DollarSign className="h-4 w-4 text-primary" />
                   <div>
                     <p className="text-xs text-muted-foreground">Collected</p>
                     <p className="text-sm font-bold">{statsLoading ? "..." : formatCurrency(stats?.totalCollected || 0)}</p>

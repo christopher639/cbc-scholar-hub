@@ -20,15 +20,15 @@ export function NotificationsDropdown() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'payment_receipt':
-        return <DollarSign className="h-4 w-4 text-green-500" />;
+        return <DollarSign className="h-4 w-4 text-primary" />;
       case 'overdue_invoice':
         return <AlertTriangle className="h-4 w-4 text-destructive" />;
       case 'new_learner':
-        return <UserPlus className="h-4 w-4 text-blue-500" />;
+        return <UserPlus className="h-4 w-4 text-primary" />;
       case 'new_staff':
-        return <Users className="h-4 w-4 text-purple-500" />;
+        return <Users className="h-4 w-4 text-primary" />;
       case 'user_request':
-        return <UserCheck className="h-4 w-4 text-orange-500" />;
+        return <UserCheck className="h-4 w-4 text-primary" />;
       default:
         return <Bell className="h-4 w-4" />;
     }

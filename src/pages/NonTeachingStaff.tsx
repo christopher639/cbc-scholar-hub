@@ -66,8 +66,8 @@ export default function NonTeachingStaff() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-green-500/10 rounded">
-                  <Building2 className="h-3.5 w-3.5 text-green-600" />
+                <div className="p-1.5 bg-primary/10 rounded">
+                  <Building2 className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Depts</p>
@@ -119,7 +119,7 @@ export default function NonTeachingStaff() {
           </Card>
           <Card className="p-3">
             <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-green-600" />
+              <Building2 className="h-4 w-4 text-primary" />
               <div>
                 <p className="text-xs text-muted-foreground">Depts</p>
                 <p className="text-lg font-bold">{loading ? "..." : departments}</p>

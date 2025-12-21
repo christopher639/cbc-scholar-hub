@@ -229,7 +229,7 @@ export default function Profile() {
       },
       finance: { 
         icon: <DollarSign className="h-3 w-3" />, 
-        className: "border-green-500 text-green-600 bg-green-50 dark:bg-green-950",
+        className: "border-primary text-primary bg-primary/10",
         label: "Finance Manager",
         description: "Access to financial management features only.",
         permissions: [

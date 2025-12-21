@@ -43,13 +43,13 @@ export function OfflineIndicator() {
       >
         <div className="flex items-center gap-2">
           {isOnline ? (
-            <Wifi className="h-4 w-4 text-green-600" />
+            <Wifi className="h-4 w-4 text-primary" />
           ) : (
             <WifiOff className="h-4 w-4" />
           )}
           <AlertDescription>
             {isOnline ? (
-              <span className="text-green-600 font-medium">
+              <span className="text-primary font-medium">
                 You're back online!
               </span>
             ) : (
