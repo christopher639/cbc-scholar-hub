@@ -10,6 +10,7 @@ import { School, Users, Bell, Shield, DollarSign, Moon, Sun, Image as ImageIcon,
 import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
 import { AppearanceSettingsCard } from "@/components/AppearanceSettingsCard";
+import { UIStyleSettingsCard } from "@/components/UIStyleSettingsCard";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { useTheme } from "next-themes";
 import { useDiscountSettings } from "@/hooks/useDiscountSettings";
@@ -1200,6 +1201,9 @@ const Settings = () => {
 
             {/* Primary Color Customization */}
             <AppearanceSettingsCard />
+
+            {/* UI Style Settings - Sidebar, Cards, Hero */}
+            <UIStyleSettingsCard />
           </TabsContent>
 
           {/* Notification Settings */}

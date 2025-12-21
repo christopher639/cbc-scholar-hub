@@ -54,10 +54,24 @@ export default function LearnerProfilePage() {
       : "bg-sky-500/10 text-sky-600 border-sky-200";
   };
 
+  // Get the hero gradient from document attribute
+  const getHeroGradientClass = () => {
+    const heroGradient = document.documentElement.getAttribute("data-hero-gradient") || "primary";
+    const gradientMap: Record<string, string> = {
+      "primary": "bg-gradient-to-br from-primary/90 via-primary to-primary/80",
+      "blue-purple": "bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700",
+      "green-teal": "bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600",
+      "rose-orange": "bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500",
+      "dark-elegant": "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900",
+      "golden": "bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600",
+    };
+    return gradientMap[heroGradient] || gradientMap["primary"];
+  };
+
   return (
     <div className="min-h-full pb-8 px-1">
       {/* Hero Section with Gradient Background */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-6 md:p-8 mb-6">
+      <div className={`relative overflow-hidden rounded-2xl ${getHeroGradientClass()} p-6 md:p-8 mb-6`}>
         {/* Decorative Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
