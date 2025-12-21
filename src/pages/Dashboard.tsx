@@ -51,13 +51,13 @@ const Dashboard = () => {
       colorClass: "text-secondary",
     },
     {
-      title: "Fee Collection",
+      title: "Paid",
       value: loading ? "..." : formatCurrencyCompact(stats.feeCollection),
       icon: DollarSign,
       colorClass: "text-success",
     },
     {
-      title: "Uncollected Balance",
+      title: "Balance",
       value: loading ? "..." : formatCurrencyCompact(stats.uncollectedBalance),
       icon: TrendingDown,
       colorClass: "text-destructive",
