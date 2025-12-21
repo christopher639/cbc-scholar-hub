@@ -415,7 +415,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       .slice(0, 2);
   };
 
-  const { getPageBackgroundClass } = useUIStyles();
+  const { getPageBackgroundClass, getTopbarClass, getBottomNavClass } = useUIStyles();
 
   return (
     <SidebarProvider defaultOpen>
@@ -423,7 +423,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <AppSidebar onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          <header className="sticky top-0 z-30 flex h-14 md:h-16 shrink-0 items-center gap-2 md:gap-3 border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 px-3 sm:px-4 md:px-6">
+          <header className={cn(
+            "sticky top-0 z-30 flex h-14 md:h-16 shrink-0 items-center gap-2 md:gap-3 border-b px-3 sm:px-4 md:px-6",
+            getTopbarClass()
+          )}>
             <SidebarTrigger className="lg:hidden">
               <Menu className="h-5 w-5 md:h-6 md:w-6" />
             </SidebarTrigger>
@@ -504,6 +507,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 function BottomNavigation({ onNavigate, isNavigating, pendingPath }: { onNavigate: (path: string) => void; isNavigating: boolean; pendingPath: string | null }) {
   const location = useLocation();
   const { user } = useAuth();
+  const { getBottomNavClass } = useUIStyles();
   
   // Only show for admin, finance, and visitor on small screens
   if (!["admin", "finance", "visitor"].includes(user?.role || "")) return null;
@@ -522,7 +526,10 @@ function BottomNavigation({ onNavigate, isNavigating, pendingPath }: { onNavigat
   };
   
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 safe-area-inset-bottom">
+    <nav className={cn(
+      "fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t safe-area-inset-bottom",
+      getBottomNavClass()
+    )}>
       <div className="flex items-center justify-around h-14 px-2">
         {bottomNavItems.map((item) => {
           const isActive = location.pathname === item.href;

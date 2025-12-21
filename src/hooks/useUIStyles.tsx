@@ -17,6 +17,7 @@ export const APP_THEMES = {
     sidebar: "default",
     heroGradient: "primary",
     pageBackground: "default",
+    topbar: "default",
     cssVars: {}
   },
   ocean: {
@@ -25,10 +26,13 @@ export const APP_THEMES = {
     sidebar: "gradient-ocean",
     heroGradient: "blue-purple",
     pageBackground: "cool-gradient",
+    topbar: "ocean",
     cssVars: {
       "--primary": "200 80% 50%",
       "--primary-foreground": "0 0% 100%",
       "--ring": "200 80% 50%",
+      "--accent": "200 60% 95%",
+      "--accent-foreground": "200 80% 30%",
     }
   },
   sunset: {
@@ -37,10 +41,13 @@ export const APP_THEMES = {
     sidebar: "gradient-sunset",
     heroGradient: "rose-orange",
     pageBackground: "warm-gradient",
+    topbar: "sunset",
     cssVars: {
       "--primary": "15 85% 55%",
       "--primary-foreground": "0 0% 100%",
       "--ring": "15 85% 55%",
+      "--accent": "15 70% 95%",
+      "--accent-foreground": "15 85% 35%",
     }
   },
   forest: {
@@ -49,10 +56,13 @@ export const APP_THEMES = {
     sidebar: "gradient-forest",
     heroGradient: "green-teal",
     pageBackground: "nature-gradient",
+    topbar: "forest",
     cssVars: {
       "--primary": "145 65% 42%",
       "--primary-foreground": "0 0% 100%",
       "--ring": "145 65% 42%",
+      "--accent": "145 50% 95%",
+      "--accent-foreground": "145 65% 25%",
     }
   },
   midnight: {
@@ -61,10 +71,13 @@ export const APP_THEMES = {
     sidebar: "gradient-purple",
     heroGradient: "blue-purple",
     pageBackground: "purple-gradient",
+    topbar: "purple",
     cssVars: {
       "--primary": "270 70% 55%",
       "--primary-foreground": "0 0% 100%",
       "--ring": "270 70% 55%",
+      "--accent": "270 50% 95%",
+      "--accent-foreground": "270 70% 35%",
     }
   },
   professional: {
@@ -73,10 +86,13 @@ export const APP_THEMES = {
     sidebar: "gradient-dark",
     heroGradient: "dark-elegant",
     pageBackground: "subtle-gradient",
+    topbar: "dark",
     cssVars: {
       "--primary": "220 15% 40%",
       "--primary-foreground": "0 0% 100%",
       "--ring": "220 15% 40%",
+      "--accent": "220 10% 95%",
+      "--accent-foreground": "220 15% 25%",
     }
   },
   golden: {
@@ -85,10 +101,13 @@ export const APP_THEMES = {
     sidebar: "gradient-sunset",
     heroGradient: "golden",
     pageBackground: "warm-gradient",
+    topbar: "golden",
     cssVars: {
       "--primary": "35 90% 50%",
       "--primary-foreground": "0 0% 100%",
       "--ring": "35 90% 50%",
+      "--accent": "35 70% 95%",
+      "--accent-foreground": "35 90% 30%",
     }
   },
   royal: {
@@ -97,10 +116,13 @@ export const APP_THEMES = {
     sidebar: "gradient-midnight",
     heroGradient: "blue-purple",
     pageBackground: "cool-gradient",
+    topbar: "royal",
     cssVars: {
       "--primary": "230 80% 55%",
       "--primary-foreground": "0 0% 100%",
       "--ring": "230 80% 55%",
+      "--accent": "230 60% 95%",
+      "--accent-foreground": "230 80% 35%",
     }
   },
 };
@@ -134,6 +156,28 @@ const PAGE_BACKGROUND_CLASSES: Record<string, string> = {
   "purple-gradient": "bg-gradient-to-br from-background via-purple-50/10 to-indigo-50/10 dark:from-background dark:via-purple-950/10 dark:to-indigo-950/10",
   "dotted-pattern": "bg-background bg-[radial-gradient(circle,_hsl(var(--muted))_1px,_transparent_1px)] bg-[size:20px_20px]",
   "grid-pattern": "bg-background bg-[linear-gradient(hsl(var(--muted)/0.3)_1px,_transparent_1px),_linear-gradient(90deg,_hsl(var(--muted)/0.3)_1px,_transparent_1px)] bg-[size:40px_40px]",
+};
+
+const TOPBAR_CLASSES: Record<string, string> = {
+  "default": "bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 border-border/30",
+  "ocean": "bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-teal-500/10 backdrop-blur-lg border-blue-200/30 dark:border-blue-800/30",
+  "sunset": "bg-gradient-to-r from-orange-500/10 via-rose-500/10 to-pink-500/10 backdrop-blur-lg border-orange-200/30 dark:border-orange-800/30",
+  "forest": "bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-teal-500/10 backdrop-blur-lg border-emerald-200/30 dark:border-emerald-800/30",
+  "purple": "bg-gradient-to-r from-purple-500/10 via-violet-500/10 to-indigo-500/10 backdrop-blur-lg border-purple-200/30 dark:border-purple-800/30",
+  "dark": "bg-gradient-to-r from-slate-800/20 via-slate-700/20 to-slate-800/20 backdrop-blur-lg border-slate-700/30",
+  "golden": "bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 backdrop-blur-lg border-amber-200/30 dark:border-amber-800/30",
+  "royal": "bg-gradient-to-r from-indigo-500/10 via-blue-500/10 to-indigo-500/10 backdrop-blur-lg border-indigo-200/30 dark:border-indigo-800/30",
+};
+
+const BOTTOM_NAV_CLASSES: Record<string, string> = {
+  "default": "bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 border-border/30",
+  "ocean": "bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-teal-500/10 backdrop-blur-lg border-blue-200/30 dark:border-blue-800/30",
+  "sunset": "bg-gradient-to-r from-orange-500/10 via-rose-500/10 to-pink-500/10 backdrop-blur-lg border-orange-200/30 dark:border-orange-800/30",
+  "forest": "bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-teal-500/10 backdrop-blur-lg border-emerald-200/30 dark:border-emerald-800/30",
+  "purple": "bg-gradient-to-r from-purple-500/10 via-violet-500/10 to-indigo-500/10 backdrop-blur-lg border-purple-200/30 dark:border-purple-800/30",
+  "dark": "bg-gradient-to-r from-slate-800/20 via-slate-700/20 to-slate-800/20 backdrop-blur-lg border-slate-700/30",
+  "golden": "bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 backdrop-blur-lg border-amber-200/30 dark:border-amber-800/30",
+  "royal": "bg-gradient-to-r from-indigo-500/10 via-blue-500/10 to-indigo-500/10 backdrop-blur-lg border-indigo-200/30 dark:border-indigo-800/30",
 };
 
 // Global styles cache
@@ -244,6 +288,26 @@ export function useUIStyles() {
     return styles.sidebarStyle !== "default";
   };
 
+  const getTopbarClass = () => {
+    if (styles.appTheme && styles.appTheme !== "default") {
+      const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
+      if (theme && theme.topbar) {
+        return TOPBAR_CLASSES[theme.topbar] || TOPBAR_CLASSES["default"];
+      }
+    }
+    return TOPBAR_CLASSES["default"];
+  };
+
+  const getBottomNavClass = () => {
+    if (styles.appTheme && styles.appTheme !== "default") {
+      const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
+      if (theme && theme.topbar) {
+        return BOTTOM_NAV_CLASSES[theme.topbar] || BOTTOM_NAV_CLASSES["default"];
+      }
+    }
+    return BOTTOM_NAV_CLASSES["default"];
+  };
+
   // Force refresh styles from database
   const refreshStyles = async () => {
     stylesCacheLoaded = false;
@@ -258,13 +322,17 @@ export function useUIStyles() {
     getHeroGradientClass,
     getPageBackgroundClass,
     isGradientSidebar,
+    getTopbarClass,
+    getBottomNavClass,
     refreshStyles,
     SIDEBAR_STYLE_CLASSES,
     HERO_GRADIENT_CLASSES,
     PAGE_BACKGROUND_CLASSES,
+    TOPBAR_CLASSES,
+    BOTTOM_NAV_CLASSES,
     APP_THEMES,
   };
 }
 
 // Export for use in components that need direct access
-export { SIDEBAR_STYLE_CLASSES, HERO_GRADIENT_CLASSES, PAGE_BACKGROUND_CLASSES };
+export { SIDEBAR_STYLE_CLASSES, HERO_GRADIENT_CLASSES, PAGE_BACKGROUND_CLASSES, TOPBAR_CLASSES, BOTTOM_NAV_CLASSES };

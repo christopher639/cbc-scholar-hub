@@ -12,46 +12,54 @@ interface ThemeSettings {
   app_theme: string;
 }
 
-const THEME_PREVIEWS: Record<string, { sidebar: string; page: string; hero: string }> = {
+const THEME_PREVIEWS: Record<string, { sidebar: string; page: string; hero: string; topbar: string }> = {
   default: {
     sidebar: "bg-sidebar",
     page: "bg-background",
-    hero: "bg-gradient-to-br from-primary/90 via-primary to-primary/80"
+    hero: "bg-gradient-to-br from-primary/90 via-primary to-primary/80",
+    topbar: "bg-card/70"
   },
   ocean: {
     sidebar: "bg-gradient-to-b from-blue-600 via-cyan-600 to-teal-600",
     page: "bg-gradient-to-br from-background via-blue-50/20 to-cyan-50/20",
-    hero: "bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700"
+    hero: "bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700",
+    topbar: "bg-gradient-to-r from-blue-500/20 via-cyan-500/20 to-teal-500/20"
   },
   sunset: {
     sidebar: "bg-gradient-to-b from-orange-500 via-rose-500 to-pink-600",
     page: "bg-gradient-to-br from-background via-orange-50/20 to-rose-50/20",
-    hero: "bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500"
+    hero: "bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500",
+    topbar: "bg-gradient-to-r from-orange-500/20 via-rose-500/20 to-pink-500/20"
   },
   forest: {
     sidebar: "bg-gradient-to-b from-emerald-600 via-green-600 to-teal-700",
     page: "bg-gradient-to-br from-background via-green-50/20 to-emerald-50/20",
-    hero: "bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600"
+    hero: "bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600",
+    topbar: "bg-gradient-to-r from-emerald-500/20 via-green-500/20 to-teal-500/20"
   },
   midnight: {
     sidebar: "bg-gradient-to-b from-purple-600 via-violet-600 to-indigo-700",
     page: "bg-gradient-to-br from-background via-purple-50/20 to-indigo-50/20",
-    hero: "bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700"
+    hero: "bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700",
+    topbar: "bg-gradient-to-r from-purple-500/20 via-violet-500/20 to-indigo-500/20"
   },
   professional: {
     sidebar: "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900",
     page: "bg-gradient-to-br from-background via-background to-muted/50",
-    hero: "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
+    hero: "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900",
+    topbar: "bg-gradient-to-r from-slate-800/30 via-slate-700/30 to-slate-800/30"
   },
   golden: {
     sidebar: "bg-gradient-to-b from-orange-500 via-rose-500 to-pink-600",
     page: "bg-gradient-to-br from-background via-orange-50/20 to-rose-50/20",
-    hero: "bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600"
+    hero: "bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600",
+    topbar: "bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-yellow-500/20"
   },
   royal: {
     sidebar: "bg-gradient-to-b from-indigo-900 via-blue-900 to-slate-900",
     page: "bg-gradient-to-br from-background via-blue-50/20 to-cyan-50/20",
-    hero: "bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700"
+    hero: "bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700",
+    topbar: "bg-gradient-to-r from-indigo-500/20 via-blue-500/20 to-indigo-500/20"
   },
 };
 
@@ -177,8 +185,12 @@ export function ThemeSettingsCard() {
                   {/* Main Content Preview */}
                   <div className={cn("flex-1 flex flex-col", preview.page)}>
                     {/* Topbar */}
-                    <div className="h-4 bg-card/70 border-b border-border/30 flex items-center px-1">
+                    <div className={cn("h-4 border-b border-border/30 flex items-center px-1", preview.topbar)}>
                       <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
+                      <div className="ml-auto flex gap-0.5">
+                        <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
+                      </div>
                     </div>
                     {/* Hero */}
                     <div className={cn("h-10 relative overflow-hidden", preview.hero)}>
