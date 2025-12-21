@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
 import { AppearanceSettingsCard } from "@/components/AppearanceSettingsCard";
 import { UIStyleSettingsCard } from "@/components/UIStyleSettingsCard";
+import { ThemeSettingsCard } from "@/components/ThemeSettingsCard";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { useTheme } from "next-themes";
 import { useDiscountSettings } from "@/hooks/useDiscountSettings";
@@ -1198,6 +1199,9 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Application Theme - One-click themes */}
+            <ThemeSettingsCard />
 
             {/* Primary Color Customization */}
             <AppearanceSettingsCard />

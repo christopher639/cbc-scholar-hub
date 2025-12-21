@@ -6,10 +6,107 @@ interface UIStyles {
   cardStyle: string;
   heroGradient: string;
   pageBackground: string;
+  appTheme: string;
 }
 
+// Theme definitions - comprehensive themes that affect the whole app
+export const APP_THEMES = {
+  default: {
+    name: "Default",
+    description: "Clean and professional",
+    sidebar: "default",
+    heroGradient: "primary",
+    pageBackground: "default",
+    cssVars: {}
+  },
+  ocean: {
+    name: "Ocean Blue",
+    description: "Calm ocean vibes",
+    sidebar: "gradient-ocean",
+    heroGradient: "blue-purple",
+    pageBackground: "cool-gradient",
+    cssVars: {
+      "--primary": "200 80% 50%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "200 80% 50%",
+    }
+  },
+  sunset: {
+    name: "Sunset Glow",
+    description: "Warm sunset colors",
+    sidebar: "gradient-sunset",
+    heroGradient: "rose-orange",
+    pageBackground: "warm-gradient",
+    cssVars: {
+      "--primary": "15 85% 55%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "15 85% 55%",
+    }
+  },
+  forest: {
+    name: "Forest Green",
+    description: "Natural and fresh",
+    sidebar: "gradient-forest",
+    heroGradient: "green-teal",
+    pageBackground: "nature-gradient",
+    cssVars: {
+      "--primary": "145 65% 42%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "145 65% 42%",
+    }
+  },
+  midnight: {
+    name: "Midnight Purple",
+    description: "Elegant and deep",
+    sidebar: "gradient-purple",
+    heroGradient: "blue-purple",
+    pageBackground: "purple-gradient",
+    cssVars: {
+      "--primary": "270 70% 55%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "270 70% 55%",
+    }
+  },
+  professional: {
+    name: "Professional Dark",
+    description: "Sleek and modern",
+    sidebar: "gradient-dark",
+    heroGradient: "dark-elegant",
+    pageBackground: "subtle-gradient",
+    cssVars: {
+      "--primary": "220 15% 40%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "220 15% 40%",
+    }
+  },
+  golden: {
+    name: "Golden Hour",
+    description: "Warm and inviting",
+    sidebar: "gradient-sunset",
+    heroGradient: "golden",
+    pageBackground: "warm-gradient",
+    cssVars: {
+      "--primary": "35 90% 50%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "35 90% 50%",
+    }
+  },
+  royal: {
+    name: "Royal Blue",
+    description: "Classic and trusted",
+    sidebar: "gradient-midnight",
+    heroGradient: "blue-purple",
+    pageBackground: "cool-gradient",
+    cssVars: {
+      "--primary": "230 80% 55%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "230 80% 55%",
+    }
+  },
+};
+
 const SIDEBAR_STYLE_CLASSES: Record<string, string> = {
-  "default": "bg-sidebar",
+  "default": "bg-sidebar text-sidebar-foreground",
   "gradient-primary": "bg-gradient-to-b from-primary/90 via-primary to-primary/80 text-white",
   "gradient-dark": "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white",
   "gradient-ocean": "bg-gradient-to-b from-blue-600 via-cyan-600 to-teal-600 text-white",
@@ -49,6 +146,7 @@ export function useUIStyles() {
     cardStyle: "default",
     heroGradient: "primary",
     pageBackground: "default",
+    appTheme: "default",
   });
   const [loading, setLoading] = useState(!stylesCacheLoaded);
 
@@ -66,7 +164,7 @@ export function useUIStyles() {
     try {
       const { data, error } = await supabase
         .from("appearance_settings")
-        .select("sidebar_style, card_style, hero_gradient, page_background")
+        .select("sidebar_style, card_style, hero_gradient, page_background, app_theme")
         .limit(1)
         .single();
 
@@ -77,7 +175,11 @@ export function useUIStyles() {
         cardStyle: (data as any)?.card_style || "default",
         heroGradient: (data as any)?.hero_gradient || "primary",
         pageBackground: (data as any)?.page_background || "default",
+        appTheme: (data as any)?.app_theme || "default",
       };
+
+      // Apply theme CSS variables if a theme is selected
+      applyThemeCssVars(fetchedStyles.appTheme);
 
       stylesCache = fetchedStyles;
       stylesCacheLoaded = true;
@@ -89,19 +191,56 @@ export function useUIStyles() {
     }
   };
 
+  const applyThemeCssVars = (themeId: string) => {
+    const theme = APP_THEMES[themeId as keyof typeof APP_THEMES];
+    if (theme && theme.cssVars) {
+      const root = document.documentElement;
+      Object.entries(theme.cssVars).forEach(([key, value]) => {
+        root.style.setProperty(key, value);
+      });
+    }
+  };
+
   const getSidebarClass = () => {
+    // If using a theme, get sidebar from theme
+    if (styles.appTheme && styles.appTheme !== "default") {
+      const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
+      if (theme) {
+        return SIDEBAR_STYLE_CLASSES[theme.sidebar] || SIDEBAR_STYLE_CLASSES["default"];
+      }
+    }
     return SIDEBAR_STYLE_CLASSES[styles.sidebarStyle] || SIDEBAR_STYLE_CLASSES["default"];
   };
 
   const getHeroGradientClass = () => {
+    // If using a theme, get hero gradient from theme
+    if (styles.appTheme && styles.appTheme !== "default") {
+      const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
+      if (theme) {
+        return HERO_GRADIENT_CLASSES[theme.heroGradient] || HERO_GRADIENT_CLASSES["primary"];
+      }
+    }
     return HERO_GRADIENT_CLASSES[styles.heroGradient] || HERO_GRADIENT_CLASSES["primary"];
   };
 
   const getPageBackgroundClass = () => {
+    // If using a theme, get page background from theme
+    if (styles.appTheme && styles.appTheme !== "default") {
+      const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
+      if (theme) {
+        return PAGE_BACKGROUND_CLASSES[theme.pageBackground] || PAGE_BACKGROUND_CLASSES["default"];
+      }
+    }
     return PAGE_BACKGROUND_CLASSES[styles.pageBackground] || PAGE_BACKGROUND_CLASSES["default"];
   };
 
   const isGradientSidebar = () => {
+    if (styles.appTheme && styles.appTheme !== "default") {
+      const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
+      if (theme) {
+        return theme.sidebar !== "default";
+      }
+    }
     return styles.sidebarStyle !== "default";
   };
 
@@ -123,6 +262,7 @@ export function useUIStyles() {
     SIDEBAR_STYLE_CLASSES,
     HERO_GRADIENT_CLASSES,
     PAGE_BACKGROUND_CLASSES,
+    APP_THEMES,
   };
 }
 
