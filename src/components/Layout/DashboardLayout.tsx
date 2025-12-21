@@ -384,19 +384,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <AppSidebar onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 bg-card px-3 sm:px-6">
+          <header className="sticky top-0 z-30 flex h-14 md:h-16 shrink-0 items-center gap-2 md:gap-3 border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 px-3 sm:px-4 md:px-6">
             <SidebarTrigger className="lg:hidden">
-              <Menu className="h-6 w-6" />
+              <Menu className="h-5 w-5 md:h-6 md:w-6" />
             </SidebarTrigger>
             
             {/* School Logo and Name - visible on small screens */}
-            <div className="flex lg:hidden items-center gap-2">
+            <div className="flex lg:hidden items-center gap-2 min-w-0">
               {schoolInfo?.logo_url ? (
-                <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 object-contain rounded-full" />
+                <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 md:h-10 md:w-10 object-contain rounded-full ring-2 ring-primary/20 flex-shrink-0" />
               ) : (
-                <GraduationCap className="h-8 w-8 text-primary" />
+                <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20 flex-shrink-0">
+                  <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
+                </div>
               )}
-              <span className="font-semibold text-sm truncate max-w-[120px] sm:max-w-[180px]">
+              <span className="font-semibold text-sm truncate max-w-[100px] sm:max-w-[150px]">
                 {schoolInfo?.school_name || "School"}
               </span>
             </div>
@@ -410,21 +412,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             )}
 
-            <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-3 ml-auto flex-shrink-0">
               <NotificationsDropdown />
               <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8 cursor-pointer">
+                  <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full p-0 hover:bg-transparent">
+                    <Avatar className="h-9 w-9 md:h-10 md:w-10 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
                       <AvatarImage src={profile?.avatar_url} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-xs md:text-sm">
                         {getInitials()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:block text-sm font-medium text-foreground">
-                      {profile?.full_name || getInitials()}
-                    </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -448,7 +447,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto px-2 sm:px-4 py-2 sm:py-4 pb-24 lg:pb-4">
+          <div className="flex-1 overflow-auto px-1 sm:px-2 md:px-4 py-2 md:py-4 pb-20 lg:pb-4">
             {children}
           </div>
           
@@ -474,7 +473,7 @@ function BottomNavigation({ onNavigate, isNavigating, pendingPath }: { onNavigat
     { name: "Home", href: "/dashboard", icon: LayoutDashboard },
     { name: "Learners", href: "/learners", icon: Users },
     { name: "Fees", href: "/fees", icon: DollarSign },
-    { name: "Performance", href: "/performance", icon: FileText },
+    { name: "Reports", href: "/reports", icon: FileText },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
 
@@ -484,31 +483,32 @@ function BottomNavigation({ onNavigate, isNavigating, pendingPath }: { onNavigat
   };
   
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden h-16 items-center justify-around bg-card px-2">
-      {bottomNavItems.map((item) => {
-        const isActive = location.pathname === item.href;
-        const isPending = pendingPath === item.href;
-        return (
-          <button
-            key={item.name}
-            onClick={(e) => handleNavClick(e, item.href)}
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors",
-              isActive 
-                ? "text-primary bg-primary/10" 
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-              isPending && "opacity-70"
-            )}
-          >
-            {isPending ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <item.icon className="h-5 w-5" />
-            )}
-            <span className="text-[10px] font-medium">{item.name}</span>
-          </button>
-        );
-      })}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden border-t border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60 safe-area-inset-bottom">
+      <div className="flex items-center justify-around h-14 px-2">
+        {bottomNavItems.map((item) => {
+          const isActive = location.pathname === item.href;
+          const isPending = pendingPath === item.href;
+          return (
+            <button
+              key={item.name}
+              onClick={(e) => handleNavClick(e, item.href)}
+              className={cn(
+                "h-10 w-10 flex items-center justify-center rounded-full transition-all",
+                isActive 
+                  ? "text-primary bg-primary/15 shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30",
+                isPending && "opacity-70"
+              )}
+            >
+              {isPending ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <item.icon className={cn("h-5 w-5 transition-transform", isActive && "scale-110")} />
+              )}
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 }

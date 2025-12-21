@@ -314,8 +314,10 @@ export default function LearnerPortalLayout() {
                     <GraduationCap className="h-5 w-5 md:h-5 md:w-5 text-primary-foreground" />
                   </div>
                 )}
-                <div>
-                  <h1 className="text-sm md:text-base font-bold leading-tight text-foreground">{displaySchool?.school_name || "School Portal"}</h1>
+                <div className="min-w-0">
+                  <h1 className="text-sm md:text-base font-bold leading-tight text-foreground truncate max-w-[120px] sm:max-w-[180px] md:max-w-none">
+                    {displaySchool?.school_name || "School Portal"}
+                  </h1>
                   <p className="hidden md:block text-sm text-muted-foreground">{displaySchool?.motto || "Learner Portal"}</p>
                 </div>
               </div>
