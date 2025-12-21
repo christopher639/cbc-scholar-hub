@@ -43,14 +43,37 @@ const HERO_GRADIENTS = [
 ];
 
 const PAGE_BACKGROUNDS = [
-  { id: "default", name: "Default", description: "Solid background", preview: "bg-background" },
-  { id: "subtle-gradient", name: "Subtle", description: "Gentle gradient", preview: "bg-gradient-to-br from-background via-background to-muted/50" },
-  { id: "warm-gradient", name: "Warm", description: "Warm tones", preview: "bg-gradient-to-br from-background via-orange-50/20 to-rose-50/20 dark:from-background dark:via-orange-950/20 dark:to-rose-950/20" },
-  { id: "cool-gradient", name: "Cool", description: "Cool blues", preview: "bg-gradient-to-br from-background via-blue-50/20 to-cyan-50/20 dark:from-background dark:via-blue-950/20 dark:to-cyan-950/20" },
-  { id: "nature-gradient", name: "Nature", description: "Green tones", preview: "bg-gradient-to-br from-background via-green-50/20 to-emerald-50/20 dark:from-background dark:via-green-950/20 dark:to-emerald-950/20" },
-  { id: "purple-gradient", name: "Purple", description: "Purple tones", preview: "bg-gradient-to-br from-background via-purple-50/20 to-indigo-50/20 dark:from-background dark:via-purple-950/20 dark:to-indigo-950/20" },
-  { id: "dotted-pattern", name: "Dotted", description: "Dot pattern", preview: "bg-muted/30" },
-  { id: "grid-pattern", name: "Grid", description: "Grid lines", preview: "bg-muted/20" },
+  // Basic
+  { id: "default", name: "Default", description: "Solid background", preview: "bg-background", category: "basic" },
+  { id: "subtle-gradient", name: "Subtle", description: "Gentle gradient", preview: "bg-gradient-to-br from-background via-background to-muted/50", category: "basic" },
+  // Warm Colors
+  { id: "warm-gradient", name: "Warm", description: "Warm tones", preview: "bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50", category: "warm" },
+  { id: "peach-cream", name: "Peach", description: "Peach cream", preview: "bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50", category: "warm" },
+  { id: "sunset-glow", name: "Sunset", description: "Sunset glow", preview: "bg-gradient-to-br from-rose-100 via-orange-50 to-yellow-50", category: "warm" },
+  { id: "coral-blush", name: "Coral", description: "Coral blush", preview: "bg-gradient-to-br from-red-50 via-pink-50 to-rose-100", category: "warm" },
+  // Cool Colors
+  { id: "cool-gradient", name: "Cool", description: "Cool blues", preview: "bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50", category: "cool" },
+  { id: "ocean-mist", name: "Ocean", description: "Ocean mist", preview: "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50", category: "cool" },
+  { id: "arctic-frost", name: "Arctic", description: "Arctic frost", preview: "bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50", category: "cool" },
+  { id: "sky-blue", name: "Sky", description: "Sky blue", preview: "bg-gradient-to-br from-sky-50 via-blue-100 to-indigo-50", category: "cool" },
+  // Nature Colors
+  { id: "nature-gradient", name: "Nature", description: "Green tones", preview: "bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50", category: "nature" },
+  { id: "forest-mint", name: "Forest", description: "Forest mint", preview: "bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50", category: "nature" },
+  { id: "spring-meadow", name: "Spring", description: "Spring meadow", preview: "bg-gradient-to-br from-lime-50 via-green-50 to-emerald-50", category: "nature" },
+  { id: "sage-mist", name: "Sage", description: "Sage mist", preview: "bg-gradient-to-br from-green-50 via-stone-50 to-emerald-50", category: "nature" },
+  // Purple & Violet
+  { id: "purple-gradient", name: "Purple", description: "Purple tones", preview: "bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50", category: "purple" },
+  { id: "lavender-dreams", name: "Lavender", description: "Lavender dreams", preview: "bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50", category: "purple" },
+  { id: "twilight-purple", name: "Twilight", description: "Twilight purple", preview: "bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50", category: "purple" },
+  { id: "grape-fizz", name: "Grape", description: "Grape fizz", preview: "bg-gradient-to-br from-violet-100 via-purple-50 to-indigo-100", category: "purple" },
+  // Neutral & Elegant
+  { id: "pearl-white", name: "Pearl", description: "Pearl white", preview: "bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50", category: "neutral" },
+  { id: "charcoal-silk", name: "Charcoal", description: "Charcoal silk", preview: "bg-gradient-to-br from-zinc-100 via-slate-50 to-neutral-100", category: "neutral" },
+  { id: "cream-linen", name: "Cream", description: "Cream linen", preview: "bg-gradient-to-br from-amber-50/80 via-stone-50 to-orange-50/60", category: "neutral" },
+  // Patterns
+  { id: "dotted-pattern", name: "Dotted", description: "Dot pattern", preview: "bg-muted/30", category: "pattern" },
+  { id: "grid-pattern", name: "Grid", description: "Grid lines", preview: "bg-muted/20", category: "pattern" },
+  { id: "diamond-pattern", name: "Diamond", description: "Diamond pattern", preview: "bg-muted/25", category: "pattern" },
 ];
 
 export function UIStyleSettingsCard() {
@@ -199,28 +222,48 @@ export function UIStyleSettingsCard() {
             <Monitor className="h-4 w-4 text-muted-foreground" />
             <Label className="text-base font-medium">Page Background</Label>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {PAGE_BACKGROUNDS.map((bg) => (
-              <button
-                key={bg.id}
-                onClick={() => setSettings({ ...settings, page_background: bg.id })}
-                className={cn(
-                  "relative flex flex-col items-center p-2.5 rounded-xl border-2 transition-all hover:scale-[1.02]",
-                  settings.page_background === bg.id
-                    ? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-background"
-                    : "border-border hover:border-muted-foreground/50"
-                )}
-              >
-                <div className={cn("w-full h-14 rounded-lg mb-2 border", bg.preview)} />
-                <span className="text-xs font-medium">{bg.name}</span>
-                {settings.page_background === bg.id && (
-                  <div className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
-                    <Check className="h-2.5 w-2.5 text-primary-foreground" />
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
+          
+          {/* Category labels and backgrounds */}
+          {[
+            { key: "basic", label: "Basic" },
+            { key: "warm", label: "Warm Colors" },
+            { key: "cool", label: "Cool Colors" },
+            { key: "nature", label: "Nature" },
+            { key: "purple", label: "Purple & Violet" },
+            { key: "neutral", label: "Neutral & Elegant" },
+            { key: "pattern", label: "Patterns" },
+          ].map((category) => {
+            const categoryBackgrounds = PAGE_BACKGROUNDS.filter(bg => bg.category === category.key);
+            if (categoryBackgrounds.length === 0) return null;
+            
+            return (
+              <div key={category.key} className="space-y-2">
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{category.label}</span>
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {categoryBackgrounds.map((bg) => (
+                    <button
+                      key={bg.id}
+                      onClick={() => setSettings({ ...settings, page_background: bg.id })}
+                      className={cn(
+                        "relative flex flex-col items-center p-2 rounded-lg border-2 transition-all hover:scale-[1.02]",
+                        settings.page_background === bg.id
+                          ? "border-primary ring-2 ring-primary ring-offset-1 ring-offset-background"
+                          : "border-border hover:border-muted-foreground/50"
+                      )}
+                    >
+                      <div className={cn("w-full h-10 rounded-md mb-1.5 border border-border/50", bg.preview)} />
+                      <span className="text-[10px] font-medium truncate w-full text-center">{bg.name}</span>
+                      {settings.page_background === bg.id && (
+                        <div className="absolute top-1 right-1 h-3.5 w-3.5 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="h-2 w-2 text-primary-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Hero/Profile Gradient */}
