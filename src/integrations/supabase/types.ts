@@ -197,21 +197,30 @@ export type Database = {
       }
       appearance_settings: {
         Row: {
+          card_style: string | null
           created_at: string
+          hero_gradient: string | null
           id: string
           primary_color: string
+          sidebar_style: string | null
           updated_at: string
         }
         Insert: {
+          card_style?: string | null
           created_at?: string
+          hero_gradient?: string | null
           id?: string
           primary_color?: string
+          sidebar_style?: string | null
           updated_at?: string
         }
         Update: {
+          card_style?: string | null
           created_at?: string
+          hero_gradient?: string | null
           id?: string
           primary_color?: string
+          sidebar_style?: string | null
           updated_at?: string
         }
         Relationships: []
