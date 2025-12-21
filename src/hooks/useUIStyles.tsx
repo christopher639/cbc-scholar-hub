@@ -125,6 +125,126 @@ export const APP_THEMES = {
       "--accent-foreground": "230 80% 35%",
     }
   },
+  cherry: {
+    name: "Cherry Blossom",
+    description: "Soft and romantic",
+    sidebar: "gradient-cherry",
+    heroGradient: "cherry-blossom",
+    pageBackground: "cherry-gradient",
+    topbar: "cherry",
+    cssVars: {
+      "--primary": "340 75% 55%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "340 75% 55%",
+      "--accent": "340 60% 95%",
+      "--accent-foreground": "340 75% 35%",
+    }
+  },
+  arctic: {
+    name: "Arctic Ice",
+    description: "Cool and crisp",
+    sidebar: "gradient-arctic",
+    heroGradient: "arctic-ice",
+    pageBackground: "arctic-frost",
+    topbar: "arctic",
+    cssVars: {
+      "--primary": "195 85% 50%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "195 85% 50%",
+      "--accent": "195 60% 95%",
+      "--accent-foreground": "195 85% 30%",
+    }
+  },
+  coffee: {
+    name: "Coffee Brown",
+    description: "Rich and earthy",
+    sidebar: "gradient-coffee",
+    heroGradient: "coffee-mocha",
+    pageBackground: "cream-linen",
+    topbar: "coffee",
+    cssVars: {
+      "--primary": "25 50% 35%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "25 50% 35%",
+      "--accent": "25 40% 95%",
+      "--accent-foreground": "25 50% 20%",
+    }
+  },
+  lavender: {
+    name: "Lavender Dreams",
+    description: "Peaceful and calming",
+    sidebar: "gradient-lavender",
+    heroGradient: "lavender-mist",
+    pageBackground: "lavender-dreams",
+    topbar: "lavender",
+    cssVars: {
+      "--primary": "260 50% 60%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "260 50% 60%",
+      "--accent": "260 40% 95%",
+      "--accent-foreground": "260 50% 35%",
+    }
+  },
+  crimson: {
+    name: "Crimson Fire",
+    description: "Bold and powerful",
+    sidebar: "gradient-crimson",
+    heroGradient: "crimson-fire",
+    pageBackground: "coral-blush",
+    topbar: "crimson",
+    cssVars: {
+      "--primary": "0 72% 51%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "0 72% 51%",
+      "--accent": "0 60% 95%",
+      "--accent-foreground": "0 72% 35%",
+    }
+  },
+  mint: {
+    name: "Fresh Mint",
+    description: "Light and refreshing",
+    sidebar: "gradient-mint",
+    heroGradient: "mint-fresh",
+    pageBackground: "spring-meadow",
+    topbar: "mint",
+    cssVars: {
+      "--primary": "160 60% 45%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "160 60% 45%",
+      "--accent": "160 50% 95%",
+      "--accent-foreground": "160 60% 25%",
+    }
+  },
+  slate: {
+    name: "Slate Modern",
+    description: "Minimal and clean",
+    sidebar: "gradient-slate",
+    heroGradient: "slate-modern",
+    pageBackground: "charcoal-silk",
+    topbar: "slate",
+    cssVars: {
+      "--primary": "215 25% 45%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "215 25% 45%",
+      "--accent": "215 20% 95%",
+      "--accent-foreground": "215 25% 25%",
+    }
+  },
+  coral: {
+    name: "Coral Reef",
+    description: "Vibrant and lively",
+    sidebar: "gradient-coral",
+    heroGradient: "coral-reef",
+    pageBackground: "peach-cream",
+    topbar: "coral",
+    cssVars: {
+      "--primary": "16 80% 58%",
+      "--primary-foreground": "0 0% 100%",
+      "--ring": "16 80% 58%",
+      "--accent": "16 65% 95%",
+      "--accent-foreground": "16 80% 35%",
+    }
+  },
 };
 
 const SIDEBAR_STYLE_CLASSES: Record<string, string> = {
@@ -136,6 +256,14 @@ const SIDEBAR_STYLE_CLASSES: Record<string, string> = {
   "gradient-forest": "bg-gradient-to-b from-emerald-600 via-green-600 to-teal-700 text-white",
   "gradient-purple": "bg-gradient-to-b from-purple-600 via-violet-600 to-indigo-700 text-white",
   "gradient-midnight": "bg-gradient-to-b from-indigo-900 via-blue-900 to-slate-900 text-white",
+  "gradient-cherry": "bg-gradient-to-b from-pink-500 via-rose-500 to-red-500 text-white",
+  "gradient-arctic": "bg-gradient-to-b from-cyan-500 via-sky-500 to-blue-500 text-white",
+  "gradient-coffee": "bg-gradient-to-b from-amber-800 via-amber-700 to-amber-900 text-white",
+  "gradient-lavender": "bg-gradient-to-b from-violet-400 via-purple-400 to-fuchsia-500 text-white",
+  "gradient-crimson": "bg-gradient-to-b from-red-600 via-rose-600 to-red-700 text-white",
+  "gradient-mint": "bg-gradient-to-b from-teal-400 via-emerald-400 to-green-500 text-white",
+  "gradient-slate": "bg-gradient-to-b from-slate-600 via-slate-500 to-slate-700 text-white",
+  "gradient-coral": "bg-gradient-to-b from-orange-400 via-coral-500 to-pink-500 text-white",
 };
 
 const HERO_GRADIENT_CLASSES: Record<string, string> = {
@@ -145,6 +273,14 @@ const HERO_GRADIENT_CLASSES: Record<string, string> = {
   "rose-orange": "bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500",
   "dark-elegant": "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900",
   "golden": "bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600",
+  "cherry-blossom": "bg-gradient-to-br from-pink-500 via-rose-400 to-pink-600",
+  "arctic-ice": "bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-600",
+  "coffee-mocha": "bg-gradient-to-br from-amber-800 via-amber-700 to-amber-600",
+  "lavender-mist": "bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500",
+  "crimson-fire": "bg-gradient-to-br from-red-600 via-rose-500 to-orange-500",
+  "mint-fresh": "bg-gradient-to-br from-teal-500 via-emerald-500 to-green-500",
+  "slate-modern": "bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800",
+  "coral-reef": "bg-gradient-to-br from-orange-500 via-coral-500 to-pink-500",
 };
 
 const PAGE_BACKGROUND_CLASSES: Record<string, string> = {
@@ -189,6 +325,14 @@ const TOPBAR_CLASSES: Record<string, string> = {
   "dark": "bg-gradient-to-r from-slate-800/20 via-slate-700/20 to-slate-800/20 backdrop-blur-lg border-slate-700/30",
   "golden": "bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 backdrop-blur-lg border-amber-200/30 dark:border-amber-800/30",
   "royal": "bg-gradient-to-r from-indigo-500/10 via-blue-500/10 to-indigo-500/10 backdrop-blur-lg border-indigo-200/30 dark:border-indigo-800/30",
+  "cherry": "bg-gradient-to-r from-pink-500/10 via-rose-500/10 to-red-500/10 backdrop-blur-lg border-pink-200/30 dark:border-pink-800/30",
+  "arctic": "bg-gradient-to-r from-cyan-500/10 via-sky-500/10 to-blue-500/10 backdrop-blur-lg border-cyan-200/30 dark:border-cyan-800/30",
+  "coffee": "bg-gradient-to-r from-amber-800/10 via-amber-700/10 to-amber-600/10 backdrop-blur-lg border-amber-300/30 dark:border-amber-700/30",
+  "lavender": "bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-fuchsia-500/10 backdrop-blur-lg border-violet-200/30 dark:border-violet-800/30",
+  "crimson": "bg-gradient-to-r from-red-500/10 via-rose-500/10 to-orange-500/10 backdrop-blur-lg border-red-200/30 dark:border-red-800/30",
+  "mint": "bg-gradient-to-r from-teal-500/10 via-emerald-500/10 to-green-500/10 backdrop-blur-lg border-teal-200/30 dark:border-teal-800/30",
+  "slate": "bg-gradient-to-r from-slate-500/10 via-slate-600/10 to-slate-500/10 backdrop-blur-lg border-slate-300/30 dark:border-slate-700/30",
+  "coral": "bg-gradient-to-r from-orange-500/10 via-pink-500/10 to-rose-500/10 backdrop-blur-lg border-orange-200/30 dark:border-orange-800/30",
 };
 
 const BOTTOM_NAV_CLASSES: Record<string, string> = {
@@ -200,6 +344,14 @@ const BOTTOM_NAV_CLASSES: Record<string, string> = {
   "dark": "bg-gradient-to-r from-slate-800/20 via-slate-700/20 to-slate-800/20 backdrop-blur-lg border-slate-700/30",
   "golden": "bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 backdrop-blur-lg border-amber-200/30 dark:border-amber-800/30",
   "royal": "bg-gradient-to-r from-indigo-500/10 via-blue-500/10 to-indigo-500/10 backdrop-blur-lg border-indigo-200/30 dark:border-indigo-800/30",
+  "cherry": "bg-gradient-to-r from-pink-500/10 via-rose-500/10 to-red-500/10 backdrop-blur-lg border-pink-200/30 dark:border-pink-800/30",
+  "arctic": "bg-gradient-to-r from-cyan-500/10 via-sky-500/10 to-blue-500/10 backdrop-blur-lg border-cyan-200/30 dark:border-cyan-800/30",
+  "coffee": "bg-gradient-to-r from-amber-800/10 via-amber-700/10 to-amber-600/10 backdrop-blur-lg border-amber-300/30 dark:border-amber-700/30",
+  "lavender": "bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-fuchsia-500/10 backdrop-blur-lg border-violet-200/30 dark:border-violet-800/30",
+  "crimson": "bg-gradient-to-r from-red-500/10 via-rose-500/10 to-orange-500/10 backdrop-blur-lg border-red-200/30 dark:border-red-800/30",
+  "mint": "bg-gradient-to-r from-teal-500/10 via-emerald-500/10 to-green-500/10 backdrop-blur-lg border-teal-200/30 dark:border-teal-800/30",
+  "slate": "bg-gradient-to-r from-slate-500/10 via-slate-600/10 to-slate-500/10 backdrop-blur-lg border-slate-300/30 dark:border-slate-700/30",
+  "coral": "bg-gradient-to-r from-orange-500/10 via-pink-500/10 to-rose-500/10 backdrop-blur-lg border-orange-200/30 dark:border-orange-800/30",
 };
 
 // Global styles cache
