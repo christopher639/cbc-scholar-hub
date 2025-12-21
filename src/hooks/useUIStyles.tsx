@@ -150,12 +150,34 @@ const HERO_GRADIENT_CLASSES: Record<string, string> = {
 const PAGE_BACKGROUND_CLASSES: Record<string, string> = {
   "default": "bg-background",
   "subtle-gradient": "bg-gradient-to-br from-background via-background to-muted/30",
-  "warm-gradient": "bg-gradient-to-br from-background via-orange-50/10 to-rose-50/10 dark:from-background dark:via-orange-950/10 dark:to-rose-950/10",
-  "cool-gradient": "bg-gradient-to-br from-background via-blue-50/10 to-cyan-50/10 dark:from-background dark:via-blue-950/10 dark:to-cyan-950/10",
-  "nature-gradient": "bg-gradient-to-br from-background via-green-50/10 to-emerald-50/10 dark:from-background dark:via-green-950/10 dark:to-emerald-950/10",
-  "purple-gradient": "bg-gradient-to-br from-background via-purple-50/10 to-indigo-50/10 dark:from-background dark:via-purple-950/10 dark:to-indigo-950/10",
+  // Warm Colors
+  "warm-gradient": "bg-gradient-to-br from-background via-orange-50/20 to-rose-50/20 dark:from-background dark:via-orange-950/20 dark:to-rose-950/20",
+  "peach-cream": "bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50 dark:from-orange-950/40 dark:via-rose-950/40 dark:to-amber-950/40",
+  "sunset-glow": "bg-gradient-to-br from-rose-100 via-orange-50 to-yellow-50 dark:from-rose-950/50 dark:via-orange-950/40 dark:to-yellow-950/30",
+  "coral-blush": "bg-gradient-to-br from-red-50 via-pink-50 to-rose-100 dark:from-red-950/40 dark:via-pink-950/40 dark:to-rose-950/50",
+  // Cool Colors
+  "cool-gradient": "bg-gradient-to-br from-background via-blue-50/20 to-cyan-50/20 dark:from-background dark:via-blue-950/20 dark:to-cyan-950/20",
+  "ocean-mist": "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-cyan-950/40 dark:via-blue-950/40 dark:to-indigo-950/40",
+  "arctic-frost": "bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 dark:from-slate-950/50 dark:via-blue-950/40 dark:to-cyan-950/30",
+  "sky-blue": "bg-gradient-to-br from-sky-50 via-blue-100 to-indigo-50 dark:from-sky-950/40 dark:via-blue-950/50 dark:to-indigo-950/40",
+  // Nature Colors
+  "nature-gradient": "bg-gradient-to-br from-background via-green-50/20 to-emerald-50/20 dark:from-background dark:via-green-950/20 dark:to-emerald-950/20",
+  "forest-mint": "bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-950/40 dark:via-green-950/40 dark:to-teal-950/40",
+  "spring-meadow": "bg-gradient-to-br from-lime-50 via-green-50 to-emerald-50 dark:from-lime-950/30 dark:via-green-950/40 dark:to-emerald-950/40",
+  "sage-mist": "bg-gradient-to-br from-green-50 via-stone-50 to-emerald-50 dark:from-green-950/40 dark:via-stone-950/40 dark:to-emerald-950/40",
+  // Purple & Violet
+  "purple-gradient": "bg-gradient-to-br from-background via-purple-50/20 to-indigo-50/20 dark:from-background dark:via-purple-950/20 dark:to-indigo-950/20",
+  "lavender-dreams": "bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50 dark:from-purple-950/40 dark:via-violet-950/40 dark:to-fuchsia-950/40",
+  "twilight-purple": "bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/40 dark:via-purple-950/40 dark:to-pink-950/40",
+  "grape-fizz": "bg-gradient-to-br from-violet-100 via-purple-50 to-indigo-100 dark:from-violet-950/50 dark:via-purple-950/40 dark:to-indigo-950/50",
+  // Neutral & Elegant
+  "pearl-white": "bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-950/30 dark:via-gray-950/30 dark:to-zinc-950/30",
+  "charcoal-silk": "bg-gradient-to-br from-zinc-100 via-slate-50 to-neutral-100 dark:from-zinc-900/60 dark:via-slate-900/50 dark:to-neutral-900/60",
+  "cream-linen": "bg-gradient-to-br from-amber-50/80 via-stone-50 to-orange-50/60 dark:from-amber-950/30 dark:via-stone-950/30 dark:to-orange-950/20",
+  // Patterns
   "dotted-pattern": "bg-background bg-[radial-gradient(circle,_hsl(var(--muted))_1px,_transparent_1px)] bg-[size:20px_20px]",
   "grid-pattern": "bg-background bg-[linear-gradient(hsl(var(--muted)/0.3)_1px,_transparent_1px),_linear-gradient(90deg,_hsl(var(--muted)/0.3)_1px,_transparent_1px)] bg-[size:40px_40px]",
+  "diamond-pattern": "bg-background bg-[linear-gradient(45deg,_hsl(var(--muted)/0.15)_25%,_transparent_25%,_transparent_75%,_hsl(var(--muted)/0.15)_75%)] bg-[size:30px_30px]",
 };
 
 const TOPBAR_CLASSES: Record<string, string> = {
