@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { School, Users, Bell, Shield, DollarSign, Moon, Sun, Image as ImageIcon, Loader2, X, Plus, Upload, Save, User, BellRing } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { DiscountSettingsDialog } from "@/components/DiscountSettingsDialog";
+import { AppearanceSettingsCard } from "@/components/AppearanceSettingsCard";
 import { SetFeeStructureDialogEnhanced } from "@/components/SetFeeStructureDialogEnhanced";
 import { useTheme } from "next-themes";
 import { useDiscountSettings } from "@/hooks/useDiscountSettings";
@@ -1157,8 +1158,8 @@ const Settings = () => {
           <TabsContent value="appearance" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Appearance</CardTitle>
-                <CardDescription>Customize the look and feel</CardDescription>
+                <CardTitle>Theme Mode</CardTitle>
+                <CardDescription>Choose between light and dark mode</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -1196,6 +1197,9 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Primary Color Customization */}
+            <AppearanceSettingsCard />
           </TabsContent>
 
           {/* Notification Settings */}
