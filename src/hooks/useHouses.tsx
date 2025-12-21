@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,35 +11,26 @@ export interface House {
   updated_at: string;
 }
 
+const fetchHousesData = async () => {
+  const { data, error } = await supabase
+    .from("houses")
+    .select("*")
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+};
+
 export function useHouses() {
-  const [houses, setHouses] = useState<House[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchHouses = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("houses")
-        .select("*")
-        .order("name", { ascending: true });
-
-      if (error) throw error;
-      setHouses(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHouses();
-  }, []);
+  const { data: houses = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['houses'],
+    queryFn: fetchHousesData,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
   const addHouse = async (houseData: { name: string; description?: string; color?: string }) => {
     try {
@@ -56,7 +47,8 @@ export function useHouses() {
         description: "House created successfully",
       });
       
-      fetchHouses();
+      queryClient.invalidateQueries({ queryKey: ['houses'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       return data;
     } catch (error: any) {
       toast({
@@ -82,7 +74,7 @@ export function useHouses() {
         description: "House updated successfully",
       });
       
-      fetchHouses();
+      queryClient.invalidateQueries({ queryKey: ['houses'] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -107,7 +99,8 @@ export function useHouses() {
         description: "House deleted successfully",
       });
       
-      fetchHouses();
+      queryClient.invalidateQueries({ queryKey: ['houses'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -118,5 +111,5 @@ export function useHouses() {
     }
   };
 
-  return { houses, loading, fetchHouses, addHouse, updateHouse, deleteHouse };
+  return { houses, loading, fetchHouses: refetch, addHouse, updateHouse, deleteHouse };
 }

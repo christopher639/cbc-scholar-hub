@@ -1,36 +1,27 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+const fetchNonTeachingStaffData = async () => {
+  const { data, error } = await supabase
+    .from("non_teaching_staff")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
 export function useNonTeachingStaff() {
-  const [staff, setStaff] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchStaff = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("non_teaching_staff")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setStaff(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStaff();
-  }, []);
+  const { data: staff = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['nonTeachingStaff'],
+    queryFn: fetchNonTeachingStaffData,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
   const addStaff = async (staffData: any) => {
     try {
@@ -47,7 +38,7 @@ export function useNonTeachingStaff() {
         description: "Staff member added successfully",
       });
 
-      fetchStaff();
+      queryClient.invalidateQueries({ queryKey: ['nonTeachingStaff'] });
       return data;
     } catch (error: any) {
       toast({
@@ -73,7 +64,7 @@ export function useNonTeachingStaff() {
         description: "Staff member updated successfully",
       });
 
-      fetchStaff();
+      queryClient.invalidateQueries({ queryKey: ['nonTeachingStaff'] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -98,7 +89,7 @@ export function useNonTeachingStaff() {
         description: "Staff member deleted successfully",
       });
 
-      fetchStaff();
+      queryClient.invalidateQueries({ queryKey: ['nonTeachingStaff'] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -109,5 +100,5 @@ export function useNonTeachingStaff() {
     }
   };
 
-  return { staff, loading, fetchStaff, addStaff, updateStaff, deleteStaff };
+  return { staff, loading, fetchStaff: refetch, addStaff, updateStaff, deleteStaff };
 }

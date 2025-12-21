@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,35 +10,26 @@ export interface Department {
   updated_at: string;
 }
 
+const fetchDepartmentsData = async () => {
+  const { data, error } = await supabase
+    .from("departments")
+    .select("*")
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+};
+
 export function useDepartments() {
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchDepartments = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("departments")
-        .select("*")
-        .order("name", { ascending: true });
-
-      if (error) throw error;
-      setDepartments(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
+  const { data: departments = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['departments'],
+    queryFn: fetchDepartmentsData,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
   const addDepartment = async (departmentData: { name: string; description?: string }) => {
     try {
@@ -55,7 +46,8 @@ export function useDepartments() {
         description: "Department created successfully",
       });
       
-      fetchDepartments();
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       return data;
     } catch (error: any) {
       toast({
@@ -81,7 +73,7 @@ export function useDepartments() {
         description: "Department updated successfully",
       });
       
-      fetchDepartments();
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -106,7 +98,8 @@ export function useDepartments() {
         description: "Department deleted successfully",
       });
       
-      fetchDepartments();
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -117,5 +110,5 @@ export function useDepartments() {
     }
   };
 
-  return { departments, loading, fetchDepartments, addDepartment, updateDepartment, deleteDepartment };
+  return { departments, loading, fetchDepartments: refetch, addDepartment, updateDepartment, deleteDepartment };
 }

@@ -1,135 +1,125 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 
 type Term = Database["public"]["Enums"]["term"];
 
-export function useStreamDetail(gradeId: string, streamId: string, academicYear?: string, term?: Term) {
-  const [streamData, setStreamData] = useState<any>(null);
-  const [learners, setLearners] = useState<any[]>([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    male: 0,
-    female: 0,
-    capacity: 0,
-    feeCollectionRate: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+const fetchStreamDetailData = async (gradeId: string, streamId: string, academicYear?: string, term?: Term) => {
+  // Fetch stream info
+  const { data: stream, error: streamError } = await supabase
+    .from("streams")
+    .select("*, grade:grades(id, name)")
+    .eq("id", streamId)
+    .single();
 
-  const fetchStreamData = async () => {
-    try {
-      setLoading(true);
+  if (streamError) throw streamError;
 
-      // Fetch stream info
-      const { data: stream, error: streamError } = await supabase
-        .from("streams")
-        .select("*, grade:grades(id, name)")
-        .eq("id", streamId)
-        .single();
+  // Fetch learners for this stream
+  const { data: learnersData, error: learnersError } = await supabase
+    .from("learners")
+    .select("*")
+    .eq("current_stream_id", streamId)
+    .order("first_name", { ascending: true });
 
-      if (streamError) throw streamError;
+  if (learnersError) throw learnersError;
 
-      // Fetch learners for this stream
-      const { data: learnersData, error: learnersError } = await supabase
-        .from("learners")
-        .select("*")
-        .eq("current_stream_id", streamId)
-        .order("first_name", { ascending: true });
+  // Calculate statistics and fee balances
+  let totalMale = 0;
+  let totalFemale = 0;
+  let totalExpected = 0;
+  let totalPaid = 0;
 
-      if (learnersError) throw learnersError;
+  const learnersWithFees = await Promise.all(
+    (learnersData || []).map(async (learner) => {
+      if (learner.gender === "male") totalMale++;
+      if (learner.gender === "female") totalFemale++;
 
-      // Calculate statistics and fee balances
-      let totalMale = 0;
-      let totalFemale = 0;
-      let totalExpected = 0;
-      let totalPaid = 0;
+      let expectedAmount = 0;
+      let paidAmount = 0;
+      let feeBalance = 0;
+      let status = "pending";
 
-      const learnersWithFees = await Promise.all(
-        (learnersData || []).map(async (learner) => {
-          // Count by gender
-          if (learner.gender === "male") totalMale++;
-          if (learner.gender === "female") totalFemale++;
+      if (academicYear && term) {
+        const { data: structure } = await supabase
+          .from("fee_structures")
+          .select("id, amount")
+          .eq("grade_id", stream.grade.id)
+          .eq("academic_year", academicYear)
+          .eq("term", term)
+          .maybeSingle();
 
-          // Only calculate fees if academic year and term are provided
-          let expectedAmount = 0;
-          let paidAmount = 0;
-          let feeBalance = 0;
-          let status = "pending";
+        expectedAmount = structure?.amount || 0;
+        totalExpected += expectedAmount;
 
-          if (academicYear && term) {
-            // Get fee structure for specific grade/term/year
-            const { data: structure } = await supabase
-              .from("fee_structures")
-              .select("id, amount")
-              .eq("grade_id", stream.grade.id)
-              .eq("academic_year", academicYear)
-              .eq("term", term)
-              .maybeSingle();
+        const { data: payments } = await supabase
+          .from("fee_payments")
+          .select(`
+            amount_paid,
+            fee_structures!inner(
+              grade_id,
+              academic_year,
+              term
+            )
+          `)
+          .eq("learner_id", learner.id)
+          .eq("fee_structures.grade_id", stream.grade.id)
+          .eq("fee_structures.academic_year", academicYear)
+          .eq("fee_structures.term", term);
 
-            expectedAmount = structure?.amount || 0;
-            totalExpected += expectedAmount;
+        paidAmount = payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
+        totalPaid += paidAmount;
+        feeBalance = Math.max(0, expectedAmount - paidAmount);
+        status = feeBalance === 0 ? "paid" : paidAmount > 0 ? "partial" : "pending";
+      }
 
-            // Get payments for this specific grade/term/year
-            const { data: payments } = await supabase
-              .from("fee_payments")
-              .select(`
-                amount_paid,
-                fee_structures!inner(
-                  grade_id,
-                  academic_year,
-                  term
-                )
-              `)
-              .eq("learner_id", learner.id)
-              .eq("fee_structures.grade_id", stream.grade.id)
-              .eq("fee_structures.academic_year", academicYear)
-              .eq("fee_structures.term", term);
+      return {
+        ...learner,
+        totalFees: expectedAmount,
+        amountPaid: paidAmount,
+        feeBalance,
+        balance: feeBalance, // Alias for compatibility
+        status,
+      };
+    })
+  );
 
-            paidAmount = payments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
-            totalPaid += paidAmount;
-            feeBalance = Math.max(0, expectedAmount - paidAmount);
-            status = feeBalance === 0 ? "paid" : paidAmount > 0 ? "partial" : "pending";
-          }
+  const feeCollectionRate = totalExpected > 0 ? (totalPaid / totalExpected) * 100 : 0;
 
-          return {
-            ...learner,
-            totalFees: expectedAmount,
-            amountPaid: paidAmount,
-            feeBalance,
-            status,
-          };
-        })
-      );
-
-      const feeCollectionRate = totalExpected > 0 ? (totalPaid / totalExpected) * 100 : 0;
-
-      setStreamData(stream);
-      setLearners(learnersWithFees);
-      setStats({
-        total: learnersData?.length || 0,
-        male: totalMale,
-        female: totalFemale,
-        capacity: stream.capacity || 0,
-        feeCollectionRate,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  return {
+    streamData: stream,
+    learners: learnersWithFees,
+    stats: {
+      total: learnersData?.length || 0,
+      male: totalMale,
+      female: totalFemale,
+      capacity: stream.capacity || 0,
+      feeCollectionRate,
+    },
   };
+};
 
-  useEffect(() => {
-    if (gradeId && streamId) {
-      fetchStreamData();
-    }
-  }, [gradeId, streamId, academicYear, term]);
+export function useStreamDetail(gradeId: string, streamId: string, academicYear?: string, term?: Term) {
+  const { data, isLoading: loading, refetch } = useQuery({
+    queryKey: ['streamDetail', gradeId, streamId, academicYear, term],
+    queryFn: () => fetchStreamDetailData(gradeId, streamId, academicYear, term),
+    enabled: !!(gradeId && streamId),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-  return { streamData, learners, stats, loading, refetch: fetchStreamData };
+  return {
+    streamData: data?.streamData || null,
+    learners: (data?.learners || []) as any[],
+    stats: data?.stats || { total: 0, male: 0, female: 0, capacity: 0, feeCollectionRate: 0 },
+    loading,
+    refetch,
+  };
+}
+
+export async function prefetchStreamDetail(gradeId: string, streamId: string, queryClient: any, academicYear?: string, term?: Term) {
+  return queryClient.prefetchQuery({
+    queryKey: ['streamDetail', gradeId, streamId, academicYear, term],
+    queryFn: () => fetchStreamDetailData(gradeId, streamId, academicYear, term),
+    staleTime: 5 * 60 * 1000,
+  });
 }

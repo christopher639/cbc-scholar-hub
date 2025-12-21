@@ -1,41 +1,34 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+
+const fetchFeeStructuresData = async () => {
+  const { data, error } = await supabase
+    .from("fee_structures")
+    .select(`
+      *,
+      grade:grades(name),
+      category:fee_categories(name),
+      fee_structure_items(*)
+    `)
+    .order("academic_year", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
 
 export function useFeeStructures() {
-  const [structures, setStructures] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchStructures = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("fee_structures")
-        .select(`
-          *,
-          grade:grades(name),
-          category:fee_categories(name),
-          fee_structure_items(*)
-        `)
-        .order("academic_year", { ascending: false });
+  const { data: structures = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['feeStructures'],
+    queryFn: fetchFeeStructuresData,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-      if (error) throw error;
-      setStructures(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const invalidateFeeStructures = () => {
+    queryClient.invalidateQueries({ queryKey: ['feeStructures'] });
   };
 
-  useEffect(() => {
-    fetchStructures();
-  }, []);
-
-  return { structures, loading, fetchStructures };
+  return { structures, loading, fetchStructures: refetch, invalidateFeeStructures };
 }

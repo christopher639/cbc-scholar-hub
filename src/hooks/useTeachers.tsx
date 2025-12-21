@@ -1,36 +1,27 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+const fetchTeachersData = async () => {
+  const { data, error } = await supabase
+    .from("teachers")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
 export function useTeachers() {
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchTeachers = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("teachers")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setTeachers(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTeachers();
-  }, []);
+  const { data: teachers = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['teachers'],
+    queryFn: fetchTeachersData,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
   const addTeacher = async (teacherData: any) => {
     try {
@@ -42,7 +33,6 @@ export function useTeachers() {
 
       if (error) throw error;
       
-      // Create user_role entry for the teacher
       if (data) {
         const { error: roleError } = await supabase
           .from("user_roles")
@@ -61,7 +51,8 @@ export function useTeachers() {
         description: "Teacher added successfully",
       });
       
-      fetchTeachers();
+      queryClient.invalidateQueries({ queryKey: ['teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       return data;
     } catch (error: any) {
       toast({
@@ -87,7 +78,7 @@ export function useTeachers() {
         description: "Teacher updated successfully",
       });
       
-      fetchTeachers();
+      queryClient.invalidateQueries({ queryKey: ['teachers'] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -112,7 +103,8 @@ export function useTeachers() {
         description: "Teacher deleted successfully",
       });
       
-      fetchTeachers();
+      queryClient.invalidateQueries({ queryKey: ['teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -123,5 +115,5 @@ export function useTeachers() {
     }
   };
 
-  return { teachers, loading, fetchTeachers, addTeacher, updateTeacher, deleteTeacher };
+  return { teachers, loading, fetchTeachers: refetch, addTeacher, updateTeacher, deleteTeacher };
 }
