@@ -1,40 +1,35 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+
+const fetchAcademicYearsData = async () => {
+  const { data, error } = await supabase
+    .from("academic_years")
+    .select("*")
+    .order("year", { ascending: false });
+
+  if (error) throw error;
+  
+  const active = data?.find(y => y.is_active);
+  return {
+    years: data || [],
+    currentYear: active || data?.[0] || null,
+  };
+};
 
 export function useAcademicYears() {
-  const [academicYears, setAcademicYears] = useState<any[]>([]);
-  const [currentYear, setCurrentYear] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchAcademicYears = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("academic_years")
-        .select("*")
-        .order("year", { ascending: false });
+  const { data, isLoading: loading, refetch } = useQuery({
+    queryKey: ['academicYears'],
+    queryFn: fetchAcademicYearsData,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
 
-      if (error) throw error;
-      
-      setAcademicYears(data || []);
-      const active = data?.find(y => y.is_active);
-      setCurrentYear(active || data?.[0] || null);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  return {
+    academicYears: data?.years || [],
+    currentYear: data?.currentYear || null,
+    loading,
+    refetch,
   };
-
-  useEffect(() => {
-    fetchAcademicYears();
-  }, []);
-
-  return { academicYears, currentYear, loading, refetch: fetchAcademicYears };
 }

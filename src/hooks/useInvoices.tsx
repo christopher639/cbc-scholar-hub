@@ -1,48 +1,43 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+const fetchInvoicesData = async (learnerId?: string) => {
+  let query = supabase
+    .from("student_invoices")
+    .select(`
+      *,
+      learner:learners(
+        admission_number,
+        first_name,
+        last_name
+      ),
+      grade:grades(name),
+      stream:streams(name),
+      line_items:invoice_line_items(*)
+    `)
+    .order("issue_date", { ascending: false });
+
+  if (learnerId) {
+    query = query.eq("learner_id", learnerId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data || [];
+};
+
 export function useInvoices(learnerId?: string) {
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchInvoices = async () => {
-    try {
-      setLoading(true);
-      let query = supabase
-        .from("student_invoices")
-        .select(`
-          *,
-          learner:learners(
-            admission_number,
-            first_name,
-            last_name
-          ),
-          grade:grades(name),
-          stream:streams(name),
-          line_items:invoice_line_items(*)
-        `)
-        .order("issue_date", { ascending: false });
-
-      if (learnerId) {
-        query = query.eq("learner_id", learnerId);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setInvoices(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: invoices = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['invoices', learnerId],
+    queryFn: () => fetchInvoicesData(learnerId),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
   const generateInvoice = async (
     learnerId: string,
@@ -67,7 +62,8 @@ export function useInvoices(learnerId?: string) {
         description: "Invoice generated successfully",
       });
 
-      fetchInvoices();
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       return data;
     } catch (error: any) {
       toast({
@@ -100,7 +96,8 @@ export function useInvoices(learnerId?: string) {
         description: `Generated ${successCount} invoices successfully`,
       });
 
-      fetchInvoices();
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       return data;
     } catch (error: any) {
       toast({
@@ -131,7 +128,8 @@ export function useInvoices(learnerId?: string) {
         description: "Invoice cancelled successfully",
       });
 
-      fetchInvoices();
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -142,14 +140,10 @@ export function useInvoices(learnerId?: string) {
     }
   };
 
-  useEffect(() => {
-    fetchInvoices();
-  }, [learnerId]);
-
   return {
     invoices,
     loading,
-    fetchInvoices,
+    fetchInvoices: refetch,
     generateInvoice,
     bulkGenerateInvoices,
     cancelInvoice,

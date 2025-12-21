@@ -1,46 +1,27 @@
-import { useEffect, useState, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-// Global cache for school info to prevent re-fetching on every route change
-let schoolInfoCache: any = null;
-let cacheTimestamp: number = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const fetchSchoolInfoData = async () => {
+  const { data, error } = await supabase
+    .from("school_info")
+    .select("*")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+};
 
 export function useSchoolInfo() {
-  const [schoolInfo, setSchoolInfo] = useState<any>(schoolInfoCache);
-  const [loading, setLoading] = useState(!schoolInfoCache);
   const { toast } = useToast();
-  const hasFetched = useRef(false);
+  const queryClient = useQueryClient();
 
-  const fetchSchoolInfo = async (forceRefresh = false) => {
-    // Use cache if available and not expired
-    const now = Date.now();
-    if (!forceRefresh && schoolInfoCache && (now - cacheTimestamp) < CACHE_DURATION) {
-      setSchoolInfo(schoolInfoCache);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("school_info")
-        .select("*")
-        .maybeSingle();
-
-      if (error) throw error;
-      
-      // Update cache
-      schoolInfoCache = data;
-      cacheTimestamp = now;
-      setSchoolInfo(data);
-    } catch (error: any) {
-      console.error("Error fetching school info:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: schoolInfo, isLoading: loading, refetch } = useQuery({
+    queryKey: ['schoolInfo'],
+    queryFn: fetchSchoolInfoData,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
 
   const updateSchoolInfo = async (data: any) => {
     try {
@@ -64,8 +45,7 @@ export function useSchoolInfo() {
         if (error) throw error;
       }
 
-      // Force refresh after update
-      await fetchSchoolInfo(true);
+      queryClient.invalidateQueries({ queryKey: ['schoolInfo'] });
       toast({
         title: "Success",
         description: "School information updated successfully",
@@ -79,13 +59,5 @@ export function useSchoolInfo() {
     }
   };
 
-  useEffect(() => {
-    // Only fetch if we haven't already or cache is empty
-    if (!hasFetched.current || !schoolInfoCache) {
-      hasFetched.current = true;
-      fetchSchoolInfo();
-    }
-  }, []);
-
-  return { schoolInfo, loading, updateSchoolInfo, fetchSchoolInfo };
+  return { schoolInfo: schoolInfo || null, loading, updateSchoolInfo, fetchSchoolInfo: refetch };
 }

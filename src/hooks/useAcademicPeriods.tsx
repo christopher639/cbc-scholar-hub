@@ -1,40 +1,35 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+
+const fetchAcademicPeriodsData = async () => {
+  const { data, error } = await supabase
+    .from("academic_periods")
+    .select("*")
+    .order("start_date", { ascending: false });
+
+  if (error) throw error;
+  
+  const current = data?.find(p => p.is_current);
+  return {
+    periods: data || [],
+    currentPeriod: current || data?.[0] || null,
+  };
+};
 
 export function useAcademicPeriods() {
-  const [academicPeriods, setAcademicPeriods] = useState<any[]>([]);
-  const [currentPeriod, setCurrentPeriod] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchAcademicPeriods = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("academic_periods")
-        .select("*")
-        .order("start_date", { ascending: false });
+  const { data, isLoading: loading, refetch } = useQuery({
+    queryKey: ['academicPeriods'],
+    queryFn: fetchAcademicPeriodsData,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
 
-      if (error) throw error;
-      
-      setAcademicPeriods(data || []);
-      const current = data?.find(p => p.is_current);
-      setCurrentPeriod(current || data?.[0] || null);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  return {
+    academicPeriods: data?.periods || [],
+    currentPeriod: data?.currentPeriod || null,
+    loading,
+    refetch,
   };
-
-  useEffect(() => {
-    fetchAcademicPeriods();
-  }, []);
-
-  return { academicPeriods, currentPeriod, loading, refetch: fetchAcademicPeriods };
 }

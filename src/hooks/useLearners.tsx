@@ -1,59 +1,50 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+const fetchLearnersData = async (gradeId?: string, streamId?: string) => {
+  let query = supabase
+    .from("learners")
+    .select(`
+      *,
+      current_grade:grades(name, grade_level),
+      current_stream:streams(name),
+      stream:streams(name),
+      parent:parents(*)
+    `);
+
+  if (gradeId) {
+    query = query.eq("current_grade_id", gradeId);
+  }
+  if (streamId) {
+    query = query.eq("current_stream_id", streamId);
+  }
+
+  // Only fetch active learners (exclude alumni and transferred)
+  query = query.eq("status", "active");
+
+  const { data, error } = await query.order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
 export function useLearners(gradeId?: string, streamId?: string) {
-  const [learners, setLearners] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchLearners = async () => {
-    try {
-      setLoading(true);
-      let query = supabase
-        .from("learners")
-        .select(`
-          *,
-          current_grade:grades(name, grade_level),
-          current_stream:streams(name),
-          parent:parents(*)
-        `);
-
-      if (gradeId) {
-        query = query.eq("current_grade_id", gradeId);
-      }
-      if (streamId) {
-        query = query.eq("current_stream_id", streamId);
-      }
-
-      // Only fetch active learners (exclude alumni and transferred)
-      query = query.eq("status", "active");
-
-      const { data, error } = await query.order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setLearners(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLearners();
-  }, [gradeId, streamId]);
+  const { data: learners = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['learners', gradeId, streamId],
+    queryFn: () => fetchLearnersData(gradeId, streamId),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  });
 
   const addLearner = async (learnerData: any) => {
     try {
       // First create the auth user account if birth certificate number is provided
       let userId = null;
       if (learnerData.birth_certificate_number) {
-        // Create auth account with admission number as email and birth cert as password
         const tempEmail = `${learnerData.admission_number || 'temp'}@learner.temp`;
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: tempEmail,
@@ -68,13 +59,11 @@ export function useLearners(gradeId?: string, streamId?: string) {
 
         if (authError) {
           console.error("Error creating auth user:", authError);
-          // Continue even if auth creation fails
         } else if (authData.user) {
           userId = authData.user.id;
         }
       }
 
-      // Insert learner record
       const learnerInsertData = userId ? { ...learnerData, user_id: userId } : learnerData;
       const { data, error } = await supabase
         .from("learners")
@@ -84,7 +73,6 @@ export function useLearners(gradeId?: string, streamId?: string) {
 
       if (error) throw error;
       
-      // Create user_role entry for the learner
       if (data && userId) {
         const { error: roleError } = await supabase
           .from("user_roles")
@@ -103,7 +91,9 @@ export function useLearners(gradeId?: string, streamId?: string) {
         description: "Learner added successfully" + (userId ? " and can now log in" : ""),
       });
       
-      fetchLearners();
+      // Invalidate all learner queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['learners'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       return data;
     } catch (error: any) {
       toast({
@@ -115,5 +105,5 @@ export function useLearners(gradeId?: string, streamId?: string) {
     }
   };
 
-  return { learners, loading, fetchLearners, addLearner };
+  return { learners, loading, fetchLearners: refetch, addLearner };
 }
