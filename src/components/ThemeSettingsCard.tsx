@@ -61,6 +61,54 @@ const THEME_PREVIEWS: Record<string, { sidebar: string; page: string; hero: stri
     hero: "bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700",
     topbar: "bg-gradient-to-r from-indigo-500/20 via-blue-500/20 to-indigo-500/20"
   },
+  cherry: {
+    sidebar: "bg-gradient-to-b from-pink-500 via-rose-500 to-red-500",
+    page: "bg-gradient-to-br from-background via-pink-50/20 to-rose-50/20",
+    hero: "bg-gradient-to-br from-pink-500 via-rose-400 to-pink-600",
+    topbar: "bg-gradient-to-r from-pink-500/20 via-rose-500/20 to-red-500/20"
+  },
+  arctic: {
+    sidebar: "bg-gradient-to-b from-cyan-500 via-sky-500 to-blue-500",
+    page: "bg-gradient-to-br from-background via-cyan-50/20 to-sky-50/20",
+    hero: "bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-600",
+    topbar: "bg-gradient-to-r from-cyan-500/20 via-sky-500/20 to-blue-500/20"
+  },
+  coffee: {
+    sidebar: "bg-gradient-to-b from-amber-800 via-amber-700 to-amber-900",
+    page: "bg-gradient-to-br from-background via-amber-50/20 to-orange-50/20",
+    hero: "bg-gradient-to-br from-amber-800 via-amber-700 to-amber-600",
+    topbar: "bg-gradient-to-r from-amber-700/20 via-amber-600/20 to-amber-700/20"
+  },
+  lavender: {
+    sidebar: "bg-gradient-to-b from-violet-400 via-purple-400 to-fuchsia-500",
+    page: "bg-gradient-to-br from-background via-violet-50/20 to-purple-50/20",
+    hero: "bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500",
+    topbar: "bg-gradient-to-r from-violet-500/20 via-purple-500/20 to-fuchsia-500/20"
+  },
+  crimson: {
+    sidebar: "bg-gradient-to-b from-red-600 via-rose-600 to-red-700",
+    page: "bg-gradient-to-br from-background via-red-50/20 to-rose-50/20",
+    hero: "bg-gradient-to-br from-red-600 via-rose-500 to-orange-500",
+    topbar: "bg-gradient-to-r from-red-500/20 via-rose-500/20 to-orange-500/20"
+  },
+  mint: {
+    sidebar: "bg-gradient-to-b from-teal-400 via-emerald-400 to-green-500",
+    page: "bg-gradient-to-br from-background via-teal-50/20 to-emerald-50/20",
+    hero: "bg-gradient-to-br from-teal-500 via-emerald-500 to-green-500",
+    topbar: "bg-gradient-to-r from-teal-500/20 via-emerald-500/20 to-green-500/20"
+  },
+  slate: {
+    sidebar: "bg-gradient-to-b from-slate-600 via-slate-500 to-slate-700",
+    page: "bg-gradient-to-br from-background via-slate-50/20 to-gray-50/20",
+    hero: "bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800",
+    topbar: "bg-gradient-to-r from-slate-500/20 via-slate-600/20 to-slate-500/20"
+  },
+  coral: {
+    sidebar: "bg-gradient-to-b from-orange-400 via-rose-400 to-pink-500",
+    page: "bg-gradient-to-br from-background via-orange-50/20 to-pink-50/20",
+    hero: "bg-gradient-to-br from-orange-500 via-rose-400 to-pink-500",
+    topbar: "bg-gradient-to-r from-orange-500/20 via-rose-500/20 to-pink-500/20"
+  },
 };
 
 export function ThemeSettingsCard() {
