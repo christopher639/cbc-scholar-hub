@@ -7,7 +7,7 @@ export function AppearanceLoader() {
       try {
         const { data, error } = await supabase
           .from("appearance_settings")
-          .select("primary_color, sidebar_style, card_style, hero_gradient")
+          .select("primary_color, sidebar_style, card_style, hero_gradient, page_background")
           .limit(1)
           .single();
 
@@ -22,15 +22,19 @@ export function AppearanceLoader() {
           document.documentElement.style.setProperty("--ring", data.primary_color);
         }
 
-        // Apply UI style settings
-        if (data?.sidebar_style) {
-          document.documentElement.setAttribute("data-sidebar-style", data.sidebar_style);
+        // Apply UI style settings as data attributes
+        const anyData = data as any;
+        if (anyData?.sidebar_style) {
+          document.documentElement.setAttribute("data-sidebar-style", anyData.sidebar_style);
         }
-        if (data?.card_style) {
-          document.documentElement.setAttribute("data-card-style", data.card_style);
+        if (anyData?.card_style) {
+          document.documentElement.setAttribute("data-card-style", anyData.card_style);
         }
-        if (data?.hero_gradient) {
-          document.documentElement.setAttribute("data-hero-gradient", data.hero_gradient);
+        if (anyData?.hero_gradient) {
+          document.documentElement.setAttribute("data-hero-gradient", anyData.hero_gradient);
+        }
+        if (anyData?.page_background) {
+          document.documentElement.setAttribute("data-page-background", anyData.page_background);
         }
       } catch (error) {
         console.error("Error loading appearance settings:", error);

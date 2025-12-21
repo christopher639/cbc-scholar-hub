@@ -201,6 +201,7 @@ export type Database = {
           created_at: string
           hero_gradient: string | null
           id: string
+          page_background: string | null
           primary_color: string
           sidebar_style: string | null
           updated_at: string
@@ -210,6 +211,7 @@ export type Database = {
           created_at?: string
           hero_gradient?: string | null
           id?: string
+          page_background?: string | null
           primary_color?: string
           sidebar_style?: string | null
           updated_at?: string
@@ -219,6 +221,7 @@ export type Database = {
           created_at?: string
           hero_gradient?: string | null
           id?: string
+          page_background?: string | null
           primary_color?: string
           sidebar_style?: string | null
           updated_at?: string

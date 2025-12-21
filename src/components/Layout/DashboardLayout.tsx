@@ -13,6 +13,7 @@ import { SchoolAssistantChat } from "@/components/SchoolAssistantChat";
 import { NotificationsDropdown } from "@/components/NotificationsDropdown";
 import { AdminSearchBar } from "@/components/AdminSearchBar";
 import { useAdminNavigation } from "@/hooks/useAdminNavigation";
+import { useUIStyles } from "@/hooks/useUIStyles";
 import {
   Sidebar,
   SidebarContent,
@@ -152,6 +153,7 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
   const { schoolInfo } = useSchoolInfo();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { getSidebarClass, isGradientSidebar } = useUIStyles();
 
   const handleLogout = async () => {
     await logout();
@@ -171,27 +173,51 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
     onNavigate(href);
   };
 
+  const sidebarClass = getSidebarClass();
+  const isGradient = isGradientSidebar();
+
   return (
-    <Sidebar collapsible="icon" className="bg-card">
-      <div className="flex h-16 items-center justify-between px-4">
+    <Sidebar collapsible="icon" className={cn(sidebarClass, "relative overflow-hidden")}>
+      {/* Decorative pattern for gradient sidebars */}
+      {isGradient && (
+        <div className="absolute inset-0 pointer-events-none opacity-10">
+          <div className="absolute top-0 left-0 w-20 h-20 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-32 h-32 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
+          <div className="absolute top-1/3 right-0 w-16 h-16 bg-white rounded-full translate-x-1/2" />
+        </div>
+      )}
+      
+      <div className="flex h-16 items-center justify-between px-4 relative z-10">
         {!collapsed && (
           <div className="flex items-center gap-2">
             {schoolInfo?.logo_url ? (
-              <img src={schoolInfo.logo_url} alt="School Logo" className="h-10 w-10 object-contain rounded-full" />
+              <img src={schoolInfo.logo_url} alt="School Logo" className={cn(
+                "h-10 w-10 object-contain rounded-full",
+                isGradient && "ring-2 ring-white/30"
+              )} />
             ) : (
-              <GraduationCap className="h-10 w-10 text-primary" />
+              <GraduationCap className={cn(
+                "h-10 w-10",
+                isGradient ? "text-white" : "text-primary"
+              )} />
             )}
-            <span className="font-semibold text-sm">
+            <span className={cn(
+              "font-semibold text-sm",
+              isGradient && "text-white"
+            )}>
               {schoolInfo?.school_name || "School"}
             </span>
           </div>
         )}
-        <SidebarTrigger className="ml-auto hidden lg:flex">
+        <SidebarTrigger className={cn(
+          "ml-auto hidden lg:flex",
+          isGradient && "text-white hover:bg-white/10"
+        )}>
           {collapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
         </SidebarTrigger>
       </div>
 
-      <SidebarContent className="bg-card">
+      <SidebarContent className="relative z-10">
       <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -207,7 +233,10 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
                             isActive={isActive}
                             className={cn(
                               "cursor-pointer",
-                              isActive && "bg-primary text-primary-foreground",
+                              isGradient && "text-white/90 hover:text-white hover:bg-white/10",
+                              isActive && (isGradient 
+                                ? "bg-white/20 text-white font-medium" 
+                                : "bg-primary text-primary-foreground"),
                               isPending && "opacity-70"
                             )}
                             onClick={(e) => handleNavClick(e, item.href)}
@@ -244,7 +273,12 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
                     href={publicWebsiteLink.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-muted transition-colors"
+                    className={cn(
+                      "flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md transition-colors",
+                      isGradient 
+                        ? "text-white/90 hover:text-white hover:bg-white/10" 
+                        : "hover:bg-muted"
+                    )}
                   >
                     <publicWebsiteLink.icon className="h-5 w-5" />
                     {!collapsed && <span>{publicWebsiteLink.name}</span>}
@@ -263,7 +297,10 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-2"
+                  className={cn(
+                    "w-full justify-start gap-2",
+                    isGradient && "text-white/90 hover:text-white hover:bg-white/10"
+                  )}
                   onClick={handleLogout}
                 >
                   <LogOut className="h-5 w-5" />
@@ -378,9 +415,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       .slice(0, 2);
   };
 
+  const { getPageBackgroundClass } = useUIStyles();
+
   return (
     <SidebarProvider defaultOpen>
-      <div className="h-screen w-full flex bg-background overflow-hidden">
+      <div className={cn("h-screen w-full flex overflow-hidden", getPageBackgroundClass())}>
         <AppSidebar onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
