@@ -144,9 +144,21 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-          {statsDisplay.map((stat) => (
-            <StatCard key={stat.title} {...stat} />
+        <div className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-5">
+          {statsDisplay.map((stat, index) => (
+            <div 
+              key={stat.title} 
+              className={cn(
+                // First two cards (Total Learners, Active Streams) span full width on mobile
+                index < 2 && "col-span-2 sm:col-span-1",
+                // Fee Collection and Uncollected Balance (index 2 and 3) stay side by side
+                (index === 2 || index === 3) && "col-span-1",
+                // Pending Admissions spans full width on mobile
+                index === 4 && "col-span-2 sm:col-span-1"
+              )}
+            >
+              <StatCard {...stat} />
+            </div>
           ))}
         </div>
 
