@@ -12,6 +12,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLearners } from "@/hooks/useLearners";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQueryClient } from "@tanstack/react-query";
+import { prefetchLearnerDetail } from "@/hooks/useLearnerDetail";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +43,7 @@ const Learners = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const { learners, loading, fetchLearners } = useLearners(selectedGrade, selectedStream);
   const { grades } = useGrades();
@@ -68,14 +71,9 @@ const Learners = () => {
 
   const handleLearnerClick = async (learnerId: string) => {
     setNavigatingTo(learnerId);
-    // Pre-fetch learner data before navigating
-    const { supabase } = await import("@/integrations/supabase/client");
     try {
-      await supabase
-        .from("learners")
-        .select(`*, current_grade:grades(*), current_stream:streams(*), parent:parents(*)`)
-        .eq("id", learnerId)
-        .single();
+      // Pre-fetch learner data into React Query cache before navigating
+      await prefetchLearnerDetail(learnerId, queryClient);
       navigate(`/learner/${learnerId}`);
     } catch {
       navigate(`/learner/${learnerId}`);
