@@ -16,7 +16,7 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, trend, colorClass = "text-primary" }: StatCardProps) {
   return (
-    <Card className="overflow-hidden h-full min-h-[90px] sm:min-h-0">
+    <Card className="overflow-hidden h-full min-h-[100px] sm:min-h-0">
       <CardContent className="p-4 sm:p-6 h-full flex flex-col justify-center">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
