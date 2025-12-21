@@ -151,9 +151,9 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const { schoolInfo } = useSchoolInfo();
-  const { state } = useSidebar();
+  const { state, isMobile, openMobile } = useSidebar();
   const collapsed = state === "collapsed";
-  const { getSidebarClass, isGradientSidebar } = useUIStyles();
+  const { getSidebarClass, isGradientSidebar, loading: stylesLoading } = useUIStyles();
 
   const handleLogout = async () => {
     await logout();

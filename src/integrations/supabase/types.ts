@@ -197,6 +197,7 @@ export type Database = {
       }
       appearance_settings: {
         Row: {
+          app_theme: string | null
           card_style: string | null
           created_at: string
           hero_gradient: string | null
@@ -207,6 +208,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          app_theme?: string | null
           card_style?: string | null
           created_at?: string
           hero_gradient?: string | null
@@ -217,6 +219,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          app_theme?: string | null
           card_style?: string | null
           created_at?: string
           hero_gradient?: string | null
