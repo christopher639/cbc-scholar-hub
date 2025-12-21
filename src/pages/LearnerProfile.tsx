@@ -776,34 +776,34 @@ const LearnerProfile = () => {
               </TabsContent>
 
               {/* Alumni Tab */}
-              {learner.status === "alumni" && learner.alumni && learner.alumni.length > 0 && (
+              {learner.status === "alumni" && learner.alumni && (
                 <TabsContent value="alumni" className="mt-0">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="p-4 rounded-lg border bg-purple-50 dark:bg-purple-950/20">
                       <p className="text-sm text-muted-foreground">Graduation Year</p>
-                      <p className="text-2xl font-bold text-purple-600">{learner.alumni[0].graduation_year}</p>
+                      <p className="text-2xl font-bold text-purple-600">{learner.alumni.graduation_year}</p>
                     </div>
                     <div className="p-4 rounded-lg border">
                       <p className="text-sm text-muted-foreground">Graduation Date</p>
-                      <p className="font-medium">{new Date(learner.alumni[0].graduation_date).toLocaleDateString()}</p>
+                      <p className="font-medium">{new Date(learner.alumni.graduation_date).toLocaleDateString()}</p>
                     </div>
-                    {learner.alumni[0].final_grade && (
+                    {learner.alumni.final_grade && (
                       <div className="p-4 rounded-lg border">
                         <p className="text-sm text-muted-foreground">Final Grade</p>
-                        <Badge variant="secondary" className="mt-1">{learner.alumni[0].final_grade.name}</Badge>
+                        <Badge variant="secondary" className="mt-1">{(learner.alumni.final_grade as any).name}</Badge>
                       </div>
                     )}
-                    {learner.alumni[0].final_stream && (
+                    {learner.alumni.final_stream && (
                       <div className="p-4 rounded-lg border">
                         <p className="text-sm text-muted-foreground">Final Stream</p>
-                        <Badge variant="outline" className="mt-1">{learner.alumni[0].final_stream.name}</Badge>
+                        <Badge variant="outline" className="mt-1">{(learner.alumni.final_stream as any).name}</Badge>
                       </div>
                     )}
                   </div>
-                  {learner.alumni[0].notes && (
+                  {learner.alumni.notes && (
                     <div className="mt-4 p-4 rounded-lg border">
                       <p className="text-sm text-muted-foreground mb-2">Notes</p>
-                      <p>{learner.alumni[0].notes}</p>
+                      <p>{learner.alumni.notes}</p>
                     </div>
                   )}
                 </TabsContent>
