@@ -28,8 +28,8 @@ export function StatCard({ title, value, icon: Icon, trend, colorClass = "text-p
               </p>
             )}
           </div>
-          <div className={cn("rounded-lg bg-muted p-1 sm:p-2 flex-shrink-0 ml-2", colorClass)}>
-            <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+          <div className={cn("rounded-lg bg-muted p-1.5 sm:p-2 flex-shrink-0 ml-2", colorClass)}>
+            <Icon className="h-4 w-4 sm:h-4 sm:w-4" />
           </div>
         </div>
       </CardContent>

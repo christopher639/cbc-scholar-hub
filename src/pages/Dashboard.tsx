@@ -162,6 +162,65 @@ const Dashboard = () => {
           ))}
         </div>
 
+        {/* Mobile: Recent Payments first, Desktop: stays at bottom */}
+        <div className="lg:hidden">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Payments</CardTitle>
+              <CardDescription>Latest fee transactions recorded in the system</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-3">
+                {loading ? (
+                  <>
+                    {[1, 2, 3, 4].map((i) => (
+                      <Skeleton key={i} className="h-14 w-full" />
+                    ))}
+                  </>
+                ) : recentPayments.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4 col-span-full">No recent payments</p>
+                ) : (
+                  recentPayments.map((payment) => (
+                    <div key={payment.id} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <DollarSign className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground text-sm flex items-center gap-1 truncate">
+                            {payment.learner?.first_name} {payment.learner?.last_name}
+                            <Badge 
+                              variant={
+                                payment.status === 'paid' ? 'default' :
+                                payment.status === 'partial' ? 'secondary' :
+                                payment.status === 'overdue' ? 'destructive' : 'outline'
+                              }
+                              className={cn(
+                                "text-[10px] px-1.5 py-0",
+                                payment.status === 'paid' && "bg-primary text-primary-foreground",
+                                payment.status === 'partial' && "bg-warning text-warning-foreground"
+                              )}
+                            >
+                              {payment.status || 'pending'}
+                            </Badge>
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {payment.payment_method || 'N/A'} {payment.receipt_number ? `• ${payment.receipt_number}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-2">
+                        <p className="font-semibold text-primary text-sm">{formatCurrencyCompact(payment.amount_paid)}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(payment.payment_date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
           {/* Uncollected Balance by Grade */}
           <Card>
@@ -356,8 +415,8 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Recent Payments */}
-        <Card>
+        {/* Recent Payments - Desktop only (mobile version above) */}
+        <Card className="hidden lg:block">
           <CardHeader>
             <CardTitle>Recent Payments</CardTitle>
             <CardDescription>Latest fee transactions recorded in the system</CardDescription>
@@ -376,8 +435,8 @@ const Dashboard = () => {
                 recentPayments.map((payment) => (
                   <div key={payment.id} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
-                        <DollarSign className="h-4 w-4 text-success" />
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <DollarSign className="h-4 w-4 text-primary" />
                       </div>
                       <div className="min-w-0">
                         <p className="font-medium text-foreground text-sm flex items-center gap-1 truncate">
@@ -390,7 +449,7 @@ const Dashboard = () => {
                             }
                             className={cn(
                               "text-[10px] px-1.5 py-0",
-                              payment.status === 'paid' && "bg-success text-success-foreground",
+                              payment.status === 'paid' && "bg-primary text-primary-foreground",
                               payment.status === 'partial' && "bg-warning text-warning-foreground"
                             )}
                           >
@@ -403,7 +462,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
-                      <p className="font-semibold text-success text-sm">{formatCurrencyCompact(payment.amount_paid)}</p>
+                      <p className="font-semibold text-primary text-sm">{formatCurrencyCompact(payment.amount_paid)}</p>
                       <p className="text-xs text-muted-foreground">{new Date(payment.payment_date).toLocaleDateString()}</p>
                     </div>
                   </div>
