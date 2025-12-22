@@ -790,94 +790,97 @@ export default function AcademicSettings() {
                 <div className="overflow-x-auto -mx-4 sm:mx-0">
                   <Table className="min-w-[600px] sm:min-w-0">
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs sm:text-sm">Name</TableHead>
-                        <TableHead className="text-center text-xs sm:text-sm">Max Marks</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Description</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                        <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="py-1.5 px-2 text-[11px] font-medium">Name</TableHead>
+                        <TableHead className="text-center py-1.5 px-2 text-[11px] font-medium">Max Marks</TableHead>
+                        <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden md:table-cell">Description</TableHead>
+                        <TableHead className="py-1.5 px-2 text-[11px] font-medium">Status</TableHead>
+                        <TableHead className="text-right py-1.5 px-2 text-[11px] font-medium">Actions</TableHead>
                       </TableRow>
                   </TableHeader>
                   <TableBody>
                     {examTypes.map((examType) => (
-                      <TableRow key={examType.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">
+                      <TableRow key={examType.id} className="hover:bg-muted/30">
+                        <TableCell className="font-medium py-1 px-2 text-xs">
                           {editingExamType?.id === examType.id ? (
                             <Input
                               value={editingExamType.name}
                               onChange={(e) => setEditingExamType({ ...editingExamType, name: e.target.value })}
-                              className="h-8 text-xs sm:text-sm"
+                              className="h-7 text-xs"
                             />
                           ) : (
                             examType.name
                           )}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center py-1 px-2">
                           {editingExamType?.id === examType.id ? (
                             <Input
                               type="number"
                               value={editingExamType.max_marks}
                               onChange={(e) => setEditingExamType({ ...editingExamType, max_marks: parseInt(e.target.value) || 100 })}
-                              className="h-8 w-16 sm:w-20 text-xs sm:text-sm"
+                              className="h-7 w-14 text-xs"
                             />
                           ) : (
-                            <Badge variant="outline" className="text-xs">{examType.max_marks || 100}</Badge>
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{examType.max_marks || 100}</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                        <TableCell className="hidden md:table-cell py-1 px-2 text-xs">
                           {editingExamType?.id === examType.id ? (
                             <Input
                               value={editingExamType.description}
                               onChange={(e) => setEditingExamType({ ...editingExamType, description: e.target.value })}
-                              className="h-8 text-xs sm:text-sm"
+                              className="h-7 text-xs"
                               placeholder="Description"
                             />
                           ) : (
-                            examType.description || "-"
+                            <span className="text-muted-foreground">{examType.description || "-"}</span>
                           )}
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
+                        <TableCell className="py-1 px-2">
+                          <div className="flex items-center gap-1">
                             <Switch
                               checked={examType.is_active ?? true}
                               onCheckedChange={() => handleToggleExamTypeActive(examType.id, examType.is_active ?? true)}
+                              className="scale-75"
                             />
-                            <Badge variant={examType.is_active ? "default" : "secondary"}>
-                              {examType.is_active ? "Active" : "Inactive"}
+                            <Badge variant={examType.is_active ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                              {examType.is_active ? "Active" : "Off"}
                             </Badge>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right py-1 px-2">
                           {editingExamType?.id === examType.id ? (
-                            <div className="flex justify-end gap-2">
-                              <Button size="sm" variant="outline" onClick={() => setEditingExamType(null)}>
+                            <div className="flex justify-end gap-1">
+                              <Button size="sm" variant="outline" onClick={() => setEditingExamType(null)} className="h-6 px-2 text-[10px]">
                                 Cancel
                               </Button>
-                              <Button size="sm" onClick={handleUpdateExamType} disabled={updateExamType.isPending}>
+                              <Button size="sm" onClick={handleUpdateExamType} disabled={updateExamType.isPending} className="h-6 px-2 text-[10px]">
                                 Save
                               </Button>
                             </div>
                           ) : (
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-1">
                               <Button
                                 size="sm"
                                 variant="outline"
+                                className="h-6 w-6 p-0"
                               onClick={() => setEditingExamType({
-                                  id: examType.id,
-                                  name: examType.name,
-                                  description: examType.description || "",
-                                  max_marks: examType.max_marks || 100
-                                })}
+                                id: examType.id,
+                                name: examType.name,
+                                description: examType.description || "",
+                                max_marks: examType.max_marks || 100
+                              })}
                               >
-                                <Edit2 className="h-4 w-4" />
+                                <Edit2 className="h-3 w-3" />
                               </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
+                                className="h-6 w-6 p-0"
                                 onClick={() => handleDeleteExamType(examType.id)}
                                 disabled={deleteExamType.isPending}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
                           )}
@@ -986,88 +989,89 @@ export default function AcademicSettings() {
                 <div className="overflow-x-auto -mx-4 sm:mx-0">
                   <Table className="min-w-[500px] sm:min-w-0">
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs sm:text-sm">Grade</TableHead>
-                        <TableHead className="text-center text-xs sm:text-sm">Range (%)</TableHead>
-                        <TableHead className="text-center text-xs sm:text-sm">Points</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">Description</TableHead>
-                        <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="py-1.5 px-2 text-[11px] font-medium">Grade</TableHead>
+                        <TableHead className="text-center py-1.5 px-2 text-[11px] font-medium">Range (%)</TableHead>
+                        <TableHead className="text-center py-1.5 px-2 text-[11px] font-medium">Points</TableHead>
+                        <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden md:table-cell">Description</TableHead>
+                        <TableHead className="text-right py-1.5 px-2 text-[11px] font-medium">Actions</TableHead>
                       </TableRow>
                   </TableHeader>
                   <TableBody>
                     {gradingScales.map((scale) => (
-                      <TableRow key={scale.id}>
-                        <TableCell className="font-medium">
+                      <TableRow key={scale.id} className="hover:bg-muted/30">
+                        <TableCell className="font-medium py-1 px-2">
                           {editingGrade?.id === scale.id ? (
                             <Input
                               value={editingGrade.grade_name}
                               onChange={(e) => setEditingGrade({ ...editingGrade, grade_name: e.target.value })}
-                              className="h-8 w-16 sm:w-20 text-xs sm:text-sm"
+                              className="h-7 w-14 text-xs"
                             />
                           ) : (
-                            <Badge variant="outline" className="text-xs sm:text-sm">{scale.grade_name}</Badge>
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{scale.grade_name}</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-center text-xs sm:text-sm">
+                        <TableCell className="text-center py-1 px-2 text-xs">
                           {editingGrade?.id === scale.id ? (
                             <div className="flex items-center gap-1 justify-center">
                               <Input
                                 type="number"
                                 value={editingGrade.min_percentage}
                                 onChange={(e) => setEditingGrade({ ...editingGrade, min_percentage: parseFloat(e.target.value) || 0 })}
-                                className="h-8 w-12 sm:w-16 text-xs sm:text-sm"
+                                className="h-7 w-10 text-xs"
                               />
-                              <span className="text-xs">-</span>
+                              <span className="text-[10px]">-</span>
                               <Input
                                 type="number"
                                 value={editingGrade.max_percentage}
                                 onChange={(e) => setEditingGrade({ ...editingGrade, max_percentage: parseFloat(e.target.value) || 0 })}
-                                className="h-8 w-12 sm:w-16 text-xs sm:text-sm"
+                                className="h-7 w-10 text-xs"
                               />
                             </div>
                           ) : (
-                            `${scale.min_percentage} - ${scale.max_percentage}`
+                            `${scale.min_percentage}-${scale.max_percentage}`
                           )}
                         </TableCell>
-                        <TableCell className="text-center text-xs sm:text-sm">
+                        <TableCell className="text-center py-1 px-2 text-xs">
                           {editingGrade?.id === scale.id ? (
                             <Input
                               type="number"
                               value={editingGrade.points}
                               onChange={(e) => setEditingGrade({ ...editingGrade, points: parseFloat(e.target.value) || 0 })}
-                              className="h-8 w-12 sm:w-16 text-xs sm:text-sm"
+                              className="h-7 w-10 text-xs"
                             />
                           ) : (
                             scale.points || "-"
                           )}
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                        <TableCell className="hidden md:table-cell py-1 px-2 text-xs text-muted-foreground">
                           {editingGrade?.id === scale.id ? (
                             <Input
                               value={editingGrade.description}
                               onChange={(e) => setEditingGrade({ ...editingGrade, description: e.target.value })}
-                              className="h-8 text-xs sm:text-sm"
+                              className="h-7 text-xs"
                               placeholder="Description"
                             />
                           ) : (
                             scale.description || "-"
                           )}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right py-1 px-2">
                           {editingGrade?.id === scale.id ? (
-                            <div className="flex justify-end gap-2">
-                              <Button size="sm" variant="outline" onClick={() => setEditingGrade(null)}>
+                            <div className="flex justify-end gap-1">
+                              <Button size="sm" variant="outline" onClick={() => setEditingGrade(null)} className="h-6 px-2 text-[10px]">
                                 Cancel
                               </Button>
-                              <Button size="sm" onClick={handleUpdateGradingScale} disabled={updateGradingScale.isPending}>
+                              <Button size="sm" onClick={handleUpdateGradingScale} disabled={updateGradingScale.isPending} className="h-6 px-2 text-[10px]">
                                 Save
                               </Button>
                             </div>
                           ) : (
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-1">
                               <Button
                                 size="sm"
                                 variant="outline"
+                                className="h-6 w-6 p-0"
                                 onClick={() => setEditingGrade({
                                   id: scale.id,
                                   grade_name: scale.grade_name,
@@ -1077,15 +1081,16 @@ export default function AcademicSettings() {
                                   description: scale.description || ""
                                 })}
                               >
-                                <Edit2 className="h-4 w-4" />
+                                <Edit2 className="h-3 w-3" />
                               </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
+                                className="h-6 w-6 p-0"
                                 onClick={() => handleDeleteGradingScale(scale.id)}
                                 disabled={deleteGradingScale.isPending}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
                           )}
@@ -1177,12 +1182,12 @@ export default function AcademicSettings() {
                   No formulas created yet. Click "New Formula" to create one.
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {/* Active Formula Indicator */}
                   {activeFormula && (
-                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">Active: {activeFormula.name}</span>
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 flex items-center gap-2">
+                      <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                      <span className="text-xs font-medium">Active: {activeFormula.name}</span>
                     </div>
                   )}
                   
@@ -1190,31 +1195,32 @@ export default function AcademicSettings() {
                   <div className="overflow-x-auto -mx-4 sm:mx-0">
                     <Table className="min-w-[500px] sm:min-w-0">
                       <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-xs sm:text-sm">Name</TableHead>
-                          <TableHead className="text-xs sm:text-sm hidden md:table-cell">Description</TableHead>
-                          <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                          <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="py-1.5 px-2 text-[11px] font-medium">Name</TableHead>
+                          <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden md:table-cell">Description</TableHead>
+                          <TableHead className="py-1.5 px-2 text-[11px] font-medium">Status</TableHead>
+                          <TableHead className="text-right py-1.5 px-2 text-[11px] font-medium">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {formulas.map((formula) => (
-                          <TableRow key={formula.id}>
-                            <TableCell className="font-medium text-xs sm:text-sm">{formula.name}</TableCell>
-                            <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                          <TableRow key={formula.id} className="hover:bg-muted/30">
+                            <TableCell className="font-medium py-1 px-2 text-xs">{formula.name}</TableCell>
+                            <TableCell className="hidden md:table-cell py-1 px-2 text-xs text-muted-foreground">
                               {formula.description || "-"}
                             </TableCell>
-                            <TableCell>
-                              <Badge variant={formula.is_active ? "default" : "secondary"}>
-                                {formula.is_active ? "Active" : "Inactive"}
+                            <TableCell className="py-1 px-2">
+                              <Badge variant={formula.is_active ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                                {formula.is_active ? "Active" : "Off"}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
+                            <TableCell className="text-right py-1 px-2">
+                              <div className="flex justify-end gap-1">
                                 {!formula.is_active && (
                                   <Button
                                     size="sm"
                                     variant="outline"
+                                    className="h-6 px-2 text-[10px]"
                                     onClick={() => setActiveFormula.mutateAsync(formula.id)}
                                     disabled={setActiveFormula.isPending}
                                   >
@@ -1224,6 +1230,7 @@ export default function AcademicSettings() {
                                 <Button
                                   size="sm"
                                   variant="outline"
+                                  className="h-6 w-6 p-0"
                                   onClick={() => {
                                     setSelectedFormula(formula.id);
                                     const weights = getFormulaWeights(formula.id);
@@ -1234,11 +1241,12 @@ export default function AcademicSettings() {
                                     setEditingWeights(weightMap);
                                   }}
                                 >
-                                  <Edit2 className="h-4 w-4" />
+                                  <Edit2 className="h-3 w-3" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="destructive"
+                                  className="h-6 w-6 p-0"
                                   onClick={() => {
                                     if (confirm("Are you sure you want to delete this formula?")) {
                                       deleteFormula.mutateAsync(formula.id);
@@ -1246,7 +1254,7 @@ export default function AcademicSettings() {
                                   }}
                                   disabled={deleteFormula.isPending}
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>
                             </TableCell>
