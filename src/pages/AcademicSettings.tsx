@@ -713,7 +713,7 @@ export default function AcademicSettings() {
           </Card>
 
           {/* Exam Types */}
-          <Card className="lg:col-span-2">
+          <Card>
             <CardHeader className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
@@ -791,17 +791,17 @@ export default function AcademicSettings() {
                   <Table className="min-w-[600px] sm:min-w-0">
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                        <TableHead className="py-1.5 px-2 text-[11px] font-medium">Name</TableHead>
-                        <TableHead className="text-center py-1.5 px-2 text-[11px] font-medium">Max Marks</TableHead>
-                        <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden md:table-cell">Description</TableHead>
-                        <TableHead className="py-1.5 px-2 text-[11px] font-medium">Status</TableHead>
-                        <TableHead className="text-right py-1.5 px-2 text-[11px] font-medium">Actions</TableHead>
+                        <TableHead className="py-2 px-3 text-xs font-medium">Name</TableHead>
+                        <TableHead className="text-center py-2 px-3 text-xs font-medium">Max Marks</TableHead>
+                        <TableHead className="py-2 px-3 text-xs font-medium hidden md:table-cell">Description</TableHead>
+                        <TableHead className="py-2 px-3 text-xs font-medium">Status</TableHead>
+                        <TableHead className="text-right py-2 px-3 text-xs font-medium">Actions</TableHead>
                       </TableRow>
                   </TableHeader>
                   <TableBody>
                     {examTypes.map((examType) => (
                       <TableRow key={examType.id} className="hover:bg-muted/30">
-                        <TableCell className="font-medium py-1 px-2 text-xs">
+                        <TableCell className="font-medium py-2 px-3 text-sm">
                           {editingExamType?.id === examType.id ? (
                             <Input
                               value={editingExamType.name}
@@ -812,7 +812,7 @@ export default function AcademicSettings() {
                             examType.name
                           )}
                         </TableCell>
-                        <TableCell className="text-center py-1 px-2">
+                        <TableCell className="text-center py-2 px-3">
                           {editingExamType?.id === examType.id ? (
                             <Input
                               type="number"
@@ -824,7 +824,7 @@ export default function AcademicSettings() {
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0">{examType.max_marks || 100}</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="hidden md:table-cell py-1 px-2 text-xs">
+                        <TableCell className="hidden md:table-cell py-2 px-3 text-sm">
                           {editingExamType?.id === examType.id ? (
                             <Input
                               value={editingExamType.description}
@@ -836,8 +836,8 @@ export default function AcademicSettings() {
                             <span className="text-muted-foreground">{examType.description || "-"}</span>
                           )}
                         </TableCell>
-                        <TableCell className="py-1 px-2">
-                          <div className="flex items-center gap-1">
+                        <TableCell className="py-2 px-3">
+                          <div className="flex items-center gap-2">
                             <Switch
                               checked={examType.is_active ?? true}
                               onCheckedChange={() => handleToggleExamTypeActive(examType.id, examType.is_active ?? true)}
@@ -848,7 +848,7 @@ export default function AcademicSettings() {
                             </Badge>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right py-1 px-2">
+                        <TableCell className="text-right py-2 px-3">
                           {editingExamType?.id === examType.id ? (
                             <div className="flex justify-end gap-1">
                               <Button size="sm" variant="outline" onClick={() => setEditingExamType(null)} className="h-6 px-2 text-[10px]">
@@ -895,7 +895,7 @@ export default function AcademicSettings() {
           </Card>
 
           {/* Grading System */}
-          <Card className="lg:col-span-2">
+          <Card>
             <CardHeader className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
@@ -990,17 +990,17 @@ export default function AcademicSettings() {
                   <Table className="min-w-[500px] sm:min-w-0">
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                        <TableHead className="py-1.5 px-2 text-[11px] font-medium">Grade</TableHead>
-                        <TableHead className="text-center py-1.5 px-2 text-[11px] font-medium">Range (%)</TableHead>
-                        <TableHead className="text-center py-1.5 px-2 text-[11px] font-medium">Points</TableHead>
-                        <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden md:table-cell">Description</TableHead>
-                        <TableHead className="text-right py-1.5 px-2 text-[11px] font-medium">Actions</TableHead>
+                        <TableHead className="py-2 px-3 text-xs font-medium">Grade</TableHead>
+                        <TableHead className="text-center py-2 px-3 text-xs font-medium">Range (%)</TableHead>
+                        <TableHead className="text-center py-2 px-3 text-xs font-medium">Points</TableHead>
+                        <TableHead className="py-2 px-3 text-xs font-medium hidden md:table-cell">Description</TableHead>
+                        <TableHead className="text-right py-2 px-3 text-xs font-medium">Actions</TableHead>
                       </TableRow>
                   </TableHeader>
                   <TableBody>
                     {gradingScales.map((scale) => (
                       <TableRow key={scale.id} className="hover:bg-muted/30">
-                        <TableCell className="font-medium py-1 px-2">
+                        <TableCell className="font-medium py-2 px-3">
                           {editingGrade?.id === scale.id ? (
                             <Input
                               value={editingGrade.grade_name}
@@ -1011,7 +1011,7 @@ export default function AcademicSettings() {
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0">{scale.grade_name}</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-center py-1 px-2 text-xs">
+                        <TableCell className="text-center py-2 px-3 text-sm">
                           {editingGrade?.id === scale.id ? (
                             <div className="flex items-center gap-1 justify-center">
                               <Input
@@ -1032,7 +1032,7 @@ export default function AcademicSettings() {
                             `${scale.min_percentage}-${scale.max_percentage}`
                           )}
                         </TableCell>
-                        <TableCell className="text-center py-1 px-2 text-xs">
+                        <TableCell className="text-center py-2 px-3 text-sm">
                           {editingGrade?.id === scale.id ? (
                             <Input
                               type="number"
@@ -1044,7 +1044,7 @@ export default function AcademicSettings() {
                             scale.points || "-"
                           )}
                         </TableCell>
-                        <TableCell className="hidden md:table-cell py-1 px-2 text-xs text-muted-foreground">
+                        <TableCell className="hidden md:table-cell py-2 px-3 text-sm text-muted-foreground">
                           {editingGrade?.id === scale.id ? (
                             <Input
                               value={editingGrade.description}
@@ -1056,7 +1056,7 @@ export default function AcademicSettings() {
                             scale.description || "-"
                           )}
                         </TableCell>
-                        <TableCell className="text-right py-1 px-2">
+                        <TableCell className="text-right py-2 px-3">
                           {editingGrade?.id === scale.id ? (
                             <div className="flex justify-end gap-1">
                               <Button size="sm" variant="outline" onClick={() => setEditingGrade(null)} className="h-6 px-2 text-[10px]">
@@ -1196,25 +1196,25 @@ export default function AcademicSettings() {
                     <Table className="min-w-[500px] sm:min-w-0">
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="py-1.5 px-2 text-[11px] font-medium">Name</TableHead>
-                          <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden md:table-cell">Description</TableHead>
-                          <TableHead className="py-1.5 px-2 text-[11px] font-medium">Status</TableHead>
-                          <TableHead className="text-right py-1.5 px-2 text-[11px] font-medium">Actions</TableHead>
+                          <TableHead className="py-2 px-3 text-xs font-medium">Name</TableHead>
+                          <TableHead className="py-2 px-3 text-xs font-medium hidden md:table-cell">Description</TableHead>
+                          <TableHead className="py-2 px-3 text-xs font-medium">Status</TableHead>
+                          <TableHead className="text-right py-2 px-3 text-xs font-medium">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {formulas.map((formula) => (
                           <TableRow key={formula.id} className="hover:bg-muted/30">
-                            <TableCell className="font-medium py-1 px-2 text-xs">{formula.name}</TableCell>
-                            <TableCell className="hidden md:table-cell py-1 px-2 text-xs text-muted-foreground">
+                            <TableCell className="font-medium py-2 px-3 text-sm">{formula.name}</TableCell>
+                            <TableCell className="hidden md:table-cell py-2 px-3 text-sm text-muted-foreground">
                               {formula.description || "-"}
                             </TableCell>
-                            <TableCell className="py-1 px-2">
+                            <TableCell className="py-2 px-3">
                               <Badge variant={formula.is_active ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
                                 {formula.is_active ? "Active" : "Off"}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-right py-1 px-2">
+                            <TableCell className="text-right py-2 px-3">
                               <div className="flex justify-end gap-1">
                                 {!formula.is_active && (
                                   <Button
@@ -1640,26 +1640,26 @@ export default function AcademicSettings() {
                       <Table className="min-w-[600px] sm:min-w-0">
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="text-xs sm:text-sm">Learner</TableHead>
-                            <TableHead className="text-xs sm:text-sm">Adm No.</TableHead>
-                            <TableHead className="text-xs sm:text-sm">Learning Area</TableHead>
-                            <TableHead className="text-xs sm:text-sm">Year</TableHead>
-                            <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
+                            <TableHead className="text-sm">Learner</TableHead>
+                            <TableHead className="text-sm">Adm No.</TableHead>
+                            <TableHead className="text-sm">Learning Area</TableHead>
+                            <TableHead className="text-sm">Year</TableHead>
+                            <TableHead className="text-right text-sm">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {learnerLearningAreas.map((lla) => (
                             <TableRow key={lla.id}>
-                              <TableCell className="text-xs sm:text-sm">
+                              <TableCell className="text-sm">
                                 {lla.learners?.first_name} {lla.learners?.last_name}
                               </TableCell>
-                              <TableCell className="text-xs sm:text-sm">
+                              <TableCell className="text-sm">
                                 {lla.learners?.admission_number}
                               </TableCell>
-                              <TableCell className="text-xs sm:text-sm">
+                              <TableCell className="text-sm">
                                 {lla.learning_areas?.name} ({lla.learning_areas?.code})
                               </TableCell>
-                              <TableCell className="text-xs sm:text-sm">
+                              <TableCell className="text-sm">
                                 <Badge variant="outline">{lla.academic_year}</Badge>
                               </TableCell>
                               <TableCell className="text-right">
