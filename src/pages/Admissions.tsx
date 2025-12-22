@@ -7,6 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { useLearners } from "@/hooks/useLearners";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddLearnerDialog } from "@/components/AddLearnerDialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const Admissions = () => {
   const [isAddLearnerOpen, setIsAddLearnerOpen] = useState(false);
@@ -16,19 +24,6 @@ const Admissions = () => {
   const recentAdmissions = learners
     .sort((a, b) => new Date(b.enrollment_date).getTime() - new Date(a.enrollment_date).getTime())
     .slice(0, 10);
-
-  // Calculate stats
-  const thisMonth = learners.filter(l => {
-    const enrollDate = new Date(l.enrollment_date);
-    const now = new Date();
-    return enrollDate.getMonth() === now.getMonth() && enrollDate.getFullYear() === now.getFullYear();
-  }).length;
-
-  const thisYear = learners.filter(l => {
-    const enrollDate = new Date(l.enrollment_date);
-    const now = new Date();
-    return enrollDate.getFullYear() === now.getFullYear();
-  }).length;
 
   return (
     <DashboardLayout>
@@ -43,37 +38,6 @@ const Admissions = () => {
             <UserPlus className="h-4 w-4" />
             New Admission
           </Button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
-              <CardDescription className="text-xs sm:text-sm">This Month</CardDescription>
-              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : thisMonth}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">New admissions</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
-              <CardDescription className="text-xs sm:text-sm">Pending</CardDescription>
-              <CardTitle className="text-xl sm:text-3xl">0</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">Awaiting docs</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2 p-3 sm:p-6 sm:pb-3">
-              <CardDescription className="text-xs sm:text-sm">This Year</CardDescription>
-              <CardTitle className="text-xl sm:text-3xl">{loading ? "..." : thisYear}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
-              <p className="text-xs sm:text-sm text-muted-foreground">Total admissions</p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Admission Process */}
@@ -116,17 +80,17 @@ const Admissions = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Admissions */}
+        {/* Recent Admissions Table */}
         <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-lg sm:text-2xl">Recent Admissions</CardTitle>
             <CardDescription>Latest learner registrations</CardDescription>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
+          <CardContent className="p-0 sm:p-0">
             {loading ? (
-              <div className="space-y-3">
+              <div className="p-4 space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
+                  <Skeleton key={i} className="h-12 w-full" />
                 ))}
               </div>
             ) : recentAdmissions.length === 0 ? (
@@ -134,35 +98,44 @@ const Admissions = () => {
                 <p className="text-muted-foreground text-sm">No recent admissions</p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {recentAdmissions.map((admission: any) => (
-                  <div
-                    key={admission.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border border-border rounded-lg gap-2"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs sm:text-sm font-semibold text-primary">
-                          {admission.first_name?.[0]}{admission.last_name?.[0]}
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-foreground text-sm sm:text-base truncate">
-                          {admission.first_name} {admission.last_name}
-                        </p>
-                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                          {admission.admission_number} • {admission.current_grade?.name} {admission.current_stream?.name}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 pl-11 sm:pl-0">
-                      <p className="text-xs sm:text-sm text-muted-foreground">
-                        {new Date(admission.enrollment_date).toLocaleDateString()}
-                      </p>
-                      <Badge className="text-xs">Completed</Badge>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[180px]">Learner Name</TableHead>
+                      <TableHead className="min-w-[120px]">Adm. No.</TableHead>
+                      <TableHead className="min-w-[120px]">Grade</TableHead>
+                      <TableHead className="min-w-[100px]">Stream</TableHead>
+                      <TableHead className="min-w-[100px]">Gender</TableHead>
+                      <TableHead className="min-w-[120px]">Date</TableHead>
+                      <TableHead className="min-w-[100px]">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentAdmissions.map((admission: any) => (
+                      <TableRow key={admission.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-semibold text-primary">
+                                {admission.first_name?.[0]}{admission.last_name?.[0]}
+                              </span>
+                            </div>
+                            <span>{admission.first_name} {admission.last_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{admission.admission_number}</TableCell>
+                        <TableCell>{admission.current_grade?.name || "-"}</TableCell>
+                        <TableCell>{admission.current_stream?.name || "-"}</TableCell>
+                        <TableCell className="capitalize">{admission.gender}</TableCell>
+                        <TableCell>{new Date(admission.enrollment_date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Badge variant="default" className="text-xs">Completed</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>
