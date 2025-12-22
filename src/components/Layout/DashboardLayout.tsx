@@ -189,18 +189,22 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
       
       <div className="flex h-16 items-center justify-between px-4 relative z-10">
         {!collapsed && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {schoolInfo?.logo_url ? (
-              <div className={cn(
-                "h-10 w-10 rounded-full overflow-hidden flex-shrink-0",
-                isGradient ? "ring-2 ring-white/30" : "ring-2 ring-primary/20"
-              )}>
-                <img src={schoolInfo.logo_url} alt="School Logo" className="h-full w-full object-cover" />
+              <div className="relative -mt-2">
+                <img 
+                  src={schoolInfo.logo_url} 
+                  alt="School Logo" 
+                  className={cn(
+                    "h-12 w-12 object-contain drop-shadow-lg",
+                    isGradient && "drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
+                  )} 
+                />
               </div>
             ) : (
               <div className={cn(
                 "h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0",
-                isGradient ? "bg-white/20 ring-2 ring-white/30" : "bg-primary/10 ring-2 ring-primary/20"
+                isGradient ? "bg-white/20" : "bg-primary/10"
               )}>
                 <GraduationCap className={cn(
                   "h-5 w-5",
