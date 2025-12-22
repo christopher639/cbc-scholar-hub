@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, GraduationCap, DollarSign, UserCheck, Activity, Calendar, TrendingDown, Home, Building2 } from "lucide-react";
+import { Users, GraduationCap, DollarSign, UserCheck, Activity, Calendar, TrendingDown, Home, Building2, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -20,9 +20,21 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
   const { stats, recentAdmissions, gradeDistribution, houseDistribution, departmentDistribution, recentPayments, balanceByGrade, loading } = useDashboardStats(dateRange.start, dateRange.end);
-  const { user } = useAuth();
-  const { schoolInfo } = useSchoolInfo();
+  const { user, loading: authLoading } = useAuth();
+  const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   const isAdmin = user?.role === "admin";
+
+  // Show loading screen while data is being fetched
+  if (authLoading || loading || schoolLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground text-lg">Loading dashboard data...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   // Get first name based on user role
   const getFirstName = () => {
