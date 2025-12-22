@@ -191,19 +191,26 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
         {!collapsed && (
           <div className="flex items-center gap-2">
             {schoolInfo?.logo_url ? (
-              <img src={schoolInfo.logo_url} alt="School Logo" className={cn(
-                "h-10 w-10 object-contain rounded-full",
-                isGradient && "ring-2 ring-white/30"
-              )} />
+              <div className={cn(
+                "h-10 w-10 rounded-full overflow-hidden flex-shrink-0",
+                isGradient ? "ring-2 ring-white/30" : "ring-2 ring-primary/20"
+              )}>
+                <img src={schoolInfo.logo_url} alt="School Logo" className="h-full w-full object-cover" />
+              </div>
             ) : (
-              <GraduationCap className={cn(
-                "h-10 w-10",
-                isGradient ? "text-white" : "text-primary"
-              )} />
+              <div className={cn(
+                "h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0",
+                isGradient ? "bg-white/20 ring-2 ring-white/30" : "bg-primary/10 ring-2 ring-primary/20"
+              )}>
+                <GraduationCap className={cn(
+                  "h-5 w-5",
+                  isGradient ? "text-white" : "text-primary"
+                )} />
+              </div>
             )}
             <span className={cn(
               "font-semibold text-sm",
-              isGradient && "text-white"
+              isGradient ? "text-white" : "text-sidebar-foreground"
             )}>
               {schoolInfo?.school_name || "School"}
             </span>
@@ -434,7 +441,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* School Logo and Name - visible on small screens */}
             <div className="flex lg:hidden items-center gap-2 min-w-0">
               {schoolInfo?.logo_url ? (
-                <img src={schoolInfo.logo_url} alt="School Logo" className="h-8 w-8 md:h-10 md:w-10 object-contain rounded-full ring-2 ring-primary/20 flex-shrink-0" />
+                <div className="h-8 w-8 md:h-10 md:w-10 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0">
+                  <img src={schoolInfo.logo_url} alt="School Logo" className="h-full w-full object-cover" />
+                </div>
               ) : (
                 <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20 flex-shrink-0">
                   <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />

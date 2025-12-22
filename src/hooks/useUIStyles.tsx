@@ -248,7 +248,7 @@ export const APP_THEMES = {
 };
 
 const SIDEBAR_STYLE_CLASSES: Record<string, string> = {
-  "default": "bg-sidebar text-sidebar-foreground",
+  "default": "bg-sidebar text-sidebar-foreground [&_*]:text-sidebar-foreground",
   "gradient-primary": "bg-gradient-to-b from-primary/90 via-primary to-primary/80 text-white",
   "gradient-dark": "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white",
   "gradient-ocean": "bg-gradient-to-b from-blue-600 via-cyan-600 to-teal-600 text-white",
