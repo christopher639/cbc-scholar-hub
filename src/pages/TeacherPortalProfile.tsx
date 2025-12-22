@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Edit, Save, X } from "lucide-react";
+import { Edit, Save, X, GraduationCap } from "lucide-react";
 import { format } from "date-fns";
+import { useUIStyles } from "@/hooks/useUIStyles";
 
 interface OutletContext {
   teacher: any;
@@ -19,6 +20,7 @@ export default function TeacherPortalProfile() {
   const [teacher, setTeacher] = useState<any>(initialTeacher);
   const [loading, setLoading] = useState(!initialTeacher);
   const [isEditing, setIsEditing] = useState(false);
+  const { getHeroGradientClass } = useUIStyles();
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -111,58 +113,80 @@ export default function TeacherPortalProfile() {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">My Profile</h1>
-          <p className="text-muted-foreground">View and manage your information</p>
+      {/* Hero Section with Dynamic Gradient */}
+      <div className={`relative overflow-hidden rounded-2xl ${getHeroGradientClass()} p-6 md:p-8`}>
+        {/* Decorative Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full translate-x-1/4 translate-y-1/4" />
+          <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-white rounded-full opacity-50" />
         </div>
-        {!isEditing ? (
-          <Button onClick={() => setIsEditing(true)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Profile
-          </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button onClick={handleSave}>
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </Button>
-            <Button variant="outline" onClick={() => {
-              setIsEditing(false);
-              fetchTeacherData();
-            }}>
-              <X className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-          </div>
-        )}
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Picture */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Picture</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center space-y-4">
-            {teacher?.photo_url ? (
-              <img
-                src={teacher.photo_url}
-                alt="Teacher"
-                className="w-32 h-32 rounded-full object-cover"
-              />
+        <div className="relative flex flex-col md:flex-row items-center gap-4 md:gap-6">
+          {/* Profile Picture in Hero */}
+          {teacher?.photo_url ? (
+            <img
+              src={teacher.photo_url}
+              alt="Teacher"
+              className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-white/30 shadow-lg"
+            />
+          ) : (
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white/20 flex items-center justify-center border-4 border-white/30 shadow-lg">
+              <span className="text-3xl md:text-4xl font-bold text-white">
+                {teacher?.first_name?.[0]}{teacher?.last_name?.[0]}
+              </span>
+            </div>
+          )}
+          
+          <div className="text-center md:text-left text-white flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold">
+              {teacher?.first_name} {teacher?.last_name}
+            </h1>
+            <p className="text-white/80 mt-1">{teacher?.specialization || "Teacher"}</p>
+            <p className="text-sm text-white/60 mt-1">{teacher?.employee_number || ""}</p>
+          </div>
+
+          {/* Edit Button in Hero */}
+          <div className="md:self-start">
+            {!isEditing ? (
+              <Button 
+                onClick={() => setIsEditing(true)}
+                variant="secondary"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
             ) : (
-              <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center">
-                <span className="text-4xl font-bold text-muted-foreground">
-                  {teacher?.first_name?.[0]}{teacher?.last_name?.[0]}
-                </span>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleSave}
+                  variant="secondary"
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsEditing(false);
+                    fetchTeacherData();
+                  }}
+                  className="bg-transparent hover:bg-white/10 text-white border-white/30"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>
@@ -233,7 +257,7 @@ export default function TeacherPortalProfile() {
         </Card>
 
         {/* Employment Information */}
-        <Card className="lg:col-span-3">
+        <Card>
           <CardHeader>
             <CardTitle>Employment Information</CardTitle>
           </CardHeader>
