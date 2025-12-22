@@ -424,8 +424,35 @@ export function useUIStyles() {
     return SIDEBAR_STYLE_CLASSES[styles.sidebarStyle] || SIDEBAR_STYLE_CLASSES["default"];
   };
 
+  // Map sidebar styles to matching hero gradients
+  const SIDEBAR_TO_HERO_MAP: Record<string, string> = {
+    "default": "primary",
+    "gradient-primary": "primary",
+    "gradient-dark": "dark-elegant",
+    "gradient-ocean": "blue-purple",
+    "gradient-sunset": "rose-orange",
+    "gradient-forest": "green-teal",
+    "gradient-purple": "blue-purple",
+    "gradient-midnight": "blue-purple",
+    "gradient-cherry": "cherry-blossom",
+    "gradient-arctic": "arctic-ice",
+    "gradient-coffee": "coffee-mocha",
+    "gradient-lavender": "lavender-mist",
+    "gradient-crimson": "crimson-fire",
+    "gradient-mint": "mint-fresh",
+    "gradient-slate": "slate-modern",
+    "gradient-coral": "coral-reef",
+  };
+
   const getHeroGradientClass = () => {
-    // If using a theme, get hero gradient from theme
+    // If sidebar is customized, use matching hero gradient from sidebar
+    if (styles.sidebarStyle && styles.sidebarStyle !== "default") {
+      const mappedHero = SIDEBAR_TO_HERO_MAP[styles.sidebarStyle];
+      if (mappedHero) {
+        return HERO_GRADIENT_CLASSES[mappedHero] || HERO_GRADIENT_CLASSES["primary"];
+      }
+    }
+    // Fallback to theme's hero gradient
     if (styles.appTheme && styles.appTheme !== "default") {
       const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
       if (theme) {
