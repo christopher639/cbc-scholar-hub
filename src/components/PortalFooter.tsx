@@ -20,7 +20,9 @@ export function PortalFooter({ schoolInfo }: PortalFooterProps) {
           <div className="flex flex-col items-center md:items-start gap-2">
             <div className="flex items-center gap-2">
               {schoolInfo?.logo_url ? (
-                <img src={schoolInfo.logo_url} alt="Logo" className="h-10 w-10 object-contain rounded-full" />
+                <div className="h-10 w-10 rounded-full overflow-hidden">
+                  <img src={schoolInfo.logo_url} alt="Logo" className="h-full w-full object-cover" />
+                </div>
               ) : (
                 <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
                   <GraduationCap className="h-5 w-5 text-primary-foreground" />

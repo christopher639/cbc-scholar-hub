@@ -329,13 +329,15 @@ export default function Home() {
           <div className="flex items-center justify-between h-16 md:h-20">
             <div className="flex items-center gap-2 sm:gap-3">
               {schoolInfo?.logo_url ? (
-                <img
-                  src={schoolInfo.logo_url}
-                  alt="School Logo"
-                  className="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 object-contain rounded-xl shadow-md"
-                />
+                <div className="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-full overflow-hidden shadow-md flex-shrink-0">
+                  <img
+                    src={schoolInfo.logo_url}
+                    alt="School Logo"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
               ) : (
-                <div className="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-md">
+                <div className="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center shadow-md">
                   <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary-foreground" />
                 </div>
               )}
@@ -857,7 +859,9 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               {schoolInfo?.logo_url ? (
-                <img src={schoolInfo.logo_url} alt="Logo" className="h-8 w-8 object-contain" />
+                <div className="h-8 w-8 rounded-full overflow-hidden">
+                  <img src={schoolInfo.logo_url} alt="Logo" className="h-full w-full object-cover" />
+                </div>
               ) : (
                 <GraduationCap className="h-6 w-6 text-primary" />
               )}

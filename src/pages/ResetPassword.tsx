@@ -218,11 +218,13 @@ export default function ResetPassword() {
         <div className="text-center mb-6">
           <div className="flex justify-center mb-3">
             {schoolInfo?.logo_url ? (
-              <img 
-                src={schoolInfo.logo_url} 
-                alt="School Logo" 
-                className="h-16 w-16 object-contain rounded-full ring-2 ring-primary/20"
-              />
+              <div className="h-16 w-16 rounded-full overflow-hidden ring-2 ring-primary/20">
+                <img 
+                  src={schoolInfo.logo_url} 
+                  alt="School Logo" 
+                  className="h-full w-full object-cover"
+                />
+              </div>
             ) : (
               <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
                 <School className="h-8 w-8 text-primary" />

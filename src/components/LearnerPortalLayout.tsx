@@ -66,11 +66,13 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
       <div className="flex h-16 items-center justify-between px-3">
         <div className="flex items-center gap-2 min-w-0">
           {schoolInfo?.logo_url ? (
-            <img 
-              src={schoolInfo.logo_url} 
-              alt="School Logo" 
-              className="h-8 w-8 rounded-full object-cover flex-shrink-0 ring-2 ring-primary/20" 
-            />
+            <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-primary/20">
+              <img 
+                src={schoolInfo.logo_url} 
+                alt="School Logo" 
+                className="h-full w-full object-cover" 
+              />
+            </div>
           ) : (
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0 ring-2 ring-primary/20">
               <GraduationCap className="h-4 w-4 text-primary-foreground" />

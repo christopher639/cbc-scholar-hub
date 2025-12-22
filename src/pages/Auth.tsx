@@ -610,11 +610,13 @@ export default function Auth() {
         <div className="text-center mb-4">
           <div className="flex justify-center mb-2">
             {schoolInfo?.logo_url ? (
-              <img 
-                src={schoolInfo.logo_url} 
-                alt="School Logo" 
-                className="h-14 w-14 object-contain rounded-full ring-2 ring-primary/20"
-              />
+              <div className="h-14 w-14 rounded-full overflow-hidden ring-2 ring-primary/20">
+                <img 
+                  src={schoolInfo.logo_url} 
+                  alt="School Logo" 
+                  className="h-full w-full object-cover"
+                />
+              </div>
             ) : (
               <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
                 <School className="h-7 w-7 text-primary" />
