@@ -19,6 +19,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useExamTypes } from "@/hooks/useExamTypes";
+import { useUIStyles } from "@/hooks/useUIStyles";
 
 const LearnerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +29,7 @@ const LearnerProfile = () => {
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("2025/2026");
   const [selectedTerm, setSelectedTerm] = useState("term_1");
   const { examTypes } = useExamTypes();
+  const { getHeroGradientClass } = useUIStyles();
 
   // Fetch available academic years
   const { data: academicYears = [] } = useQuery({
@@ -210,7 +212,7 @@ const LearnerProfile = () => {
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
         {/* Hero Section with Gradient Background - Similar to Learner Portal */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-6 md:p-8">
+        <div className={`relative overflow-hidden rounded-2xl ${getHeroGradientClass()} p-6 md:p-8`}>
           {/* Decorative Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
