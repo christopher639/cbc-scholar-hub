@@ -76,7 +76,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
               Welcome back {getFirstName()}! Here is your {schoolInfo?.school_name || 'school'} overview.
             </p>
