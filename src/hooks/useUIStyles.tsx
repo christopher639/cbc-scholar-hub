@@ -420,13 +420,7 @@ export function useUIStyles() {
   };
 
   const getSidebarClass = () => {
-    // If using a theme, get sidebar from theme
-    if (styles.appTheme && styles.appTheme !== "default") {
-      const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
-      if (theme) {
-        return SIDEBAR_STYLE_CLASSES[theme.sidebar] || SIDEBAR_STYLE_CLASSES["default"];
-      }
-    }
+    // Always use the saved sidebar style (allows customization per theme)
     return SIDEBAR_STYLE_CLASSES[styles.sidebarStyle] || SIDEBAR_STYLE_CLASSES["default"];
   };
 
@@ -442,13 +436,7 @@ export function useUIStyles() {
   };
 
   const getPageBackgroundClass = () => {
-    // If using a theme, get page background from theme
-    if (styles.appTheme && styles.appTheme !== "default") {
-      const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
-      if (theme) {
-        return PAGE_BACKGROUND_CLASSES[theme.pageBackground] || PAGE_BACKGROUND_CLASSES["default"];
-      }
-    }
+    // Always use the saved page background (allows customization per theme)
     return PAGE_BACKGROUND_CLASSES[styles.pageBackground] || PAGE_BACKGROUND_CLASSES["default"];
   };
 

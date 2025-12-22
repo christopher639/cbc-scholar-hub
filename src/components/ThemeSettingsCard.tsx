@@ -2,14 +2,17 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, Check, Palette } from "lucide-react";
+import { Loader2, Check, Palette, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { APP_THEMES } from "@/hooks/useUIStyles";
+import { APP_THEMES, SIDEBAR_STYLE_CLASSES, PAGE_BACKGROUND_CLASSES } from "@/hooks/useUIStyles";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface ThemeSettings {
   app_theme: string;
+  sidebar_style: string;
+  page_background: string;
 }
 
 const THEME_PREVIEWS: Record<string, { sidebar: string; page: string; hero: string; topbar: string }> = {
@@ -111,13 +114,61 @@ const THEME_PREVIEWS: Record<string, { sidebar: string; page: string; hero: stri
   },
 };
 
+// Sidebar style options with display names
+const SIDEBAR_OPTIONS = [
+  { id: "default", name: "Default", preview: "bg-sidebar" },
+  { id: "gradient-primary", name: "Primary Gradient", preview: "bg-gradient-to-b from-primary/90 to-primary/80" },
+  { id: "gradient-dark", name: "Dark", preview: "bg-gradient-to-b from-slate-900 to-slate-800" },
+  { id: "gradient-ocean", name: "Ocean", preview: "bg-gradient-to-b from-blue-600 to-teal-600" },
+  { id: "gradient-sunset", name: "Sunset", preview: "bg-gradient-to-b from-orange-500 to-pink-600" },
+  { id: "gradient-forest", name: "Forest", preview: "bg-gradient-to-b from-emerald-600 to-teal-700" },
+  { id: "gradient-purple", name: "Purple", preview: "bg-gradient-to-b from-purple-600 to-indigo-700" },
+  { id: "gradient-midnight", name: "Midnight", preview: "bg-gradient-to-b from-indigo-900 to-slate-900" },
+  { id: "gradient-cherry", name: "Cherry", preview: "bg-gradient-to-b from-pink-500 to-red-500" },
+  { id: "gradient-arctic", name: "Arctic", preview: "bg-gradient-to-b from-cyan-500 to-blue-500" },
+  { id: "gradient-coffee", name: "Coffee", preview: "bg-gradient-to-b from-amber-800 to-amber-900" },
+  { id: "gradient-lavender", name: "Lavender", preview: "bg-gradient-to-b from-violet-400 to-fuchsia-500" },
+  { id: "gradient-crimson", name: "Crimson", preview: "bg-gradient-to-b from-red-600 to-red-700" },
+  { id: "gradient-mint", name: "Mint", preview: "bg-gradient-to-b from-teal-400 to-green-500" },
+  { id: "gradient-slate", name: "Slate", preview: "bg-gradient-to-b from-slate-600 to-slate-700" },
+  { id: "gradient-coral", name: "Coral", preview: "bg-gradient-to-b from-orange-400 to-pink-500" },
+];
+
+// Background options with display names
+const BACKGROUND_OPTIONS = [
+  { id: "default", name: "Default", preview: "bg-background" },
+  { id: "subtle-gradient", name: "Subtle", preview: "bg-gradient-to-br from-background to-muted/30" },
+  { id: "warm-gradient", name: "Warm", preview: "bg-gradient-to-br from-background via-orange-50/30 to-rose-50/30" },
+  { id: "peach-cream", name: "Peach Cream", preview: "bg-gradient-to-br from-orange-50 to-rose-50" },
+  { id: "sunset-glow", name: "Sunset Glow", preview: "bg-gradient-to-br from-rose-100 to-yellow-50" },
+  { id: "coral-blush", name: "Coral Blush", preview: "bg-gradient-to-br from-red-50 to-rose-100" },
+  { id: "cool-gradient", name: "Cool", preview: "bg-gradient-to-br from-background via-blue-50/30 to-cyan-50/30" },
+  { id: "ocean-mist", name: "Ocean Mist", preview: "bg-gradient-to-br from-cyan-50 to-indigo-50" },
+  { id: "arctic-frost", name: "Arctic Frost", preview: "bg-gradient-to-br from-slate-50 to-cyan-50" },
+  { id: "sky-blue", name: "Sky Blue", preview: "bg-gradient-to-br from-sky-50 to-indigo-50" },
+  { id: "nature-gradient", name: "Nature", preview: "bg-gradient-to-br from-background via-green-50/30 to-emerald-50/30" },
+  { id: "forest-mint", name: "Forest Mint", preview: "bg-gradient-to-br from-emerald-50 to-teal-50" },
+  { id: "spring-meadow", name: "Spring Meadow", preview: "bg-gradient-to-br from-lime-50 to-emerald-50" },
+  { id: "sage-mist", name: "Sage Mist", preview: "bg-gradient-to-br from-green-50 to-emerald-50" },
+  { id: "purple-gradient", name: "Purple", preview: "bg-gradient-to-br from-background via-purple-50/30 to-indigo-50/30" },
+  { id: "lavender-dreams", name: "Lavender Dreams", preview: "bg-gradient-to-br from-purple-50 to-fuchsia-50" },
+  { id: "twilight-purple", name: "Twilight", preview: "bg-gradient-to-br from-indigo-50 to-pink-50" },
+  { id: "grape-fizz", name: "Grape Fizz", preview: "bg-gradient-to-br from-violet-100 to-indigo-100" },
+  { id: "pearl-white", name: "Pearl White", preview: "bg-gradient-to-br from-slate-50 to-zinc-50" },
+  { id: "charcoal-silk", name: "Charcoal Silk", preview: "bg-gradient-to-br from-zinc-100 to-neutral-100" },
+  { id: "cream-linen", name: "Cream Linen", preview: "bg-gradient-to-br from-amber-50/80 to-orange-50/60" },
+];
+
 export function ThemeSettingsCard() {
   const [settings, setSettings] = useState<ThemeSettings>({
-    app_theme: "default"
+    app_theme: "default",
+    sidebar_style: "default",
+    page_background: "default"
   });
   const [originalSettings, setOriginalSettings] = useState<ThemeSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -128,14 +179,16 @@ export function ThemeSettingsCard() {
     try {
       const { data, error } = await supabase
         .from("appearance_settings")
-        .select("app_theme")
+        .select("app_theme, sidebar_style, page_background")
         .limit(1)
         .single();
 
       if (error) throw error;
       
       const fetchedSettings = {
-        app_theme: (data as any)?.app_theme || "default"
+        app_theme: (data as any)?.app_theme || "default",
+        sidebar_style: (data as any)?.sidebar_style || "default",
+        page_background: (data as any)?.page_background || "default"
       };
       
       setSettings(fetchedSettings);
@@ -147,13 +200,29 @@ export function ThemeSettingsCard() {
     }
   };
 
+  const handleThemeSelect = (themeId: string) => {
+    // When selecting a theme, update sidebar and background to match the theme defaults
+    const theme = APP_THEMES[themeId as keyof typeof APP_THEMES];
+    if (theme) {
+      setSettings({
+        app_theme: themeId,
+        sidebar_style: theme.sidebar,
+        page_background: theme.pageBackground
+      });
+    } else {
+      setSettings(prev => ({ ...prev, app_theme: themeId }));
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
       const { error } = await supabase
         .from("appearance_settings")
         .update({
-          app_theme: settings.app_theme
+          app_theme: settings.app_theme,
+          sidebar_style: settings.sidebar_style,
+          page_background: settings.page_background
         } as any)
         .neq("id", "00000000-0000-0000-0000-000000000000");
 
@@ -178,7 +247,11 @@ export function ThemeSettingsCard() {
     }
   };
 
-  const hasChanges = originalSettings && settings.app_theme !== originalSettings.app_theme;
+  const hasChanges = originalSettings && (
+    settings.app_theme !== originalSettings.app_theme ||
+    settings.sidebar_style !== originalSettings.sidebar_style ||
+    settings.page_background !== originalSettings.page_background
+  );
 
   if (loading) {
     return (
@@ -209,7 +282,7 @@ export function ThemeSettingsCard() {
             return (
               <button
                 key={id}
-                onClick={() => setSettings({ app_theme: id })}
+                onClick={() => handleThemeSelect(id)}
                 className={cn(
                   "relative flex flex-col rounded-xl border-2 transition-all hover:scale-[1.02] overflow-hidden",
                   settings.app_theme === id
@@ -275,6 +348,74 @@ export function ThemeSettingsCard() {
             );
           })}
         </div>
+
+        {/* Customize Section */}
+        <Collapsible open={customizeOpen} onOpenChange={setCustomizeOpen}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+              <span className="flex items-center gap-2">
+                <Palette className="h-4 w-4" />
+                Customize Theme Colors
+              </span>
+              {customizeOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4 space-y-6">
+            {/* Sidebar Style */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Sidebar Color</Label>
+              <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+                {SIDEBAR_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => setSettings(prev => ({ ...prev, sidebar_style: option.id }))}
+                    className={cn(
+                      "relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all",
+                      settings.sidebar_style === option.id
+                        ? "border-primary ring-1 ring-primary"
+                        : "border-border hover:border-muted-foreground/50"
+                    )}
+                  >
+                    <div className={cn("h-10 w-full rounded-md", option.preview)} />
+                    <span className="text-[10px] text-muted-foreground truncate w-full text-center">{option.name}</span>
+                    {settings.sidebar_style === option.id && (
+                      <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Page Background */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Page Background</Label>
+              <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
+                {BACKGROUND_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => setSettings(prev => ({ ...prev, page_background: option.id }))}
+                    className={cn(
+                      "relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all",
+                      settings.page_background === option.id
+                        ? "border-primary ring-1 ring-primary"
+                        : "border-border hover:border-muted-foreground/50"
+                    )}
+                  >
+                    <div className={cn("h-8 w-full rounded-md border border-border/50", option.preview)} />
+                    <span className="text-[10px] text-muted-foreground truncate w-full text-center">{option.name}</span>
+                    {settings.page_background === option.id && (
+                      <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Save Button */}
         <div className="flex justify-end">
