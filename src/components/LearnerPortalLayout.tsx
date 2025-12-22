@@ -83,7 +83,7 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
                 src={schoolInfo.logo_url} 
                 alt="School Logo" 
                 className={cn(
-                  "h-10 w-10 object-contain drop-shadow-lg",
+                  "h-10 w-10 object-cover rounded-full drop-shadow-lg",
                   isGradient && "drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
                 )} 
               />
