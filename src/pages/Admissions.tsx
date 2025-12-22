@@ -20,19 +20,66 @@ const Admissions = () => {
   const [isAddLearnerOpen, setIsAddLearnerOpen] = useState(false);
   const { learners, loading, fetchLearners } = useLearners();
 
-  // Get recent admissions (last 10)
+  // Get recent admissions (last 15)
   const recentAdmissions = learners
     .sort((a, b) => new Date(b.enrollment_date).getTime() - new Date(a.enrollment_date).getTime())
-    .slice(0, 10);
+    .slice(0, 15);
+
+  // Split into columns for multi-column layout
+  const getColumns = (items: any[], numCols: number) => {
+    const cols: any[][] = Array.from({ length: numCols }, () => []);
+    items.forEach((item, idx) => {
+      cols[idx % numCols].push({ ...item, originalIndex: idx });
+    });
+    return cols;
+  };
+
+  const renderTable = (items: any[]) => (
+    <Card className="overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="w-8 py-1.5 px-2 text-[11px] font-medium">#</TableHead>
+            <TableHead className="py-1.5 px-2 text-[11px] font-medium">Adm No.</TableHead>
+            <TableHead className="py-1.5 px-2 text-[11px] font-medium">Name</TableHead>
+            <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden md:table-cell">Grade</TableHead>
+            <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden lg:table-cell">Date</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((admission) => (
+            <TableRow key={admission.id} className="hover:bg-muted/30">
+              <TableCell className="py-1 px-2 text-[11px] text-muted-foreground">{admission.originalIndex + 1}</TableCell>
+              <TableCell className="py-1 px-2">
+                <Badge variant="secondary" className="font-mono text-[10px] px-1.5 py-0">{admission.admission_number}</Badge>
+              </TableCell>
+              <TableCell className="py-1 px-2">
+                <p className="text-xs font-medium leading-tight">{admission.first_name} {admission.last_name}</p>
+                <p className="text-[10px] text-muted-foreground md:hidden leading-tight">
+                  {admission.current_grade?.name || "-"} {admission.current_stream?.name || ""}
+                </p>
+              </TableCell>
+              <TableCell className="py-1 px-2 hidden md:table-cell">
+                <span className="text-xs">{admission.current_grade?.name || "-"} {admission.current_stream?.name || ""}</span>
+              </TableCell>
+              <TableCell className="py-1 px-2 hidden lg:table-cell">
+                <span className="text-[11px] text-muted-foreground">{new Date(admission.enrollment_date).toLocaleDateString()}</span>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Card>
+  );
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl sm:text-3xl font-bold text-foreground">Learner Admissions</h1>
-            <p className="text-xs sm:text-base text-muted-foreground">Manage new learner registrations</p>
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">Learner Admissions</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Manage new learner registrations</p>
           </div>
           <Button className="gap-2 w-full sm:w-auto" size="sm" onClick={() => setIsAddLearnerOpen(true)}>
             <UserPlus className="h-4 w-4" />
@@ -42,104 +89,89 @@ const Admissions = () => {
 
         {/* Admission Process */}
         <Card>
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-2xl">Admission Process</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Follow these steps to admit a new learner</CardDescription>
+          <CardHeader className="p-3 sm:p-4">
+            <CardTitle className="text-sm sm:text-base">Admission Process</CardTitle>
+            <CardDescription className="text-[11px] sm:text-xs">Follow these steps to admit a new learner</CardDescription>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
-              <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              <div className="flex flex-col items-center text-center space-y-1">
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h3 className="font-semibold text-xs sm:text-base">1. Basic Info</h3>
-                <p className="text-xs text-muted-foreground hidden sm:block">Enter learner and parent details</p>
+                <h3 className="font-semibold text-[10px] sm:text-xs">1. Basic Info</h3>
+                <p className="text-[10px] text-muted-foreground hidden sm:block">Enter details</p>
               </div>
-              <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <div className="flex flex-col items-center text-center space-y-1">
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Upload className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h3 className="font-semibold text-xs sm:text-base">2. Documents</h3>
-                <p className="text-xs text-muted-foreground hidden sm:block">Upload birth certificate & photo</p>
+                <h3 className="font-semibold text-[10px] sm:text-xs">2. Documents</h3>
+                <p className="text-[10px] text-muted-foreground hidden sm:block">Upload docs</p>
               </div>
-              <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <div className="flex flex-col items-center text-center space-y-1">
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h3 className="font-semibold text-xs sm:text-base">3. Assignment</h3>
-                <p className="text-xs text-muted-foreground hidden sm:block">Assign grade and stream</p>
+                <h3 className="font-semibold text-[10px] sm:text-xs">3. Assignment</h3>
+                <p className="text-[10px] text-muted-foreground hidden sm:block">Assign grade</p>
               </div>
-              <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <div className="flex flex-col items-center text-center space-y-1">
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h3 className="font-semibold text-xs sm:text-base">4. Complete</h3>
-                <p className="text-xs text-muted-foreground hidden sm:block">Generate admission number</p>
+                <h3 className="font-semibold text-[10px] sm:text-xs">4. Complete</h3>
+                <p className="text-[10px] text-muted-foreground hidden sm:block">Get adm no.</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Recent Admissions Table */}
-        <Card>
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-2xl">Recent Admissions</CardTitle>
-            <CardDescription>Latest learner registrations</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-0">
-            {loading ? (
-              <div className="p-4 space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+        {/* Recent Admissions - Multi-column tables like Learning Areas */}
+        <div>
+          <h2 className="text-sm font-semibold mb-2">Recent Admissions</h2>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="p-3">
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4].map((j) => (
+                      <Skeleton key={j} className="h-8 w-full" />
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : recentAdmissions.length === 0 ? (
+            <Card>
+              <CardContent className="py-8">
+                <div className="text-center">
+                  <UserPlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground text-xs mb-2">No recent admissions</p>
+                  <Button size="sm" onClick={() => setIsAddLearnerOpen(true)}>
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    Add First Learner
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* 2 columns on sm, 3 on lg */}
+              <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {getColumns(recentAdmissions, 3).map((col, colIdx) => (
+                  <div key={colIdx} className={colIdx === 2 ? "hidden lg:block" : ""}>
+                    {col.length > 0 && renderTable(col)}
+                  </div>
                 ))}
               </div>
-            ) : recentAdmissions.length === 0 ? (
-              <div className="text-center py-6">
-                <p className="text-muted-foreground text-sm">No recent admissions</p>
+              {/* Single column on mobile */}
+              <div className="sm:hidden">
+                {renderTable(recentAdmissions.map((item, idx) => ({ ...item, originalIndex: idx })))}
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[180px]">Learner Name</TableHead>
-                      <TableHead className="min-w-[120px]">Adm. No.</TableHead>
-                      <TableHead className="min-w-[120px]">Grade</TableHead>
-                      <TableHead className="min-w-[100px]">Stream</TableHead>
-                      <TableHead className="min-w-[100px]">Gender</TableHead>
-                      <TableHead className="min-w-[120px]">Date</TableHead>
-                      <TableHead className="min-w-[100px]">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentAdmissions.map((admission: any) => (
-                      <TableRow key={admission.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-semibold text-primary">
-                                {admission.first_name?.[0]}{admission.last_name?.[0]}
-                              </span>
-                            </div>
-                            <span>{admission.first_name} {admission.last_name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{admission.admission_number}</TableCell>
-                        <TableCell>{admission.current_grade?.name || "-"}</TableCell>
-                        <TableCell>{admission.current_stream?.name || "-"}</TableCell>
-                        <TableCell className="capitalize">{admission.gender}</TableCell>
-                        <TableCell>{new Date(admission.enrollment_date).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Badge variant="default" className="text-xs">Completed</Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </>
+          )}
+        </div>
       </div>
 
       <AddLearnerDialog 
