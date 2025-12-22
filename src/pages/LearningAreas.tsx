@@ -174,52 +174,50 @@ const LearningAreas = () => {
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead className="w-10 py-2 text-xs font-medium">#</TableHead>
-            <TableHead className="py-2 text-xs font-medium">Code</TableHead>
-            <TableHead className="py-2 text-xs font-medium">Name</TableHead>
-            <TableHead className="py-2 text-xs font-medium hidden md:table-cell">Teacher</TableHead>
-            <TableHead className="py-2 text-xs font-medium w-10"></TableHead>
+            <TableHead className="w-8 py-1.5 px-2 text-[11px] font-medium">#</TableHead>
+            <TableHead className="py-1.5 px-2 text-[11px] font-medium">Code</TableHead>
+            <TableHead className="py-1.5 px-2 text-[11px] font-medium">Name</TableHead>
+            <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden md:table-cell">Teacher</TableHead>
+            <TableHead className="py-1.5 px-1 w-8"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {items.map((area) => (
             <TableRow key={area.id} className="hover:bg-muted/30">
-              <TableCell className="py-2 text-sm text-muted-foreground">{area.originalIndex + 1}</TableCell>
-              <TableCell className="py-2">
-                <Badge variant="secondary" className="font-mono text-xs">{area.code}</Badge>
+              <TableCell className="py-1 px-2 text-[11px] text-muted-foreground">{area.originalIndex + 1}</TableCell>
+              <TableCell className="py-1 px-2">
+                <Badge variant="secondary" className="font-mono text-[10px] px-1.5 py-0">{area.code}</Badge>
               </TableCell>
-              <TableCell className="py-2">
-                <div>
-                  <p className="text-sm font-medium">{area.name}</p>
-                  <p className="text-xs text-muted-foreground md:hidden">
-                    {area.teacher ? `${area.teacher.first_name} ${area.teacher.last_name}` : 'Unassigned'}
-                  </p>
-                </div>
+              <TableCell className="py-1 px-2">
+                <p className="text-xs font-medium leading-tight">{area.name}</p>
+                <p className="text-[10px] text-muted-foreground md:hidden leading-tight">
+                  {area.teacher ? `${area.teacher.first_name} ${area.teacher.last_name}` : 'Unassigned'}
+                </p>
               </TableCell>
-              <TableCell className="py-2 hidden md:table-cell">
+              <TableCell className="py-1 px-2 hidden md:table-cell">
                 {area.teacher ? (
-                  <span className="text-sm">{area.teacher.first_name} {area.teacher.last_name}</span>
+                  <span className="text-xs">{area.teacher.first_name} {area.teacher.last_name}</span>
                 ) : (
-                  <span className="text-sm text-muted-foreground italic">Unassigned</span>
+                  <span className="text-[11px] text-muted-foreground italic">Unassigned</span>
                 )}
               </TableCell>
-              <TableCell className="py-2">
+              <TableCell className="py-1 px-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                      <MoreHorizontal className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                      <MoreHorizontal className="h-3.5 w-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => handleEdit(area)}>
-                      <Pencil className="mr-2 h-3.5 w-3.5" />
+                      <Pencil className="mr-2 h-3 w-3" />
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => setDeleteConfirmId(area.id)}
                       className="text-destructive focus:text-destructive"
                     >
-                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      <Trash2 className="mr-2 h-3 w-3" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
