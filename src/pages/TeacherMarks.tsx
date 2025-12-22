@@ -39,42 +39,55 @@ export default function TeacherMarks() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [teacherLearningAreas, setTeacherLearningAreas] = useState<any[]>([]);
+  const [allTeacherAreas, setAllTeacherAreas] = useState<any[]>([]);
   const [loadingAreas, setLoadingAreas] = useState(true);
+  const [hasCheckedAreas, setHasCheckedAreas] = useState(false);
   
   const { streams } = useStreams(selectedGradeId);
 
+  // First, check if teacher has ANY learning areas assigned (regardless of grade)
+  useEffect(() => {
+    const fetchAllTeacherAreas = async () => {
+      if (!teacher?.id) return;
+      
+      setLoadingAreas(true);
+      try {
+        const { data: teacherAreas, error } = await supabase
+          .from("learning_areas")
+          .select("id, name, code")
+          .eq("teacher_id", teacher.id)
+          .order("name");
+
+        if (error) throw error;
+        setAllTeacherAreas(teacherAreas || []);
+      } catch (error: any) {
+        console.error("Error fetching teacher areas:", error);
+        setAllTeacherAreas([]);
+      } finally {
+        setHasCheckedAreas(true);
+        setLoadingAreas(false);
+      }
+    };
+
+    fetchAllTeacherAreas();
+  }, [teacher?.id]);
+
   // Fetch learning areas assigned to this teacher AND registered for the selected grade
   useEffect(() => {
-    if (teacher?.id && selectedGradeId) {
+    if (teacher?.id && selectedGradeId && hasCheckedAreas) {
       fetchTeacherLearningAreasForGrade();
     } else if (teacher?.id && !selectedGradeId) {
       // Reset to empty when no grade is selected
       setTeacherLearningAreas([]);
-      setLoadingAreas(false);
     }
-  }, [teacher?.id, selectedGradeId]);
+  }, [teacher?.id, selectedGradeId, hasCheckedAreas]);
 
   const fetchTeacherLearningAreasForGrade = async () => {
     if (!teacher?.id || !selectedGradeId) return;
     
     setLoadingAreas(true);
     try {
-      // First, get learning areas assigned to this teacher
-      const { data: teacherAreas, error: teacherError } = await supabase
-        .from("learning_areas")
-        .select("id, name, code")
-        .eq("teacher_id", teacher.id)
-        .order("name");
-
-      if (teacherError) throw teacherError;
-
-      if (!teacherAreas || teacherAreas.length === 0) {
-        setTeacherLearningAreas([]);
-        setLoadingAreas(false);
-        return;
-      }
-
-      // Then filter to only include learning areas registered for the selected grade
+      // Get learning areas registered for the selected grade
       const { data: gradeAreas, error: gradeError } = await supabase
         .from("grade_learning_areas")
         .select("learning_area_id")
@@ -85,7 +98,7 @@ export default function TeacherMarks() {
       const gradeAreaIds = new Set((gradeAreas || []).map(ga => ga.learning_area_id));
       
       // Filter teacher's learning areas to only those registered for this grade
-      const filteredAreas = teacherAreas.filter(area => gradeAreaIds.has(area.id));
+      const filteredAreas = allTeacherAreas.filter(area => gradeAreaIds.has(area.id));
       
       setTeacherLearningAreas(filteredAreas);
     } catch (error: any) {
@@ -307,13 +320,16 @@ export default function TeacherMarks() {
   const selectedExamTypeObj = examTypes.find(e => e.name === selectedExamType);
   const maxMarks = selectedExamTypeObj?.max_marks || 100;
 
-  if (loadingAreas) {
+  if (loadingAreas && !hasCheckedAreas) {
     return (
       <div className="container mx-auto p-4 flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
+
+  // Check if teacher has NO learning areas assigned at all
+  const hasNoAssignedAreas = hasCheckedAreas && allTeacherAreas.length === 0;
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -324,7 +340,7 @@ export default function TeacherMarks() {
         </p>
       </div>
 
-      {teacherLearningAreas.length === 0 ? (
+      {hasNoAssignedAreas ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <p>You don't have any learning areas assigned to you yet.</p>
@@ -417,14 +433,14 @@ export default function TeacherMarks() {
                 <Select 
                   value={selectedLearningAreaId} 
                   onValueChange={setSelectedLearningAreaId}
-                  disabled={!selectedGradeId || loadingAreas}
+                  disabled={!selectedGradeId || loadingAreas || (selectedGradeId && teacherLearningAreas.length === 0)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={
                       !selectedGradeId 
                         ? "Select grade first" 
                         : loadingAreas 
-                          ? "Loading..." 
+                          ? "Loading areas..." 
                           : teacherLearningAreas.length === 0 
                             ? "No areas for this grade" 
                             : "Select Learning Area"
@@ -438,9 +454,9 @@ export default function TeacherMarks() {
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedGradeId && !loadingAreas && teacherLearningAreas.length === 0 && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    No learning areas registered for this grade that you're assigned to.
+                {selectedGradeId && !loadingAreas && teacherLearningAreas.length === 0 && allTeacherAreas.length > 0 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Your assigned learning areas ({allTeacherAreas.map(a => a.name).join(", ")}) are not registered for this grade.
                   </p>
                 )}
               </div>
