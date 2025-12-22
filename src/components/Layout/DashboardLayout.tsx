@@ -191,14 +191,14 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
         {!collapsed && (
           <div className="flex items-center gap-3">
             {schoolInfo?.logo_url ? (
-              <div className="relative -mt-2">
+              <div className={cn(
+                "relative -mt-2 h-12 w-12 rounded-full overflow-hidden flex-shrink-0",
+                isGradient && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
+              )}>
                 <img 
                   src={schoolInfo.logo_url} 
                   alt="School Logo" 
-                  className={cn(
-                    "h-12 w-12 object-cover rounded-full drop-shadow-lg",
-                    isGradient && "drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
-                  )} 
+                  className="h-full w-full object-cover"
                 />
               </div>
             ) : (

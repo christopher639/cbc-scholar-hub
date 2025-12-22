@@ -78,14 +78,14 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
       <div className="flex h-16 items-center justify-between px-3 relative z-10">
         <div className="flex items-center gap-3 min-w-0">
           {schoolInfo?.logo_url ? (
-            <div className="relative -mt-1">
+            <div className={cn(
+              "relative -mt-1 h-10 w-10 rounded-full overflow-hidden flex-shrink-0",
+              isGradient && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
+            )}>
               <img 
                 src={schoolInfo.logo_url} 
                 alt="School Logo" 
-                className={cn(
-                  "h-10 w-10 object-cover rounded-full drop-shadow-lg",
-                  isGradient && "drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
-                )} 
+                className="h-full w-full object-cover"
               />
             </div>
           ) : (
