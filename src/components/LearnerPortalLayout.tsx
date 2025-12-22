@@ -15,6 +15,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PWAInstallButton } from "@/components/PWAInstallButton";
 import { useLearnerPortalCache } from "@/hooks/useLearnerCache";
 import { PortalFooter } from "@/components/PortalFooter";
+import { useUIStyles } from "@/hooks/useUIStyles";
 import {
   Sidebar,
   SidebarContent,
@@ -47,6 +48,7 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
   const location = useLocation();
   const { state, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
+  const { getSidebarClass } = useUIStyles();
 
   const isActive = (path: string) => {
     if (path === "/learner-portal") {
@@ -62,7 +64,7 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
   };
 
   return (
-    <Sidebar collapsible="icon" className="bg-card border-r border-border/30">
+    <Sidebar collapsible="icon" className={cn("border-r border-border/30", getSidebarClass())}>
       <div className="flex h-16 items-center justify-between px-3">
         <div className="flex items-center gap-2 min-w-0">
           {schoolInfo?.logo_url ? (
@@ -87,7 +89,7 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
         </SidebarTrigger>
       </div>
 
-      <SidebarContent className="bg-card flex flex-col">
+      <SidebarContent className={cn("flex flex-col", getSidebarClass())}>
         <SidebarGroup className="flex-1">
           <SidebarGroupContent>
             <SidebarMenu>
