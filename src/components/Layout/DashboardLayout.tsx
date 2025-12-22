@@ -187,46 +187,56 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
         </div>
       )}
       
-      <div className="flex h-16 items-center justify-between px-4 relative z-10">
-        {!collapsed && (
-          <div className="flex items-center gap-3">
-            {schoolInfo?.logo_url ? (
-              <div className={cn(
-                "relative -mt-2 h-12 w-12 rounded-full overflow-hidden flex-shrink-0",
-                isGradient && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
-              )}>
-                <img 
-                  src={schoolInfo.logo_url} 
-                  alt="School Logo" 
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className={cn(
-                "h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0",
-                isGradient ? "bg-white/20" : "bg-primary/10"
-              )}>
-                <GraduationCap className={cn(
-                  "h-5 w-5",
-                  isGradient ? "text-white" : "text-primary"
-                )} />
-              </div>
+        <div className="flex h-16 items-center justify-between px-4 relative z-10">
+          {!collapsed && (
+            <div className="flex items-center gap-3 min-w-0">
+              {schoolInfo?.logo_url ? (
+                <div
+                  className={cn(
+                    "relative -mt-2 h-12 w-12 rounded-full overflow-hidden flex-shrink-0 bg-background/20",
+                    isGradient && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
+                  )}
+                >
+                  <img
+                    src={schoolInfo.logo_url}
+                    alt="School Logo"
+                    className="h-full w-full object-contain p-1"
+                  />
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0",
+                    isGradient ? "bg-white/20" : "bg-primary/10"
+                  )}
+                >
+                  <GraduationCap
+                    className={cn(
+                      "h-5 w-5",
+                      isGradient ? "text-white" : "text-primary"
+                    )}
+                  />
+                </div>
+              )}
+              <span
+                className={cn(
+                  "font-semibold text-sm truncate min-w-0",
+                  isGradient ? "text-white" : "text-sidebar-foreground"
+                )}
+              >
+                {schoolInfo?.school_name || "School"}
+              </span>
+            </div>
+          )}
+          <SidebarTrigger
+            className={cn(
+              "ml-auto hidden lg:flex",
+              isGradient && "text-white hover:bg-white/10"
             )}
-            <span className={cn(
-              "font-semibold text-sm",
-              isGradient ? "text-white" : "text-sidebar-foreground"
-            )}>
-              {schoolInfo?.school_name || "School"}
-            </span>
-          </div>
-        )}
-        <SidebarTrigger className={cn(
-          "ml-auto hidden lg:flex",
-          isGradient && "text-white hover:bg-white/10"
-        )}>
-          {collapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-        </SidebarTrigger>
-      </div>
+          >
+            {collapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+          </SidebarTrigger>
+        </div>
 
       <SidebarContent className="relative z-10">
       <SidebarGroup>
@@ -443,17 +453,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </SidebarTrigger>
             
             {/* School Logo and Name - visible on small screens */}
-            <div className="flex lg:hidden items-center gap-2 min-w-0">
+            <div className="flex lg:hidden items-center gap-2 min-w-0 flex-1">
               {schoolInfo?.logo_url ? (
-                <div className="h-8 w-8 md:h-10 md:w-10 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0">
-                  <img src={schoolInfo.logo_url} alt="School Logo" className="h-full w-full object-cover" />
+                <div className="h-8 w-8 md:h-10 md:w-10 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0 bg-background/20">
+                  <img
+                    src={schoolInfo.logo_url}
+                    alt="School Logo"
+                    className="h-full w-full object-contain p-1"
+                  />
                 </div>
               ) : (
                 <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20 flex-shrink-0">
                   <GraduationCap className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
                 </div>
               )}
-              <span className="font-semibold text-sm truncate max-w-[100px] sm:max-w-[150px]">
+              <span className="font-semibold text-sm truncate min-w-0">
                 {schoolInfo?.school_name || "School"}
               </span>
             </div>

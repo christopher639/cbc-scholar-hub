@@ -66,26 +66,38 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
 
   return (
     <Sidebar collapsible="icon" className={cn("border-r border-border/30 relative overflow-hidden", getSidebarClass())}>
-      {/* Decorative bubbles for gradient sidebars */}
-      {isGradient && (
-        <div className="absolute inset-0 pointer-events-none opacity-10">
-          <div className="absolute top-0 left-0 w-20 h-20 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-32 h-32 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
-          <div className="absolute top-1/3 right-0 w-16 h-16 bg-white rounded-full translate-x-1/2" />
-        </div>
-      )}
+      {/* Decorative bubbles */}
+      <div className={cn(
+        "absolute inset-0 pointer-events-none opacity-10",
+        !isGradient && "opacity-20"
+      )}>
+        <div className={cn(
+          "absolute top-0 left-0 w-20 h-20 rounded-full -translate-x-1/2 -translate-y-1/2",
+          isGradient ? "bg-white" : "bg-primary"
+        )} />
+        <div className={cn(
+          "absolute bottom-0 right-0 w-32 h-32 rounded-full translate-x-1/3 translate-y-1/3",
+          isGradient ? "bg-white" : "bg-primary"
+        )} />
+        <div className={cn(
+          "absolute top-1/3 right-0 w-16 h-16 rounded-full translate-x-1/2",
+          isGradient ? "bg-white" : "bg-primary"
+        )} />
+      </div>
       
       <div className="flex h-16 items-center justify-between px-3 relative z-10">
         <div className="flex items-center gap-3 min-w-0">
           {schoolInfo?.logo_url ? (
-            <div className={cn(
-              "relative -mt-1 h-10 w-10 rounded-full overflow-hidden flex-shrink-0",
-              isGradient && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
-            )}>
-              <img 
-                src={schoolInfo.logo_url} 
-                alt="School Logo" 
-                className="h-full w-full object-cover"
+            <div
+              className={cn(
+                "relative -mt-1 h-10 w-10 rounded-full overflow-hidden flex-shrink-0 bg-background/20",
+                isGradient && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
+              )}
+            >
+              <img
+                src={schoolInfo.logo_url}
+                alt="School Logo"
+                className="h-full w-full object-contain p-1"
               />
             </div>
           ) : (
@@ -333,23 +345,32 @@ export default function LearnerPortalLayout() {
           <header className="fixed top-0 left-0 right-0 md:left-auto z-50 w-full border-b border-border/30 bg-card/70 backdrop-blur-lg supports-[backdrop-filter]:bg-card/60">
             <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6 gap-4 w-full">
               {/* Left - Sidebar Trigger (mobile) and School Logo */}
-              <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
-                <SidebarTrigger className="md:hidden">
+              <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
+                <SidebarTrigger className="md:hidden flex-shrink-0">
                   <Menu className="h-6 w-6" />
                 </SidebarTrigger>
-                
+
                 {displaySchool?.logo_url ? (
-                  <img src={displaySchool.logo_url} alt="School Logo" className="h-10 w-10 md:h-10 md:w-10 rounded-full object-cover ring-2 ring-primary/20" />
+                  <div className="h-10 w-10 md:h-10 md:w-10 rounded-full overflow-hidden ring-2 ring-primary/20 flex-shrink-0 bg-background/20">
+                    <img
+                      src={displaySchool.logo_url}
+                      alt="School Logo"
+                      className="h-full w-full object-contain p-1"
+                    />
+                  </div>
                 ) : (
-                  <div className="h-10 w-10 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20">
+                  <div className="h-10 w-10 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-primary/20 flex-shrink-0">
                     <GraduationCap className="h-5 w-5 md:h-5 md:w-5 text-primary-foreground" />
                   </div>
                 )}
-                <div className="min-w-0">
-                  <h1 className="text-sm md:text-base font-bold leading-tight text-foreground truncate max-w-[120px] sm:max-w-[180px] md:max-w-none">
+
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-sm md:text-base font-bold leading-tight text-foreground truncate">
                     {displaySchool?.school_name || "School Portal"}
                   </h1>
-                  <p className="hidden md:block text-sm text-muted-foreground">{displaySchool?.motto || "Learner Portal"}</p>
+                  <p className="hidden md:block text-sm text-muted-foreground">
+                    {displaySchool?.motto || "Learner Portal"}
+                  </p>
                 </div>
               </div>
 
