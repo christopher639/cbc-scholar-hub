@@ -196,7 +196,7 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
                   src={schoolInfo.logo_url} 
                   alt="School Logo" 
                   className={cn(
-                    "h-12 w-12 object-contain drop-shadow-lg",
+                    "h-12 w-12 object-cover rounded-full drop-shadow-lg",
                     isGradient && "drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
                   )} 
                 />
