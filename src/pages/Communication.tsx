@@ -434,9 +434,10 @@ export default function Communication() {
     }
   };
 
-  // Search learners for report card
-  const handleSearchLearners = async () => {
-    if (!learnerSearch.trim()) {
+  // Search learners for report card - auto-search as user types
+  const handleSearchLearners = async (searchTerm?: string) => {
+    const term = searchTerm !== undefined ? searchTerm : learnerSearch;
+    if (!term.trim()) {
       setSearchResults([]);
       return;
     }
@@ -455,12 +456,17 @@ export default function Communication() {
           stream:streams(name),
           parent:parents(email, first_name, last_name)
         `)
-        .or(`first_name.ilike.%${learnerSearch}%,last_name.ilike.%${learnerSearch}%,admission_number.ilike.%${learnerSearch}%`)
+        .or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%,admission_number.ilike.%${term}%`)
         .eq("status", "active")
         .limit(10);
       
       if (error) throw error;
       setSearchResults(data || []);
+      
+      // Auto-select if exact admission number match
+      if (data && data.length === 1 && data[0].admission_number.toLowerCase() === term.toLowerCase()) {
+        handleSelectLearner(data[0]);
+      }
     } catch (error: any) {
       console.error("Search error:", error);
       toast({
@@ -472,6 +478,20 @@ export default function Communication() {
       setSearchLoading(false);
     }
   };
+
+  // Auto-search with debounce effect
+  useEffect(() => {
+    if (!learnerSearch.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    
+    const timer = setTimeout(() => {
+      handleSearchLearners(learnerSearch);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [learnerSearch]);
 
   const handleSelectLearner = (learner: any) => {
     setSelectedLearner(learner);
@@ -1234,21 +1254,21 @@ export default function Communication() {
                 {/* Learner Search */}
                 <div className="space-y-3">
                   <Label>Search Learner *</Label>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Input
-                        placeholder="Search by name or admission number..."
-                        value={learnerSearch}
-                        onChange={(e) => setLearnerSearch(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleSearchLearners()}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleSearchLearners}
-                      disabled={searchLoading}
-                    >
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          placeholder="Search by name or admission number..."
+                          value={learnerSearch}
+                          onChange={(e) => setLearnerSearch(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleSearchLearners()}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleSearchLearners()}
+                        disabled={searchLoading}
+                      >
                       {searchLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (

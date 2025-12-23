@@ -106,6 +106,32 @@ serve(async (req) => {
         <p><strong>IMPORTANT:</strong> For security reasons, please change your password immediately after your first login.</p>
         <p>Best regards,<br>${schoolName}</p>
       `;
+    } else if (type === "user") {
+      // Credentials for admin-created users
+      const roleLabel = credentials.role === "admin" ? "Administrator" : 
+                        credentials.role === "finance" ? "Finance Officer" :
+                        credentials.role === "teacher" ? "Teacher" :
+                        credentials.role === "parent" ? "Parent" :
+                        credentials.role === "learner" ? "Learner" : "User";
+      
+      smsMessage = `Welcome to ${schoolName}! Dear ${credentials.name}, your ${roleLabel} account is ready. Login: Email: ${credentials.email}, Password: ${credentials.password}. Portal: ${credentials.portalUrl}. IMPORTANT: Change your password on first login.`;
+      emailSubject = `${schoolName} - Your Account Credentials`;
+      emailHtml = `
+        <h2>Welcome to ${schoolName}!</h2>
+        <p>Dear <strong>${credentials.name}</strong>, your account has been created successfully.</p>
+        <h3>Account Details:</h3>
+        <ul>
+          <li><strong>Role:</strong> ${roleLabel}</li>
+        </ul>
+        <h3>Login Credentials:</h3>
+        <ul>
+          <li><strong>Email:</strong> ${credentials.email}</li>
+          <li><strong>Password:</strong> ${credentials.password}</li>
+        </ul>
+        <p>Portal URL: <a href="${credentials.portalUrl}">${credentials.portalUrl}</a></p>
+        <p><strong>IMPORTANT:</strong> For security reasons, please change your password immediately after your first login.</p>
+        <p>Best regards,<br>${schoolName}</p>
+      `;
     } else {
       return new Response(
         JSON.stringify({ success: false, message: "Invalid type specified" }),
