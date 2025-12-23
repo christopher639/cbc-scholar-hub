@@ -190,10 +190,13 @@ serve(async (req) => {
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
 
-    // Get school info for message
-    const { data: school } = await supabase.from("school_info").select("school_name").single();
+    // Get school info for message and 2FA method preference
+    const { data: school } = await supabase.from("school_info").select("school_name, two_factor_method").single();
     const schoolName = school?.school_name || "School";
+    const twoFactorMethod = school?.two_factor_method || "both"; // Default to 'both' if not set
     const messageType = is2FAMode ? "login verification" : "password reset";
+
+    console.log("2FA method configured:", twoFactorMethod);
 
     let smsSent = false;
     let emailSent = false;
@@ -201,8 +204,9 @@ serve(async (req) => {
     let maskedEmail = "";
     const deliveryMethods: string[] = [];
 
-    // Send SMS if phone is available
-    if (userPhone) {
+    // Send SMS if phone is available AND method allows SMS
+    const shouldSendSms = twoFactorMethod === 'sms' || twoFactorMethod === 'both';
+    if (userPhone && shouldSendSms) {
       const apiKey = Deno.env.get("TEXT_SMS_API_KEY");
       if (apiKey) {
         formattedPhone = formatPhoneNumber(userPhone);
@@ -240,8 +244,9 @@ serve(async (req) => {
       }
     }
 
-    // Send email if available (send to both if both exist)
-    if (userEmail) {
+    // Send email if available AND method allows email
+    const shouldSendEmail = twoFactorMethod === 'email' || twoFactorMethod === 'both';
+    if (userEmail && shouldSendEmail) {
       const resendApiKey = Deno.env.get("RESEND_API_KEY");
       if (resendApiKey) {
         const resend = new Resend(resendApiKey);
