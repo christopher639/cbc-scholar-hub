@@ -210,8 +210,8 @@ const Activities = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground">System Activities</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Track all CRUD operations across the system</p>
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">System Activities</h1>
+            <p className="text-sm text-muted-foreground">Track all CRUD operations across the system</p>
           </div>
           <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
             <div className="p-2 bg-primary/10 rounded">
@@ -227,12 +227,12 @@ const Activities = () => {
         {/* Trend Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
-                <LogIn className="h-5 w-5 text-primary" />
-                <CardTitle>Login Trends</CardTitle>
+                <LogIn className="h-4 w-4 text-primary" />
+                <CardTitle className="text-sm font-semibold">Login Trends</CardTitle>
               </div>
-              <CardDescription>Daily logins over the last 30 days</CardDescription>
+              <CardDescription className="text-xs">Daily logins over the last 30 days</CardDescription>
             </CardHeader>
             <CardContent className="p-3 pt-2">
               {loading ? (
@@ -277,12 +277,12 @@ const Activities = () => {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-success" />
-                <CardTitle>Activity Trends</CardTitle>
+                <TrendingUp className="h-4 w-4 text-success" />
+                <CardTitle className="text-sm font-semibold">Activity Trends</CardTitle>
               </div>
-              <CardDescription>All system actions over 30 days</CardDescription>
+              <CardDescription className="text-xs">All system actions over 30 days</CardDescription>
             </CardHeader>
             <CardContent className="p-3 pt-2">
               {loading ? (
