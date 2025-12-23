@@ -274,11 +274,12 @@ serve(async (req) => {
       sentCount = recipients.length;
     }
 
-    // Update the bulk_messages record
+    // Update the bulk_messages record - use 'completed' to match the check constraint
+    const updateStatus = failedCount > 0 && sentCount === 0 ? "failed" : "completed";
     await supabase
       .from("bulk_messages")
       .update({
-        status: "sent",
+        status: updateStatus,
         sent_at: new Date().toISOString(),
         sent_count: sentCount,
         failed_count: failedCount,
