@@ -92,9 +92,28 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
           p_entity_id: authData.user.id,
         });
 
+        // Send login credentials to user via email
+        try {
+          await supabase.functions.invoke("send-credentials-sms", {
+            body: {
+              type: "user",
+              email: formData.email,
+              credentials: {
+                name: formData.fullName,
+                email: formData.email,
+                password: formData.password,
+                role: formData.role,
+                portalUrl: window.location.origin + "/auth"
+              }
+            }
+          });
+        } catch (credError) {
+          console.log("Credentials email failed:", credError);
+        }
+
         toast({
           title: "Success",
-          description: "User created and activated successfully",
+          description: "User created and activated successfully. Login credentials sent via email.",
         });
 
         setFormData({
