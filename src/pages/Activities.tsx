@@ -207,19 +207,19 @@ const Activities = () => {
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        {/* Compact Header */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">System Activities</h1>
-            <p className="text-sm text-muted-foreground">Track all CRUD operations across the system</p>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground">System Activities</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Track all CRUD operations across the system</p>
           </div>
-          <div className="flex items-center gap-3 p-2.5 bg-muted/50 rounded-lg">
-            <div className="p-1.5 bg-primary/10 rounded">
-              <Eye className="h-3.5 w-3.5 text-primary" />
+          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+            <div className="p-2 bg-primary/10 rounded">
+              <Eye className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Unique Visitors</p>
-              <p className="text-sm font-semibold">{visitorCount.toLocaleString()}</p>
+              <p className="text-sm text-muted-foreground">Unique Visitors</p>
+              <p className="text-base font-semibold">{visitorCount.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -227,12 +227,12 @@ const Activities = () => {
         {/* Trend Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
-            <CardHeader className="p-3 pb-0">
+            <CardHeader>
               <div className="flex items-center gap-2">
-                <LogIn className="h-4 w-4 text-primary" />
-                <CardTitle className="text-sm font-medium">Login Trends</CardTitle>
+                <LogIn className="h-5 w-5 text-primary" />
+                <CardTitle>Login Trends</CardTitle>
               </div>
-              <CardDescription className="text-xs">Daily logins over the last 30 days</CardDescription>
+              <CardDescription>Daily logins over the last 30 days</CardDescription>
             </CardHeader>
             <CardContent className="p-3 pt-2">
               {loading ? (
@@ -277,12 +277,12 @@ const Activities = () => {
           </Card>
 
           <Card>
-            <CardHeader className="p-3 pb-0">
+            <CardHeader>
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-success" />
-                <CardTitle className="text-sm font-medium">Activity Trends</CardTitle>
+                <TrendingUp className="h-5 w-5 text-success" />
+                <CardTitle>Activity Trends</CardTitle>
               </div>
-              <CardDescription className="text-xs">All system actions over 30 days</CardDescription>
+              <CardDescription>All system actions over 30 days</CardDescription>
             </CardHeader>
             <CardContent className="p-3 pt-2">
               {loading ? (
@@ -370,9 +370,9 @@ const Activities = () => {
 
         {/* Activities Grid */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-medium text-foreground">Recent Activities</h2>
-            <span className="text-xs text-muted-foreground">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-medium text-foreground">Recent Activities</h2>
+            <span className="text-sm text-muted-foreground">
               Showing {recentActivities.length} of {filteredActivities.length}
             </span>
           </div>
@@ -393,35 +393,35 @@ const Activities = () => {
               {recentActivities.map((activity) => (
                 <div
                   key={activity.id}
-                  className="p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-border/50"
+                  className="p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors border border-border/50"
                 >
-                  <div className="flex items-start gap-2.5">
-                    <div className={`p-1.5 rounded-full shrink-0 ${getActionColor(activity.action)}`}>
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-full shrink-0 ${getActionColor(activity.action)}`}>
                       {getActionIcon(activity.action)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <span className="text-xs font-medium text-foreground truncate">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-medium text-foreground truncate">
                           {activity.user_name || "System"}
                         </span>
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                        <Badge variant="outline" className="text-xs px-1.5 py-0">
                           {activity.user_role || "sys"}
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         <span className="capitalize">{activity.action}</span>
                         {" "}
-                        <span className="inline-flex items-center gap-0.5">
+                        <span className="inline-flex items-center gap-1">
                           {getEntityIcon(activity.entity_type)}
                           {formatEntityType(activity.entity_type)}
                         </span>
                       </p>
                       {activity.entity_name && (
-                        <p className="text-xs font-medium text-foreground truncate mt-0.5">
+                        <p className="text-sm font-medium text-foreground truncate mt-0.5">
                           "{activity.entity_name}"
                         </p>
                       )}
-                      <p className="text-[10px] text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         {new Date(activity.created_at).toLocaleString('en-US', { 
                           month: 'short', 
                           day: 'numeric',
