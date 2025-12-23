@@ -10,12 +10,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { School, Eye, EyeOff, LogIn, Loader2, UserPlus, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Auth() {
   const navigate = useNavigate();
   const { user, loading, login, validateCredentials } = useAuth();
   const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -39,6 +41,7 @@ export default function Auth() {
   const [verifiedUserId, setVerifiedUserId] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
+  const [isPrefetching, setIsPrefetching] = useState(false);
   
   // Check for Google OAuth callback and handle user verification
   useEffect(() => {
@@ -342,6 +345,17 @@ export default function Auth() {
         } else if (result.role === "teacher") {
           navigate("/teacher-portal", { replace: true });
         } else if (result.role === "admin" || result.role === "finance" || result.role === "visitor") {
+          // Prefetch dashboard data before navigating
+          setIsPrefetching(true);
+          try {
+            await queryClient.prefetchQuery({
+              queryKey: ['dashboardStats', undefined, undefined],
+              staleTime: 5 * 60 * 1000,
+            });
+          } catch (error) {
+            console.error("Prefetch error:", error);
+          }
+          setIsPrefetching(false);
           navigate("/dashboard", { replace: true });
         } else {
           navigate("/dashboard", { replace: true });
@@ -592,12 +606,14 @@ export default function Auth() {
     }
   };
 
-  if (loading || schoolLoading || checkingGoogleAuth) {
+  if (loading || schoolLoading || checkingGoogleAuth || isPrefetching) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">
+            {isPrefetching ? "Preparing your dashboard..." : "Loading..."}
+          </p>
         </div>
       </div>
     );
