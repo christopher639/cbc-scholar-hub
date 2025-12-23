@@ -606,14 +606,12 @@ export default function Auth() {
     }
   };
 
-  if (loading || schoolLoading || checkingGoogleAuth || isPrefetching) {
+  if (loading || schoolLoading || checkingGoogleAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">
-            {isPrefetching ? "Preparing your dashboard..." : "Loading..."}
-          </p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -967,8 +965,10 @@ export default function Auth() {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full h-10 rounded-lg text-sm font-semibold mt-2" disabled={isSubmitting}>
-                {isSubmitting ? (
+              <Button type="submit" className="w-full h-10 rounded-lg text-sm font-semibold mt-2" disabled={isSubmitting || isPrefetching}>
+                {isPrefetching ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Preparing dashboard...</>
+                ) : isSubmitting ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in...</>
                 ) : (
                   <><LogIn className="mr-2 h-4 w-4" />Sign In</>
