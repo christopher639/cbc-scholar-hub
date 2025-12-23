@@ -1273,8 +1273,8 @@ const Settings = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Two-Factor Authentication (OTP via SMS)</p>
-                    <p className="text-sm text-muted-foreground">Require phone OTP verification for all logins</p>
+                    <p className="font-medium">Two-Factor Authentication (2FA)</p>
+                    <p className="text-sm text-muted-foreground">Require OTP verification for all logins</p>
                   </div>
                   <Switch 
                     checked={schoolInfo?.two_factor_enabled || false}
@@ -1294,6 +1294,69 @@ const Settings = () => {
                     }}
                   />
                 </div>
+                
+                {/* 2FA Method Selection */}
+                {schoolInfo?.two_factor_enabled && (
+                  <div className="pl-4 border-l-2 border-primary/20 space-y-3">
+                    <div>
+                      <p className="font-medium text-sm">Verification Method</p>
+                      <p className="text-xs text-muted-foreground">Choose how users receive their OTP codes</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant={(schoolInfo?.two_factor_method || 'both') === 'sms' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={async () => {
+                          if (!checkAccess("update security settings")) return;
+                          try {
+                            await updateSchoolInfo({ two_factor_method: 'sms' });
+                            toast({ title: "2FA Method Updated", description: "OTP will be sent via SMS only" });
+                          } catch (error: any) {
+                            toast({ title: "Error", description: error.message, variant: "destructive" });
+                          }
+                        }}
+                      >
+                        SMS Only
+                      </Button>
+                      <Button
+                        variant={(schoolInfo?.two_factor_method || 'both') === 'email' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={async () => {
+                          if (!checkAccess("update security settings")) return;
+                          try {
+                            await updateSchoolInfo({ two_factor_method: 'email' });
+                            toast({ title: "2FA Method Updated", description: "OTP will be sent via Email only" });
+                          } catch (error: any) {
+                            toast({ title: "Error", description: error.message, variant: "destructive" });
+                          }
+                        }}
+                      >
+                        Email Only
+                      </Button>
+                      <Button
+                        variant={(schoolInfo?.two_factor_method || 'both') === 'both' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={async () => {
+                          if (!checkAccess("update security settings")) return;
+                          try {
+                            await updateSchoolInfo({ two_factor_method: 'both' });
+                            toast({ title: "2FA Method Updated", description: "OTP will be sent via both SMS and Email" });
+                          } catch (error: any) {
+                            toast({ title: "Error", description: error.message, variant: "destructive" });
+                          }
+                        }}
+                      >
+                        Both (SMS + Email)
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {(schoolInfo?.two_factor_method || 'both') === 'sms' && "Users will receive OTP via SMS to their registered phone number"}
+                      {(schoolInfo?.two_factor_method || 'both') === 'email' && "Users will receive OTP via Email to their registered email address"}
+                      {(schoolInfo?.two_factor_method || 'both') === 'both' && "Users will receive OTP via both SMS and Email for maximum reliability"}
+                    </p>
+                  </div>
+                )}
+                
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
