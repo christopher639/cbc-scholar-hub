@@ -317,7 +317,7 @@ export default function Communication() {
 
       const dbRecipientType = formData.recipientType === "all_parents" ? "all" : formData.recipientType;
 
-      const { error } = await supabase
+      const { data: insertedMessage, error: insertError } = await supabase
         .from("bulk_messages")
         .insert({
           sender_id: user.id,
@@ -328,30 +328,49 @@ export default function Communication() {
           subject: formData.subject || null,
           message: formData.message,
           status: "pending",
-        });
-
-      if (error) throw error;
-
-      const { data: messageData } = await supabase
-        .from("bulk_messages")
+        })
         .select("id")
-        .order("created_at", { ascending: false })
-        .limit(1)
         .single();
 
-      if (messageData) {
+      if (insertError) throw insertError;
+
+      const messageId = insertedMessage?.id;
+
+      if (messageId) {
+        const tasks: Promise<any>[] = [];
+
         // Trigger email sending if email or both
         if (formData.messageType === "email" || formData.messageType === "both") {
-          supabase.functions.invoke("send-bulk-emails", {
-            body: { messageId: messageData.id },
-          }).catch(err => console.error("Error triggering email send:", err));
+          tasks.push(
+            supabase.functions
+              .invoke("send-bulk-emails", { body: { messageId } })
+              .then((res) => {
+                if (res.error) throw res.error;
+                const data: any = res.data;
+                if (data?.failedCount > 0 && data?.sentCount === 0) {
+                  throw new Error("Email sending failed. Please verify your sender domain in your email provider settings.");
+                }
+                return data;
+              })
+          );
         }
 
         // Trigger SMS sending if sms or both
         if (formData.messageType === "sms" || formData.messageType === "both") {
-          supabase.functions.invoke("send-bulk-sms", {
-            body: { messageId: messageData.id },
-          }).catch(err => console.error("Error triggering SMS send:", err));
+          tasks.push(
+            supabase.functions
+              .invoke("send-bulk-sms", { body: { messageId } })
+              .then((res) => {
+                if (res.error) throw res.error;
+                return res.data;
+              })
+          );
+        }
+
+        const results = await Promise.allSettled(tasks);
+        const rejected = results.find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
+        if (rejected) {
+          throw rejected.reason;
         }
       }
 
@@ -386,8 +405,10 @@ export default function Communication() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "sent":
+      case "completed":
         return <CheckCircle2 className="h-4 w-4 text-primary" />;
+      case "sending":
+        return <Timer className="h-4 w-4 text-primary" />;
       case "pending":
         return <Clock className="h-4 w-4 text-yellow-500" />;
       case "failed":
