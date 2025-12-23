@@ -3,11 +3,12 @@ import { useOutletContext } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, Receipt, FileText, Wallet } from "lucide-react";
+import { DollarSign, Receipt, FileText, Wallet, Percent, Gift } from "lucide-react";
 import { format } from "date-fns";
 
 export default function LearnerFeesPage() {
@@ -23,6 +24,8 @@ export default function LearnerFeesPage() {
     currentTermPaid: 0,
     currentTermBalance: 0,
     payments: [] as any[],
+    discounts: [] as { reason: string; amount: number; term: string; year: string }[],
+    totalDiscount: 0,
   });
 
   useEffect(() => {
@@ -37,10 +40,10 @@ export default function LearnerFeesPage() {
     try {
       setLoading(true);
 
-      // Fetch all invoices
+      // Fetch all invoices with discount info
       const { data: invoices } = await supabase
         .from("student_invoices")
-        .select("*")
+        .select("*, discount_amount, discount_reason")
         .eq("learner_id", learner.id)
         .neq("status", "cancelled")
         .order("created_at", { ascending: false });
@@ -65,12 +68,23 @@ export default function LearnerFeesPage() {
         .eq("learner_id", learner.id)
         .order("payment_date", { ascending: false });
 
-      // Calculate totals
+      // Calculate totals including discounts
       const totalAccumulated = invoices?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+      const totalDiscount = invoices?.reduce((sum, inv) => sum + Number(inv.discount_amount || 0), 0) || 0;
       const totalPaidFromTransactions = transactions?.reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
       const totalPaidFromFeePayments = feePayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
       const totalPaid = totalPaidFromTransactions + totalPaidFromFeePayments;
-      const totalBalance = totalAccumulated - totalPaid;
+      const totalBalance = totalAccumulated - totalDiscount - totalPaid;
+
+      // Extract discount information
+      const discounts = invoices
+        ?.filter(inv => inv.discount_amount > 0 && inv.discount_reason)
+        .map(inv => ({
+          reason: inv.discount_reason,
+          amount: Number(inv.discount_amount),
+          term: inv.term,
+          year: inv.academic_year,
+        })) || [];
 
       // Get current period
       const { data: currentPeriod } = await supabase
@@ -134,6 +148,8 @@ export default function LearnerFeesPage() {
         currentTermPaid,
         currentTermBalance: currentTermFees - currentTermPaid,
         payments: allPayments,
+        discounts,
+        totalDiscount,
       });
     } catch (error: any) {
       toast({
@@ -230,6 +246,40 @@ export default function LearnerFeesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Discount Information */}
+      {feeInfo.totalDiscount > 0 && (
+        <Alert className="bg-success/10 border-success/30">
+          <Gift className="h-4 w-4" />
+          <AlertDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-success">Fee Discount Applied</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  You have received a total discount of <strong>KES {feeInfo.totalDiscount.toLocaleString()}</strong> on your fees.
+                </p>
+                {feeInfo.discounts.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {feeInfo.discounts.map((discount, idx) => (
+                      <div key={idx} className="text-xs text-muted-foreground flex items-center gap-2">
+                        <Percent className="h-3 w-3" />
+                        <span>
+                          {discount.reason} - KES {discount.amount.toLocaleString()} ({discount.year} {discount.term.replace("_", " ")})
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="text-right">
+                <Badge variant="outline" className="bg-success/10 text-success border-success/30">
+                  Discounted
+                </Badge>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Payment History */}
       <Card>

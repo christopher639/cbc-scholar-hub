@@ -11,7 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { useHouses } from "@/hooks/useHouses";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, CheckCircle } from "lucide-react";
+import { StaffChildVerificationDialog } from "./StaffChildVerificationDialog";
 
 interface EditLearnerDialogProps {
   open: boolean;
@@ -29,6 +30,14 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
   const { houses } = useHouses();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  
+  // Staff child verification state
+  const [showStaffVerification, setShowStaffVerification] = useState(false);
+  const [verifiedStaffInfo, setVerifiedStaffInfo] = useState<{
+    name: string;
+    employeeNumber: string;
+    type: string;
+  } | null>(null);
   
   // Transfer state
   const [showTransferSection, setShowTransferSection] = useState(false);
@@ -106,6 +115,9 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
         transfer_date: new Date().toISOString().split("T")[0],
         reason: "",
       });
+      
+      // Reset staff verification state
+      setVerifiedStaffInfo(null);
     }
   }, [learner, open]);
 
@@ -447,17 +459,46 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
                 <p className="text-xs text-muted-foreground">This will be used as password for learner login</p>
               </div>
 
-              <div className="flex items-center space-x-2 p-4 bg-muted rounded-lg">
-                <input
-                  type="checkbox"
-                  id="is_staff_child"
-                  checked={formData.is_staff_child}
-                  onChange={(e) => setFormData({ ...formData, is_staff_child: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <Label htmlFor="is_staff_child" className="cursor-pointer">
-                  This learner is a child of a staff member (discount applies)
-                </Label>
+              <div className="p-4 bg-muted rounded-lg space-y-3">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is_staff_child"
+                    checked={formData.is_staff_child}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        // Show verification dialog when checking the box
+                        setShowStaffVerification(true);
+                      } else {
+                        // Allow unchecking without verification
+                        setFormData({ ...formData, is_staff_child: false });
+                        setVerifiedStaffInfo(null);
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor="is_staff_child" className="cursor-pointer">
+                    This learner is a child of a staff member (discount applies)
+                  </Label>
+                </div>
+                
+                {/* Show verified staff info */}
+                {formData.is_staff_child && verifiedStaffInfo && (
+                  <div className="flex items-center gap-2 text-sm text-success bg-success/10 p-2 rounded">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>
+                      Verified: <strong>{verifiedStaffInfo.name}</strong> ({verifiedStaffInfo.type}) - {verifiedStaffInfo.employeeNumber}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Show info for previously marked staff children */}
+                {formData.is_staff_child && !verifiedStaffInfo && learner?.is_staff_child && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-2 rounded">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Previously verified as staff child</span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -746,6 +787,19 @@ export function EditLearnerDialog({ open, onOpenChange, learner, onSuccess }: Ed
             </Button>
           </DialogFooter>
         </form>
+        
+        {/* Staff Child Verification Dialog */}
+        <StaffChildVerificationDialog
+          open={showStaffVerification}
+          onOpenChange={setShowStaffVerification}
+          onVerified={(staffInfo) => {
+            setFormData({ ...formData, is_staff_child: true });
+            setVerifiedStaffInfo(staffInfo);
+          }}
+          onCancel={() => {
+            // Don't change the checkbox state if cancelled
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
