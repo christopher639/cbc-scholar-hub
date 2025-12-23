@@ -24,16 +24,9 @@ const Dashboard = () => {
   const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   const isAdmin = user?.role === "admin";
 
-  // Show loading screen while data is being fetched
+  // Wait for data to be prefetched before rendering anything
   if (authLoading || loading || schoolLoading) {
-    return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-muted-foreground text-lg">Loading dashboard data...</p>
-        </div>
-      </DashboardLayout>
-    );
+    return null;
   }
 
   // Get first name based on user role
