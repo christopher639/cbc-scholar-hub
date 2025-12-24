@@ -42,8 +42,9 @@ serve(async (req) => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     // Get school info
-    const { data: school } = await supabase.from("school_info").select("school_name").single();
+    const { data: school } = await supabase.from("school_info").select("school_name, email").single();
     const schoolName = school?.school_name || "School";
+    const schoolEmail = school?.email;
 
     let smsMessage = "";
     let emailSubject = "";
@@ -177,14 +178,29 @@ serve(async (req) => {
     if (email && resendApiKey) {
       try {
         const resend = new Resend(resendApiKey);
+        
+        // Determine from address - use verified school domain email or default
+        const isVerifiedDomain = schoolEmail && 
+          !schoolEmail.includes("gmail.com") && 
+          !schoolEmail.includes("yahoo.com") && 
+          !schoolEmail.includes("hotmail.com") &&
+          !schoolEmail.includes("outlook.com");
+        const fromAddress = isVerifiedDomain 
+          ? `${schoolName} <noreply@${schoolEmail.split('@')[1]}>`
+          : `${schoolName} <onboarding@resend.dev>`;
+        
+        console.log("Sending email to:", email, "from:", fromAddress);
+        
         const emailResponse = await resend.emails.send({
-          from: `${schoolName} <onboarding@resend.dev>`,
+          from: fromAddress,
           to: [email],
           subject: emailSubject,
           html: emailHtml,
         });
         console.log("Email sent:", emailResponse);
-        emailSent = true;
+        if (!emailResponse.error) {
+          emailSent = true;
+        }
       } catch (emailError) {
         console.error("Email sending error:", emailError);
       }

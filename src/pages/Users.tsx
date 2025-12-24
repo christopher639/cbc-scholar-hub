@@ -82,6 +82,7 @@ const Users = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [pendingUsers, setPendingUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -161,6 +162,7 @@ const Users = () => {
       });
     } finally {
       setLoading(false);
+      setInitialLoadComplete(true);
     }
   };
 
@@ -492,51 +494,32 @@ const Users = () => {
     </div>
   );
 
+  // Show loading state until initial data is fetched
+  if (!initialLoadComplete) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-sm text-muted-foreground">Loading users...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        {/* Compact Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">Users & Roles</h1>
-              <p className="text-sm text-muted-foreground">Manage user access and permissions</p>
-            </div>
-            
-            {/* Inline Stats for Large Screens */}
-            <div className="hidden lg:flex items-center gap-4 ml-4 pl-4 border-l">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded">
-                  <UsersIcon className="h-3.5 w-3.5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Total</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : users.length}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-green-500/10 rounded">
-                  <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Admins</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : adminCount}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-amber-500/10 rounded">
-                  <Clock className="h-3.5 w-3.5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Pending</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : pendingUsers.length}</p>
-                </div>
-              </div>
-            </div>
+        {/* Header with Search */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">Users & Roles</h1>
+            <p className="text-sm text-muted-foreground">Manage user access and permissions</p>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="relative flex-1 lg:w-64">
+            <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search users..."
@@ -558,31 +541,6 @@ const Users = () => {
               <Plus className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Create User</span>
             </Button>
-          </div>
-        </div>
-
-        {/* Mobile Stats */}
-        <div className="grid grid-cols-3 gap-2 lg:hidden">
-          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-            <UsersIcon className="h-4 w-4 text-primary" />
-            <div>
-              <p className="text-xs text-muted-foreground">Total</p>
-              <p className="text-sm font-semibold">{loading ? "..." : users.length}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-            <ShieldCheck className="h-4 w-4 text-green-600" />
-            <div>
-              <p className="text-xs text-muted-foreground">Admins</p>
-              <p className="text-sm font-semibold">{loading ? "..." : adminCount}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-            <Clock className="h-4 w-4 text-amber-600" />
-            <div>
-              <p className="text-xs text-muted-foreground">Pending</p>
-              <p className="text-sm font-semibold">{loading ? "..." : pendingUsers.length}</p>
-            </div>
           </div>
         </div>
 
