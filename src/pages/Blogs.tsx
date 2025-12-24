@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -13,15 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Image as ImageIcon, Loader2, Heart, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Image as ImageIcon, Loader2, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -192,18 +185,31 @@ const Blogs = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground">Loading blogs...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Blog Management</h1>
-            <p className="text-muted-foreground">Create and manage blog posts for the public website</p>
+            <h1 className="text-xl font-semibold text-foreground">Blog Management</h1>
+            <p className="text-sm text-muted-foreground">Create and manage blog posts for the public website</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()} className="gap-2">
-                <Plus className="h-4 w-4" />
+              <Button onClick={() => handleOpenDialog()} size="sm">
+                <Plus className="h-4 w-4 mr-2" />
                 Add Blog Post
               </Button>
             </DialogTrigger>
@@ -288,96 +294,76 @@ const Blogs = () => {
           </Dialog>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>All Blog Posts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : blogs.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No blog posts yet. Create your first one!</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Image</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Likes</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {blogs.map((blog) => (
-                      <TableRow key={blog.id}>
-                        <TableCell>
-                          {blog.image_url ? (
-                            <img
-                              src={blog.image_url}
-                              alt={blog.title}
-                              className="h-12 w-16 object-cover rounded"
-                            />
-                          ) : (
-                            <div className="h-12 w-16 bg-muted rounded flex items-center justify-center">
-                              <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="font-medium max-w-[200px] truncate">
-                          {blog.title}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Heart className="h-4 w-4" />
-                            {blog.likes_count}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <button
-                            onClick={() => togglePublish(blog)}
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              blog.is_published
-                                ? "bg-primary/10 text-primary"
-                                : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                            }`}
-                          >
-                            {blog.is_published ? "Published" : "Draft"}
-                          </button>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {format(new Date(blog.created_at), "MMM d, yyyy")}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenDialog(blog)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(blog.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {blogs.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              No blog posts yet. Create your first one!
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {blogs.map((blog) => (
+              <Card key={blog.id} className="overflow-hidden">
+                <div className="relative">
+                  {blog.image_url ? (
+                    <img
+                      src={blog.image_url}
+                      alt={blog.title}
+                      className="h-32 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-32 w-full bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <button
+                    onClick={() => togglePublish(blog)}
+                    className={`absolute top-2 right-2 px-2 py-1 text-xs rounded-full ${
+                      blog.is_published
+                        ? "bg-primary/90 text-primary-foreground"
+                        : "bg-yellow-500/90 text-white"
+                    }`}
+                  >
+                    {blog.is_published ? "Published" : "Draft"}
+                  </button>
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="text-sm font-medium truncate">{blog.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                    {blog.description}
+                  </p>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        {blog.likes_count}
+                      </span>
+                      <span>{format(new Date(blog.created_at), "MMM d, yyyy")}</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={() => handleOpenDialog(blog)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(blog.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
