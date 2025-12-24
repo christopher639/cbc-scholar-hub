@@ -191,9 +191,10 @@ serve(async (req) => {
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
 
     // Get school info for message and 2FA method preference
-    const { data: school } = await supabase.from("school_info").select("school_name, two_factor_method").single();
+    const { data: school } = await supabase.from("school_info").select("school_name, two_factor_method, email").single();
     const schoolName = school?.school_name || "School";
     const twoFactorMethod = school?.two_factor_method || "both"; // Default to 'both' if not set
+    const schoolEmail = school?.email;
     const messageType = is2FAMode ? "login verification" : "password reset";
 
     console.log("2FA method configured:", twoFactorMethod);
@@ -253,8 +254,20 @@ serve(async (req) => {
         console.log("Sending OTP via email to:", userEmail);
 
         try {
+          // Determine from address - use verified school domain email or default
+          const isVerifiedDomain = schoolEmail && 
+            !schoolEmail.includes("gmail.com") && 
+            !schoolEmail.includes("yahoo.com") && 
+            !schoolEmail.includes("hotmail.com") &&
+            !schoolEmail.includes("outlook.com");
+          const fromAddress = isVerifiedDomain 
+            ? `${schoolName} <noreply@${schoolEmail.split('@')[1]}>`
+            : `${schoolName} <onboarding@resend.dev>`;
+          
+          console.log("Using from address:", fromAddress);
+
           const emailResponse = await resend.emails.send({
-            from: `${schoolName} <onboarding@resend.dev>`,
+            from: fromAddress,
             to: [userEmail],
             subject: `Your ${messageType} OTP Code`,
             html: `
