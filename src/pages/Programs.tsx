@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -185,92 +184,86 @@ export default function Programs() {
     return option?.icon || BookOpen;
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground">Loading programs...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Programs</h1>
-            <p className="text-muted-foreground">Manage school programs displayed on the public website</p>
+            <h1 className="text-xl font-semibold text-foreground">Programs</h1>
+            <p className="text-sm text-muted-foreground">Manage school programs displayed on the public website</p>
           </div>
-          <Button onClick={openAddDialog}>
+          <Button onClick={openAddDialog} size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Add Program
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>School Programs</CardTitle>
-            <CardDescription>Programs shown in the "Our Programs" section on the homepage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : programs.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No programs added yet. Click "Add Program" to create one.
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Icon</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Order</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {programs.map((program) => {
-                    const Icon = getIconComponent(program.icon);
-                    return (
-                      <TableRow key={program.id}>
-                        <TableCell>
-                          <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${program.color}`}>
-                            <Icon className="h-5 w-5" />
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">{program.title}</TableCell>
-                        <TableCell className="max-w-xs truncate text-muted-foreground">
-                          {program.description || "-"}
-                        </TableCell>
-                        <TableCell>{program.display_order}</TableCell>
-                        <TableCell>
-                          <Badge variant={program.is_active ? "default" : "secondary"}>
+        {programs.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              No programs added yet. Click "Add Program" to create one.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {programs.map((program) => {
+              const Icon = getIconComponent(program.icon);
+              return (
+                <Card key={program.id} className="relative">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${program.color}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-medium truncate">{program.title}</h3>
+                          <Badge variant={program.is_active ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
                             {program.is_active ? "Active" : "Hidden"}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => openEditDialog(program)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-destructive"
-                              onClick={() => {
-                                setProgramToDelete(program);
-                                setDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {program.description || "No description"}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">Order: {program.display_order}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-3 pt-3 border-t">
+                      <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={() => openEditDialog(program)}>
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs text-destructive hover:text-destructive"
+                        onClick={() => {
+                          setProgramToDelete(program);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Dialog */}
