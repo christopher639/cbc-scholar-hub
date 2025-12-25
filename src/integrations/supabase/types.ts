@@ -2721,6 +2721,16 @@ export type Database = {
         Returns: undefined
       }
       notify_overdue_invoices: { Args: never; Returns: undefined }
+      recalculate_invoice_discounts: {
+        Args: never
+        Returns: {
+          discount_amount: number
+          discount_reason: string
+          invoice_id: string
+          learner_name: string
+          original_amount: number
+        }[]
+      }
       validate_learner_credentials: {
         Args: { _admission: string; _birth: string }
         Returns: {

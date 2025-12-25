@@ -95,6 +95,7 @@ export default function LearnerFeesPage() {
 
       let currentTermFees = 0;
       let currentTermPaid = 0;
+      let currentTermDiscount = 0;
 
       if (currentPeriod && invoices) {
         const currentInvoice = invoices.find(
@@ -103,6 +104,7 @@ export default function LearnerFeesPage() {
 
         if (currentInvoice) {
           currentTermFees = Number(currentInvoice.total_amount);
+          currentTermDiscount = Number(currentInvoice.discount_amount || 0);
           
           const currentTermTransactions = transactions?.filter(
             t => t.invoice?.academic_year === currentPeriod.academic_year &&
@@ -146,7 +148,7 @@ export default function LearnerFeesPage() {
         totalBalance,
         currentTermFees,
         currentTermPaid,
-        currentTermBalance: currentTermFees - currentTermPaid,
+        currentTermBalance: currentTermFees - currentTermDiscount - currentTermPaid,
         payments: allPayments,
         discounts,
         totalDiscount,

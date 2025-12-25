@@ -652,13 +652,38 @@ const LearnerProfile = () => {
 
               {/* Fees Tab */}
               <TabsContent value="fees" className="mt-0 space-y-4">
+                {/* Discount Banner */}
+                {learner.feeInfo?.totalDiscounts > 0 && (
+                  <div className="p-3 rounded-lg border border-primary/30 bg-primary/5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+                        Discount Applied
+                      </Badge>
+                    </div>
+                    <p className="text-sm font-medium text-primary">
+                      Total Discount: {formatCurrency(learner.feeInfo.totalDiscounts)}
+                    </p>
+                    {learner.feeInfo.discountDetails?.map((discount: any, idx: number) => (
+                      <p key={idx} className="text-xs text-muted-foreground">
+                        {discount.reason} - {formatCurrency(discount.amount)} ({discount.year} {discount.term?.replace("_", " ")})
+                      </p>
+                    ))}
+                  </div>
+                )}
+
                 {/* Fee Summary Cards - Compact */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div className="p-3 rounded-lg border bg-muted/30">
-                    <p className="text-xs text-muted-foreground">Total Accumulated</p>
+                    <p className="text-xs text-muted-foreground">Total Fees</p>
                     <p className="text-sm font-semibold text-foreground">{formatCurrency(learner.feeInfo?.totalAccumulatedFees || 0)}</p>
                     <p className="text-xs text-muted-foreground">{learner.feeInfo?.allInvoices?.length || 0} invoices</p>
                   </div>
+                  {learner.feeInfo?.totalDiscounts > 0 && (
+                    <div className="p-3 rounded-lg border bg-primary/5">
+                      <p className="text-xs text-muted-foreground">Discounts</p>
+                      <p className="text-sm font-semibold text-primary">-{formatCurrency(learner.feeInfo.totalDiscounts)}</p>
+                    </div>
+                  )}
                   <div className="p-3 rounded-lg border bg-muted/30">
                     <p className="text-xs text-muted-foreground">Total Paid</p>
                     <p className="text-sm font-semibold text-foreground">{formatCurrency(learner.feeInfo?.totalPaid || 0)}</p>
@@ -666,7 +691,9 @@ const LearnerProfile = () => {
                   </div>
                   <div className="p-3 rounded-lg border bg-muted/30">
                     <p className="text-xs text-muted-foreground">Outstanding</p>
-                    <p className="text-sm font-semibold text-foreground">{formatCurrency(learner.feeInfo?.totalBalance || 0)}</p>
+                    <p className={`text-sm font-semibold ${(learner.feeInfo?.totalBalance || 0) > 0 ? 'text-destructive' : 'text-foreground'}`}>
+                      {formatCurrency(learner.feeInfo?.totalBalance || 0)}
+                    </p>
                   </div>
                 </div>
 
