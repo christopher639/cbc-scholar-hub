@@ -247,6 +247,8 @@ serve(async (req) => {
 
     // Send email if available AND method allows email
     const shouldSendEmail = twoFactorMethod === 'email' || twoFactorMethod === 'both';
+    let emailFailedDueToResendLimit = false;
+    
     if (userEmail && shouldSendEmail) {
       const resendApiKey = Deno.env.get("RESEND_API_KEY");
       if (resendApiKey) {
@@ -291,9 +293,57 @@ serve(async (req) => {
             console.log("Email sent successfully:", emailResponse);
           } else {
             console.error("Email sending failed:", emailResponse.error);
+            // Check if it's Resend domain verification issue
+            if (emailResponse.error?.message?.includes("verify a domain") || 
+                emailResponse.error?.message?.includes("testing emails")) {
+              emailFailedDueToResendLimit = true;
+              console.log("Resend domain not verified - cannot send to external emails");
+            }
           }
-        } catch (emailError) {
+        } catch (emailError: unknown) {
           console.error("Email error:", emailError);
+          // Check if error message indicates Resend limitation
+          const errorMsg = emailError instanceof Error ? emailError.message : String(emailError);
+          if (errorMsg.includes("verify a domain") || errorMsg.includes("testing emails")) {
+            emailFailedDueToResendLimit = true;
+          }
+        }
+      }
+    }
+    
+    // If email failed due to Resend limit and SMS wasn't tried, try SMS as fallback
+    if (emailFailedDueToResendLimit && !smsSent && userPhone) {
+      const apiKey = Deno.env.get("TEXT_SMS_API_KEY");
+      if (apiKey) {
+        formattedPhone = formatPhoneNumber(userPhone);
+        const message = `Your ${schoolName} ${messageType} OTP is: ${otp}. Valid for 5 minutes. Do not share this code.`;
+
+        const smsPayload = {
+          apikey: apiKey,
+          partnerID: 15265,
+          message: message,
+          shortcode: "TextSMS",
+          mobile: formattedPhone,
+        };
+
+        console.log("Email failed, falling back to SMS for:", formattedPhone.slice(-4));
+
+        try {
+          const smsResponse = await fetch("https://sms.textsms.co.ke/api/services/sendsms/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(smsPayload),
+          });
+
+          const smsResult = await smsResponse.json();
+          console.log("Fallback SMS API response:", smsResult);
+
+          if (smsResult["response-code"] === 200 || smsResult.responses?.[0]?.["response-code"] === 200) {
+            smsSent = true;
+            deliveryMethods.push("sms");
+          }
+        } catch (smsError) {
+          console.error("Fallback SMS error:", smsError);
         }
       }
     }
@@ -326,12 +376,17 @@ serve(async (req) => {
       );
     }
 
-    // CRITICAL: If OTP failed to send to ANY channel, return failure to block login
+    // CRITICAL: If OTP failed to send to ANY channel, return failure with specific message
+    const failureMessage = emailFailedDueToResendLimit 
+      ? "Email service not configured for external recipients. Please contact admin to verify email domain in Resend, or add a phone number to receive SMS."
+      : "Failed to send OTP. Unable to verify your identity. Please contact admin or try again later.";
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
         otpFailed: true,
-        message: "Failed to send OTP. Unable to verify your identity. Please contact admin or try again later." 
+        emailDomainNotVerified: emailFailedDueToResendLimit,
+        message: failureMessage 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
