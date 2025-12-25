@@ -57,10 +57,10 @@ const fetchLearnerDetail = async (learnerId: string) => {
     .eq("learner_id", learnerId)
     .order("created_at", { ascending: false });
 
-  // Get ALL invoices for this learner (cumulative across all terms)
+  // Get ALL invoices for this learner (cumulative across all terms) including discount info
   const { data: allInvoices } = await supabase
     .from("student_invoices")
-    .select("total_amount, amount_paid, balance_due, status, academic_year, term")
+    .select("id, invoice_number, total_amount, amount_paid, balance_due, status, academic_year, term, discount_amount, discount_reason")
     .eq("learner_id", learnerId)
     .neq("status", "cancelled")
     .order("created_at", { ascending: true });
@@ -85,15 +85,17 @@ const fetchLearnerDetail = async (learnerId: string) => {
     .eq("learner_id", learnerId)
     .order("payment_date", { ascending: false });
 
-  // Calculate cumulative totals
+  // Calculate cumulative totals including discounts
   const totalAccumulatedFees = allInvoices?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+  const totalDiscounts = allInvoices?.reduce((sum, inv) => sum + Number(inv.discount_amount || 0), 0) || 0;
   
   // Calculate total paid from BOTH fee_transactions and fee_payments
   const totalFromTransactions = transactions?.reduce((sum, t) => sum + Number(t.amount_paid), 0) || 0;
   const totalFromFeePayments = feePayments?.reduce((sum, p) => sum + Number(p.amount_paid), 0) || 0;
   const totalPaid = totalFromTransactions + totalFromFeePayments;
   
-  const totalBalance = totalAccumulatedFees - totalPaid;
+  // Balance = Total fees - Discounts - Paid
+  const totalBalance = totalAccumulatedFees - totalDiscounts - totalPaid;
 
   // Get current term invoice
   const currentTermInvoice = allInvoices?.find(
@@ -128,6 +130,7 @@ const fetchLearnerDetail = async (learnerId: string) => {
     feeInfo: {
       // Cumulative totals
       totalAccumulatedFees,
+      totalDiscounts,
       totalPaid,
       totalBalance,
       // Current term
@@ -138,6 +141,13 @@ const fetchLearnerDetail = async (learnerId: string) => {
       allInvoices: allInvoices || [],
       transactions: transactions || [],
       feePayments: feePayments || [],
+      // Discount details for display
+      discountDetails: allInvoices?.filter(inv => Number(inv.discount_amount || 0) > 0).map(inv => ({
+        amount: Number(inv.discount_amount),
+        reason: inv.discount_reason,
+        term: inv.term,
+        year: inv.academic_year,
+      })) || [],
     },
   };
 };
