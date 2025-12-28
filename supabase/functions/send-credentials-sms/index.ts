@@ -19,6 +19,117 @@ const formatPhoneNumber = (phone: string): string => {
   return cleaned;
 };
 
+interface CredentialEmailParams {
+  schoolName: string;
+  recipientName: string;
+  title: string;
+  introText: string;
+  details?: { label: string; value: string }[];
+  credentials: { label: string; value: string }[];
+  loginUrl: string;
+  footerText: string;
+}
+
+const generateCredentialEmailTemplate = (params: CredentialEmailParams): string => {
+  const { schoolName, recipientName, title, introText, details, credentials, loginUrl, footerText } = params;
+  
+  const detailsHtml = details && details.length > 0 ? `
+    <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 20px; margin: 20px 0;">
+      <h3 style="margin: 0 0 12px 0; color: #1e293b; font-size: 16px; font-weight: 600;">Your Details</h3>
+      ${details.map(d => `<p style="margin: 4px 0; color: #475569;"><strong>${d.label}:</strong> ${d.value}</p>`).join('')}
+    </div>
+  ` : '';
+
+  const credentialsHtml = credentials.map(c => `
+    <tr>
+      <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 500;">${c.label}</td>
+      <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-family: 'Courier New', monospace; font-weight: 600;">${c.value}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title}</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9;">
+      <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+              <!-- Header -->
+              <tr>
+                <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 32px 40px; text-align: center;">
+                  <div style="width: 70px; height: 70px; background-color: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-size: 28px; font-weight: bold;">${schoolName.charAt(0)}</span>
+                  </div>
+                  <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600;">${schoolName}</h1>
+                </td>
+              </tr>
+              
+              <!-- Content -->
+              <tr>
+                <td style="padding: 40px;">
+                  <h2 style="margin: 0 0 8px 0; color: #1e293b; font-size: 24px; font-weight: 600;">
+                    Hello, ${recipientName}! 👋
+                  </h2>
+                  <p style="margin: 0 0 24px 0; color: #475569; font-size: 15px; line-height: 1.6;">
+                    ${introText}
+                  </p>
+                  
+                  ${detailsHtml}
+                  
+                  <!-- Credentials Box -->
+                  <div style="background-color: #fef3c7; border-radius: 12px; padding: 20px; margin: 24px 0; border-left: 4px solid #f59e0b;">
+                    <h3 style="margin: 0 0 16px 0; color: #92400e; font-size: 16px; font-weight: 600;">🔐 Login Credentials</h3>
+                    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                      ${credentialsHtml}
+                    </table>
+                  </div>
+                  
+                  <!-- Login Button -->
+                  <div style="text-align: center; margin: 32px 0;">
+                    <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: #ffffff; text-decoration: none; padding: 16px 48px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);">
+                      Login to Portal
+                    </a>
+                  </div>
+                  
+                  <!-- Important Notice -->
+                  <div style="background-color: #fef2f2; border-radius: 8px; padding: 16px; margin-top: 24px; border-left: 4px solid #ef4444;">
+                    <p style="margin: 0; color: #991b1b; font-size: 14px;">
+                      <strong>⚠️ Important:</strong> ${footerText}
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #f8fafc; padding: 24px 40px; border-top: 1px solid #e2e8f0; text-align: center;">
+                  <p style="margin: 0 0 8px 0; color: #64748b; font-size: 13px;">
+                    This is an official communication from ${schoolName}
+                  </p>
+                  <p style="margin: 0; color: #94a3b8; font-size: 12px;">
+                    If you have any questions, please contact the school administration.
+                  </p>
+                </td>
+              </tr>
+            </table>
+            
+            <p style="margin: 24px 0 0 0; color: #94a3b8; font-size: 11px; text-align: center;">
+              © ${new Date().getFullYear()} ${schoolName}. All rights reserved.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -50,63 +161,64 @@ serve(async (req) => {
     let emailSubject = "";
     let emailHtml = "";
 
+    // Login URL for the school portal
+    const loginUrl = "https://samge.sc.ke";
+
     if (type === "learner") {
       // Credentials for learner (sent to parent)
-      smsMessage = `Welcome to ${schoolName}! Your child ${credentials.learnerName} has been enrolled. Login: Username: ${credentials.admissionNumber}, Password: ${credentials.birthCertificate || "Contact admin"}. Portal: ${credentials.portalUrl}. Please change password on first login.`;
+      smsMessage = `Welcome to ${schoolName}! Your child ${credentials.learnerName} has been enrolled. Login: Username: ${credentials.admissionNumber}, Password: ${credentials.birthCertificate || "Contact admin"}. Portal: ${loginUrl}. Please change password on first login.`;
       emailSubject = `${schoolName} - Learner Portal Credentials`;
-      emailHtml = `
-        <h2>Welcome to ${schoolName}!</h2>
-        <p>Your child <strong>${credentials.learnerName}</strong> has been successfully enrolled.</p>
-        <h3>Login Credentials:</h3>
-        <ul>
-          <li><strong>Username:</strong> ${credentials.admissionNumber}</li>
-          <li><strong>Password:</strong> ${credentials.birthCertificate || "Contact admin"}</li>
-        </ul>
-        <p>Portal URL: <a href="${credentials.portalUrl}">${credentials.portalUrl}</a></p>
-        <p><strong>Important:</strong> Please change the password on first login for security.</p>
-        <p>Best regards,<br>${schoolName}</p>
-      `;
+      emailHtml = generateCredentialEmailTemplate({
+        schoolName,
+        recipientName: credentials.parentName || "Parent/Guardian",
+        title: "Learner Portal Credentials",
+        introText: `Your child <strong>${credentials.learnerName}</strong> has been successfully enrolled at ${schoolName}.`,
+        credentials: [
+          { label: "Username", value: credentials.admissionNumber },
+          { label: "Password", value: credentials.birthCertificate || "Contact admin" },
+        ],
+        loginUrl,
+        footerText: "Please change the password on first login for security.",
+      });
     } else if (type === "teacher") {
       // Credentials for teacher
-      smsMessage = `Welcome to ${schoolName}! Dear ${credentials.name}, your teacher account is ready. Employee No: ${credentials.employeeNumber}. Login: Username (TSC): ${credentials.tscNumber}, Password (ID): ${credentials.idNumber}. Portal: ${credentials.portalUrl}. IMPORTANT: Change your password on first login.`;
+      smsMessage = `Welcome to ${schoolName}! Dear ${credentials.name}, your teacher account is ready. Employee No: ${credentials.employeeNumber}. Login: Username (TSC): ${credentials.tscNumber}, Password (ID): ${credentials.idNumber}. Portal: ${loginUrl}. IMPORTANT: Change your password on first login.`;
       emailSubject = `${schoolName} - Teacher Portal Credentials`;
-      emailHtml = `
-        <h2>Welcome to ${schoolName}!</h2>
-        <p>Dear <strong>${credentials.name}</strong>, your teacher account has been created successfully.</p>
-        <h3>Your Details:</h3>
-        <ul>
-          <li><strong>Employee Number:</strong> ${credentials.employeeNumber}</li>
-        </ul>
-        <h3>Login Credentials:</h3>
-        <ul>
-          <li><strong>Username (TSC Number):</strong> ${credentials.tscNumber}</li>
-          <li><strong>Password (ID Number):</strong> ${credentials.idNumber}</li>
-        </ul>
-        <p>Portal URL: <a href="${credentials.portalUrl}">${credentials.portalUrl}</a></p>
-        <p><strong>IMPORTANT:</strong> For security reasons, please change your password immediately after your first login.</p>
-        <p>Best regards,<br>${schoolName}</p>
-      `;
+      emailHtml = generateCredentialEmailTemplate({
+        schoolName,
+        recipientName: credentials.name,
+        title: "Teacher Portal Credentials",
+        introText: `Your teacher account has been created successfully at ${schoolName}.`,
+        details: [
+          { label: "Employee Number", value: credentials.employeeNumber },
+        ],
+        credentials: [
+          { label: "Username (TSC Number)", value: credentials.tscNumber },
+          { label: "Password (ID Number)", value: credentials.idNumber },
+        ],
+        loginUrl,
+        footerText: "For security reasons, please change your password immediately after your first login.",
+      });
     } else if (type === "staff") {
       // Credentials for non-teaching staff
-      smsMessage = `Welcome to ${schoolName}! Dear ${credentials.name}, your staff account is ready. Employee No: ${credentials.employeeNumber}. Login: Username: ${credentials.employeeNumber}, Password (ID): ${credentials.idNumber}. Portal: ${credentials.portalUrl}. IMPORTANT: Change your password on first login.`;
+      smsMessage = `Welcome to ${schoolName}! Dear ${credentials.name}, your staff account is ready. Employee No: ${credentials.employeeNumber}. Login: Username: ${credentials.employeeNumber}, Password (ID): ${credentials.idNumber}. Portal: ${loginUrl}. IMPORTANT: Change your password on first login.`;
       emailSubject = `${schoolName} - Staff Portal Credentials`;
-      emailHtml = `
-        <h2>Welcome to ${schoolName}!</h2>
-        <p>Dear <strong>${credentials.name}</strong>, your staff account has been created successfully.</p>
-        <h3>Your Details:</h3>
-        <ul>
-          <li><strong>Employee Number:</strong> ${credentials.employeeNumber}</li>
-          <li><strong>Position:</strong> ${credentials.jobTitle}</li>
-        </ul>
-        <h3>Login Credentials:</h3>
-        <ul>
-          <li><strong>Username (Employee Number):</strong> ${credentials.employeeNumber}</li>
-          <li><strong>Password (ID Number):</strong> ${credentials.idNumber}</li>
-        </ul>
-        <p>Portal URL: <a href="${credentials.portalUrl}">${credentials.portalUrl}</a></p>
-        <p><strong>IMPORTANT:</strong> For security reasons, please change your password immediately after your first login.</p>
-        <p>Best regards,<br>${schoolName}</p>
-      `;
+      emailHtml = generateCredentialEmailTemplate({
+        schoolName,
+        recipientName: credentials.name,
+        title: "Staff Portal Credentials",
+        introText: `Your staff account has been created successfully at ${schoolName}.`,
+        details: [
+          { label: "Employee Number", value: credentials.employeeNumber },
+          { label: "Position", value: credentials.jobTitle },
+        ],
+        credentials: [
+          { label: "Username (Employee Number)", value: credentials.employeeNumber },
+          { label: "Password (ID Number)", value: credentials.idNumber },
+        ],
+        loginUrl,
+        footerText: "For security reasons, please change your password immediately after your first login.",
+      });
     } else if (type === "user") {
       // Credentials for admin-created users
       const roleLabel = credentials.role === "admin" ? "Administrator" : 
@@ -115,24 +227,23 @@ serve(async (req) => {
                         credentials.role === "parent" ? "Parent" :
                         credentials.role === "learner" ? "Learner" : "User";
       
-      smsMessage = `Welcome to ${schoolName}! Dear ${credentials.name}, your ${roleLabel} account is ready. Login: Email: ${credentials.email}, Password: ${credentials.password}. Portal: ${credentials.portalUrl}. IMPORTANT: Change your password on first login.`;
+      smsMessage = `Welcome to ${schoolName}! Dear ${credentials.name}, your ${roleLabel} account is ready. Login: Email: ${credentials.email}, Password: ${credentials.password}. Portal: ${loginUrl}. IMPORTANT: Change your password on first login.`;
       emailSubject = `${schoolName} - Your Account Credentials`;
-      emailHtml = `
-        <h2>Welcome to ${schoolName}!</h2>
-        <p>Dear <strong>${credentials.name}</strong>, your account has been created successfully.</p>
-        <h3>Account Details:</h3>
-        <ul>
-          <li><strong>Role:</strong> ${roleLabel}</li>
-        </ul>
-        <h3>Login Credentials:</h3>
-        <ul>
-          <li><strong>Email:</strong> ${credentials.email}</li>
-          <li><strong>Password:</strong> ${credentials.password}</li>
-        </ul>
-        <p>Portal URL: <a href="${credentials.portalUrl}">${credentials.portalUrl}</a></p>
-        <p><strong>IMPORTANT:</strong> For security reasons, please change your password immediately after your first login.</p>
-        <p>Best regards,<br>${schoolName}</p>
-      `;
+      emailHtml = generateCredentialEmailTemplate({
+        schoolName,
+        recipientName: credentials.name,
+        title: "Your Account Credentials",
+        introText: `Your ${roleLabel} account has been created successfully at ${schoolName}.`,
+        details: [
+          { label: "Role", value: roleLabel },
+        ],
+        credentials: [
+          { label: "Email", value: credentials.email },
+          { label: "Password", value: credentials.password },
+        ],
+        loginUrl,
+        footerText: "For security reasons, please change your password immediately after your first login.",
+      });
     } else {
       return new Response(
         JSON.stringify({ success: false, message: "Invalid type specified" }),
