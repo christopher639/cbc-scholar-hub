@@ -194,7 +194,6 @@ serve(async (req) => {
     const { data: school } = await supabase.from("school_info").select("school_name, two_factor_method, email").single();
     const schoolName = school?.school_name || "School";
     const twoFactorMethod = school?.two_factor_method || "both"; // Default to 'both' if not set
-    const schoolEmail = school?.email;
     const messageType = is2FAMode ? "login verification" : "password reset";
 
     console.log("2FA method configured:", twoFactorMethod);
@@ -256,15 +255,9 @@ serve(async (req) => {
         console.log("Sending OTP via email to:", userEmail);
 
         try {
-          // Determine from address - use verified school domain email or default
-          const isVerifiedDomain = schoolEmail && 
-            !schoolEmail.includes("gmail.com") && 
-            !schoolEmail.includes("yahoo.com") && 
-            !schoolEmail.includes("hotmail.com") &&
-            !schoolEmail.includes("outlook.com");
-          const fromAddress = isVerifiedDomain 
-            ? `${schoolName} <noreply@${schoolEmail.split('@')[1]}>`
-            : `${schoolName} <onboarding@resend.dev>`;
+          // Use verified domain email - same as bulk emails (noreply@samge.sc.ke)
+          // This domain is verified in Resend and works for sending to all recipients
+          const fromAddress = `${schoolName} <noreply@samge.sc.ke>`;
           
           console.log("Using from address:", fromAddress);
 
