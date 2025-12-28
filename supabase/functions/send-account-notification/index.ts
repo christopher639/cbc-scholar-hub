@@ -162,21 +162,11 @@ serve(async (req) => {
         console.log("Sending notification email to:", email);
 
         try {
-          // Get school email for verified domain
-          const { data: schoolDetails } = await supabase.from("school_info").select("email").single();
-          const schoolFromEmail = schoolDetails?.email;
-          
-          // Determine from address - use verified school domain email or default
-          const isVerifiedDomain = schoolFromEmail && 
-            !schoolFromEmail.includes("gmail.com") && 
-            !schoolFromEmail.includes("yahoo.com") && 
-            !schoolFromEmail.includes("hotmail.com") &&
-            !schoolFromEmail.includes("outlook.com");
-          const fromAddress = isVerifiedDomain 
-            ? `${schoolName} <noreply@${schoolFromEmail.split('@')[1]}>`
-            : `${schoolName} <onboarding@resend.dev>`;
+          // Use verified domain email - same as bulk emails and OTP (noreply@samge.sc.ke)
+          // This domain is verified in Resend and works for sending to all recipients
+          const fromAddress = `${schoolName} <noreply@samge.sc.ke>`;
 
-          console.log("Using from address:", fromAddress);
+          console.log("Sending account notification email to:", email, "from:", fromAddress);
 
           const emailResponse = await resend.emails.send({
             from: fromAddress,

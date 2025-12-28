@@ -179,17 +179,11 @@ serve(async (req) => {
       try {
         const resend = new Resend(resendApiKey);
         
-        // Determine from address - use verified school domain email or default
-        const isVerifiedDomain = schoolEmail && 
-          !schoolEmail.includes("gmail.com") && 
-          !schoolEmail.includes("yahoo.com") && 
-          !schoolEmail.includes("hotmail.com") &&
-          !schoolEmail.includes("outlook.com");
-        const fromAddress = isVerifiedDomain 
-          ? `${schoolName} <noreply@${schoolEmail.split('@')[1]}>`
-          : `${schoolName} <onboarding@resend.dev>`;
+        // Use verified domain email - same as bulk emails and OTP (noreply@samge.sc.ke)
+        // This domain is verified in Resend and works for sending to all recipients
+        const fromAddress = `${schoolName} <noreply@samge.sc.ke>`;
         
-        console.log("Sending email to:", email, "from:", fromAddress);
+        console.log("Sending credentials email to:", email, "from:", fromAddress);
         
         const emailResponse = await resend.emails.send({
           from: fromAddress,
