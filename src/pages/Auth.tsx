@@ -345,16 +345,29 @@ export default function Auth() {
         } else if (result.role === "teacher") {
           navigate("/teacher-portal", { replace: true });
         } else if (result.role === "admin" || result.role === "finance" || result.role === "visitor") {
-          // Prefetch dashboard data before navigating
+          // Prefetch all dashboard data before navigating
           setIsPrefetching(true);
           try {
-            await queryClient.prefetchQuery({
-              queryKey: ['dashboardStats', undefined, undefined],
-              staleTime: 5 * 60 * 1000,
-            });
+            // Prefetch multiple queries in parallel
+            await Promise.all([
+              queryClient.prefetchQuery({
+                queryKey: ['dashboardStats', undefined, undefined],
+                staleTime: 5 * 60 * 1000,
+              }),
+              queryClient.prefetchQuery({
+                queryKey: ['grades'],
+                staleTime: 5 * 60 * 1000,
+              }),
+              queryClient.prefetchQuery({
+                queryKey: ['schoolInfo'],
+                staleTime: 5 * 60 * 1000,
+              }),
+            ]);
           } catch (error) {
             console.error("Prefetch error:", error);
           }
+          // Small delay to ensure data is ready
+          await new Promise(resolve => setTimeout(resolve, 100));
           setIsPrefetching(false);
           navigate("/dashboard", { replace: true });
         } else {

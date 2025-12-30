@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Phone, Mail, Loader2, ArrowLeft, School, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface LocationState {
   username: string;
@@ -28,6 +29,9 @@ export default function OTPVerification() {
   const { login, logout } = useAuth();
   const { schoolInfo } = useSchoolInfo();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const [isPrefetching, setIsPrefetching] = useState(false);
 
   const [otpInput, setOtpInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,6 +123,30 @@ export default function OTPVerification() {
     }
   };
 
+  const prefetchAdminData = async () => {
+    setIsPrefetching(true);
+    try {
+      await Promise.all([
+        queryClient.prefetchQuery({
+          queryKey: ['dashboardStats', undefined, undefined],
+          staleTime: 5 * 60 * 1000,
+        }),
+        queryClient.prefetchQuery({
+          queryKey: ['grades'],
+          staleTime: 5 * 60 * 1000,
+        }),
+        queryClient.prefetchQuery({
+          queryKey: ['schoolInfo'],
+          staleTime: 5 * 60 * 1000,
+        }),
+      ]);
+    } catch (error) {
+      console.error("Prefetch error:", error);
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+    setIsPrefetching(false);
+  };
+
   const completeLogin = async () => {
     if (!pendingData) return;
 
@@ -129,6 +157,8 @@ export default function OTPVerification() {
       } else if (pendingData.role === "teacher") {
         navigate("/teacher-portal", { replace: true });
       } else {
+        // Prefetch admin data before redirecting
+        await prefetchAdminData();
         navigate("/dashboard", { replace: true });
       }
     } else {
@@ -141,6 +171,8 @@ export default function OTPVerification() {
         } else if (result.role === "teacher") {
           navigate("/teacher-portal", { replace: true });
         } else {
+          // Prefetch admin data before redirecting
+          await prefetchAdminData();
           navigate("/dashboard", { replace: true });
         }
       } else {
@@ -173,10 +205,13 @@ export default function OTPVerification() {
     navigate("/auth", { replace: true });
   };
 
-  if (!pendingData) {
+  if (!pendingData || isPrefetching) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        {isPrefetching && (
+          <p className="text-sm text-muted-foreground">Loading your dashboard...</p>
+        )}
       </div>
     );
   }
