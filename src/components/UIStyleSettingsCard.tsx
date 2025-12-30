@@ -23,6 +23,14 @@ const SIDEBAR_STYLES = [
   { id: "gradient-forest", name: "Forest", description: "Nature green", preview: "bg-gradient-to-b from-emerald-600 via-green-600 to-teal-700" },
   { id: "gradient-purple", name: "Purple", description: "Rich purple", preview: "bg-gradient-to-b from-purple-600 via-violet-600 to-indigo-700" },
   { id: "gradient-midnight", name: "Midnight", description: "Deep blue", preview: "bg-gradient-to-b from-indigo-900 via-blue-900 to-slate-900" },
+  { id: "gradient-coral", name: "Coral", description: "Warm coral", preview: "bg-gradient-to-b from-orange-400 via-red-400 to-pink-500" },
+  { id: "gradient-rose", name: "Rose", description: "Soft rose", preview: "bg-gradient-to-b from-rose-500 via-pink-500 to-fuchsia-500" },
+  { id: "gradient-amber", name: "Amber", description: "Golden amber", preview: "bg-gradient-to-b from-amber-500 via-yellow-500 to-orange-400" },
+  { id: "gradient-teal", name: "Teal", description: "Deep teal", preview: "bg-gradient-to-b from-teal-600 via-cyan-600 to-emerald-600" },
+  { id: "gradient-crimson", name: "Crimson", description: "Bold red", preview: "bg-gradient-to-b from-red-600 via-rose-600 to-pink-600" },
+  { id: "gradient-sky", name: "Sky", description: "Light blue", preview: "bg-gradient-to-b from-sky-500 via-blue-500 to-indigo-500" },
+  { id: "gradient-lime", name: "Lime", description: "Fresh lime", preview: "bg-gradient-to-b from-lime-500 via-green-500 to-emerald-500" },
+  { id: "gradient-fuchsia", name: "Fuchsia", description: "Vibrant pink", preview: "bg-gradient-to-b from-fuchsia-600 via-pink-600 to-rose-600" },
 ];
 
 const CARD_STYLES = [

@@ -263,7 +263,13 @@ const SIDEBAR_STYLE_CLASSES: Record<string, string> = {
   "gradient-crimson": "bg-gradient-to-b from-red-600 via-rose-600 to-red-700 text-white",
   "gradient-mint": "bg-gradient-to-b from-teal-400 via-emerald-400 to-green-500 text-white",
   "gradient-slate": "bg-gradient-to-b from-slate-600 via-slate-500 to-slate-700 text-white",
-  "gradient-coral": "bg-gradient-to-b from-orange-400 via-coral-500 to-pink-500 text-white",
+  "gradient-coral": "bg-gradient-to-b from-orange-400 via-red-400 to-pink-500 text-white",
+  "gradient-rose": "bg-gradient-to-b from-rose-500 via-pink-500 to-fuchsia-500 text-white",
+  "gradient-amber": "bg-gradient-to-b from-amber-500 via-yellow-500 to-orange-400 text-white",
+  "gradient-teal": "bg-gradient-to-b from-teal-600 via-cyan-600 to-emerald-600 text-white",
+  "gradient-sky": "bg-gradient-to-b from-sky-500 via-blue-500 to-indigo-500 text-white",
+  "gradient-lime": "bg-gradient-to-b from-lime-500 via-green-500 to-emerald-500 text-white",
+  "gradient-fuchsia": "bg-gradient-to-b from-fuchsia-600 via-pink-600 to-rose-600 text-white",
 };
 
 const HERO_GRADIENT_CLASSES: Record<string, string> = {
