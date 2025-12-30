@@ -316,14 +316,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/users"
-        element={
-          <ProtectedRoute>
-            <Users />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/users" element={<Users />} />
       <Route
         path="/academic-years"
         element={
