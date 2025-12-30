@@ -419,7 +419,50 @@ export function useUIStyles() {
     }
   };
 
+  // Map page background to matching sidebar style for uniform look when theme is default
+  const PAGE_BG_TO_SIDEBAR_MAP: Record<string, string> = {
+    "default": "default",
+    "subtle-gradient": "default",
+    // Warm Colors -> Sunset/Coral
+    "warm-gradient": "gradient-sunset",
+    "peach-cream": "gradient-coral",
+    "sunset-glow": "gradient-sunset",
+    "coral-blush": "gradient-coral",
+    // Cool Colors -> Ocean/Arctic
+    "cool-gradient": "gradient-ocean",
+    "ocean-mist": "gradient-ocean",
+    "arctic-frost": "gradient-arctic",
+    "sky-blue": "gradient-arctic",
+    // Nature Colors -> Forest/Mint
+    "nature-gradient": "gradient-forest",
+    "forest-mint": "gradient-forest",
+    "spring-meadow": "gradient-mint",
+    "sage-mist": "gradient-mint",
+    // Purple & Violet -> Purple/Lavender
+    "purple-gradient": "gradient-purple",
+    "lavender-dreams": "gradient-lavender",
+    "twilight-purple": "gradient-purple",
+    "grape-fizz": "gradient-lavender",
+    // Neutral -> Slate/Dark
+    "pearl-white": "gradient-slate",
+    "charcoal-silk": "gradient-dark",
+    "cream-linen": "gradient-coffee",
+    // Patterns -> Default
+    "dotted-pattern": "default",
+    "grid-pattern": "default",
+    "diamond-pattern": "default",
+  };
+
   const getSidebarClass = () => {
+    // When theme is default AND sidebar is default, sync with page background for uniform look
+    if ((!styles.appTheme || styles.appTheme === "default") && 
+        (!styles.sidebarStyle || styles.sidebarStyle === "default") &&
+        styles.pageBackground && styles.pageBackground !== "default") {
+      const mappedSidebar = PAGE_BG_TO_SIDEBAR_MAP[styles.pageBackground];
+      if (mappedSidebar && mappedSidebar !== "default") {
+        return SIDEBAR_STYLE_CLASSES[mappedSidebar] || SIDEBAR_STYLE_CLASSES["default"];
+      }
+    }
     // Always use the saved sidebar style (allows customization per theme)
     return SIDEBAR_STYLE_CLASSES[styles.sidebarStyle] || SIDEBAR_STYLE_CLASSES["default"];
   };

@@ -169,6 +169,7 @@ export function ThemeSettingsCard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -264,19 +265,28 @@ export function ThemeSettingsCard() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Palette className="h-5 w-5" />
-          Application Theme
-        </CardTitle>
-        <CardDescription>
-          Choose a theme that transforms the entire application - sidebar, topbar, buttons, dialogs, and pages
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Theme Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                <div>
+                  <CardTitle className="text-base">Application Theme</CardTitle>
+                  <CardDescription className="text-sm">
+                    {isExpanded ? "Choose a theme that transforms the entire application" : `Current: ${APP_THEMES[settings.app_theme as keyof typeof APP_THEMES]?.name || "Default"}`}
+                  </CardDescription>
+                </div>
+              </div>
+              {isExpanded ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
+            </div>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="space-y-6">
+            {/* Theme Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Object.entries(APP_THEMES).map(([id, theme]) => {
             const preview = THEME_PREVIEWS[id] || THEME_PREVIEWS.default;
             return (
@@ -431,6 +441,8 @@ export function ThemeSettingsCard() {
           </Button>
         </div>
       </CardContent>
-    </Card>
+    </CollapsibleContent>
+  </Card>
+</Collapsible>
   );
 }
