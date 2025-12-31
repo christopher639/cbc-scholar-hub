@@ -50,8 +50,11 @@ function TeacherSidebar({ schoolInfo, onLogout }: { schoolInfo: any; onLogout: (
   const navigate = useNavigate();
   const { state, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
-  const { getSidebarClass, getSidebarStyle, isGradientSidebar } = useUIStyles();
+  const { getSidebarClass, getSidebarStyle, getSidebarTextType, isGradientSidebar } = useUIStyles();
   const isGradient = isGradientSidebar();
+  const sidebarTextType = getSidebarTextType();
+  // Use light text for dark backgrounds, dark text for light backgrounds
+  const useLightText = isGradient && sidebarTextType !== 'dark';
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -68,19 +71,19 @@ function TeacherSidebar({ schoolInfo, onLogout }: { schoolInfo: any; onLogout: (
       {/* Decorative bubbles */}
       <div className={cn(
         "absolute inset-0 pointer-events-none opacity-10",
-        !isGradient && "opacity-20"
+        !useLightText && "hidden"
       )}>
         <div className={cn(
           "absolute top-0 left-0 w-20 h-20 rounded-full -translate-x-1/2 -translate-y-1/2",
-          isGradient ? "bg-white" : "bg-primary"
+          useLightText ? "bg-white" : "bg-primary"
         )} />
         <div className={cn(
           "absolute bottom-0 right-0 w-32 h-32 rounded-full translate-x-1/3 translate-y-1/3",
-          isGradient ? "bg-white" : "bg-primary"
+          useLightText ? "bg-white" : "bg-primary"
         )} />
         <div className={cn(
           "absolute top-1/3 right-0 w-16 h-16 rounded-full translate-x-1/2",
-          isGradient ? "bg-white" : "bg-primary"
+          useLightText ? "bg-white" : "bg-primary"
         )} />
       </div>
       
@@ -90,7 +93,7 @@ function TeacherSidebar({ schoolInfo, onLogout }: { schoolInfo: any; onLogout: (
             <div
               className={cn(
                 "relative -mt-1 h-10 w-10 rounded-full overflow-hidden flex-shrink-0 bg-background/20",
-                isGradient && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
+                useLightText && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
               )}
             >
               <img
@@ -102,19 +105,22 @@ function TeacherSidebar({ schoolInfo, onLogout }: { schoolInfo: any; onLogout: (
           ) : (
             <div className={cn(
               "h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0",
-              isGradient ? "bg-white/20" : "bg-primary/10"
+              useLightText ? "bg-white/20" : isGradient ? "bg-black/10" : "bg-primary/10"
             )}>
-              <GraduationCap className={cn("h-4 w-4", isGradient ? "text-white" : "text-primary-foreground")} />
+              <GraduationCap className={cn("h-4 w-4", useLightText ? "text-white" : isGradient ? "text-slate-900" : "text-primary-foreground")} />
             </div>
           )}
           {!collapsed && (
             <span className={cn(
               "font-semibold text-sm truncate",
-              isGradient ? "text-white" : "text-sidebar-foreground"
+              useLightText ? "text-white" : isGradient ? "text-slate-900" : "text-sidebar-foreground"
             )}>{schoolInfo?.school_name || "Teacher Portal"}</span>
           )}
         </div>
-        <SidebarTrigger className={cn("ml-auto hidden lg:flex", isGradient && "text-white hover:bg-white/10")}>
+        <SidebarTrigger className={cn(
+          "ml-auto hidden lg:flex", 
+          useLightText ? "text-white hover:bg-white/10" : isGradient ? "text-slate-900 hover:bg-black/10" : ""
+        )}>
           {collapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
         </SidebarTrigger>
       </div>
@@ -132,10 +138,13 @@ function TeacherSidebar({ schoolInfo, onLogout }: { schoolInfo: any; onLogout: (
                           isActive={isActive(item.path)}
                           className={cn(
                             "cursor-pointer",
-                            isGradient && "text-white/90 hover:text-white hover:bg-white/10",
-                            isActive(item.path) && (isGradient 
+                            useLightText && "text-white/90 hover:text-white hover:bg-white/10",
+                            !useLightText && isGradient && "text-slate-900/90 hover:text-slate-900 hover:bg-black/10",
+                            isActive(item.path) && (useLightText 
                               ? "bg-white/20 text-white font-medium" 
-                              : "bg-primary text-primary-foreground")
+                              : isGradient 
+                                ? "bg-black/20 text-slate-900 font-medium"
+                                : "bg-primary text-primary-foreground")
                           )}
                           onClick={() => handleNavigate(item.path)}
                         >
@@ -167,9 +176,11 @@ function TeacherSidebar({ schoolInfo, onLogout }: { schoolInfo: any; onLogout: (
                       <SidebarMenuButton
                         className={cn(
                           "cursor-pointer",
-                          isGradient 
+                          useLightText 
                             ? "text-white/80 hover:bg-white/10 hover:text-white" 
-                            : "text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            : isGradient 
+                              ? "text-slate-900/80 hover:bg-black/10 hover:text-slate-900"
+                              : "text-destructive hover:bg-destructive/10 hover:text-destructive"
                         )}
                         onClick={onLogout}
                       >

@@ -383,6 +383,28 @@ const isHexColor = (value: string): boolean => {
   return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value);
 };
 
+// Helper to calculate luminance and determine if text should be light or dark
+const getContrastTextColor = (hexColor: string): 'light' | 'dark' => {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+  
+  // Convert 3-digit hex to 6-digit
+  const fullHex = hex.length === 3 
+    ? hex.split('').map(c => c + c).join('') 
+    : hex;
+  
+  // Parse RGB values
+  const r = parseInt(fullHex.substring(0, 2), 16);
+  const g = parseInt(fullHex.substring(2, 4), 16);
+  const b = parseInt(fullHex.substring(4, 6), 16);
+  
+  // Calculate relative luminance using sRGB formula
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // Return 'dark' text for light backgrounds, 'light' text for dark backgrounds
+  return luminance > 0.5 ? 'dark' : 'light';
+};
+
 export function useUIStyles() {
   const [styles, setStyles] = useState<UIStyles>(stylesCache || {
     sidebarStyle: "#1e3a5f",
@@ -479,20 +501,33 @@ export function useUIStyles() {
   };
 
   const getSidebarClass = () => {
-    // If sidebar style is a hex color, return empty class (will use inline style)
+    // If sidebar style is a hex color, determine text color based on luminance
     if (isHexColor(styles.sidebarStyle)) {
-      return "text-white";
+      const textColorType = getContrastTextColor(styles.sidebarStyle);
+      return textColorType === 'light' ? "text-white" : "text-slate-900";
     }
     // Legacy preset support
     return SIDEBAR_STYLE_CLASSES[styles.sidebarStyle] || SIDEBAR_STYLE_CLASSES["default"];
   };
 
   const getSidebarStyle = (): React.CSSProperties => {
-    // If sidebar style is a hex color, return inline style
+    // If sidebar style is a hex color, return inline style with text color
     if (isHexColor(styles.sidebarStyle)) {
-      return { backgroundColor: styles.sidebarStyle };
+      const textColorType = getContrastTextColor(styles.sidebarStyle);
+      return { 
+        backgroundColor: styles.sidebarStyle,
+        color: textColorType === 'light' ? '#ffffff' : '#1e293b',
+      };
     }
     return {};
+  };
+
+  // Helper to get if sidebar has light or dark text for custom hex colors
+  const getSidebarTextType = (): 'light' | 'dark' | null => {
+    if (isHexColor(styles.sidebarStyle)) {
+      return getContrastTextColor(styles.sidebarStyle);
+    }
+    return null;
   };
 
   // Map sidebar styles to matching hero gradients
@@ -600,6 +635,7 @@ export function useUIStyles() {
     loading,
     getSidebarClass,
     getSidebarStyle,
+    getSidebarTextType,
     getHeroGradientClass,
     getPageBackgroundClass,
     getPageBackgroundStyle,
