@@ -378,12 +378,17 @@ const BOTTOM_NAV_CLASSES: Record<string, string> = {
 let stylesCache: UIStyles | null = null;
 let stylesCacheLoaded = false;
 
+// Helper to check if a value is a valid hex color
+const isHexColor = (value: string): boolean => {
+  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(value);
+};
+
 export function useUIStyles() {
   const [styles, setStyles] = useState<UIStyles>(stylesCache || {
-    sidebarStyle: "default",
+    sidebarStyle: "#1e3a5f",
     cardStyle: "default",
     heroGradient: "primary",
-    pageBackground: "default",
+    pageBackground: "#f8fafc",
     appTheme: "default",
   });
   const [loading, setLoading] = useState(!stylesCacheLoaded);
@@ -409,10 +414,10 @@ export function useUIStyles() {
       if (error) throw error;
 
       const fetchedStyles: UIStyles = {
-        sidebarStyle: (data as any)?.sidebar_style || "default",
+        sidebarStyle: (data as any)?.sidebar_style || "#1e3a5f",
         cardStyle: (data as any)?.card_style || "default",
         heroGradient: (data as any)?.hero_gradient || "primary",
-        pageBackground: (data as any)?.page_background || "default",
+        pageBackground: (data as any)?.page_background || "#f8fafc",
         appTheme: (data as any)?.app_theme || "default",
       };
 
@@ -474,17 +479,20 @@ export function useUIStyles() {
   };
 
   const getSidebarClass = () => {
-    // When theme is default AND sidebar is default, sync with page background for uniform look
-    if ((!styles.appTheme || styles.appTheme === "default") && 
-        (!styles.sidebarStyle || styles.sidebarStyle === "default") &&
-        styles.pageBackground && styles.pageBackground !== "default") {
-      const mappedSidebar = PAGE_BG_TO_SIDEBAR_MAP[styles.pageBackground];
-      if (mappedSidebar && mappedSidebar !== "default") {
-        return SIDEBAR_STYLE_CLASSES[mappedSidebar] || SIDEBAR_STYLE_CLASSES["default"];
-      }
+    // If sidebar style is a hex color, return empty class (will use inline style)
+    if (isHexColor(styles.sidebarStyle)) {
+      return "text-white";
     }
-    // Always use the saved sidebar style (allows customization per theme)
+    // Legacy preset support
     return SIDEBAR_STYLE_CLASSES[styles.sidebarStyle] || SIDEBAR_STYLE_CLASSES["default"];
+  };
+
+  const getSidebarStyle = (): React.CSSProperties => {
+    // If sidebar style is a hex color, return inline style
+    if (isHexColor(styles.sidebarStyle)) {
+      return { backgroundColor: styles.sidebarStyle };
+    }
+    return {};
   };
 
   // Map sidebar styles to matching hero gradients
@@ -508,6 +516,10 @@ export function useUIStyles() {
   };
 
   const getHeroGradientClass = () => {
+    // If sidebar is a hex color, use primary hero gradient
+    if (isHexColor(styles.sidebarStyle)) {
+      return HERO_GRADIENT_CLASSES[styles.heroGradient] || HERO_GRADIENT_CLASSES["primary"];
+    }
     // If sidebar is customized, use matching hero gradient from sidebar
     if (styles.sidebarStyle && styles.sidebarStyle !== "default") {
       const mappedHero = SIDEBAR_TO_HERO_MAP[styles.sidebarStyle];
@@ -526,11 +538,27 @@ export function useUIStyles() {
   };
 
   const getPageBackgroundClass = () => {
-    // Always use the saved page background (allows customization per theme)
+    // If page background is a hex color, return empty class (will use inline style)
+    if (isHexColor(styles.pageBackground)) {
+      return "";
+    }
+    // Legacy preset support
     return PAGE_BACKGROUND_CLASSES[styles.pageBackground] || PAGE_BACKGROUND_CLASSES["default"];
   };
 
+  const getPageBackgroundStyle = (): React.CSSProperties => {
+    // If page background is a hex color, return inline style
+    if (isHexColor(styles.pageBackground)) {
+      return { backgroundColor: styles.pageBackground };
+    }
+    return {};
+  };
+
   const isGradientSidebar = () => {
+    // Hex colors are treated as solid color sidebars
+    if (isHexColor(styles.sidebarStyle)) {
+      return true;
+    }
     if (styles.appTheme && styles.appTheme !== "default") {
       const theme = APP_THEMES[styles.appTheme as keyof typeof APP_THEMES];
       if (theme) {
@@ -571,8 +599,10 @@ export function useUIStyles() {
     styles,
     loading,
     getSidebarClass,
+    getSidebarStyle,
     getHeroGradientClass,
     getPageBackgroundClass,
+    getPageBackgroundStyle,
     isGradientSidebar,
     getTopbarClass,
     getBottomNavClass,

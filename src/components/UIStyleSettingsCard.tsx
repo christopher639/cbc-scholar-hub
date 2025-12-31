@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, Check, Layout, Layers, Sparkles, Monitor } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Check, Layout, Layers, Sparkles, Monitor, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -13,40 +14,6 @@ interface UIStyleSettings {
   hero_gradient: string;
   page_background: string;
 }
-
-const SIDEBAR_STYLES = [
-  // Basic
-  { id: "default", name: "Default", description: "Clean minimal", preview: "bg-sidebar", category: "basic" },
-  { id: "gradient-primary", name: "Primary", description: "Primary color", preview: "bg-gradient-to-b from-primary/90 via-primary to-primary/80", category: "basic" },
-  { id: "gradient-dark", name: "Dark", description: "Sleek dark", preview: "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900", category: "basic" },
-  { id: "gradient-midnight", name: "Midnight", description: "Deep blue", preview: "bg-gradient-to-b from-indigo-900 via-blue-900 to-slate-900", category: "basic" },
-  // Warm Colors (matching page backgrounds)
-  { id: "gradient-sunset", name: "Sunset", description: "Warm colors", preview: "bg-gradient-to-b from-orange-500 via-rose-500 to-pink-600", category: "warm" },
-  { id: "gradient-coral", name: "Coral", description: "Warm coral", preview: "bg-gradient-to-b from-orange-400 via-red-400 to-pink-500", category: "warm" },
-  { id: "gradient-rose", name: "Rose", description: "Soft rose", preview: "bg-gradient-to-b from-rose-500 via-pink-500 to-fuchsia-500", category: "warm" },
-  { id: "gradient-amber", name: "Amber", description: "Golden amber", preview: "bg-gradient-to-b from-amber-500 via-yellow-500 to-orange-400", category: "warm" },
-  { id: "gradient-crimson", name: "Crimson", description: "Bold red", preview: "bg-gradient-to-b from-red-600 via-rose-600 to-pink-600", category: "warm" },
-  { id: "gradient-peach", name: "Peach", description: "Peach cream", preview: "bg-gradient-to-b from-orange-300 via-rose-300 to-amber-300", category: "warm" },
-  // Cool Colors (matching page backgrounds)
-  { id: "gradient-ocean", name: "Ocean", description: "Blue ocean", preview: "bg-gradient-to-b from-blue-600 via-cyan-600 to-teal-600", category: "cool" },
-  { id: "gradient-sky", name: "Sky", description: "Light blue", preview: "bg-gradient-to-b from-sky-500 via-blue-500 to-indigo-500", category: "cool" },
-  { id: "gradient-teal", name: "Teal", description: "Deep teal", preview: "bg-gradient-to-b from-teal-600 via-cyan-600 to-emerald-600", category: "cool" },
-  { id: "gradient-arctic", name: "Arctic", description: "Arctic frost", preview: "bg-gradient-to-b from-slate-400 via-blue-400 to-cyan-400", category: "cool" },
-  // Nature Colors (matching page backgrounds)
-  { id: "gradient-forest", name: "Forest", description: "Nature green", preview: "bg-gradient-to-b from-emerald-600 via-green-600 to-teal-700", category: "nature" },
-  { id: "gradient-lime", name: "Lime", description: "Fresh lime", preview: "bg-gradient-to-b from-lime-500 via-green-500 to-emerald-500", category: "nature" },
-  { id: "gradient-sage", name: "Sage", description: "Sage mist", preview: "bg-gradient-to-b from-green-500 via-stone-400 to-emerald-500", category: "nature" },
-  { id: "gradient-spring", name: "Spring", description: "Spring meadow", preview: "bg-gradient-to-b from-lime-400 via-green-400 to-emerald-400", category: "nature" },
-  // Purple & Violet (matching page backgrounds)
-  { id: "gradient-purple", name: "Purple", description: "Rich purple", preview: "bg-gradient-to-b from-purple-600 via-violet-600 to-indigo-700", category: "purple" },
-  { id: "gradient-fuchsia", name: "Fuchsia", description: "Vibrant pink", preview: "bg-gradient-to-b from-fuchsia-600 via-pink-600 to-rose-600", category: "purple" },
-  { id: "gradient-lavender", name: "Lavender", description: "Lavender dreams", preview: "bg-gradient-to-b from-purple-400 via-violet-400 to-fuchsia-400", category: "purple" },
-  { id: "gradient-twilight", name: "Twilight", description: "Twilight purple", preview: "bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500", category: "purple" },
-  // Neutral & Elegant (matching page backgrounds)
-  { id: "gradient-pearl", name: "Pearl", description: "Pearl white", preview: "bg-gradient-to-b from-slate-300 via-gray-300 to-zinc-300", category: "neutral" },
-  { id: "gradient-charcoal", name: "Charcoal", description: "Charcoal silk", preview: "bg-gradient-to-b from-zinc-600 via-slate-500 to-neutral-600", category: "neutral" },
-  { id: "gradient-cream", name: "Cream", description: "Cream linen", preview: "bg-gradient-to-b from-amber-200 via-stone-200 to-orange-200", category: "neutral" },
-];
 
 const CARD_STYLES = [
   { id: "default", name: "Default", description: "Standard card", borderClass: "border", shadowClass: "shadow-sm" },
@@ -65,46 +32,17 @@ const HERO_GRADIENTS = [
   { id: "golden", name: "Golden", description: "Warm gold", preview: "bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600" },
 ];
 
-const PAGE_BACKGROUNDS = [
-  // Basic
-  { id: "default", name: "Default", description: "Solid background", preview: "bg-background", category: "basic" },
-  { id: "subtle-gradient", name: "Subtle", description: "Gentle gradient", preview: "bg-gradient-to-br from-background via-background to-muted/50", category: "basic" },
-  // Warm Colors
-  { id: "warm-gradient", name: "Warm", description: "Warm tones", preview: "bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50", category: "warm" },
-  { id: "peach-cream", name: "Peach", description: "Peach cream", preview: "bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50", category: "warm" },
-  { id: "sunset-glow", name: "Sunset", description: "Sunset glow", preview: "bg-gradient-to-br from-rose-100 via-orange-50 to-yellow-50", category: "warm" },
-  { id: "coral-blush", name: "Coral", description: "Coral blush", preview: "bg-gradient-to-br from-red-50 via-pink-50 to-rose-100", category: "warm" },
-  // Cool Colors
-  { id: "cool-gradient", name: "Cool", description: "Cool blues", preview: "bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50", category: "cool" },
-  { id: "ocean-mist", name: "Ocean", description: "Ocean mist", preview: "bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50", category: "cool" },
-  { id: "arctic-frost", name: "Arctic", description: "Arctic frost", preview: "bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50", category: "cool" },
-  { id: "sky-blue", name: "Sky", description: "Sky blue", preview: "bg-gradient-to-br from-sky-50 via-blue-100 to-indigo-50", category: "cool" },
-  // Nature Colors
-  { id: "nature-gradient", name: "Nature", description: "Green tones", preview: "bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50", category: "nature" },
-  { id: "forest-mint", name: "Forest", description: "Forest mint", preview: "bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50", category: "nature" },
-  { id: "spring-meadow", name: "Spring", description: "Spring meadow", preview: "bg-gradient-to-br from-lime-50 via-green-50 to-emerald-50", category: "nature" },
-  { id: "sage-mist", name: "Sage", description: "Sage mist", preview: "bg-gradient-to-br from-green-50 via-stone-50 to-emerald-50", category: "nature" },
-  // Purple & Violet
-  { id: "purple-gradient", name: "Purple", description: "Purple tones", preview: "bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50", category: "purple" },
-  { id: "lavender-dreams", name: "Lavender", description: "Lavender dreams", preview: "bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50", category: "purple" },
-  { id: "twilight-purple", name: "Twilight", description: "Twilight purple", preview: "bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50", category: "purple" },
-  { id: "grape-fizz", name: "Grape", description: "Grape fizz", preview: "bg-gradient-to-br from-violet-100 via-purple-50 to-indigo-100", category: "purple" },
-  // Neutral & Elegant
-  { id: "pearl-white", name: "Pearl", description: "Pearl white", preview: "bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50", category: "neutral" },
-  { id: "charcoal-silk", name: "Charcoal", description: "Charcoal silk", preview: "bg-gradient-to-br from-zinc-100 via-slate-50 to-neutral-100", category: "neutral" },
-  { id: "cream-linen", name: "Cream", description: "Cream linen", preview: "bg-gradient-to-br from-amber-50/80 via-stone-50 to-orange-50/60", category: "neutral" },
-  // Patterns
-  { id: "dotted-pattern", name: "Dotted", description: "Dot pattern", preview: "bg-muted/30", category: "pattern" },
-  { id: "grid-pattern", name: "Grid", description: "Grid lines", preview: "bg-muted/20", category: "pattern" },
-  { id: "diamond-pattern", name: "Diamond", description: "Diamond pattern", preview: "bg-muted/25", category: "pattern" },
-];
+// Validate hex color code
+const isValidHexColor = (color: string): boolean => {
+  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+};
 
 export function UIStyleSettingsCard() {
   const [settings, setSettings] = useState<UIStyleSettings>({
-    sidebar_style: "default",
+    sidebar_style: "#1e3a5f",
     card_style: "default",
     hero_gradient: "primary",
-    page_background: "default"
+    page_background: "#f8fafc"
   });
   const [originalSettings, setOriginalSettings] = useState<UIStyleSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -126,10 +64,10 @@ export function UIStyleSettingsCard() {
       if (error) throw error;
       
       const fetchedSettings = {
-        sidebar_style: (data as any)?.sidebar_style || "default",
+        sidebar_style: (data as any)?.sidebar_style || "#1e3a5f",
         card_style: (data as any)?.card_style || "default",
         hero_gradient: (data as any)?.hero_gradient || "primary",
-        page_background: (data as any)?.page_background || "default"
+        page_background: (data as any)?.page_background || "#f8fafc"
       };
       
       setSettings(fetchedSettings);
@@ -142,6 +80,25 @@ export function UIStyleSettingsCard() {
   };
 
   const handleSave = async () => {
+    // Validate color codes
+    if (!isValidHexColor(settings.sidebar_style)) {
+      toast({
+        title: "Invalid Sidebar Color",
+        description: "Please enter a valid hex color code (e.g., #1e3a5f)",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isValidHexColor(settings.page_background)) {
+      toast({
+        title: "Invalid Page Background Color",
+        description: "Please enter a valid hex color code (e.g., #f8fafc)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -204,99 +161,92 @@ export function UIStyleSettingsCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
-        {/* Sidebar Style */}
+        {/* Sidebar Color */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Layout className="h-4 w-4 text-muted-foreground" />
-            <Label className="text-base font-medium">Sidebar Style</Label>
+            <Label className="text-base font-medium">Sidebar Color</Label>
           </div>
-          {/* Category labels and sidebar styles */}
-          {[
-            { key: "basic", label: "Basic" },
-            { key: "warm", label: "Warm Colors" },
-            { key: "cool", label: "Cool Colors" },
-            { key: "nature", label: "Nature" },
-            { key: "purple", label: "Purple & Violet" },
-            { key: "neutral", label: "Neutral & Elegant" },
-          ].map((category) => {
-            const categoryStyles = SIDEBAR_STYLES.filter(style => style.category === category.key);
-            if (categoryStyles.length === 0) return null;
-            
-            return (
-              <div key={category.key} className="space-y-2">
-                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{category.label}</span>
-                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {categoryStyles.map((style) => (
-                    <button
-                      key={style.id}
-                      onClick={() => setSettings({ ...settings, sidebar_style: style.id })}
-                      className={cn(
-                        "relative flex flex-col items-center p-2 rounded-lg border-2 transition-all hover:scale-[1.02]",
-                        settings.sidebar_style === style.id
-                          ? "border-primary ring-2 ring-primary ring-offset-1 ring-offset-background"
-                          : "border-border hover:border-muted-foreground/50"
-                      )}
-                    >
-                      <div className={cn("w-full h-10 rounded-md mb-1.5 relative overflow-hidden", style.preview)}>
-                        <div className="absolute inset-0 opacity-10">
-                          <div className="absolute top-0 left-0 w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
-                          <div className="absolute bottom-0 right-0 w-4 h-4 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-medium truncate w-full text-center">{style.name}</span>
-                      {settings.sidebar_style === style.id && (
-                        <div className="absolute top-1 right-1 h-3.5 w-3.5 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="h-2 w-2 text-primary-foreground" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer relative overflow-hidden"
+                style={{ backgroundColor: isValidHexColor(settings.sidebar_style) ? settings.sidebar_style : '#1e3a5f' }}
+              >
+                <input
+                  type="color"
+                  value={isValidHexColor(settings.sidebar_style) ? settings.sidebar_style : '#1e3a5f'}
+                  onChange={(e) => setSettings({ ...settings, sidebar_style: e.target.value })}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
               </div>
-            );
-          })}
-          
-          {/* Category labels and backgrounds */}
-          {[
-            { key: "basic", label: "Basic" },
-            { key: "warm", label: "Warm Colors" },
-            { key: "cool", label: "Cool Colors" },
-            { key: "nature", label: "Nature" },
-            { key: "purple", label: "Purple & Violet" },
-            { key: "neutral", label: "Neutral & Elegant" },
-            { key: "pattern", label: "Patterns" },
-          ].map((category) => {
-            const categoryBackgrounds = PAGE_BACKGROUNDS.filter(bg => bg.category === category.key);
-            if (categoryBackgrounds.length === 0) return null;
-            
-            return (
-              <div key={category.key} className="space-y-2">
-                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{category.label}</span>
-                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {categoryBackgrounds.map((bg) => (
-                    <button
-                      key={bg.id}
-                      onClick={() => setSettings({ ...settings, page_background: bg.id })}
-                      className={cn(
-                        "relative flex flex-col items-center p-2 rounded-lg border-2 transition-all hover:scale-[1.02]",
-                        settings.page_background === bg.id
-                          ? "border-primary ring-2 ring-primary ring-offset-1 ring-offset-background"
-                          : "border-border hover:border-muted-foreground/50"
-                      )}
-                    >
-                      <div className={cn("w-full h-10 rounded-md mb-1.5 border border-border/50", bg.preview)} />
-                      <span className="text-[10px] font-medium truncate w-full text-center">{bg.name}</span>
-                      {settings.page_background === bg.id && (
-                        <div className="absolute top-1 right-1 h-3.5 w-3.5 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="h-2 w-2 text-primary-foreground" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex flex-col gap-1">
+                <Input
+                  type="text"
+                  value={settings.sidebar_style}
+                  onChange={(e) => setSettings({ ...settings, sidebar_style: e.target.value })}
+                  placeholder="#1e3a5f"
+                  className={cn(
+                    "w-32 font-mono text-sm",
+                    !isValidHexColor(settings.sidebar_style) && settings.sidebar_style !== "" && "border-destructive"
+                  )}
+                />
+                <span className="text-xs text-muted-foreground">Hex color code</span>
               </div>
-            );
-          })}
+            </div>
+            <div 
+              className="flex-1 h-12 rounded-lg border border-border/50 relative overflow-hidden"
+              style={{ backgroundColor: isValidHexColor(settings.sidebar_style) ? settings.sidebar_style : '#1e3a5f' }}
+            >
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-0 left-0 w-6 h-6 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
+                <div className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
+              </div>
+              <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-medium">Preview</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Page Background Color */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Monitor className="h-4 w-4 text-muted-foreground" />
+            <Label className="text-base font-medium">Page Background Color</Label>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-12 h-12 rounded-lg border-2 border-border shadow-sm cursor-pointer relative overflow-hidden"
+                style={{ backgroundColor: isValidHexColor(settings.page_background) ? settings.page_background : '#f8fafc' }}
+              >
+                <input
+                  type="color"
+                  value={isValidHexColor(settings.page_background) ? settings.page_background : '#f8fafc'}
+                  onChange={(e) => setSettings({ ...settings, page_background: e.target.value })}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Input
+                  type="text"
+                  value={settings.page_background}
+                  onChange={(e) => setSettings({ ...settings, page_background: e.target.value })}
+                  placeholder="#f8fafc"
+                  className={cn(
+                    "w-32 font-mono text-sm",
+                    !isValidHexColor(settings.page_background) && settings.page_background !== "" && "border-destructive"
+                  )}
+                />
+                <span className="text-xs text-muted-foreground">Hex color code</span>
+              </div>
+            </div>
+            <div 
+              className="flex-1 h-12 rounded-lg border border-border/50"
+              style={{ backgroundColor: isValidHexColor(settings.page_background) ? settings.page_background : '#f8fafc' }}
+            >
+              <span className="h-full flex items-center justify-center text-muted-foreground text-xs font-medium">Preview</span>
+            </div>
+          </div>
         </div>
 
         {/* Hero/Profile Gradient */}
@@ -352,7 +302,14 @@ export function UIStyleSettingsCard() {
                     : "border-border hover:border-muted-foreground/50"
                 )}
               >
-                <div className={cn("w-full h-10 rounded-lg mb-2 bg-card", style.borderClass, style.shadowClass)} />
+                <div className={cn(
+                  "w-full h-10 rounded-lg mb-2 bg-card",
+                  style.borderClass,
+                  style.shadowClass
+                )}>
+                  <div className="h-2 w-3/4 bg-muted rounded m-2" />
+                  <div className="h-1.5 w-1/2 bg-muted/60 rounded mx-2" />
+                </div>
                 <span className="text-xs font-medium">{style.name}</span>
                 {settings.card_style === style.id && (
                   <div className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
@@ -364,78 +321,21 @@ export function UIStyleSettingsCard() {
           </div>
         </div>
 
-        {/* Live Preview */}
-        <div className="space-y-3">
-          <Label className="text-base font-medium">Live Preview</Label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl border bg-muted/30">
-            {/* Sidebar Preview */}
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground">Sidebar</span>
-              <div className={cn(
-                "h-28 w-16 rounded-lg relative overflow-hidden",
-                SIDEBAR_STYLES.find(s => s.id === settings.sidebar_style)?.preview || "bg-sidebar"
-              )}>
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-0 w-4 h-4 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
-                  <div className="absolute bottom-0 right-0 w-6 h-6 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
-                </div>
-                <div className="p-2 space-y-1.5">
-                  <div className="h-1.5 w-10 bg-white/30 rounded" />
-                  <div className="h-1.5 w-8 bg-white/20 rounded" />
-                  <div className="h-1.5 w-12 bg-white/20 rounded" />
-                </div>
-              </div>
-            </div>
-
-            {/* Page Preview */}
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground">Page</span>
-              <div className={cn(
-                "h-28 rounded-lg border",
-                PAGE_BACKGROUNDS.find(b => b.id === settings.page_background)?.preview || "bg-background"
-              )}>
-                <div className="p-2">
-                  <div className="h-6 w-full rounded bg-muted/50" />
-                </div>
-              </div>
-            </div>
-
-            {/* Hero Preview */}
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground">Hero</span>
-              <div className={cn(
-                "h-28 rounded-lg relative overflow-hidden",
-                HERO_GRADIENTS.find(g => g.id === settings.hero_gradient)?.preview || "bg-gradient-to-br from-primary/90 via-primary to-primary/80"
-              )}>
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
-                  <div className="absolute bottom-0 right-0 w-10 h-10 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
-                </div>
-                <div className="p-3 flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-full bg-white/30 ring-2 ring-white/30" />
-                  <div className="space-y-1">
-                    <div className="h-2 w-16 bg-white/40 rounded" />
-                    <div className="h-1.5 w-10 bg-white/25 rounded" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Save Button */}
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={saving || !hasChanges} className="min-w-[120px]">
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Styles"
-            )}
-          </Button>
-        </div>
+        {hasChanges && (
+          <div className="flex justify-end pt-4 border-t">
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
