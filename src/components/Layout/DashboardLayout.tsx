@@ -453,7 +453,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { getPageBackgroundClass, getPageBackgroundStyle, getTopbarClass, getBottomNavClass } = useUIStyles();
 
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider>
       <div className={cn("h-screen w-full flex overflow-hidden", getPageBackgroundClass())} style={getPageBackgroundStyle()}>
         <AppSidebar onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
         

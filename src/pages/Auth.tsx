@@ -336,17 +336,19 @@ export default function Auth() {
       setIsSubmitting(false);
       return;
     } else {
-      // Normal login without 2FA
+      // Normal login without 2FA - show prefetching state first for admin
+      setIsPrefetching(true);
       const result = await login(username, password);
       
       if (result?.success) {
         if (result.role === "learner") {
+          setIsPrefetching(false);
           navigate("/learner-portal", { replace: true });
         } else if (result.role === "teacher") {
+          setIsPrefetching(false);
           navigate("/teacher-portal", { replace: true });
         } else if (result.role === "admin" || result.role === "finance" || result.role === "visitor") {
           // Prefetch all dashboard data before navigating
-          setIsPrefetching(true);
           try {
             // Prefetch multiple queries in parallel
             await Promise.all([
@@ -362,17 +364,24 @@ export default function Auth() {
                 queryKey: ['schoolInfo'],
                 staleTime: 5 * 60 * 1000,
               }),
+              queryClient.prefetchQuery({
+                queryKey: ['learners'],
+                staleTime: 5 * 60 * 1000,
+              }),
             ]);
           } catch (error) {
             console.error("Prefetch error:", error);
           }
           // Small delay to ensure data is ready
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 200));
           setIsPrefetching(false);
           navigate("/dashboard", { replace: true });
         } else {
+          setIsPrefetching(false);
           navigate("/dashboard", { replace: true });
         }
+      } else {
+        setIsPrefetching(false);
       }
     }
     
@@ -619,12 +628,14 @@ export default function Auth() {
     }
   };
 
-  if (loading || schoolLoading || checkingGoogleAuth) {
+  if (loading || schoolLoading || checkingGoogleAuth || isPrefetching) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">
+            {isPrefetching ? "Preparing your dashboard..." : "Loading..."}
+          </p>
         </div>
       </div>
     );
