@@ -48,7 +48,7 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
   const location = useLocation();
   const { state, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
-  const { getSidebarClass, isGradientSidebar } = useUIStyles();
+  const { getSidebarClass, getSidebarStyle, isGradientSidebar } = useUIStyles();
   const isGradient = isGradientSidebar();
 
   const isActive = (path: string) => {
@@ -65,7 +65,7 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
   };
 
   return (
-    <Sidebar collapsible="icon" className={cn("border-r border-border/30 relative overflow-hidden", getSidebarClass())}>
+    <Sidebar collapsible="icon" className={cn("border-r border-border/30 relative overflow-hidden", getSidebarClass())} style={getSidebarStyle()}>
       {/* Decorative bubbles */}
       <div className={cn(
         "absolute inset-0 pointer-events-none opacity-10",
@@ -120,7 +120,7 @@ function LearnerSidebar({ onNavigate, isNavigating, schoolInfo, onLogout }: { on
         </SidebarTrigger>
       </div>
 
-      <SidebarContent className={cn("flex flex-col relative z-10", getSidebarClass())}>
+      <SidebarContent className="flex flex-col relative z-10">
         <SidebarGroup className="flex-1">
           <SidebarGroupContent>
             <SidebarMenu>

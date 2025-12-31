@@ -153,7 +153,7 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
   const { schoolInfo } = useSchoolInfo();
   const { state, isMobile, openMobile } = useSidebar();
   const collapsed = state === "collapsed";
-  const { getSidebarClass, isGradientSidebar, loading: stylesLoading } = useUIStyles();
+  const { getSidebarClass, getSidebarStyle, isGradientSidebar, loading: stylesLoading } = useUIStyles();
 
   const handleLogout = async () => {
     await logout();
@@ -174,10 +174,11 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
   };
 
   const sidebarClass = getSidebarClass();
+  const sidebarStyle = getSidebarStyle();
   const isGradient = isGradientSidebar();
 
   return (
-    <Sidebar collapsible="icon" className={cn(sidebarClass, "relative overflow-hidden")}>
+    <Sidebar collapsible="icon" className={cn(sidebarClass, "relative overflow-hidden")} style={sidebarStyle}>
       {/* Decorative pattern for gradient sidebars */}
       {isGradient && (
         <div className="absolute inset-0 pointer-events-none opacity-10">
@@ -436,11 +437,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       .slice(0, 2);
   };
 
-  const { getPageBackgroundClass, getTopbarClass, getBottomNavClass } = useUIStyles();
+  const { getPageBackgroundClass, getPageBackgroundStyle, getTopbarClass, getBottomNavClass } = useUIStyles();
 
   return (
     <SidebarProvider defaultOpen>
-      <div className={cn("h-screen w-full flex overflow-hidden", getPageBackgroundClass())}>
+      <div className={cn("h-screen w-full flex overflow-hidden", getPageBackgroundClass())} style={getPageBackgroundStyle()}>
         <AppSidebar onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
