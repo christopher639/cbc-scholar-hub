@@ -248,28 +248,42 @@ export const APP_THEMES = {
 };
 
 const SIDEBAR_STYLE_CLASSES: Record<string, string> = {
+  // Basic
   "default": "bg-sidebar text-sidebar-foreground [&_*]:text-sidebar-foreground",
   "gradient-primary": "bg-gradient-to-b from-primary/90 via-primary to-primary/80 text-white",
   "gradient-dark": "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white",
-  "gradient-ocean": "bg-gradient-to-b from-blue-600 via-cyan-600 to-teal-600 text-white",
-  "gradient-sunset": "bg-gradient-to-b from-orange-500 via-rose-500 to-pink-600 text-white",
-  "gradient-forest": "bg-gradient-to-b from-emerald-600 via-green-600 to-teal-700 text-white",
-  "gradient-purple": "bg-gradient-to-b from-purple-600 via-violet-600 to-indigo-700 text-white",
   "gradient-midnight": "bg-gradient-to-b from-indigo-900 via-blue-900 to-slate-900 text-white",
-  "gradient-cherry": "bg-gradient-to-b from-pink-500 via-rose-500 to-red-500 text-white",
-  "gradient-arctic": "bg-gradient-to-b from-cyan-500 via-sky-500 to-blue-500 text-white",
-  "gradient-coffee": "bg-gradient-to-b from-amber-800 via-amber-700 to-amber-900 text-white",
-  "gradient-lavender": "bg-gradient-to-b from-violet-400 via-purple-400 to-fuchsia-500 text-white",
-  "gradient-crimson": "bg-gradient-to-b from-red-600 via-rose-600 to-red-700 text-white",
-  "gradient-mint": "bg-gradient-to-b from-teal-400 via-emerald-400 to-green-500 text-white",
-  "gradient-slate": "bg-gradient-to-b from-slate-600 via-slate-500 to-slate-700 text-white",
+  // Warm Colors
+  "gradient-sunset": "bg-gradient-to-b from-orange-500 via-rose-500 to-pink-600 text-white",
   "gradient-coral": "bg-gradient-to-b from-orange-400 via-red-400 to-pink-500 text-white",
   "gradient-rose": "bg-gradient-to-b from-rose-500 via-pink-500 to-fuchsia-500 text-white",
   "gradient-amber": "bg-gradient-to-b from-amber-500 via-yellow-500 to-orange-400 text-white",
-  "gradient-teal": "bg-gradient-to-b from-teal-600 via-cyan-600 to-emerald-600 text-white",
+  "gradient-crimson": "bg-gradient-to-b from-red-600 via-rose-600 to-pink-600 text-white",
+  "gradient-peach": "bg-gradient-to-b from-orange-300 via-rose-300 to-amber-300 text-slate-800",
+  // Cool Colors
+  "gradient-ocean": "bg-gradient-to-b from-blue-600 via-cyan-600 to-teal-600 text-white",
   "gradient-sky": "bg-gradient-to-b from-sky-500 via-blue-500 to-indigo-500 text-white",
+  "gradient-teal": "bg-gradient-to-b from-teal-600 via-cyan-600 to-emerald-600 text-white",
+  "gradient-arctic": "bg-gradient-to-b from-slate-400 via-blue-400 to-cyan-400 text-white",
+  // Nature Colors
+  "gradient-forest": "bg-gradient-to-b from-emerald-600 via-green-600 to-teal-700 text-white",
   "gradient-lime": "bg-gradient-to-b from-lime-500 via-green-500 to-emerald-500 text-white",
+  "gradient-sage": "bg-gradient-to-b from-green-500 via-stone-400 to-emerald-500 text-white",
+  "gradient-spring": "bg-gradient-to-b from-lime-400 via-green-400 to-emerald-400 text-white",
+  // Purple & Violet
+  "gradient-purple": "bg-gradient-to-b from-purple-600 via-violet-600 to-indigo-700 text-white",
   "gradient-fuchsia": "bg-gradient-to-b from-fuchsia-600 via-pink-600 to-rose-600 text-white",
+  "gradient-lavender": "bg-gradient-to-b from-purple-400 via-violet-400 to-fuchsia-400 text-white",
+  "gradient-twilight": "bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500 text-white",
+  // Neutral & Elegant
+  "gradient-pearl": "bg-gradient-to-b from-slate-300 via-gray-300 to-zinc-300 text-slate-800",
+  "gradient-charcoal": "bg-gradient-to-b from-zinc-600 via-slate-500 to-neutral-600 text-white",
+  "gradient-cream": "bg-gradient-to-b from-amber-200 via-stone-200 to-orange-200 text-slate-800",
+  // Legacy theme sidebars
+  "gradient-cherry": "bg-gradient-to-b from-pink-500 via-rose-500 to-red-500 text-white",
+  "gradient-coffee": "bg-gradient-to-b from-amber-800 via-amber-700 to-amber-900 text-white",
+  "gradient-mint": "bg-gradient-to-b from-teal-400 via-emerald-400 to-green-500 text-white",
+  "gradient-slate": "bg-gradient-to-b from-slate-600 via-slate-500 to-slate-700 text-white",
 };
 
 const HERO_GRADIENT_CLASSES: Record<string, string> = {

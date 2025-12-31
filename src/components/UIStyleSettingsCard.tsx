@@ -15,22 +15,37 @@ interface UIStyleSettings {
 }
 
 const SIDEBAR_STYLES = [
-  { id: "default", name: "Default", description: "Clean minimal", preview: "bg-sidebar" },
-  { id: "gradient-primary", name: "Primary", description: "Primary color", preview: "bg-gradient-to-b from-primary/90 via-primary to-primary/80" },
-  { id: "gradient-dark", name: "Dark", description: "Sleek dark", preview: "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900" },
-  { id: "gradient-ocean", name: "Ocean", description: "Blue ocean", preview: "bg-gradient-to-b from-blue-600 via-cyan-600 to-teal-600" },
-  { id: "gradient-sunset", name: "Sunset", description: "Warm colors", preview: "bg-gradient-to-b from-orange-500 via-rose-500 to-pink-600" },
-  { id: "gradient-forest", name: "Forest", description: "Nature green", preview: "bg-gradient-to-b from-emerald-600 via-green-600 to-teal-700" },
-  { id: "gradient-purple", name: "Purple", description: "Rich purple", preview: "bg-gradient-to-b from-purple-600 via-violet-600 to-indigo-700" },
-  { id: "gradient-midnight", name: "Midnight", description: "Deep blue", preview: "bg-gradient-to-b from-indigo-900 via-blue-900 to-slate-900" },
-  { id: "gradient-coral", name: "Coral", description: "Warm coral", preview: "bg-gradient-to-b from-orange-400 via-red-400 to-pink-500" },
-  { id: "gradient-rose", name: "Rose", description: "Soft rose", preview: "bg-gradient-to-b from-rose-500 via-pink-500 to-fuchsia-500" },
-  { id: "gradient-amber", name: "Amber", description: "Golden amber", preview: "bg-gradient-to-b from-amber-500 via-yellow-500 to-orange-400" },
-  { id: "gradient-teal", name: "Teal", description: "Deep teal", preview: "bg-gradient-to-b from-teal-600 via-cyan-600 to-emerald-600" },
-  { id: "gradient-crimson", name: "Crimson", description: "Bold red", preview: "bg-gradient-to-b from-red-600 via-rose-600 to-pink-600" },
-  { id: "gradient-sky", name: "Sky", description: "Light blue", preview: "bg-gradient-to-b from-sky-500 via-blue-500 to-indigo-500" },
-  { id: "gradient-lime", name: "Lime", description: "Fresh lime", preview: "bg-gradient-to-b from-lime-500 via-green-500 to-emerald-500" },
-  { id: "gradient-fuchsia", name: "Fuchsia", description: "Vibrant pink", preview: "bg-gradient-to-b from-fuchsia-600 via-pink-600 to-rose-600" },
+  // Basic
+  { id: "default", name: "Default", description: "Clean minimal", preview: "bg-sidebar", category: "basic" },
+  { id: "gradient-primary", name: "Primary", description: "Primary color", preview: "bg-gradient-to-b from-primary/90 via-primary to-primary/80", category: "basic" },
+  { id: "gradient-dark", name: "Dark", description: "Sleek dark", preview: "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900", category: "basic" },
+  { id: "gradient-midnight", name: "Midnight", description: "Deep blue", preview: "bg-gradient-to-b from-indigo-900 via-blue-900 to-slate-900", category: "basic" },
+  // Warm Colors (matching page backgrounds)
+  { id: "gradient-sunset", name: "Sunset", description: "Warm colors", preview: "bg-gradient-to-b from-orange-500 via-rose-500 to-pink-600", category: "warm" },
+  { id: "gradient-coral", name: "Coral", description: "Warm coral", preview: "bg-gradient-to-b from-orange-400 via-red-400 to-pink-500", category: "warm" },
+  { id: "gradient-rose", name: "Rose", description: "Soft rose", preview: "bg-gradient-to-b from-rose-500 via-pink-500 to-fuchsia-500", category: "warm" },
+  { id: "gradient-amber", name: "Amber", description: "Golden amber", preview: "bg-gradient-to-b from-amber-500 via-yellow-500 to-orange-400", category: "warm" },
+  { id: "gradient-crimson", name: "Crimson", description: "Bold red", preview: "bg-gradient-to-b from-red-600 via-rose-600 to-pink-600", category: "warm" },
+  { id: "gradient-peach", name: "Peach", description: "Peach cream", preview: "bg-gradient-to-b from-orange-300 via-rose-300 to-amber-300", category: "warm" },
+  // Cool Colors (matching page backgrounds)
+  { id: "gradient-ocean", name: "Ocean", description: "Blue ocean", preview: "bg-gradient-to-b from-blue-600 via-cyan-600 to-teal-600", category: "cool" },
+  { id: "gradient-sky", name: "Sky", description: "Light blue", preview: "bg-gradient-to-b from-sky-500 via-blue-500 to-indigo-500", category: "cool" },
+  { id: "gradient-teal", name: "Teal", description: "Deep teal", preview: "bg-gradient-to-b from-teal-600 via-cyan-600 to-emerald-600", category: "cool" },
+  { id: "gradient-arctic", name: "Arctic", description: "Arctic frost", preview: "bg-gradient-to-b from-slate-400 via-blue-400 to-cyan-400", category: "cool" },
+  // Nature Colors (matching page backgrounds)
+  { id: "gradient-forest", name: "Forest", description: "Nature green", preview: "bg-gradient-to-b from-emerald-600 via-green-600 to-teal-700", category: "nature" },
+  { id: "gradient-lime", name: "Lime", description: "Fresh lime", preview: "bg-gradient-to-b from-lime-500 via-green-500 to-emerald-500", category: "nature" },
+  { id: "gradient-sage", name: "Sage", description: "Sage mist", preview: "bg-gradient-to-b from-green-500 via-stone-400 to-emerald-500", category: "nature" },
+  { id: "gradient-spring", name: "Spring", description: "Spring meadow", preview: "bg-gradient-to-b from-lime-400 via-green-400 to-emerald-400", category: "nature" },
+  // Purple & Violet (matching page backgrounds)
+  { id: "gradient-purple", name: "Purple", description: "Rich purple", preview: "bg-gradient-to-b from-purple-600 via-violet-600 to-indigo-700", category: "purple" },
+  { id: "gradient-fuchsia", name: "Fuchsia", description: "Vibrant pink", preview: "bg-gradient-to-b from-fuchsia-600 via-pink-600 to-rose-600", category: "purple" },
+  { id: "gradient-lavender", name: "Lavender", description: "Lavender dreams", preview: "bg-gradient-to-b from-purple-400 via-violet-400 to-fuchsia-400", category: "purple" },
+  { id: "gradient-twilight", name: "Twilight", description: "Twilight purple", preview: "bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500", category: "purple" },
+  // Neutral & Elegant (matching page backgrounds)
+  { id: "gradient-pearl", name: "Pearl", description: "Pearl white", preview: "bg-gradient-to-b from-slate-300 via-gray-300 to-zinc-300", category: "neutral" },
+  { id: "gradient-charcoal", name: "Charcoal", description: "Charcoal silk", preview: "bg-gradient-to-b from-zinc-600 via-slate-500 to-neutral-600", category: "neutral" },
+  { id: "gradient-cream", name: "Cream", description: "Cream linen", preview: "bg-gradient-to-b from-amber-200 via-stone-200 to-orange-200", category: "neutral" },
 ];
 
 const CARD_STYLES = [
@@ -195,41 +210,51 @@ export function UIStyleSettingsCard() {
             <Layout className="h-4 w-4 text-muted-foreground" />
             <Label className="text-base font-medium">Sidebar Style</Label>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {SIDEBAR_STYLES.map((style) => (
-              <button
-                key={style.id}
-                onClick={() => setSettings({ ...settings, sidebar_style: style.id })}
-                className={cn(
-                  "relative flex flex-col items-center p-2.5 rounded-xl border-2 transition-all hover:scale-[1.02]",
-                  settings.sidebar_style === style.id
-                    ? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-background"
-                    : "border-border hover:border-muted-foreground/50"
-                )}
-              >
-                <div className={cn("w-full h-14 rounded-lg mb-2 relative overflow-hidden", style.preview)}>
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 left-0 w-4 h-4 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
-                    <div className="absolute bottom-0 right-0 w-6 h-6 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
-                  </div>
+          {/* Category labels and sidebar styles */}
+          {[
+            { key: "basic", label: "Basic" },
+            { key: "warm", label: "Warm Colors" },
+            { key: "cool", label: "Cool Colors" },
+            { key: "nature", label: "Nature" },
+            { key: "purple", label: "Purple & Violet" },
+            { key: "neutral", label: "Neutral & Elegant" },
+          ].map((category) => {
+            const categoryStyles = SIDEBAR_STYLES.filter(style => style.category === category.key);
+            if (categoryStyles.length === 0) return null;
+            
+            return (
+              <div key={category.key} className="space-y-2">
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{category.label}</span>
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {categoryStyles.map((style) => (
+                    <button
+                      key={style.id}
+                      onClick={() => setSettings({ ...settings, sidebar_style: style.id })}
+                      className={cn(
+                        "relative flex flex-col items-center p-2 rounded-lg border-2 transition-all hover:scale-[1.02]",
+                        settings.sidebar_style === style.id
+                          ? "border-primary ring-2 ring-primary ring-offset-1 ring-offset-background"
+                          : "border-border hover:border-muted-foreground/50"
+                      )}
+                    >
+                      <div className={cn("w-full h-10 rounded-md mb-1.5 relative overflow-hidden", style.preview)}>
+                        <div className="absolute inset-0 opacity-10">
+                          <div className="absolute top-0 left-0 w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
+                          <div className="absolute bottom-0 right-0 w-4 h-4 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-medium truncate w-full text-center">{style.name}</span>
+                      {settings.sidebar_style === style.id && (
+                        <div className="absolute top-1 right-1 h-3.5 w-3.5 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="h-2 w-2 text-primary-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
                 </div>
-                <span className="text-xs font-medium">{style.name}</span>
-                {settings.sidebar_style === style.id && (
-                  <div className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
-                    <Check className="h-2.5 w-2.5 text-primary-foreground" />
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Page Background */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Monitor className="h-4 w-4 text-muted-foreground" />
-            <Label className="text-base font-medium">Page Background</Label>
-          </div>
+              </div>
+            );
+          })}
           
           {/* Category labels and backgrounds */}
           {[
