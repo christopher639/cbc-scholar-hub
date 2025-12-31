@@ -153,7 +153,7 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
   const { schoolInfo } = useSchoolInfo();
   const { state, isMobile, openMobile } = useSidebar();
   const collapsed = state === "collapsed";
-  const { getSidebarClass, getSidebarStyle, isGradientSidebar, loading: stylesLoading } = useUIStyles();
+  const { getSidebarClass, getSidebarStyle, getSidebarTextType, isGradientSidebar, loading: stylesLoading } = useUIStyles();
 
   const handleLogout = async () => {
     await logout();
@@ -176,12 +176,19 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
   const sidebarClass = getSidebarClass();
   const sidebarStyle = getSidebarStyle();
   const isGradient = isGradientSidebar();
+  const sidebarTextType = getSidebarTextType();
+  
+  // Determine if we should use light text styling (for gradient or dark hex colors)
+  const useLightText = isGradient && sidebarTextType !== 'dark';
 
   return (
     <Sidebar collapsible="icon" className={cn(sidebarClass, "relative overflow-hidden")} style={sidebarStyle}>
       {/* Decorative pattern for gradient sidebars */}
       {isGradient && (
-        <div className="absolute inset-0 pointer-events-none opacity-10">
+        <div className={cn(
+          "absolute inset-0 pointer-events-none opacity-10",
+          useLightText ? "" : "hidden"
+        )}>
           <div className="absolute top-0 left-0 w-20 h-20 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 right-0 w-32 h-32 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
           <div className="absolute top-1/3 right-0 w-16 h-16 bg-white rounded-full translate-x-1/2" />
@@ -195,7 +202,7 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
                 <div
                   className={cn(
                     "relative -mt-2 h-12 w-12 rounded-full overflow-hidden flex-shrink-0 bg-background/20",
-                    isGradient && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
+                    useLightText && "shadow-[0_4px_12px_rgba(255,255,255,0.3)]"
                   )}
                 >
                   <img
@@ -208,13 +215,13 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
                 <div
                   className={cn(
                     "h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0",
-                    isGradient ? "bg-white/20" : "bg-primary/10"
+                    useLightText ? "bg-white/20" : isGradient ? "bg-black/10" : "bg-primary/10"
                   )}
                 >
                   <GraduationCap
                     className={cn(
                       "h-5 w-5",
-                      isGradient ? "text-white" : "text-primary"
+                      useLightText ? "text-white" : isGradient ? "text-slate-900" : "text-primary"
                     )}
                   />
                 </div>
@@ -222,7 +229,7 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
               <span
                 className={cn(
                   "font-semibold text-sm truncate min-w-0",
-                  isGradient ? "text-white" : "text-sidebar-foreground"
+                  useLightText ? "text-white" : isGradient ? "text-slate-900" : "text-sidebar-foreground"
                 )}
               >
                 {schoolInfo?.school_name || "School"}
@@ -232,7 +239,7 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
           <SidebarTrigger
             className={cn(
               "ml-auto hidden lg:flex",
-              isGradient && "text-white hover:bg-white/10"
+              useLightText ? "text-white hover:bg-white/10" : isGradient ? "text-slate-900 hover:bg-black/10" : ""
             )}
           >
             {collapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
@@ -255,10 +262,13 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
                             isActive={isActive}
                             className={cn(
                               "cursor-pointer",
-                              isGradient && "text-white/90 hover:text-white hover:bg-white/10",
-                              isActive && (isGradient 
+                              useLightText && "text-white/90 hover:text-white hover:bg-white/10",
+                              !useLightText && isGradient && "text-slate-900/90 hover:text-slate-900 hover:bg-black/10",
+                              isActive && (useLightText 
                                 ? "bg-white/20 text-white font-medium" 
-                                : "bg-primary text-primary-foreground"),
+                                : isGradient 
+                                  ? "bg-black/20 text-slate-900 font-medium"
+                                  : "bg-primary text-primary-foreground"),
                               isPending && "opacity-70"
                             )}
                             onClick={(e) => handleNavClick(e, item.href)}
@@ -297,9 +307,11 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
                     rel="noopener noreferrer"
                     className={cn(
                       "flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md transition-colors",
-                      isGradient 
+                      useLightText 
                         ? "text-white/90 hover:text-white hover:bg-white/10" 
-                        : "hover:bg-muted"
+                        : isGradient
+                          ? "text-slate-900/90 hover:text-slate-900 hover:bg-black/10"
+                          : "hover:bg-muted"
                     )}
                   >
                     <publicWebsiteLink.icon className="h-5 w-5" />
@@ -321,7 +333,8 @@ function AppSidebar({ onNavigate, isNavigating, pendingPath }: { onNavigate: (pa
                   variant="ghost"
                   className={cn(
                     "w-full justify-start gap-2",
-                    isGradient && "text-white/90 hover:text-white hover:bg-white/10"
+                    useLightText && "text-white/90 hover:text-white hover:bg-white/10",
+                    !useLightText && isGradient && "text-slate-900/90 hover:text-slate-900 hover:bg-black/10"
                   )}
                   onClick={handleLogout}
                 >
