@@ -280,7 +280,7 @@ export function TeacherPortalLayout() {
     : 'T';
 
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         {/* Sidebar - Hidden on mobile, visible as drawer on mobile when triggered */}
         <TeacherSidebar schoolInfo={schoolInfo} onLogout={handleLogout} />
