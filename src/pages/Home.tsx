@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import SchoolJsonLd from "@/components/SEO/SchoolJsonLd";
+import PageMeta from "@/components/SEO/PageMeta";
 
 import {
   GraduationCap,
@@ -321,6 +323,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      {/* SEO Components */}
+      <PageMeta 
+        title={`${schoolInfo?.school_name || 'Samge Boarding School'} - Quality Education for All`}
+        description={schoolInfo?.mission || "Samge Boarding School offers quality education with modern facilities, experienced teachers, and a nurturing environment for students to thrive."}
+        canonical="https://samge.sc.ke/"
+        keywords="Samge Boarding School, Kenya school, quality education, CBC curriculum, boarding school, primary school, secondary school"
+      />
+      <SchoolJsonLd />
+      
       {/* Navigation */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled ? "bg-background/95 backdrop-blur-xl shadow-lg border-b border-border/50" : "bg-background/20 backdrop-blur-md"

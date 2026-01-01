@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { School, Eye, EyeOff, LogIn, Loader2, UserPlus, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import PageMeta from "@/components/SEO/PageMeta";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -643,6 +644,12 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
+      <PageMeta 
+        title={`Login - ${schoolInfo?.school_name || 'Samge Boarding School'}`}
+        description="Sign in to access your student, teacher, or admin portal at Samge Boarding School."
+        canonical="https://samge.sc.ke/auth"
+        keywords="Samge school login, student portal, teacher portal, school management"
+      />
       <div className="w-full max-w-sm">
         {/* Logo and Header */}
         <div className="text-center mb-4">
