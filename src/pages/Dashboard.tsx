@@ -2,7 +2,18 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, GraduationCap, DollarSign, UserCheck, Activity, Calendar, TrendingDown, Home, Building2, Loader2 } from "lucide-react";
+import {
+  Users,
+  GraduationCap,
+  DollarSign,
+  UserCheck,
+  Activity,
+  Calendar,
+  TrendingDown,
+  Home,
+  Building2,
+  Loader2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,7 +30,16 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({});
-  const { stats, recentAdmissions, gradeDistribution, houseDistribution, departmentDistribution, recentPayments, balanceByGrade, loading } = useDashboardStats(dateRange.start, dateRange.end);
+  const {
+    stats,
+    recentAdmissions,
+    gradeDistribution,
+    houseDistribution,
+    departmentDistribution,
+    recentPayments,
+    balanceByGrade,
+    loading,
+  } = useDashboardStats(dateRange.start, dateRange.end);
   const { user, loading: authLoading } = useAuth();
   const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   const isAdmin = user?.role === "admin";
@@ -39,7 +59,7 @@ const Dashboard = () => {
   const getFirstName = () => {
     if (!user) return "Admin";
     if (user.role === "admin") {
-      return user.data?.user_metadata?.full_name?.split(' ')[0] || user.data?.email?.split('@')[0] || "Admin";
+      return user.data?.user_metadata?.full_name?.split(" ")[0] || user.data?.email?.split("@")[0] || "Admin";
     }
     return user.data?.first_name || "User";
   };
@@ -47,9 +67,12 @@ const Dashboard = () => {
   const statsDisplay = [
     {
       title: "Total Learners",
-      value: loading ? "..." : (
+      value: loading ? (
+        "..."
+      ) : (
         <span>
-          {stats.totalLearners} <span className="text-sm">Active</span> • {stats.totalAlumni} <span className="text-sm">Alumni</span>
+          {stats.totalLearners} <span className="text-sm">Active</span> • {stats.totalAlumni}{" "}
+          <span className="text-sm">Alumni</span>
         </span>
       ),
       icon: Users,
@@ -87,9 +110,9 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-lg sm:text-xl  font-bold text-foreground">Dashboard</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Welcome back {getFirstName()}! Here is your {schoolInfo?.school_name || 'school'} overview.
+              Hello {getFirstName()}! Welcome back to {schoolInfo?.school_name || "school"} overview.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -128,16 +151,11 @@ const Dashboard = () => {
                           mode="single"
                           selected={dateRange.end}
                           onSelect={(date) => setDateRange({ ...dateRange, end: date })}
-                          disabled={(date) => dateRange.start ? date < dateRange.start : false}
+                          disabled={(date) => (dateRange.start ? date < dateRange.start : false)}
                           className="pointer-events-auto"
                         />
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => setDateRange({})}
-                      >
+                      <Button variant="outline" size="sm" className="w-full" onClick={() => setDateRange({})}>
                         Clear Filters
                       </Button>
                     </div>
@@ -157,15 +175,15 @@ const Dashboard = () => {
         {/* Stats Grid - Hidden on mobile, shown on large screens at top */}
         <div className="hidden lg:grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-5">
           {statsDisplay.map((stat, index) => (
-            <div 
-              key={stat.title} 
+            <div
+              key={stat.title}
               className={cn(
                 // First two cards (Total Learners, Active Streams) span full width on mobile
                 index < 2 && "col-span-2 sm:col-span-1",
                 // Fee Collection and Uncollected Balance (index 2 and 3) stay side by side
                 (index === 2 || index === 3) && "col-span-1",
                 // Pending Admissions spans full width on mobile
-                index === 4 && "col-span-2 sm:col-span-1"
+                index === 4 && "col-span-2 sm:col-span-1",
               )}
             >
               <StatCard {...stat} />
@@ -192,7 +210,10 @@ const Dashboard = () => {
                   <p className="text-center text-muted-foreground py-4 col-span-full">No recent payments</p>
                 ) : (
                   recentPayments.map((payment) => (
-                    <div key={payment.id} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
+                    <div
+                      key={payment.id}
+                      className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2"
+                    >
                       <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <DollarSign className="h-4 w-4 text-primary" />
@@ -200,29 +221,38 @@ const Dashboard = () => {
                         <div className="min-w-0">
                           <p className="font-medium text-foreground text-sm flex items-center gap-1 truncate">
                             {payment.learner?.first_name} {payment.learner?.last_name}
-                            <Badge 
+                            <Badge
                               variant={
-                                payment.status === 'paid' ? 'default' :
-                                payment.status === 'partial' ? 'secondary' :
-                                payment.status === 'overdue' ? 'destructive' : 'outline'
+                                payment.status === "paid"
+                                  ? "default"
+                                  : payment.status === "partial"
+                                    ? "secondary"
+                                    : payment.status === "overdue"
+                                      ? "destructive"
+                                      : "outline"
                               }
                               className={cn(
                                 "text-[10px] px-1.5 py-0",
-                                payment.status === 'paid' && "bg-primary text-primary-foreground",
-                                payment.status === 'partial' && "bg-warning text-warning-foreground"
+                                payment.status === "paid" && "bg-primary text-primary-foreground",
+                                payment.status === "partial" && "bg-warning text-warning-foreground",
                               )}
                             >
-                              {payment.status || 'pending'}
+                              {payment.status || "pending"}
                             </Badge>
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {payment.payment_method || 'N/A'} {payment.receipt_number ? `• ${payment.receipt_number}` : ''}
+                            {payment.payment_method || "N/A"}{" "}
+                            {payment.receipt_number ? `• ${payment.receipt_number}` : ""}
                           </p>
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
-                        <p className="font-semibold text-primary text-sm">{formatCurrencyCompact(payment.amount_paid)}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(payment.payment_date).toLocaleDateString()}</p>
+                        <p className="font-semibold text-primary text-sm">
+                          {formatCurrencyCompact(payment.amount_paid)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(payment.payment_date).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
                   ))
@@ -236,7 +266,7 @@ const Dashboard = () => {
           {/* Uncollected Balance by Grade */}
           <Card>
             <CardHeader>
-              <CardTitle>Uncollected Balance by Grade</CardTitle>
+              <CardTitle>Fee Balances across Grades</CardTitle>
               <CardDescription>Outstanding fees breakdown by grade level</CardDescription>
             </CardHeader>
             <CardContent>
@@ -248,24 +278,20 @@ const Dashboard = () => {
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={balanceByGrade}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="name" 
+                    <XAxis dataKey="name" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                    <YAxis
                       className="text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      tick={{ fill: "hsl(var(--muted-foreground))" }}
                       tickFormatter={(value) => `${formatCurrencyCompact(value)}`}
                     />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: any) => formatCurrencyCompact(value)}
                       contentStyle={{
-                        backgroundColor: 'hsl(var(--popover))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
+                        backgroundColor: "hsl(var(--popover))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
                       }}
-                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      labelStyle={{ color: "hsl(var(--foreground))" }}
                     />
                     <Bar dataKey="balance" radius={[8, 8, 0, 0]}>
                       {balanceByGrade.map((entry, index) => (
@@ -300,17 +326,22 @@ const Dashboard = () => {
                       <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-primary">
-                            {admission.first_name?.[0]}{admission.last_name?.[0]}
+                            {admission.first_name?.[0]}
+                            {admission.last_name?.[0]}
                           </span>
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-foreground text-sm truncate">{admission.first_name} {admission.last_name}</p>
+                          <p className="font-medium text-foreground text-sm truncate">
+                            {admission.first_name} {admission.last_name}
+                          </p>
                           <p className="text-xs text-muted-foreground truncate">
                             {admission.current_grade?.name} - {admission.current_stream?.name}
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">{new Date(admission.enrollment_date).toLocaleDateString()}</span>
+                      <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
+                        {new Date(admission.enrollment_date).toLocaleDateString()}
+                      </span>
                     </div>
                   ))
                 )}
@@ -322,7 +353,6 @@ const Dashboard = () => {
               </Link>
             </CardContent>
           </Card>
-
         </div>
 
         {/* Grade, House & Department Distribution */}
@@ -345,7 +375,10 @@ const Dashboard = () => {
                   <p className="text-center text-muted-foreground py-4 col-span-full">No learners enrolled yet</p>
                 ) : (
                   gradeDistribution.map((grade) => (
-                    <div key={grade.grade} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
+                    <div
+                      key={grade.grade}
+                      className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2"
+                    >
                       <p className="font-medium text-foreground text-sm">{grade.grade}</p>
                       <Badge variant="secondary">{grade.learners}</Badge>
                     </div>
@@ -376,13 +409,13 @@ const Dashboard = () => {
                   <p className="text-center text-muted-foreground py-4">No learners assigned to houses</p>
                 ) : (
                   houseDistribution.map((house) => (
-                    <div key={house.name} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                    <div
+                      key={house.name}
+                      className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0"
+                    >
                       <div className="flex items-center gap-3">
                         {house.color && (
-                          <div 
-                            className="h-4 w-4 rounded-full" 
-                            style={{ backgroundColor: house.color }}
-                          />
+                          <div className="h-4 w-4 rounded-full" style={{ backgroundColor: house.color }} />
                         )}
                         <p className="font-medium text-foreground">{house.name}</p>
                       </div>
@@ -415,7 +448,10 @@ const Dashboard = () => {
                   <p className="text-center text-muted-foreground py-4">No teachers assigned to departments</p>
                 ) : (
                   departmentDistribution.map((dept) => (
-                    <div key={dept.name} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                    <div
+                      key={dept.name}
+                      className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0"
+                    >
                       <p className="font-medium text-foreground">{dept.name}</p>
                       <Badge variant="outline">{dept.teachers} teachers</Badge>
                     </div>
@@ -429,15 +465,15 @@ const Dashboard = () => {
         {/* Stats Grid - Mobile only, shown after distributions */}
         <div className="grid lg:hidden gap-4 grid-cols-2">
           {statsDisplay.map((stat, index) => (
-            <div 
-              key={`mobile-${stat.title}`} 
+            <div
+              key={`mobile-${stat.title}`}
               className={cn(
                 // First two cards (Total Learners, Active Streams) span full width on mobile
                 index < 2 && "col-span-2",
                 // Fee Collection and Uncollected Balance (index 2 and 3) stay side by side
                 (index === 2 || index === 3) && "col-span-1",
                 // Pending Admissions spans full width on mobile
-                index === 4 && "col-span-2"
+                index === 4 && "col-span-2",
               )}
             >
               <StatCard {...stat} />
@@ -471,29 +507,36 @@ const Dashboard = () => {
                       <div className="min-w-0">
                         <p className="font-medium text-foreground text-sm flex items-center gap-1 truncate">
                           {payment.learner?.first_name} {payment.learner?.last_name}
-                          <Badge 
+                          <Badge
                             variant={
-                              payment.status === 'paid' ? 'default' :
-                              payment.status === 'partial' ? 'secondary' :
-                              payment.status === 'overdue' ? 'destructive' : 'outline'
+                              payment.status === "paid"
+                                ? "default"
+                                : payment.status === "partial"
+                                  ? "secondary"
+                                  : payment.status === "overdue"
+                                    ? "destructive"
+                                    : "outline"
                             }
                             className={cn(
                               "text-[10px] px-1.5 py-0",
-                              payment.status === 'paid' && "bg-primary text-primary-foreground",
-                              payment.status === 'partial' && "bg-warning text-warning-foreground"
+                              payment.status === "paid" && "bg-primary text-primary-foreground",
+                              payment.status === "partial" && "bg-warning text-warning-foreground",
                             )}
                           >
-                            {payment.status || 'pending'}
+                            {payment.status || "pending"}
                           </Badge>
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {payment.payment_method || 'N/A'} {payment.receipt_number ? `• ${payment.receipt_number}` : ''}
+                          {payment.payment_method || "N/A"}{" "}
+                          {payment.receipt_number ? `• ${payment.receipt_number}` : ""}
                         </p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
                       <p className="font-semibold text-primary text-sm">{formatCurrencyCompact(payment.amount_paid)}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(payment.payment_date).toLocaleDateString()}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(payment.payment_date).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                 ))
