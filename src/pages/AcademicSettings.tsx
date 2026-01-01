@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useAcademicYears } from "@/hooks/useAcademicYears";
 import { useAcademicPeriods } from "@/hooks/useAcademicPeriods";
 import { useExamTypes } from "@/hooks/useExamTypes";
@@ -16,7 +24,19 @@ import { useGrades } from "@/hooks/useGrades";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, CheckCircle, Plus, FileText, Trash2, Edit2, Award, BookOpen, User, X, Calculator } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle,
+  Plus,
+  FileText,
+  Trash2,
+  Edit2,
+  Award,
+  BookOpen,
+  User,
+  X,
+  Calculator,
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,13 +48,13 @@ export default function AcademicSettings() {
   const { academicPeriods, currentPeriod, refetch: refetchPeriods } = useAcademicPeriods();
   const { examTypes, addExamType, updateExamType, deleteExamType } = useExamTypes();
   const { gradingScales, addGradingScale, updateGradingScale, deleteGradingScale } = useGradingScales();
-  const { 
-    gradeLearningAreas, 
-    learnerLearningAreas, 
-    addGradeLearningAreas, 
+  const {
+    gradeLearningAreas,
+    learnerLearningAreas,
+    addGradeLearningAreas,
     removeGradeLearningArea,
     addLearnerLearningAreas,
-    removeLearnerLearningArea 
+    removeLearnerLearningArea,
   } = useLearningAreaRegistration();
   const { grades } = useGrades();
   const { learningAreas } = useLearningAreas();
@@ -61,8 +81,13 @@ export default function AcademicSettings() {
   const [newExamTypeName, setNewExamTypeName] = useState("");
   const [newExamTypeDescription, setNewExamTypeDescription] = useState("");
   const [newExamTypeMaxMarks, setNewExamTypeMaxMarks] = useState("100");
-  const [editingExamType, setEditingExamType] = useState<{ id: string; name: string; description: string; max_marks: number } | null>(null);
-  
+  const [editingExamType, setEditingExamType] = useState<{
+    id: string;
+    name: string;
+    description: string;
+    max_marks: number;
+  } | null>(null);
+
   // Grading scale state
   const [gradingDialogOpen, setGradingDialogOpen] = useState(false);
   const [newGradeName, setNewGradeName] = useState("");
@@ -70,7 +95,14 @@ export default function AcademicSettings() {
   const [newGradeMaxPct, setNewGradeMaxPct] = useState("");
   const [newGradePoints, setNewGradePoints] = useState("");
   const [newGradeDescription, setNewGradeDescription] = useState("");
-  const [editingGrade, setEditingGrade] = useState<{ id: string; grade_name: string; min_percentage: number; max_percentage: number; points: number; description: string } | null>(null);
+  const [editingGrade, setEditingGrade] = useState<{
+    id: string;
+    grade_name: string;
+    min_percentage: number;
+    max_percentage: number;
+    points: number;
+    description: string;
+  } | null>(null);
 
   // Learning area registration state
   const [gradeRegDialogOpen, setGradeRegDialogOpen] = useState(false);
@@ -92,18 +124,12 @@ export default function AcademicSettings() {
   const handleSetActiveYear = async (yearId: string) => {
     try {
       setLoading(true);
-      
+
       // Set all years to inactive
-      await supabase
-        .from("academic_years")
-        .update({ is_active: false })
-        .neq("id", yearId);
-      
+      await supabase.from("academic_years").update({ is_active: false }).neq("id", yearId);
+
       // Set selected year to active
-      const { error } = await supabase
-        .from("academic_years")
-        .update({ is_active: true })
-        .eq("id", yearId);
+      const { error } = await supabase.from("academic_years").update({ is_active: true }).eq("id", yearId);
 
       if (error) throw error;
 
@@ -111,7 +137,7 @@ export default function AcademicSettings() {
         title: "Success",
         description: "Active academic year updated successfully",
       });
-      
+
       refetchYears();
     } catch (error: any) {
       toast({
@@ -127,18 +153,12 @@ export default function AcademicSettings() {
   const handleSetActivePeriod = async (periodId: string) => {
     try {
       setLoading(true);
-      
+
       // Set all periods to not current
-      await supabase
-        .from("academic_periods")
-        .update({ is_current: false })
-        .neq("id", periodId);
-      
+      await supabase.from("academic_periods").update({ is_current: false }).neq("id", periodId);
+
       // Set selected period to current
-      const { error } = await supabase
-        .from("academic_periods")
-        .update({ is_current: true })
-        .eq("id", periodId);
+      const { error } = await supabase.from("academic_periods").update({ is_current: true }).eq("id", periodId);
 
       if (error) throw error;
 
@@ -146,7 +166,7 @@ export default function AcademicSettings() {
         title: "Success",
         description: "Active term updated successfully",
       });
-      
+
       refetchPeriods();
     } catch (error: any) {
       toast({
@@ -171,9 +191,7 @@ export default function AcademicSettings() {
 
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from("academic_years")
-        .insert({ year: newYear, is_active: false });
+      const { error } = await supabase.from("academic_years").insert({ year: newYear, is_active: false });
 
       if (error) throw error;
 
@@ -181,7 +199,7 @@ export default function AcademicSettings() {
         title: "Success",
         description: "Academic year created successfully",
       });
-      
+
       setNewYear("");
       setYearDialogOpen(false);
       refetchYears();
@@ -208,15 +226,13 @@ export default function AcademicSettings() {
 
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from("academic_periods")
-        .insert({
-          academic_year: newTermYear,
-          term: newTerm,
-          start_date: newStartDate,
-          end_date: newEndDate,
-          is_current: false,
-        });
+      const { error } = await supabase.from("academic_periods").insert({
+        academic_year: newTermYear,
+        term: newTerm,
+        start_date: newStartDate,
+        end_date: newEndDate,
+        is_current: false,
+      });
 
       if (error) throw error;
 
@@ -224,7 +240,7 @@ export default function AcademicSettings() {
         title: "Success",
         description: "Term created successfully",
       });
-      
+
       setNewTermYear("");
       setNewStartDate("");
       setNewEndDate("");
@@ -251,12 +267,12 @@ export default function AcademicSettings() {
       return;
     }
 
-    await addExamType.mutateAsync({ 
-      name: newExamTypeName.trim(), 
+    await addExamType.mutateAsync({
+      name: newExamTypeName.trim(),
       description: newExamTypeDescription.trim() || undefined,
-      max_marks: parseInt(newExamTypeMaxMarks) || 100
+      max_marks: parseInt(newExamTypeMaxMarks) || 100,
     });
-    
+
     setNewExamTypeName("");
     setNewExamTypeDescription("");
     setNewExamTypeMaxMarks("100");
@@ -273,13 +289,13 @@ export default function AcademicSettings() {
       return;
     }
 
-    await updateExamType.mutateAsync({ 
+    await updateExamType.mutateAsync({
       id: editingExamType.id,
-      name: editingExamType.name.trim(), 
+      name: editingExamType.name.trim(),
       description: editingExamType.description.trim() || undefined,
-      max_marks: editingExamType.max_marks
+      max_marks: editingExamType.max_marks,
     });
-    
+
     setEditingExamType(null);
   };
 
@@ -298,7 +314,7 @@ export default function AcademicSettings() {
       min_percentage: parseFloat(newGradeMinPct),
       max_percentage: parseFloat(newGradeMaxPct),
       points: parseFloat(newGradePoints) || 0,
-      description: newGradeDescription.trim() || undefined
+      description: newGradeDescription.trim() || undefined,
     });
 
     setNewGradeName("");
@@ -325,7 +341,7 @@ export default function AcademicSettings() {
       min_percentage: editingGrade.min_percentage,
       max_percentage: editingGrade.max_percentage,
       points: editingGrade.points,
-      description: editingGrade.description.trim() || undefined
+      description: editingGrade.description.trim() || undefined,
     });
 
     setEditingGrade(null);
@@ -344,9 +360,9 @@ export default function AcademicSettings() {
   };
 
   const handleToggleExamTypeActive = async (id: string, currentStatus: boolean) => {
-    await updateExamType.mutateAsync({ 
+    await updateExamType.mutateAsync({
       id,
-      is_active: !currentStatus
+      is_active: !currentStatus,
     });
   };
 
@@ -408,7 +424,7 @@ export default function AcademicSettings() {
     await addGradeLearningAreas.mutateAsync({
       gradeId: selectedRegGrade,
       academicYear: selectedRegYear,
-      learningAreaIds: selectedRegLearningAreas
+      learningAreaIds: selectedRegLearningAreas,
     });
 
     setGradeRegDialogOpen(false);
@@ -431,7 +447,7 @@ export default function AcademicSettings() {
       learnerId: foundLearner.id,
       gradeId: selectedRegGrade,
       academicYear: selectedRegYear,
-      learningAreaIds: selectedRegLearningAreas
+      learningAreaIds: selectedRegLearningAreas,
     });
 
     setLearnerRegDialogOpen(false);
@@ -443,34 +459,30 @@ export default function AcademicSettings() {
   };
 
   const toggleLearningAreaSelection = (laId: string) => {
-    setSelectedRegLearningAreas(prev => 
-      prev.includes(laId) 
-        ? prev.filter(id => id !== laId)
-        : [...prev, laId]
-    );
+    setSelectedRegLearningAreas((prev) => (prev.includes(laId) ? prev.filter((id) => id !== laId) : [...prev, laId]));
   };
 
   // Get already registered learning areas for the selected grade/year
   const getAlreadyRegisteredForGrade = () => {
     if (!selectedRegGrade || !selectedRegYear) return [];
     return gradeLearningAreas
-      .filter(gla => gla.grade_id === selectedRegGrade && gla.academic_year === selectedRegYear)
-      .map(gla => gla.learning_area_id);
+      .filter((gla) => gla.grade_id === selectedRegGrade && gla.academic_year === selectedRegYear)
+      .map((gla) => gla.learning_area_id);
   };
 
   // Get already registered learning areas for the found learner
   const getAlreadyRegisteredForLearner = () => {
     if (!foundLearner || !selectedRegYear) return [];
     return learnerLearningAreas
-      .filter(lla => lla.learner_id === foundLearner.id && lla.academic_year === selectedRegYear)
-      .map(lla => lla.learning_area_id);
+      .filter((lla) => lla.learner_id === foundLearner.id && lla.academic_year === selectedRegYear)
+      .map((lla) => lla.learning_area_id);
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Academic Settings</h1>
+          <h1 className="text-xl sm:text-2xl  font-bold">Academic Settings</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Configure active academic year and term for fee calculations
           </p>
@@ -500,9 +512,7 @@ export default function AcademicSettings() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Create Academic Year</DialogTitle>
-                      <DialogDescription>
-                        Add a new academic year to the system
-                      </DialogDescription>
+                      <DialogDescription>Add a new academic year to the system</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
@@ -529,11 +539,7 @@ export default function AcademicSettings() {
             <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               <div className="space-y-2">
                 <Label>Select Academic Year</Label>
-                <Select
-                  value={currentYear?.id}
-                  onValueChange={handleSetActiveYear}
-                  disabled={loading}
-                >
+                <Select value={currentYear?.id} onValueChange={handleSetActiveYear} disabled={loading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
@@ -546,13 +552,11 @@ export default function AcademicSettings() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {currentYear && (
                 <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-md">
                   <CheckCircle className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">
-                    Current Year: {currentYear.year}
-                  </span>
+                  <span className="text-sm font-medium">Current Year: {currentYear.year}</span>
                 </div>
               )}
             </CardContent>
@@ -581,9 +585,7 @@ export default function AcademicSettings() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Create Term</DialogTitle>
-                      <DialogDescription>
-                        Add a new term to the academic calendar
-                      </DialogDescription>
+                      <DialogDescription>Add a new term to the academic calendar</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
@@ -617,19 +619,11 @@ export default function AcademicSettings() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>Start Date</Label>
-                          <Input
-                            type="date"
-                            value={newStartDate}
-                            onChange={(e) => setNewStartDate(e.target.value)}
-                          />
+                          <Input type="date" value={newStartDate} onChange={(e) => setNewStartDate(e.target.value)} />
                         </div>
                         <div className="space-y-2">
                           <Label>End Date</Label>
-                          <Input
-                            type="date"
-                            value={newEndDate}
-                            onChange={(e) => setNewEndDate(e.target.value)}
-                          />
+                          <Input type="date" value={newEndDate} onChange={(e) => setNewEndDate(e.target.value)} />
                         </div>
                       </div>
                     </div>
@@ -648,11 +642,9 @@ export default function AcademicSettings() {
             <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
               {currentYear ? (
                 <div className="space-y-3">
-                  <Label className="text-xs sm:text-sm text-muted-foreground">
-                    Terms for {currentYear.year}
-                  </Label>
+                  <Label className="text-xs sm:text-sm text-muted-foreground">Terms for {currentYear.year}</Label>
                   {academicPeriods
-                    .filter(p => p.academic_year === currentYear?.year)
+                    .filter((p) => p.academic_year === currentYear?.year)
                     .sort((a, b) => a.term.localeCompare(b.term))
                     .map((period) => (
                       <div
@@ -672,7 +664,8 @@ export default function AcademicSettings() {
                               )}
                             </div>
                             <p className="text-xs sm:text-sm text-muted-foreground">
-                              {new Date(period.start_date).toLocaleDateString()} - {new Date(period.end_date).toLocaleDateString()}
+                              {new Date(period.start_date).toLocaleDateString()} -{" "}
+                              {new Date(period.end_date).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
@@ -689,18 +682,16 @@ export default function AcademicSettings() {
                         </div>
                       </div>
                     ))}
-                  {academicPeriods.filter(p => p.academic_year === currentYear?.year).length === 0 && (
+                  {academicPeriods.filter((p) => p.academic_year === currentYear?.year).length === 0 && (
                     <div className="text-center py-6 text-muted-foreground">
                       No terms created for this academic year. Click "New Term" to add one.
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  Please set an active academic year first
-                </div>
+                <div className="text-center py-6 text-muted-foreground">Please set an active academic year first</div>
               )}
-              
+
               {currentPeriod && (
                 <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-md mt-4">
                   <CheckCircle className="h-4 w-4 text-primary" />
@@ -793,101 +784,126 @@ export default function AcademicSettings() {
                       <TableRow className="bg-muted/50">
                         <TableHead className="py-2 px-3 text-xs font-medium">Name</TableHead>
                         <TableHead className="text-center py-2 px-3 text-xs font-medium">Max Marks</TableHead>
-                        <TableHead className="py-2 px-3 text-xs font-medium hidden md:table-cell">Description</TableHead>
+                        <TableHead className="py-2 px-3 text-xs font-medium hidden md:table-cell">
+                          Description
+                        </TableHead>
                         <TableHead className="py-2 px-3 text-xs font-medium">Status</TableHead>
                         <TableHead className="text-right py-2 px-3 text-xs font-medium">Actions</TableHead>
                       </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {examTypes.map((examType) => (
-                      <TableRow key={examType.id} className="hover:bg-muted/30">
-                        <TableCell className="font-medium py-2 px-3 text-sm">
-                          {editingExamType?.id === examType.id ? (
-                            <Input
-                              value={editingExamType.name}
-                              onChange={(e) => setEditingExamType({ ...editingExamType, name: e.target.value })}
-                              className="h-7 text-xs"
-                            />
-                          ) : (
-                            examType.name
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center py-2 px-3">
-                          {editingExamType?.id === examType.id ? (
-                            <Input
-                              type="number"
-                              value={editingExamType.max_marks}
-                              onChange={(e) => setEditingExamType({ ...editingExamType, max_marks: parseInt(e.target.value) || 100 })}
-                              className="h-7 w-14 text-xs"
-                            />
-                          ) : (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{examType.max_marks || 100}</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell py-2 px-3 text-sm">
-                          {editingExamType?.id === examType.id ? (
-                            <Input
-                              value={editingExamType.description}
-                              onChange={(e) => setEditingExamType({ ...editingExamType, description: e.target.value })}
-                              className="h-7 text-xs"
-                              placeholder="Description"
-                            />
-                          ) : (
-                            <span className="text-muted-foreground">{examType.description || "-"}</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-2 px-3">
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={examType.is_active ?? true}
-                              onCheckedChange={() => handleToggleExamTypeActive(examType.id, examType.is_active ?? true)}
-                              className="scale-75"
-                            />
-                            <Badge variant={examType.is_active ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
-                              {examType.is_active ? "Active" : "Off"}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right py-2 px-3">
-                          {editingExamType?.id === examType.id ? (
-                            <div className="flex justify-end gap-1">
-                              <Button size="sm" variant="outline" onClick={() => setEditingExamType(null)} className="h-6 px-2 text-[10px]">
-                                Cancel
-                              </Button>
-                              <Button size="sm" onClick={handleUpdateExamType} disabled={updateExamType.isPending} className="h-6 px-2 text-[10px]">
-                                Save
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 w-6 p-0"
-                              onClick={() => setEditingExamType({
-                                id: examType.id,
-                                name: examType.name,
-                                description: examType.description || "",
-                                max_marks: examType.max_marks || 100
-                              })}
+                    </TableHeader>
+                    <TableBody>
+                      {examTypes.map((examType) => (
+                        <TableRow key={examType.id} className="hover:bg-muted/30">
+                          <TableCell className="font-medium py-2 px-3 text-sm">
+                            {editingExamType?.id === examType.id ? (
+                              <Input
+                                value={editingExamType.name}
+                                onChange={(e) => setEditingExamType({ ...editingExamType, name: e.target.value })}
+                                className="h-7 text-xs"
+                              />
+                            ) : (
+                              examType.name
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center py-2 px-3">
+                            {editingExamType?.id === examType.id ? (
+                              <Input
+                                type="number"
+                                value={editingExamType.max_marks}
+                                onChange={(e) =>
+                                  setEditingExamType({ ...editingExamType, max_marks: parseInt(e.target.value) || 100 })
+                                }
+                                className="h-7 w-14 text-xs"
+                              />
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                {examType.max_marks || 100}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell py-2 px-3 text-sm">
+                            {editingExamType?.id === examType.id ? (
+                              <Input
+                                value={editingExamType.description}
+                                onChange={(e) =>
+                                  setEditingExamType({ ...editingExamType, description: e.target.value })
+                                }
+                                className="h-7 text-xs"
+                                placeholder="Description"
+                              />
+                            ) : (
+                              <span className="text-muted-foreground">{examType.description || "-"}</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-2 px-3">
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={examType.is_active ?? true}
+                                onCheckedChange={() =>
+                                  handleToggleExamTypeActive(examType.id, examType.is_active ?? true)
+                                }
+                                className="scale-75"
+                              />
+                              <Badge
+                                variant={examType.is_active ? "default" : "secondary"}
+                                className="text-[10px] px-1.5 py-0"
                               >
-                                <Edit2 className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="h-6 w-6 p-0"
-                                onClick={() => handleDeleteExamType(examType.id)}
-                                disabled={deleteExamType.isPending}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                                {examType.is_active ? "Active" : "Off"}
+                              </Badge>
                             </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                          </TableCell>
+                          <TableCell className="text-right py-2 px-3">
+                            {editingExamType?.id === examType.id ? (
+                              <div className="flex justify-end gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setEditingExamType(null)}
+                                  className="h-6 px-2 text-[10px]"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={handleUpdateExamType}
+                                  disabled={updateExamType.isPending}
+                                  className="h-6 px-2 text-[10px]"
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-end gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() =>
+                                    setEditingExamType({
+                                      id: examType.id,
+                                      name: examType.name,
+                                      description: examType.description || "",
+                                      max_marks: examType.max_marks || 100,
+                                    })
+                                  }
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handleDeleteExamType(examType.id)}
+                                  disabled={deleteExamType.isPending}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
                   </Table>
                 </div>
               )}
@@ -917,9 +933,7 @@ export default function AcademicSettings() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Add Grading Scale</DialogTitle>
-                      <DialogDescription>
-                        Define a grade with its percentage range
-                      </DialogDescription>
+                      <DialogDescription>Define a grade with its percentage range</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
@@ -993,111 +1007,139 @@ export default function AcademicSettings() {
                         <TableHead className="py-2 px-3 text-xs font-medium">Grade</TableHead>
                         <TableHead className="text-center py-2 px-3 text-xs font-medium">Range (%)</TableHead>
                         <TableHead className="text-center py-2 px-3 text-xs font-medium">Points</TableHead>
-                        <TableHead className="py-2 px-3 text-xs font-medium hidden md:table-cell">Description</TableHead>
+                        <TableHead className="py-2 px-3 text-xs font-medium hidden md:table-cell">
+                          Description
+                        </TableHead>
                         <TableHead className="text-right py-2 px-3 text-xs font-medium">Actions</TableHead>
                       </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {gradingScales.map((scale) => (
-                      <TableRow key={scale.id} className="hover:bg-muted/30">
-                        <TableCell className="font-medium py-2 px-3">
-                          {editingGrade?.id === scale.id ? (
-                            <Input
-                              value={editingGrade.grade_name}
-                              onChange={(e) => setEditingGrade({ ...editingGrade, grade_name: e.target.value })}
-                              className="h-7 w-14 text-xs"
-                            />
-                          ) : (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{scale.grade_name}</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center py-2 px-3 text-sm">
-                          {editingGrade?.id === scale.id ? (
-                            <div className="flex items-center gap-1 justify-center">
+                    </TableHeader>
+                    <TableBody>
+                      {gradingScales.map((scale) => (
+                        <TableRow key={scale.id} className="hover:bg-muted/30">
+                          <TableCell className="font-medium py-2 px-3">
+                            {editingGrade?.id === scale.id ? (
+                              <Input
+                                value={editingGrade.grade_name}
+                                onChange={(e) => setEditingGrade({ ...editingGrade, grade_name: e.target.value })}
+                                className="h-7 w-14 text-xs"
+                              />
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                {scale.grade_name}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center py-2 px-3 text-sm">
+                            {editingGrade?.id === scale.id ? (
+                              <div className="flex items-center gap-1 justify-center">
+                                <Input
+                                  type="number"
+                                  value={editingGrade.min_percentage}
+                                  onChange={(e) =>
+                                    setEditingGrade({
+                                      ...editingGrade,
+                                      min_percentage: parseFloat(e.target.value) || 0,
+                                    })
+                                  }
+                                  className="h-7 w-10 text-xs"
+                                />
+                                <span className="text-[10px]">-</span>
+                                <Input
+                                  type="number"
+                                  value={editingGrade.max_percentage}
+                                  onChange={(e) =>
+                                    setEditingGrade({
+                                      ...editingGrade,
+                                      max_percentage: parseFloat(e.target.value) || 0,
+                                    })
+                                  }
+                                  className="h-7 w-10 text-xs"
+                                />
+                              </div>
+                            ) : (
+                              `${scale.min_percentage}-${scale.max_percentage}`
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center py-2 px-3 text-sm">
+                            {editingGrade?.id === scale.id ? (
                               <Input
                                 type="number"
-                                value={editingGrade.min_percentage}
-                                onChange={(e) => setEditingGrade({ ...editingGrade, min_percentage: parseFloat(e.target.value) || 0 })}
+                                value={editingGrade.points}
+                                onChange={(e) =>
+                                  setEditingGrade({ ...editingGrade, points: parseFloat(e.target.value) || 0 })
+                                }
                                 className="h-7 w-10 text-xs"
                               />
-                              <span className="text-[10px]">-</span>
+                            ) : (
+                              scale.points || "-"
+                            )}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell py-2 px-3 text-sm text-muted-foreground">
+                            {editingGrade?.id === scale.id ? (
                               <Input
-                                type="number"
-                                value={editingGrade.max_percentage}
-                                onChange={(e) => setEditingGrade({ ...editingGrade, max_percentage: parseFloat(e.target.value) || 0 })}
-                                className="h-7 w-10 text-xs"
+                                value={editingGrade.description}
+                                onChange={(e) => setEditingGrade({ ...editingGrade, description: e.target.value })}
+                                className="h-7 text-xs"
+                                placeholder="Description"
                               />
-                            </div>
-                          ) : (
-                            `${scale.min_percentage}-${scale.max_percentage}`
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center py-2 px-3 text-sm">
-                          {editingGrade?.id === scale.id ? (
-                            <Input
-                              type="number"
-                              value={editingGrade.points}
-                              onChange={(e) => setEditingGrade({ ...editingGrade, points: parseFloat(e.target.value) || 0 })}
-                              className="h-7 w-10 text-xs"
-                            />
-                          ) : (
-                            scale.points || "-"
-                          )}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell py-2 px-3 text-sm text-muted-foreground">
-                          {editingGrade?.id === scale.id ? (
-                            <Input
-                              value={editingGrade.description}
-                              onChange={(e) => setEditingGrade({ ...editingGrade, description: e.target.value })}
-                              className="h-7 text-xs"
-                              placeholder="Description"
-                            />
-                          ) : (
-                            scale.description || "-"
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right py-2 px-3">
-                          {editingGrade?.id === scale.id ? (
-                            <div className="flex justify-end gap-1">
-                              <Button size="sm" variant="outline" onClick={() => setEditingGrade(null)} className="h-6 px-2 text-[10px]">
-                                Cancel
-                              </Button>
-                              <Button size="sm" onClick={handleUpdateGradingScale} disabled={updateGradingScale.isPending} className="h-6 px-2 text-[10px]">
-                                Save
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 w-6 p-0"
-                                onClick={() => setEditingGrade({
-                                  id: scale.id,
-                                  grade_name: scale.grade_name,
-                                  min_percentage: scale.min_percentage,
-                                  max_percentage: scale.max_percentage,
-                                  points: scale.points || 0,
-                                  description: scale.description || ""
-                                })}
-                              >
-                                <Edit2 className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="h-6 w-6 p-0"
-                                onClick={() => handleDeleteGradingScale(scale.id)}
-                                disabled={deleteGradingScale.isPending}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                            ) : (
+                              scale.description || "-"
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right py-2 px-3">
+                            {editingGrade?.id === scale.id ? (
+                              <div className="flex justify-end gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setEditingGrade(null)}
+                                  className="h-6 px-2 text-[10px]"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={handleUpdateGradingScale}
+                                  disabled={updateGradingScale.isPending}
+                                  className="h-6 px-2 text-[10px]"
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-end gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() =>
+                                    setEditingGrade({
+                                      id: scale.id,
+                                      grade_name: scale.grade_name,
+                                      min_percentage: scale.min_percentage,
+                                      max_percentage: scale.max_percentage,
+                                      points: scale.points || 0,
+                                      description: scale.description || "",
+                                    })
+                                  }
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handleDeleteGradingScale(scale.id)}
+                                  disabled={deleteGradingScale.isPending}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
                   </Table>
                 </div>
               )}
@@ -1127,9 +1169,7 @@ export default function AcademicSettings() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Create Calculation Formula</DialogTitle>
-                      <DialogDescription>
-                        Define a new formula for calculating average marks
-                      </DialogDescription>
+                      <DialogDescription>Define a new formula for calculating average marks</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
@@ -1153,10 +1193,14 @@ export default function AcademicSettings() {
                       <Button variant="outline" onClick={() => setFormulaDialogOpen(false)}>
                         Cancel
                       </Button>
-                      <Button 
+                      <Button
                         onClick={async () => {
                           if (!newFormulaName.trim()) {
-                            toast({ title: "Error", description: "Please enter a formula name", variant: "destructive" });
+                            toast({
+                              title: "Error",
+                              description: "Please enter a formula name",
+                              variant: "destructive",
+                            });
                             return;
                           }
                           await createFormula.mutateAsync({
@@ -1190,14 +1234,16 @@ export default function AcademicSettings() {
                       <span className="text-xs font-medium">Active: {activeFormula.name}</span>
                     </div>
                   )}
-                  
+
                   {/* Formulas List */}
                   <div className="overflow-x-auto -mx-4 sm:mx-0">
                     <Table className="min-w-[500px] sm:min-w-0">
                       <TableHeader>
                         <TableRow className="bg-muted/50">
                           <TableHead className="py-2 px-3 text-xs font-medium">Name</TableHead>
-                          <TableHead className="py-2 px-3 text-xs font-medium hidden md:table-cell">Description</TableHead>
+                          <TableHead className="py-2 px-3 text-xs font-medium hidden md:table-cell">
+                            Description
+                          </TableHead>
                           <TableHead className="py-2 px-3 text-xs font-medium">Status</TableHead>
                           <TableHead className="text-right py-2 px-3 text-xs font-medium">Actions</TableHead>
                         </TableRow>
@@ -1210,7 +1256,10 @@ export default function AcademicSettings() {
                               {formula.description || "-"}
                             </TableCell>
                             <TableCell className="py-2 px-3">
-                              <Badge variant={formula.is_active ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                              <Badge
+                                variant={formula.is_active ? "default" : "secondary"}
+                                className="text-[10px] px-1.5 py-0"
+                              >
                                 {formula.is_active ? "Active" : "Off"}
                               </Badge>
                             </TableCell>
@@ -1235,7 +1284,7 @@ export default function AcademicSettings() {
                                     setSelectedFormula(formula.id);
                                     const weights = getFormulaWeights(formula.id);
                                     const weightMap: Record<string, number> = {};
-                                    weights.forEach(w => {
+                                    weights.forEach((w) => {
                                       weightMap[w.exam_type_id] = w.weight;
                                     });
                                     setEditingWeights(weightMap);
@@ -1269,32 +1318,37 @@ export default function AcademicSettings() {
                     <div className="border rounded-lg p-4 mt-4 bg-muted/30">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-medium text-sm">
-                          Configure Exam Type Weights for: {formulas.find(f => f.id === selectedFormula)?.name}
+                          Configure Exam Type Weights for: {formulas.find((f) => f.id === selectedFormula)?.name}
                         </h4>
                         <Button size="sm" variant="ghost" onClick={() => setSelectedFormula(null)}>
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground mb-4">
-                        Set the weight (percentage contribution) for each exam type. Weights should sum to 100 for accurate calculation.
+                        Set the weight (percentage contribution) for each exam type. Weights should sum to 100 for
+                        accurate calculation.
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {examTypes.filter(et => et.is_active).map(examType => (
-                          <div key={examType.id} className="flex items-center gap-2 bg-background p-2 rounded border">
-                            <Label className="text-xs flex-1">{examType.name}</Label>
-                            <Input
-                              type="number"
-                              className="w-20 h-8 text-xs"
-                              placeholder="Weight %"
-                              value={editingWeights[examType.id] || ""}
-                              onChange={(e) => setEditingWeights(prev => ({
-                                ...prev,
-                                [examType.id]: parseFloat(e.target.value) || 0
-                              }))}
-                            />
-                            <span className="text-xs text-muted-foreground">%</span>
-                          </div>
-                        ))}
+                        {examTypes
+                          .filter((et) => et.is_active)
+                          .map((examType) => (
+                            <div key={examType.id} className="flex items-center gap-2 bg-background p-2 rounded border">
+                              <Label className="text-xs flex-1">{examType.name}</Label>
+                              <Input
+                                type="number"
+                                className="w-20 h-8 text-xs"
+                                placeholder="Weight %"
+                                value={editingWeights[examType.id] || ""}
+                                onChange={(e) =>
+                                  setEditingWeights((prev) => ({
+                                    ...prev,
+                                    [examType.id]: parseFloat(e.target.value) || 0,
+                                  }))
+                                }
+                              />
+                              <span className="text-xs text-muted-foreground">%</span>
+                            </div>
+                          ))}
                       </div>
                       <div className="flex items-center justify-between mt-4">
                         <p className="text-xs text-muted-foreground">
@@ -1396,17 +1450,22 @@ export default function AcademicSettings() {
                               const alreadyRegistered = getAlreadyRegisteredForGrade().includes(la.id);
                               return (
                                 <div key={la.id} className="flex items-center space-x-2">
-                                  <Checkbox 
+                                  <Checkbox
                                     id={`grade-la-${la.id}`}
                                     checked={selectedRegLearningAreas.includes(la.id) || alreadyRegistered}
                                     onCheckedChange={() => !alreadyRegistered && toggleLearningAreaSelection(la.id)}
                                     disabled={alreadyRegistered}
                                   />
-                                  <label 
-                                    htmlFor={`grade-la-${la.id}`} 
-                                    className={`text-sm cursor-pointer ${alreadyRegistered ? 'text-muted-foreground' : ''}`}
+                                  <label
+                                    htmlFor={`grade-la-${la.id}`}
+                                    className={`text-sm cursor-pointer ${alreadyRegistered ? "text-muted-foreground" : ""}`}
                                   >
-                                    {la.name} ({la.code}) {alreadyRegistered && <Badge variant="secondary" className="ml-2 text-xs">Registered</Badge>}
+                                    {la.name} ({la.code}){" "}
+                                    {alreadyRegistered && (
+                                      <Badge variant="secondary" className="ml-2 text-xs">
+                                        Registered
+                                      </Badge>
+                                    )}
                                   </label>
                                 </div>
                               );
@@ -1418,10 +1477,13 @@ export default function AcademicSettings() {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => {
-                          setGradeRegDialogOpen(false);
-                          setSelectedRegLearningAreas([]);
-                        }}>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setGradeRegDialogOpen(false);
+                            setSelectedRegLearningAreas([]);
+                          }}
+                        >
                           Cancel
                         </Button>
                         <Button onClick={handleRegisterGradeLearningAreas} disabled={addGradeLearningAreas.isPending}>
@@ -1454,7 +1516,7 @@ export default function AcademicSettings() {
                               placeholder="Enter admission number"
                               value={admissionNumberSearch}
                               onChange={(e) => setAdmissionNumberSearch(e.target.value)}
-                              onKeyDown={(e) => e.key === 'Enter' && handleSearchLearner()}
+                              onKeyDown={(e) => e.key === "Enter" && handleSearchLearner()}
                             />
                             <Button onClick={handleSearchLearner} disabled={searchingLearner}>
                               {searchingLearner ? "Searching..." : "Search"}
@@ -1467,15 +1529,21 @@ export default function AcademicSettings() {
                             <div className="p-3 bg-muted/50 rounded-md">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="font-medium">{foundLearner.first_name} {foundLearner.last_name}</p>
+                                  <p className="font-medium">
+                                    {foundLearner.first_name} {foundLearner.last_name}
+                                  </p>
                                   <p className="text-sm text-muted-foreground">
-                                    Adm: {foundLearner.admission_number} | Grade: {foundLearner.grades?.name || 'N/A'}
+                                    Adm: {foundLearner.admission_number} | Grade: {foundLearner.grades?.name || "N/A"}
                                   </p>
                                 </div>
-                                <Button size="sm" variant="ghost" onClick={() => {
-                                  setFoundLearner(null);
-                                  setAdmissionNumberSearch("");
-                                }}>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setFoundLearner(null);
+                                    setAdmissionNumberSearch("");
+                                  }}
+                                >
                                   <X className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -1504,17 +1572,22 @@ export default function AcademicSettings() {
                                   const alreadyRegistered = getAlreadyRegisteredForLearner().includes(la.id);
                                   return (
                                     <div key={la.id} className="flex items-center space-x-2">
-                                      <Checkbox 
+                                      <Checkbox
                                         id={`learner-la-${la.id}`}
                                         checked={selectedRegLearningAreas.includes(la.id) || alreadyRegistered}
                                         onCheckedChange={() => !alreadyRegistered && toggleLearningAreaSelection(la.id)}
                                         disabled={alreadyRegistered}
                                       />
-                                      <label 
-                                        htmlFor={`learner-la-${la.id}`} 
-                                        className={`text-sm cursor-pointer ${alreadyRegistered ? 'text-muted-foreground' : ''}`}
+                                      <label
+                                        htmlFor={`learner-la-${la.id}`}
+                                        className={`text-sm cursor-pointer ${alreadyRegistered ? "text-muted-foreground" : ""}`}
                                       >
-                                        {la.name} ({la.code}) {alreadyRegistered && <Badge variant="secondary" className="ml-2 text-xs">Registered</Badge>}
+                                        {la.name} ({la.code}){" "}
+                                        {alreadyRegistered && (
+                                          <Badge variant="secondary" className="ml-2 text-xs">
+                                            Registered
+                                          </Badge>
+                                        )}
                                       </label>
                                     </div>
                                   );
@@ -1528,16 +1601,19 @@ export default function AcademicSettings() {
                         )}
                       </div>
                       <DialogFooter>
-                        <Button variant="outline" onClick={() => {
-                          setLearnerRegDialogOpen(false);
-                          setFoundLearner(null);
-                          setAdmissionNumberSearch("");
-                          setSelectedRegLearningAreas([]);
-                        }}>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setLearnerRegDialogOpen(false);
+                            setFoundLearner(null);
+                            setAdmissionNumberSearch("");
+                            setSelectedRegLearningAreas([]);
+                          }}
+                        >
                           Cancel
                         </Button>
-                        <Button 
-                          onClick={handleRegisterLearnerLearningAreas} 
+                        <Button
+                          onClick={handleRegisterLearnerLearningAreas}
                           disabled={addLearnerLearningAreas.isPending || !foundLearner}
                         >
                           Register
@@ -1554,7 +1630,7 @@ export default function AcademicSettings() {
                   <TabsTrigger value="grade">Grade Registrations</TabsTrigger>
                   <TabsTrigger value="learner">Individual Registrations</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="grade">
                   {gradeLearningAreas.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground text-sm">
@@ -1565,23 +1641,26 @@ export default function AcademicSettings() {
                       {/* Group by grade */}
                       {(() => {
                         // Group learning areas by grade
-                        const groupedByGrade = gradeLearningAreas.reduce((acc: Record<string, typeof gradeLearningAreas>, gla) => {
-                          const gradeKey = gla.grades?.name || 'Unknown';
-                          if (!acc[gradeKey]) {
-                            acc[gradeKey] = [];
-                          }
-                          acc[gradeKey].push(gla);
-                          return acc;
-                        }, {});
+                        const groupedByGrade = gradeLearningAreas.reduce(
+                          (acc: Record<string, typeof gradeLearningAreas>, gla) => {
+                            const gradeKey = gla.grades?.name || "Unknown";
+                            if (!acc[gradeKey]) {
+                              acc[gradeKey] = [];
+                            }
+                            acc[gradeKey].push(gla);
+                            return acc;
+                          },
+                          {},
+                        );
 
                         // Sort grades naturally
                         const sortedGrades = Object.keys(groupedByGrade).sort((a, b) => {
-                          const numA = parseInt(a.replace(/\D/g, '')) || 0;
-                          const numB = parseInt(b.replace(/\D/g, '')) || 0;
+                          const numA = parseInt(a.replace(/\D/g, "")) || 0;
+                          const numB = parseInt(b.replace(/\D/g, "")) || 0;
                           return numA - numB;
                         });
 
-                        return sortedGrades.map(gradeName => (
+                        return sortedGrades.map((gradeName) => (
                           <div key={gradeName} className="border rounded-lg overflow-hidden">
                             <div className="bg-primary/10 px-4 py-3 border-b">
                               <h4 className="font-semibold text-sm flex items-center gap-2">
@@ -1595,13 +1674,15 @@ export default function AcademicSettings() {
                             <div className="p-4">
                               <div className="flex flex-wrap gap-2">
                                 {groupedByGrade[gradeName].map((gla) => (
-                                  <div 
-                                    key={gla.id} 
+                                  <div
+                                    key={gla.id}
                                     className="flex items-center gap-2 bg-muted/50 px-3 py-2 rounded-lg border"
                                   >
                                     <div>
                                       <span className="text-sm font-medium">{gla.learning_areas?.name}</span>
-                                      <span className="text-xs text-muted-foreground ml-1">({gla.learning_areas?.code})</span>
+                                      <span className="text-xs text-muted-foreground ml-1">
+                                        ({gla.learning_areas?.code})
+                                      </span>
                                     </div>
                                     <Badge variant="outline" className="text-xs">
                                       {gla.academic_year}
@@ -1653,9 +1734,7 @@ export default function AcademicSettings() {
                               <TableCell className="text-sm">
                                 {lla.learners?.first_name} {lla.learners?.last_name}
                               </TableCell>
-                              <TableCell className="text-sm">
-                                {lla.learners?.admission_number}
-                              </TableCell>
+                              <TableCell className="text-sm">{lla.learners?.admission_number}</TableCell>
                               <TableCell className="text-sm">
                                 {lla.learning_areas?.name} ({lla.learning_areas?.code})
                               </TableCell>
