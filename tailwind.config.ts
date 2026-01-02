@@ -16,6 +16,19 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      fontSize: {
+        // Unified typography scale
+        'xs': ['0.75rem', { lineHeight: '1rem' }],        // 12px - small labels, captions
+        'sm': ['0.875rem', { lineHeight: '1.25rem' }],    // 14px - body small, table cells
+        'base': ['1rem', { lineHeight: '1.5rem' }],       // 16px - body text, paragraphs
+        'lg': ['1.125rem', { lineHeight: '1.75rem' }],    // 18px - lead text
+        'xl': ['1.25rem', { lineHeight: '1.75rem' }],     // 20px - h4, section headers
+        '2xl': ['1.5rem', { lineHeight: '2rem' }],        // 24px - h3
+        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],   // 30px - h2
+        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],     // 36px - h1
+        '5xl': ['3rem', { lineHeight: '1' }],             // 48px - hero titles
+        '6xl': ['3.75rem', { lineHeight: '1' }],          // 60px - large hero
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
