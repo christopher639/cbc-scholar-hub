@@ -447,7 +447,7 @@ export default function Home() {
             </div>
             
             {schoolInfo?.school_name && (
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 drop-shadow-2xl animate-fade-in">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white leading-tight mb-4 drop-shadow-2xl animate-fade-in">
                 Welcome to{" "}
                 <span className="bg-gradient-to-r from-primary-foreground to-white bg-clip-text">
                   {schoolInfo.school_name}
@@ -456,7 +456,7 @@ export default function Home() {
             )}
             
             {schoolInfo?.motto && (
-              <p className="text-lg sm:text-xl md:text-2xl text-white/90 font-medium drop-shadow-lg mb-8 max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg md:text-xl text-white/90 font-medium drop-shadow-lg mb-6 max-w-2xl mx-auto">
                 "{schoolInfo.motto}"
               </p>
             )}
@@ -506,15 +506,15 @@ export default function Home() {
       {blogs.length > 0 && (
         <section id="blog" className="py-16 md:py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
-                <BookOpen className="h-4 w-4" />
+            <div className="text-center mb-12">
+              <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full mb-3">
+                <BookOpen className="h-3.5 w-3.5" />
                 Latest Updates
               </span>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
                 News & Blog
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm">
                 Stay updated with the latest news, events, and stories from our school community.
               </p>
             </div>
@@ -579,15 +579,15 @@ export default function Home() {
       {galleryImages.length > 0 && (
         <section id="gallery" className="py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
-                <Star className="h-4 w-4" />
+            <div className="text-center mb-12">
+              <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full mb-3">
+                <Star className="h-3.5 w-3.5" />
                 Our School
               </span>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
                 Photo Gallery
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm">
                 Explore our facilities, events, and vibrant school life through our gallery.
               </p>
             </div>
@@ -647,15 +647,15 @@ export default function Home() {
 
       <section id="about" className="py-16 md:py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
-              <GraduationCap className="h-4 w-4" />
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full mb-3">
+              <GraduationCap className="h-3.5 w-3.5" />
               About Us
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
               Shaping Tomorrow's Leaders
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm">
               We are committed to providing quality education that empowers students to achieve their full potential.
             </p>
           </div>
@@ -718,10 +718,10 @@ export default function Home() {
                   </div>
                   <div className="text-center lg:text-left flex-1">
                     <p className="text-primary text-sm font-medium mb-2">Message from Leadership</p>
-                    <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4">
+                    <h3 className="text-lg font-bold text-foreground mb-3">
                       From the Director's Desk
                     </h3>
-                    <p className="text-muted-foreground italic mb-4 leading-relaxed">
+                    <p className="text-muted-foreground italic mb-4 text-sm leading-relaxed">
                       "{schoolInfo.director_message || "Welcome to our school. We are committed to providing the best education for your children."}"
                     </p>
                     <div>
@@ -742,15 +742,15 @@ export default function Home() {
       {programs.length > 0 && (
         <section id="programs" className="py-16 md:py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
-                <Award className="h-4 w-4" />
+            <div className="text-center mb-12">
+              <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full mb-3">
+                <Award className="h-3.5 w-3.5" />
                 What We Offer
               </span>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
                 Our Programs
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm">
                 Comprehensive educational programs designed to nurture every aspect of your child's development.
               </p>
             </div>
@@ -778,15 +778,15 @@ export default function Home() {
       {/* Testimonials Section */}
       <section id="testimonials" className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
-              <Users className="h-4 w-4" />
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full mb-3">
+              <Users className="h-3.5 w-3.5" />
               Testimonials
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
               What Parents Say
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm">
               Hear from our community of satisfied parents and guardians.
             </p>
           </div>
@@ -825,14 +825,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
             <div>
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
-                <Mail className="h-4 w-4" />
+              <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full mb-3">
+                <Mail className="h-3.5 w-3.5" />
                 Get in Touch
               </span>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
                 Contact Us
               </h2>
-              <p className="text-muted-foreground text-lg mb-10">
+              <p className="text-muted-foreground text-sm mb-8">
                 Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
               </p>
 
