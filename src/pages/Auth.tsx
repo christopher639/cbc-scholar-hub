@@ -651,6 +651,16 @@ export default function Auth() {
         keywords="Samge school login, student portal, teacher portal, school management"
       />
       <div className="w-full max-w-sm">
+        {/* Back to Home Button */}
+        <div className="mb-4">
+          <Link to="/">
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Website
+            </Button>
+          </Link>
+        </div>
+
         {/* Logo and Header */}
         <div className="text-center mb-4">
           <div className="flex justify-center mb-2">
