@@ -424,52 +424,102 @@ export default function Home() {
       </header>
 
       {/* Hero Section - Full Background */}
-      <section id="home" className="relative min-h-[70vh] flex items-center">
-        {/* Background Image */}
+      <section id="home" className="relative min-h-[85vh] md:min-h-[90vh] flex items-center overflow-hidden">
+        {/* Background Image with Overlay */}
         {(heroBackgrounds.length > 0 || schoolInfo?.hero_background_url) && (
-          <img 
-            key={currentBgIndex}
-            src={heroBackgrounds.length > 0 ? heroBackgrounds[currentBgIndex] : schoolInfo?.hero_background_url} 
-            alt="School Campus" 
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
-          />
+          <>
+            <img 
+              key={currentBgIndex}
+              src={heroBackgrounds.length > 0 ? heroBackgrounds[currentBgIndex] : schoolInfo?.hero_background_url} 
+              alt="School Campus" 
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+          </>
         )}
         
-        <div className="relative w-full pt-24 pb-16 flex items-center justify-center min-h-[70vh]">
-          <div className="text-center">
+        {/* Hero Content */}
+        <div className="relative w-full pt-32 md:pt-36 pb-20 flex items-center justify-center min-h-[85vh] md:min-h-[90vh]">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            {/* Decorative element */}
+            <div className="flex justify-center mb-6">
+              <div className="h-1 w-20 bg-primary rounded-full" />
+            </div>
+            
             {schoolInfo?.school_name && (
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight mb-3 drop-shadow-lg">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 drop-shadow-2xl animate-fade-in">
                 Welcome to{" "}
-                <span className="text-white">
+                <span className="bg-gradient-to-r from-primary-foreground to-white bg-clip-text">
                   {schoolInfo.school_name}
                 </span>
               </h1>
             )}
             
             {schoolInfo?.motto && (
-              <p className="text-sm sm:text-base md:text-lg text-white/90 font-medium drop-shadow-md">
-                {schoolInfo.motto}
+              <p className="text-lg sm:text-xl md:text-2xl text-white/90 font-medium drop-shadow-lg mb-8 max-w-2xl mx-auto">
+                "{schoolInfo.motto}"
               </p>
             )}
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
+              <a href="#about">
+                <Button size="lg" className="gap-2 text-base px-8 shadow-lg hover:shadow-xl transition-all">
+                  <BookOpen className="h-5 w-5" />
+                  Learn More
+                </Button>
+              </a>
+              <a href="#contact">
+                <Button size="lg" variant="outline" className="gap-2 text-base px-8 bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm">
+                  <Phone className="h-5 w-5" />
+                  Contact Us
+                </Button>
+              </a>
+            </div>
+
+            {/* Scroll indicator */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+              <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
+                <div className="w-1.5 h-3 bg-white/70 rounded-full animate-pulse" />
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Hero Background Indicators */}
+        {heroBackgrounds.length > 1 && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2">
+            {heroBackgrounds.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentBgIndex(index)}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                  index === currentBgIndex ? "bg-white w-8" : "bg-white/50 hover:bg-white/70"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Blog Section */}
       {blogs.length > 0 && (
-        <section id="blog" className="py-8 md:py-12 bg-muted/30">
+        <section id="blog" className="py-16 md:py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <p className="text-primary text-sm font-medium mb-2">Latest Updates</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <div className="text-center mb-16">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
+                <BookOpen className="h-4 w-4" />
+                Latest Updates
+              </span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
                 News & Blog
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
                 Stay updated with the latest news, events, and stories from our school community.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8">
               {blogs.map((blog) => (
                 <Card 
                   key={blog.id} 
@@ -527,19 +577,22 @@ export default function Home() {
 
       {/* Photo Gallery Section */}
       {galleryImages.length > 0 && (
-        <section id="gallery" className="py-8 md:py-12">
+        <section id="gallery" className="py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <p className="text-primary text-sm font-medium mb-2">Our School</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <div className="text-center mb-16">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
+                <Star className="h-4 w-4" />
+                Our School
+              </span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
                 Photo Gallery
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
                 Explore our facilities, events, and vibrant school life through our gallery.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {galleryImages.map((image) => (
                 <div
                   key={image.id}
@@ -592,14 +645,17 @@ export default function Home() {
         </div>
       )}
 
-      <section id="about" className="py-8 md:py-12 relative">
+      <section id="about" className="py-16 md:py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <p className="text-primary text-sm font-medium mb-2">About Us</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
+              <GraduationCap className="h-4 w-4" />
+              About Us
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
               Shaping Tomorrow's Leaders
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
               We are committed to providing quality education that empowers students to achieve their full potential.
             </p>
           </div>
@@ -684,14 +740,17 @@ export default function Home() {
 
       {/* Programs Section */}
       {programs.length > 0 && (
-        <section id="programs" className="py-8 md:py-12 bg-muted/30">
+        <section id="programs" className="py-16 md:py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <p className="text-primary text-sm font-medium mb-2">What We Offer</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <div className="text-center mb-16">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
+                <Award className="h-4 w-4" />
+                What We Offer
+              </span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
                 Our Programs
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
                 Comprehensive educational programs designed to nurture every aspect of your child's development.
               </p>
             </div>
@@ -717,33 +776,41 @@ export default function Home() {
       )}
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-8 md:py-12">
+      <section id="testimonials" className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <p className="text-primary text-sm font-medium mb-2">Testimonials</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
+              <Users className="h-4 w-4" />
+              Testimonials
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
               What Parents Say
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
               Hear from our community of satisfied parents and guardians.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, i) => (
-              <Card key={i} className="border bg-card">
-                <CardContent className="p-6">
-                  <Quote className="h-8 w-8 text-primary/30 mb-4" />
-                  <p className="text-muted-foreground mb-6 italic leading-relaxed">
+              <Card key={i} className="border bg-card hover:shadow-lg transition-all hover:-translate-y-1">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-1 mb-4">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className="h-4 w-4 text-amber-400 fill-amber-400" />
+                    ))}
+                  </div>
+                  <Quote className="h-10 w-10 text-primary/20 mb-4" />
+                  <p className="text-muted-foreground mb-8 italic leading-relaxed text-base">
                     "{testimonial.content}"
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-primary font-bold text-sm">{testimonial.avatar}</span>
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center shadow-lg">
+                      <span className="text-primary-foreground font-bold">{testimonial.avatar}</span>
                     </div>
                     <div>
-                      <p className="font-bold text-foreground text-sm">{testimonial.name}</p>
-                      <p className="text-muted-foreground text-xs">{testimonial.role}</p>
+                      <p className="font-bold text-foreground">{testimonial.name}</p>
+                      <p className="text-muted-foreground text-sm">{testimonial.role}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -754,43 +821,52 @@ export default function Home() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-8 md:py-12 bg-muted/30">
+      <section id="contact" className="py-16 md:py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
             <div>
-              <p className="text-primary text-sm font-medium mb-2">Get in Touch</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4">
+                <Mail className="h-4 w-4" />
+                Get in Touch
+              </span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6">
                 Contact Us
               </h2>
-              <p className="text-muted-foreground mb-8">
+              <p className="text-muted-foreground text-lg mb-10">
                 Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
               </p>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {schoolInfo?.address && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-primary mt-1" />
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-card border hover:shadow-md transition-shadow">
+                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <MapPin className="h-6 w-6 text-primary" />
+                    </div>
                     <div>
-                      <p className="font-medium text-foreground">Address</p>
-                      <p className="text-muted-foreground text-sm">{schoolInfo.address}</p>
+                      <p className="font-semibold text-foreground mb-1">Address</p>
+                      <p className="text-muted-foreground">{schoolInfo.address}</p>
                     </div>
                   </div>
                 )}
                 {schoolInfo?.phone && (
-                  <div className="flex items-start gap-3">
-                    <Phone className="h-5 w-5 text-primary mt-1" />
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-card border hover:shadow-md transition-shadow">
+                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Phone className="h-6 w-6 text-primary" />
+                    </div>
                     <div>
-                      <p className="font-medium text-foreground">Phone</p>
-                      <p className="text-muted-foreground text-sm">{schoolInfo.phone}</p>
+                      <p className="font-semibold text-foreground mb-1">Phone</p>
+                      <p className="text-muted-foreground">{schoolInfo.phone}</p>
                     </div>
                   </div>
                 )}
                 {schoolInfo?.email && (
-                  <div className="flex items-start gap-3">
-                    <Mail className="h-5 w-5 text-primary mt-1" />
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-card border hover:shadow-md transition-shadow">
+                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Mail className="h-6 w-6 text-primary" />
+                    </div>
                     <div>
-                      <p className="font-medium text-foreground">Email</p>
-                      <p className="text-muted-foreground text-sm">{schoolInfo.email}</p>
+                      <p className="font-semibold text-foreground mb-1">Email</p>
+                      <p className="text-muted-foreground">{schoolInfo.email}</p>
                     </div>
                   </div>
                 )}
@@ -865,19 +941,54 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-card border-t border-border py-8">
+      <footer className="bg-foreground/[0.03] border-t border-border py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              {schoolInfo?.logo_url ? (
-                <div className="h-8 w-8 rounded-full overflow-hidden">
-                  <img src={schoolInfo.logo_url} alt="Logo" className="h-full w-full object-cover" />
-                </div>
-              ) : (
-                <GraduationCap className="h-6 w-6 text-primary" />
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            {/* Brand */}
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                {schoolInfo?.logo_url ? (
+                  <div className="h-12 w-12 rounded-full overflow-hidden shadow-md">
+                    <img src={schoolInfo.logo_url} alt="Logo" className="h-full w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-12 w-12 bg-primary rounded-full flex items-center justify-center">
+                    <GraduationCap className="h-6 w-6 text-primary-foreground" />
+                  </div>
+                )}
+                <span className="font-bold text-lg text-foreground">{schoolInfo?.school_name || "SAGME School"}</span>
+              </div>
+              {schoolInfo?.motto && (
+                <p className="text-muted-foreground text-sm italic">"{schoolInfo.motto}"</p>
               )}
-              <span className="font-bold text-foreground">{schoolInfo?.school_name || "SAGME School"}</span>
             </div>
+
+            {/* Quick Links */}
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Quick Links</h4>
+              <ul className="space-y-2">
+                {navLinks.slice(0, 4).map((link) => (
+                  <li key={link.name}>
+                    <a href={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contact Info */}
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Contact</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                {schoolInfo?.phone && <li>{schoolInfo.phone}</li>}
+                {schoolInfo?.email && <li>{schoolInfo.email}</li>}
+                {schoolInfo?.address && <li>{schoolInfo.address}</li>}
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-border pt-8">
             <p className="text-muted-foreground text-sm text-center">
               © {new Date().getFullYear()} {schoolInfo?.school_name || "SAGME School"}. All rights reserved.
             </p>
