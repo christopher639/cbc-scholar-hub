@@ -192,12 +192,12 @@ export function RightSidePanel() {
         </TooltipProvider>
       </div>
 
-      {/* Expandable Panel - Now relative positioned, not fixed */}
+      {/* Expandable Panel - Overlay positioned on top of content */}
       <div
         className={cn(
-          "hidden lg:block border-l shadow-lg transition-all duration-300 h-full overflow-hidden",
+          "hidden lg:block absolute right-14 top-0 border-l shadow-xl transition-all duration-300 h-full overflow-hidden z-50",
           getTopbarClass(),
-          activePanel ? "w-80" : "w-0"
+          activePanel ? "w-80 opacity-100" : "w-0 opacity-0"
         )}
       >
         {activePanel && (
