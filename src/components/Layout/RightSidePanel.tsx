@@ -154,7 +154,7 @@ export function RightSidePanel() {
   return (
     <>
       {/* Right Icon Bar - Only visible on large screens */}
-      <div className="hidden lg:flex flex-col items-center py-4 px-2 border-l bg-background/50 backdrop-blur-sm gap-3">
+      <div className="hidden lg:flex flex-col items-center py-4 px-2 border-l bg-background/50 backdrop-blur-sm gap-3 h-full">
         <TooltipProvider>
           {panelItems.map((item) => (
             <Tooltip key={item.id}>
@@ -187,11 +187,11 @@ export function RightSidePanel() {
         </TooltipProvider>
       </div>
 
-      {/* Expandable Panel */}
+      {/* Expandable Panel - Now relative positioned, not fixed */}
       <div
         className={cn(
-          "hidden lg:block fixed right-14 top-0 h-full bg-background border-l shadow-lg transition-all duration-300 z-40",
-          activePanel ? "w-80" : "w-0 overflow-hidden"
+          "hidden lg:block bg-background border-l shadow-lg transition-all duration-300 h-full overflow-hidden",
+          activePanel ? "w-80" : "w-0"
         )}
       >
         {activePanel && (

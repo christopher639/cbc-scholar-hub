@@ -362,12 +362,12 @@ export default function Home() {
               {(schoolInfo?.school_name || schoolInfo?.motto) && (
                 <div>
                   {schoolInfo?.school_name && (
-                    <h1 className="text-xs font-bold text-foreground leading-tight line-clamp-1">
+                    <h1 className="text-sm font-bold text-foreground leading-tight line-clamp-1">
                       {schoolInfo.school_name}
                     </h1>
                   )}
                   {schoolInfo?.motto && (
-                    <p className="hidden sm:block text-[10px] text-muted-foreground line-clamp-1">
+                    <p className="hidden sm:block text-xs text-muted-foreground line-clamp-1">
                       {schoolInfo.motto}
                     </p>
                   )}
@@ -380,7 +380,7 @@ export default function Home() {
                 <a
                   key={link.name}
                   href={link.href}
-                  className="px-4 py-2 text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
+                  className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
                 >
                   {link.name}
                 </a>
@@ -413,7 +413,7 @@ export default function Home() {
                 <a
                   key={link.name}
                   href={link.href}
-                  className="py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors"
+                  className="py-3 px-4 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.name}
@@ -447,13 +447,13 @@ export default function Home() {
         <div className="relative w-full pt-24 pb-16 flex items-center justify-center min-h-[70vh]">
           <div className="text-center px-4">
             {schoolInfo?.school_name && (
-              <p className="text-xs font-semibold text-white leading-tight mb-2 drop-shadow-lg">
-                Welcome To <span className="text-white">{schoolInfo.school_name}</span>
+              <p className="text-lg md:text-xl font-bold text-white leading-tight mb-2 drop-shadow-lg">
+                Welcome to {schoolInfo.school_name}
               </p>
             )}
 
             {schoolInfo?.motto && (
-              <p className="text-xs text-white/90 font-medium drop-shadow-md mb-6">
+              <p className="text-sm text-white/90 font-medium drop-shadow-md mb-6">
                 "{schoolInfo.motto}"
               </p>
             )}
@@ -485,9 +485,9 @@ export default function Home() {
         <section id="blog" className="py-8 md:py-12 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <p className="text-primary text-xs font-medium mb-1">Latest Updates</p>
-              <p className="text-xs font-semibold text-foreground mb-2">News & Blog</p>
-              <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-primary text-sm font-medium mb-1">Latest Updates</p>
+              <p className="text-base font-semibold text-foreground mb-2">News & Blog</p>
+              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
                 Stay updated with the latest news, events, and stories from our school community.
               </p>
             </div>
@@ -534,10 +534,10 @@ export default function Home() {
                         {blog.likes_count}
                       </button>
                     </div>
-                    <p className="font-semibold text-xs text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    <p className="font-semibold text-sm text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                       {blog.title}
                     </p>
-                    <p className="text-muted-foreground text-xs line-clamp-3">{blog.description}</p>
+                    <p className="text-muted-foreground text-sm line-clamp-3">{blog.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -551,9 +551,9 @@ export default function Home() {
         <section id="gallery" className="py-8 md:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <p className="text-primary text-xs font-medium mb-1">Our School</p>
-              <p className="text-xs font-semibold text-foreground mb-2">Photo Gallery</p>
-              <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-primary text-sm font-medium mb-1">Our School</p>
+              <p className="text-base font-semibold text-foreground mb-2">Photo Gallery</p>
+              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
                 Explore our facilities, events, and vibrant school life through our gallery.
               </p>
             </div>
@@ -572,8 +572,8 @@ export default function Home() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <p className="text-white font-medium text-xs truncate">{image.title}</p>
-                      <p className="text-white/70 text-[10px] capitalize">{image.category}</p>
+                      <p className="text-white font-medium text-sm truncate">{image.title}</p>
+                      <p className="text-white/70 text-xs capitalize">{image.category}</p>
                     </div>
                   </div>
                 </div>
@@ -614,11 +614,11 @@ export default function Home() {
       <section id="about" className="py-8 md:py-12 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <p className="text-primary text-xs font-medium mb-1">About Us</p>
-            <p className="text-xs font-semibold text-foreground mb-2">
+            <p className="text-primary text-sm font-medium mb-1">About Us</p>
+            <p className="text-base font-semibold text-foreground mb-2">
               Shaping Tomorrow's Leaders
             </p>
-            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
               We are committed to providing quality education that empowers students to achieve their full potential.
             </p>
           </div>
@@ -631,8 +631,8 @@ export default function Home() {
                     <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                       <Target className="h-5 w-5 text-primary" />
                     </div>
-                    <p className="text-xs font-semibold text-foreground mb-2">Our Mission</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{schoolInfo.mission}</p>
+                    <p className="text-sm font-semibold text-foreground mb-2">Our Mission</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{schoolInfo.mission}</p>
                   </CardContent>
                 </Card>
               )}
@@ -642,8 +642,8 @@ export default function Home() {
                     <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                       <Lightbulb className="h-5 w-5 text-primary" />
                     </div>
-                    <p className="text-xs font-semibold text-foreground mb-2">Our Vision</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{schoolInfo.vision}</p>
+                    <p className="text-sm font-semibold text-foreground mb-2">Our Vision</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{schoolInfo.vision}</p>
                   </CardContent>
                 </Card>
               )}
@@ -653,8 +653,8 @@ export default function Home() {
                     <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                       <Heart className="h-5 w-5 text-primary" />
                     </div>
-                    <p className="text-xs font-semibold text-foreground mb-2">Core Values</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{schoolInfo.core_values}</p>
+                    <p className="text-sm font-semibold text-foreground mb-2">Core Values</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{schoolInfo.core_values}</p>
                   </CardContent>
                 </Card>
               )}
@@ -680,18 +680,18 @@ export default function Home() {
                     )}
                   </div>
                   <div className="text-center lg:text-left flex-1">
-                    <p className="text-primary text-xs font-medium mb-1">Message from Leadership</p>
-                    <p className="text-xs font-semibold text-foreground mb-3">From the Director's Desk</p>
-                    <p className="text-muted-foreground italic mb-4 leading-relaxed text-xs">
+                    <p className="text-primary text-sm font-medium mb-1">Message from Leadership</p>
+                    <p className="text-base font-semibold text-foreground mb-3">From the Director's Desk</p>
+                    <p className="text-muted-foreground italic mb-4 leading-relaxed text-sm">
                       "
                       {schoolInfo.director_message ||
                         "Welcome to our school. We are committed to providing the best education for your children."}
                       "
                     </p>
                     <div>
-                      <p className="font-bold text-foreground text-xs">{schoolInfo.director_name}</p>
+                      <p className="font-bold text-foreground text-sm">{schoolInfo.director_name}</p>
                       {schoolInfo.director_qualification && (
-                        <p className="text-muted-foreground text-xs">{schoolInfo.director_qualification}</p>
+                        <p className="text-muted-foreground text-sm">{schoolInfo.director_qualification}</p>
                       )}
                     </div>
                   </div>
@@ -707,9 +707,9 @@ export default function Home() {
         <section id="programs" className="py-8 md:py-12 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <p className="text-primary text-xs font-medium mb-1">What We Offer</p>
-              <p className="text-xs font-semibold text-foreground mb-2">Our Programs</p>
-              <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-primary text-sm font-medium mb-1">What We Offer</p>
+              <p className="text-base font-semibold text-foreground mb-2">Our Programs</p>
+              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
                 Comprehensive educational programs designed to nurture every aspect of your child's development.
               </p>
             </div>
@@ -723,8 +723,8 @@ export default function Home() {
                       <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${program.color}`}>
                         <IconComponent className="h-6 w-6" />
                       </div>
-                      <p className="text-xs font-semibold text-foreground mb-2">{program.title}</p>
-                      <p className="text-muted-foreground text-xs">{program.description}</p>
+                      <p className="text-sm font-semibold text-foreground mb-2">{program.title}</p>
+                      <p className="text-muted-foreground text-sm">{program.description}</p>
                     </CardContent>
                   </Card>
                 );
@@ -738,9 +738,9 @@ export default function Home() {
       <section id="testimonials" className="py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <p className="text-primary text-xs font-medium mb-1">Testimonials</p>
-            <p className="text-xs font-semibold text-foreground mb-2">What Parents Say</p>
-            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-primary text-sm font-medium mb-1">Testimonials</p>
+            <p className="text-base font-semibold text-foreground mb-2">What Parents Say</p>
+            <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
               Hear from our community of satisfied parents and guardians.
             </p>
           </div>
@@ -750,14 +750,14 @@ export default function Home() {
               <Card key={i} className="border bg-card">
                 <CardContent className="p-6">
                   <Quote className="h-8 w-8 text-primary/30 mb-4" />
-                  <p className="text-muted-foreground mb-6 italic leading-relaxed text-xs">"{testimonial.content}"</p>
+                  <p className="text-muted-foreground mb-6 italic leading-relaxed text-sm">"{testimonial.content}"</p>
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
                       <span className="text-primary font-bold text-sm">{testimonial.avatar}</span>
                     </div>
                     <div>
-                      <p className="font-bold text-foreground text-xs">{testimonial.name}</p>
-                      <p className="text-muted-foreground text-xs">{testimonial.role}</p>
+                      <p className="font-bold text-foreground text-sm">{testimonial.name}</p>
+                      <p className="text-muted-foreground text-sm">{testimonial.role}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -772,9 +772,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12">
             <div>
-              <p className="text-primary text-xs font-medium mb-1">Get in Touch</p>
-              <p className="text-xs font-semibold text-foreground mb-2">Contact Us</p>
-              <p className="text-xs text-muted-foreground mb-6">
+              <p className="text-primary text-sm font-medium mb-1">Get in Touch</p>
+              <p className="text-base font-semibold text-foreground mb-2">Contact Us</p>
+              <p className="text-sm text-muted-foreground mb-6">
                 Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
               </p>
 
@@ -783,8 +783,8 @@ export default function Home() {
                   <div className="flex items-start gap-3">
                     <MapPin className="h-5 w-5 text-primary mt-1" />
                     <div>
-                      <p className="font-medium text-foreground text-xs">Address</p>
-                      <p className="text-muted-foreground text-xs">{schoolInfo.address}</p>
+                      <p className="font-medium text-foreground text-sm">Address</p>
+                      <p className="text-muted-foreground text-sm">{schoolInfo.address}</p>
                     </div>
                   </div>
                 )}
@@ -792,8 +792,8 @@ export default function Home() {
                   <div className="flex items-start gap-3">
                     <Phone className="h-5 w-5 text-primary mt-1" />
                     <div>
-                      <p className="font-medium text-foreground text-xs">Phone</p>
-                      <p className="text-muted-foreground text-xs">{schoolInfo.phone}</p>
+                      <p className="font-medium text-foreground text-sm">Phone</p>
+                      <p className="text-muted-foreground text-sm">{schoolInfo.phone}</p>
                     </div>
                   </div>
                 )}
@@ -801,8 +801,8 @@ export default function Home() {
                   <div className="flex items-start gap-3">
                     <Mail className="h-5 w-5 text-primary mt-1" />
                     <div>
-                      <p className="font-medium text-foreground text-xs">Email</p>
-                      <p className="text-muted-foreground text-xs">{schoolInfo.email}</p>
+                      <p className="font-medium text-foreground text-sm">Email</p>
+                      <p className="text-muted-foreground text-sm">{schoolInfo.email}</p>
                     </div>
                   </div>
                 )}
@@ -884,9 +884,9 @@ export default function Home() {
               ) : (
                 <GraduationCap className="h-6 w-6 text-primary" />
               )}
-              <span className="font-bold text-foreground text-xs">{schoolInfo?.school_name || "SAGME School"}</span>
+              <span className="font-bold text-foreground text-sm">{schoolInfo?.school_name || "SAGME School"}</span>
             </div>
-            <p className="text-muted-foreground text-xs text-center">
+            <p className="text-muted-foreground text-sm text-center">
               © {new Date().getFullYear()} {schoolInfo?.school_name || "SAGME School"}. All rights reserved.
             </p>
           </div>

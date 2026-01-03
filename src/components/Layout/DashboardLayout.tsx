@@ -458,7 +458,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className={cn("h-screen w-full flex overflow-hidden", getPageBackgroundClass())} style={getPageBackgroundStyle()}>
         <AppSidebar onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
         
-        <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
           <header className={cn(
             "sticky top-0 z-30 flex h-14 md:h-16 shrink-0 items-center gap-2 md:gap-3 border-b px-3 sm:px-4 md:px-6",
             getTopbarClass()
@@ -531,16 +531,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto px-1 sm:px-2 md:px-4 py-2 md:py-4 pb-20 lg:pb-4">
-            {children}
+          {/* Main content area with Right Side Panel */}
+          <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 overflow-auto px-1 sm:px-2 md:px-4 py-2 md:py-4 pb-20 lg:pb-4">
+              {children}
+            </div>
+            
+            {/* Right Side Panel - Gmail Style - Now inside content area, below header */}
+            {(user?.role === "admin" || user?.role === "finance") && <RightSidePanel />}
           </div>
           
           {/* Bottom Navigation - Mobile Only */}
           <BottomNavigation onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
-        </main>
-        
-        {/* Right Side Panel - Gmail Style */}
-        {(user?.role === "admin" || user?.role === "finance") && <RightSidePanel />}
+        </div>
         
         <OfflineIndicator />
         {user?.role === "admin" && <SchoolAssistantChat />}
