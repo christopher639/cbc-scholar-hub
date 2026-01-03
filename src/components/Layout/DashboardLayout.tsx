@@ -14,6 +14,7 @@ import { NotificationsDropdown } from "@/components/NotificationsDropdown";
 import { AdminSearchBar } from "@/components/AdminSearchBar";
 import { useAdminNavigation } from "@/hooks/useAdminNavigation";
 import { useUIStyles } from "@/hooks/useUIStyles";
+import { RightSidePanel } from "@/components/Layout/RightSidePanel";
 import {
   Sidebar,
   SidebarContent,
@@ -537,6 +538,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Bottom Navigation - Mobile Only */}
           <BottomNavigation onNavigate={navigateTo} isNavigating={isNavigating} pendingPath={pendingPath} />
         </main>
+        
+        {/* Right Side Panel - Gmail Style */}
+        {(user?.role === "admin" || user?.role === "finance") && <RightSidePanel />}
+        
         <OfflineIndicator />
         {user?.role === "admin" && <SchoolAssistantChat />}
       </div>
