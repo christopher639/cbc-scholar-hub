@@ -70,7 +70,7 @@ const Dashboard = () => {
       value: loading ? (
         "..."
       ) : (
-        <span className="text-sm">
+        <span className="text-base">
           {stats.totalLearners} Active • {stats.totalAlumni} Alumni
         </span>
       ),
@@ -109,8 +109,8 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-sm font-bold text-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-base font-bold text-foreground">Dashboard</h1>
+            <p className="text-base text-muted-foreground">
               Hello {getFirstName()}! Welcome back to {schoolInfo?.school_name || "school"} overview.
             </p>
           </div>
@@ -194,8 +194,8 @@ const Dashboard = () => {
         <div className="lg:hidden">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Recent Payments</CardTitle>
-              <CardDescription className="text-sm">Latest fee transactions recorded in the system</CardDescription>
+              <CardTitle className="text-base">Recent Payments</CardTitle>
+              <CardDescription className="text-base">Latest fee transactions recorded in the system</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-3">
@@ -265,8 +265,8 @@ const Dashboard = () => {
           {/* Uncollected Balance by Grade */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Fee Balances across Grades</CardTitle>
-              <CardDescription className="text-sm">Outstanding fees breakdown by grade level</CardDescription>
+              <CardTitle className="text-base">Fee Balances across Grades</CardTitle>
+              <CardDescription className="text-base">Outstanding fees breakdown by grade level</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -306,8 +306,8 @@ const Dashboard = () => {
           {/* Recent Admissions */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Recent Admissions</CardTitle>
-              <CardDescription className="text-sm">Latest learners enrolled in the system</CardDescription>
+              <CardTitle className="text-base">Recent Admissions</CardTitle>
+              <CardDescription className="text-base">Latest learners enrolled in the system</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -359,8 +359,8 @@ const Dashboard = () => {
           {/* Grade Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Grade Distribution</CardTitle>
-              <CardDescription className="text-sm">Learner enrollment by grade level</CardDescription>
+              <CardTitle className="text-base">Grade Distribution</CardTitle>
+              <CardDescription className="text-base">Learner enrollment by grade level</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -390,11 +390,11 @@ const Dashboard = () => {
           {/* House Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
+              <CardTitle className="text-base flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 House Distribution
               </CardTitle>
-              <CardDescription className="text-sm">Learners distributed across houses</CardDescription>
+              <CardDescription className="text-base">Learners distributed across houses</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -429,11 +429,11 @@ const Dashboard = () => {
           {/* Department Distribution */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
+              <CardTitle className="text-base flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
                 Department Distribution
               </CardTitle>
-              <CardDescription className="text-sm">Teachers distributed across departments</CardDescription>
+              <CardDescription className="text-base">Teachers distributed across departments</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -483,8 +483,8 @@ const Dashboard = () => {
         {/* Recent Payments - Desktop only (mobile version above) */}
         <Card className="hidden lg:block">
           <CardHeader>
-            <CardTitle className="text-sm">Recent Payments</CardTitle>
-            <CardDescription className="text-sm">Latest fee transactions recorded in the system</CardDescription>
+            <CardTitle className="text-base">Recent Payments</CardTitle>
+            <CardDescription className="text-base">Latest fee transactions recorded in the system</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -547,36 +547,36 @@ const Dashboard = () => {
         {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Quick Actions</CardTitle>
+            <CardTitle className="text-base">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Link to="/admissions">
-                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full text-sm">
+                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full text-base">
                   <UserCheck className="h-4 w-4" />
-                  <span className="font-semibold text-sm">New Admission</span>
-                  <span className="text-sm text-muted-foreground">Register a new learner</span>
+                  <span className="font-semibold text-base">New Admission</span>
+                  <span className="text-base text-muted-foreground">Register a new learner</span>
                 </Button>
               </Link>
               <Link to="/fees">
-                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full text-sm">
+                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full text-base">
                   <DollarSign className="h-4 w-4" />
-                  <span className="font-semibold text-sm">Process Payment</span>
-                  <span className="text-sm text-muted-foreground">Record fee payment</span>
+                  <span className="font-semibold text-base">Process Payment</span>
+                  <span className="text-base text-muted-foreground">Record fee payment</span>
                 </Button>
               </Link>
               <Link to="/students">
-                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full text-sm">
+                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full text-base">
                   <GraduationCap className="h-4 w-4" />
-                  <span className="font-semibold text-sm">Promote Learners</span>
-                  <span className="text-sm text-muted-foreground">Grade progression</span>
+                  <span className="font-semibold text-base">Promote Learners</span>
+                  <span className="text-base text-muted-foreground">Grade progression</span>
                 </Button>
               </Link>
               <Link to="/reports">
-                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full text-sm">
+                <Button variant="outline" className="h-auto flex-col items-start gap-2 p-4 w-full text-base">
                   <Users className="h-4 w-4" />
-                  <span className="font-semibold text-sm">View Reports</span>
-                  <span className="text-sm text-muted-foreground">Analytics & insights</span>
+                  <span className="font-semibold text-base">View Reports</span>
+                  <span className="text-base text-muted-foreground">Analytics & insights</span>
                 </Button>
               </Link>
             </div>
