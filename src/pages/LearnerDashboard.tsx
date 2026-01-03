@@ -551,10 +551,10 @@ export default function LearnerDashboard() {
   return (
     <div className="w-full min-h-screen px-2 sm:px-3 md:px-6 pt-2 pb-4 md:pb-6 space-y-4 sm:space-y-6">
       <div className="min-w-0">
-        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">
+        <h1 className="text-xl font-bold text-foreground truncate">
           Welcome back, {learnerDetails?.first_name}!
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           {selectedGradeName && displayTerm && selectedAcademicYear
             ? `${selectedGradeName} ${displayTerm} ${selectedAcademicYear}`
             : currentPeriod && gradeName

@@ -27,7 +27,7 @@ export default function LearnerSettings() {
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold mb-2">Settings</h1>
+        <h1 className="text-xl font-bold mb-2">Settings</h1>
         <p className="text-sm text-muted-foreground">Manage your preferences and account settings</p>
       </div>
 

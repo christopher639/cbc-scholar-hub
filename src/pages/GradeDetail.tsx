@@ -100,8 +100,8 @@ const GradeDetail = () => {
             </Button>
           </Link>
           <div className="flex-1">
-          <h1 className="text-3xl font-bold text-foreground">{gradeData?.name || `Grade ${grade}`}</h1>
-            <p className="text-muted-foreground">View all streams in this grade - {totalLearners} total learners</p>
+          <h1 className="text-xl font-bold text-foreground">{gradeData?.name || `Grade ${grade}`}</h1>
+            <p className="text-sm text-muted-foreground">View all streams in this grade - {totalLearners} total learners</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setHistoricalDialogOpen(true)}>

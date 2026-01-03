@@ -189,8 +189,8 @@ export default function TeacherAssignments() {
     <div className="px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Assignments</h1>
-          <p className="text-muted-foreground">Manage and create assignments</p>
+          <h1 className="text-xl font-bold">Assignments</h1>
+          <p className="text-sm text-muted-foreground">Manage and create assignments</p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -210,7 +210,7 @@ const Activities = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">System Activities</h1>
+            <h1 className="text-xl font-bold text-foreground">System Activities</h1>
             <p className="text-sm text-muted-foreground">Track all CRUD operations across the system</p>
           </div>
           <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">

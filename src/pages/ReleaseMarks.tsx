@@ -272,8 +272,8 @@ export default function ReleaseMarks() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Release Marks</h1>
-          <p className="text-muted-foreground">Release performance marks to the learner portal and send SMS notifications</p>
+          <h1 className="text-xl font-bold">Release Marks</h1>
+          <p className="text-sm text-muted-foreground">Release performance marks to the learner portal and send SMS notifications</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

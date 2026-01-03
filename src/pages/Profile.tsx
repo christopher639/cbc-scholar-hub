@@ -319,8 +319,8 @@ export default function Profile() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">My Profile</h1>
-            <p className="text-muted-foreground">Manage your personal information</p>
+            <h1 className="text-xl font-bold text-foreground">My Profile</h1>
+            <p className="text-sm text-muted-foreground">Manage your personal information</p>
           </div>
           {roleInfo.badge}
         </div>

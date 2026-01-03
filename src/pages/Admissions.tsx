@@ -78,8 +78,8 @@ const Admissions = () => {
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">Learner Admissions</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">Manage new learner registrations</p>
+            <h1 className="text-xl font-bold text-foreground">Learner Admissions</h1>
+            <p className="text-sm text-muted-foreground">Manage new learner registrations</p>
           </div>
           <Button className="gap-2 w-full sm:w-auto" size="sm" onClick={() => setIsAddLearnerOpen(true)}>
             <UserPlus className="h-4 w-4" />

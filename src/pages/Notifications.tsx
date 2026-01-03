@@ -118,8 +118,8 @@ export default function Notifications() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Notifications</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl font-bold">Notifications</h1>
+            <p className="text-sm text-muted-foreground">
               Stay updated with payments, enrollments, and important events
             </p>
           </div>
