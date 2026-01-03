@@ -47,14 +47,18 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
     setLoading(true);
 
     try {
+      // Normalize email to lowercase for consistent login
+      const normalizedEmail = formData.email.trim().toLowerCase();
+      
       // Create user in auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
+        email: normalizedEmail,
         password: formData.password,
         options: {
           data: {
             full_name: formData.fullName,
           },
+          emailRedirectTo: `${window.location.origin}/auth`,
         },
       });
 
@@ -97,10 +101,10 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
           await supabase.functions.invoke("send-credentials-sms", {
             body: {
               type: "user",
-              email: formData.email,
+              email: normalizedEmail,
               credentials: {
                 name: formData.fullName,
-                email: formData.email,
+                email: normalizedEmail,
                 password: formData.password,
                 role: formData.role,
                 portalUrl: window.location.origin + "/auth"

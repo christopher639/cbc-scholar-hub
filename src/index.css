@@ -118,23 +118,24 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground text-base;
+    @apply bg-background text-foreground text-xs;
+    font-size: 12px;
   }
 
-  /* Unified Typography System - Consistent small font sizes */
+  /* Unified Typography System - Standard 12px font size */
   h1, h2, h3, h4, h5, h6 {
-    @apply text-sm font-semibold tracking-tight;
+    @apply text-xs font-semibold tracking-tight;
   }
 
   p {
-    @apply text-sm leading-relaxed;
+    @apply text-xs leading-relaxed;
   }
 
   small {
-    @apply text-xs;
+    @apply text-[10px];
   }
 
   label {
-    @apply text-sm font-medium;
+    @apply text-xs font-medium;
   }
 }
