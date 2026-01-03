@@ -87,7 +87,7 @@ const Learners = () => {
       <div className="flex flex-col h-full space-y-4">
         {/* Header with Search and Filter inline */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 shrink-0">
-          <h1 className="text-xl lg:text-2xl font-bold text-foreground">Learners</h1>
+          <h1 className="text-xl font-bold text-foreground">Learners</h1>
           
           {/* Search, Filter, and Add Button Row */}
           <div className="flex items-center gap-2 flex-1 lg:max-w-xl">

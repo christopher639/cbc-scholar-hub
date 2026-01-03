@@ -132,7 +132,7 @@ const StreamDetail = () => {
           </Link>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-xl font-bold text-foreground">
                 {streamData?.grade?.name || grade} - {stream} Stream
               </h1>
               <Button

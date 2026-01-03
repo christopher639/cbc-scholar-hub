@@ -168,7 +168,7 @@ const Reports = () => {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Reports & Analytics</h1>
+            <h1 className="text-xl font-bold text-foreground">Reports & Analytics</h1>
             <p className="text-sm text-muted-foreground">Generate comprehensive reports for decision making</p>
           </div>
           <Button variant="outline" className="gap-2">

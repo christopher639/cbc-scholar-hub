@@ -107,8 +107,8 @@ export default function AcademicYears() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Academic Years</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl font-bold">Academic Years</h1>
+          <p className="text-sm text-muted-foreground">
             Manage academic years for fee structures and reporting
           </p>
         </div>

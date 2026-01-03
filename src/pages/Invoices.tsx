@@ -404,8 +404,8 @@ export default function Invoices() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Invoice Management</h1>
-            <p className="text-muted-foreground text-sm">Manage and track learner invoices</p>
+            <h1 className="text-xl font-bold tracking-tight">Invoice Management</h1>
+            <p className="text-sm text-muted-foreground">Manage and track learner invoices</p>
           </div>
           <Button onClick={() => setGenerateDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />

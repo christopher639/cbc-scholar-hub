@@ -192,8 +192,8 @@ export default function LearnerAITutor() {
           <div className="p-2 sm:p-3 rounded-full bg-primary/10 w-fit mx-auto mb-3 sm:mb-4">
             <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">AI Tutor</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
+          <h1 className="text-xl font-bold mb-1 sm:mb-2">AI Tutor</h1>
+          <p className="text-sm text-muted-foreground">
             Choose a subject to practice, {learnerInfo.name}!
           </p>
         </div>

@@ -599,8 +599,8 @@ export default function Communication() {
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Communication</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Manage messages and send bulk communications</p>
+          <h1 className="text-xl font-bold text-foreground">Communication</h1>
+          <p className="text-sm text-muted-foreground">Manage messages and send bulk communications</p>
         </div>
 
         <Tabs defaultValue="inbox" className="space-y-4">

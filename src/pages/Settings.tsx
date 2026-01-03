@@ -454,8 +454,8 @@ const Settings = () => {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Manage system configuration, school information, and preferences</p>
+          <h1 className="text-xl font-bold text-foreground">Settings</h1>
+          <p className="text-sm text-muted-foreground">Manage system configuration, school information, and preferences</p>
         </div>
 
         {/* Settings Tabs */}

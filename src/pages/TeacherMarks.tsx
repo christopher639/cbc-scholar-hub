@@ -334,8 +334,8 @@ export default function TeacherMarks() {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl md:text-3xl font-bold">Performance Marks</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-bold">Performance Marks</h1>
+        <p className="text-sm text-muted-foreground">
           Enter and manage learner performance records for your assigned learning areas
         </p>
       </div>

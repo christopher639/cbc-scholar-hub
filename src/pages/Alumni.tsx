@@ -94,8 +94,8 @@ export default function Alumni() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Alumni</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl font-bold">Alumni</h1>
+          <p className="text-sm text-muted-foreground">
             View and search graduated learners
           </p>
         </div>

@@ -231,7 +231,7 @@ export default function ResetPassword() {
               </div>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">
+          <h1 className="text-xl font-bold text-foreground mb-1">
             {schoolInfo?.school_name || "School Portal"}
           </h1>
         </div>

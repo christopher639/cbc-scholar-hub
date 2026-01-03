@@ -162,10 +162,10 @@ const TeacherProfile = () => {
               />
             )}
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-foreground">
+              <h1 className="text-xl font-bold text-foreground">
                 {teacher.first_name} {teacher.last_name}
               </h1>
-              <p className="text-xs md:text-sm text-muted-foreground">Teacher Profile</p>
+              <p className="text-sm text-muted-foreground">Teacher Profile</p>
             </div>
           </div>
           

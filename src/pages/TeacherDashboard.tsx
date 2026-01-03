@@ -244,10 +244,10 @@ export default function TeacherDashboard() {
     <div className="w-full max-w-full overflow-x-hidden px-3 sm:px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
       {/* Welcome Section */}
       <div className="space-y-1">
-        <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">
+        <h1 className="text-xl font-bold truncate">
           Welcome, {teacher?.first_name}!
         </h1>
-        <p className="text-xs md:text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Overview of your teaching activities
         </p>
       </div>

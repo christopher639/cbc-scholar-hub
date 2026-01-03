@@ -36,8 +36,8 @@ export default function TeacherSettings() {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your account settings</p>
+        <h1 className="text-xl font-bold">Settings</h1>
+        <p className="text-sm text-muted-foreground">Manage your account settings</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 max-w-2xl">

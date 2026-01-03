@@ -211,8 +211,8 @@ export default function Gallery() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Photo Gallery</h1>
-            <p className="text-muted-foreground">Manage images displayed on the public homepage</p>
+            <h1 className="text-xl font-bold text-foreground">Photo Gallery</h1>
+            <p className="text-sm text-muted-foreground">Manage images displayed on the public homepage</p>
           </div>
 
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
