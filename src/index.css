@@ -121,37 +121,17 @@ All colors MUST be HSL.
     @apply bg-background text-foreground text-base;
   }
 
-  /* Unified Typography System */
-  h1 {
-    @apply text-3xl sm:text-4xl font-bold tracking-tight;
-  }
-
-  h2 {
-    @apply text-2xl sm:text-3xl font-semibold tracking-tight;
-  }
-
-  h3 {
-    @apply text-xl sm:text-2xl font-semibold;
-  }
-
-  h4 {
-    @apply text-lg sm:text-xl font-medium;
-  }
-
-  h5 {
-    @apply text-base sm:text-lg font-medium;
-  }
-
-  h6 {
-    @apply text-sm sm:text-base font-medium;
+  /* Unified Typography System - Consistent small font sizes */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-sm font-semibold tracking-tight;
   }
 
   p {
-    @apply text-base leading-relaxed;
+    @apply text-sm leading-relaxed;
   }
 
   small {
-    @apply text-sm;
+    @apply text-xs;
   }
 
   label {

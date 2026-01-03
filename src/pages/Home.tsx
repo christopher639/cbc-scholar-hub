@@ -34,6 +34,7 @@ import {
   Music,
   Trophy,
   Cpu,
+  Mouse,
 } from "lucide-react";
 
 interface Blog {
@@ -444,18 +445,37 @@ export default function Home() {
         )}
 
         <div className="relative w-full pt-24 pb-16 flex items-center justify-center min-h-[70vh]">
-          <div className="text-center">
+          <div className="text-center px-4">
             {schoolInfo?.school_name && (
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight mb-3 drop-shadow-lg">
+              <p className="text-sm font-semibold text-white leading-tight mb-2 drop-shadow-lg">
                 Welcome To <span className="text-white">{schoolInfo.school_name}</span>
-              </h1>
+              </p>
             )}
 
             {schoolInfo?.motto && (
-              <p className="text-sm sm:text-base md:text-lg text-white/90 font-medium drop-shadow-md">
-                {schoolInfo.motto}
+              <p className="text-sm text-white/90 font-medium drop-shadow-md mb-6">
+                "{schoolInfo.motto}"
               </p>
             )}
+
+            {/* Hero Buttons */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex gap-3">
+                <a href="#about">
+                  <Button variant="default" size="sm" className="gap-2">
+                    Learn More
+                  </Button>
+                </a>
+                <a href="#contact">
+                  <Button variant="outline" size="sm" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20">
+                    Contact Us
+                  </Button>
+                </a>
+              </div>
+              <div className="animate-bounce mt-4">
+                <Mouse className="h-5 w-5 text-white/70" />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -464,10 +484,10 @@ export default function Home() {
       {blogs.length > 0 && (
         <section id="blog" className="py-8 md:py-12 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <p className="text-primary text-sm font-medium mb-2">Latest Updates</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">News & Blog</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <p className="text-primary text-xs font-medium mb-1">Latest Updates</p>
+              <p className="text-sm font-semibold text-foreground mb-2">News & Blog</p>
+              <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
                 Stay updated with the latest news, events, and stories from our school community.
               </p>
             </div>
@@ -514,10 +534,10 @@ export default function Home() {
                         {blog.likes_count}
                       </button>
                     </div>
-                    <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    <p className="font-semibold text-sm text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                       {blog.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm line-clamp-3">{blog.description}</p>
+                    </p>
+                    <p className="text-muted-foreground text-xs line-clamp-3">{blog.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -530,10 +550,10 @@ export default function Home() {
       {galleryImages.length > 0 && (
         <section id="gallery" className="py-8 md:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <p className="text-primary text-sm font-medium mb-2">Our School</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">Photo Gallery</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <p className="text-primary text-xs font-medium mb-1">Our School</p>
+              <p className="text-sm font-semibold text-foreground mb-2">Photo Gallery</p>
+              <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
                 Explore our facilities, events, and vibrant school life through our gallery.
               </p>
             </div>
@@ -593,48 +613,48 @@ export default function Home() {
 
       <section id="about" className="py-8 md:py-12 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <p className="text-primary text-sm font-medium mb-2">About Us</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <div className="text-center mb-8">
+            <p className="text-primary text-xs font-medium mb-1">About Us</p>
+            <p className="text-sm font-semibold text-foreground mb-2">
               Shaping Tomorrow's Leaders
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            </p>
+            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
               We are committed to providing quality education that empowers students to achieve their full potential.
             </p>
           </div>
 
           {(schoolInfo?.mission || schoolInfo?.vision || schoolInfo?.core_values) && (
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
               {schoolInfo?.mission && (
                 <Card className="border bg-card">
-                  <CardContent className="p-6 text-center">
-                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                      <Target className="h-6 w-6 text-primary" />
+                  <CardContent className="p-5 text-center">
+                    <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <Target className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="text-lg font-bold text-foreground mb-3">Our Mission</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{schoolInfo.mission}</p>
+                    <p className="text-sm font-semibold text-foreground mb-2">Our Mission</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{schoolInfo.mission}</p>
                   </CardContent>
                 </Card>
               )}
               {schoolInfo?.vision && (
                 <Card className="border bg-card">
-                  <CardContent className="p-6 text-center">
-                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                      <Lightbulb className="h-6 w-6 text-primary" />
+                  <CardContent className="p-5 text-center">
+                    <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <Lightbulb className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="text-lg font-bold text-foreground mb-3">Our Vision</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{schoolInfo.vision}</p>
+                    <p className="text-sm font-semibold text-foreground mb-2">Our Vision</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{schoolInfo.vision}</p>
                   </CardContent>
                 </Card>
               )}
               {schoolInfo?.core_values && (
                 <Card className="border bg-card">
-                  <CardContent className="p-6 text-center">
-                    <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                      <Heart className="h-6 w-6 text-primary" />
+                  <CardContent className="p-5 text-center">
+                    <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <Heart className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="text-lg font-bold text-foreground mb-3">Core Values</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{schoolInfo.core_values}</p>
+                    <p className="text-sm font-semibold text-foreground mb-2">Core Values</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{schoolInfo.core_values}</p>
                   </CardContent>
                 </Card>
               )}
@@ -660,8 +680,8 @@ export default function Home() {
                     )}
                   </div>
                   <div className="text-center lg:text-left flex-1">
-                    <p className="text-primary text-sm font-medium mb-2">Message from Leadership</p>
-                    <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4">From the Director's Desk</h3>
+                    <p className="text-primary text-xs font-medium mb-1">Message from Leadership</p>
+                    <p className="text-sm font-semibold text-foreground mb-3">From the Director's Desk</p>
                     <p className="text-muted-foreground italic mb-4 leading-relaxed">
                       "
                       {schoolInfo.director_message ||
@@ -686,10 +706,10 @@ export default function Home() {
       {programs.length > 0 && (
         <section id="programs" className="py-8 md:py-12 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <p className="text-primary text-sm font-medium mb-2">What We Offer</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">Our Programs</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <p className="text-primary text-xs font-medium mb-1">What We Offer</p>
+              <p className="text-sm font-semibold text-foreground mb-2">Our Programs</p>
+              <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
                 Comprehensive educational programs designed to nurture every aspect of your child's development.
               </p>
             </div>
@@ -703,7 +723,7 @@ export default function Home() {
                       <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${program.color}`}>
                         <IconComponent className="h-6 w-6" />
                       </div>
-                      <h3 className="text-lg font-bold text-foreground mb-2">{program.title}</h3>
+                      <p className="text-sm font-semibold text-foreground mb-2">{program.title}</p>
                       <p className="text-muted-foreground text-sm">{program.description}</p>
                     </CardContent>
                   </Card>
@@ -717,10 +737,10 @@ export default function Home() {
       {/* Testimonials Section */}
       <section id="testimonials" className="py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <p className="text-primary text-sm font-medium mb-2">Testimonials</p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">What Parents Say</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <p className="text-primary text-xs font-medium mb-1">Testimonials</p>
+            <p className="text-sm font-semibold text-foreground mb-2">What Parents Say</p>
+            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
               Hear from our community of satisfied parents and guardians.
             </p>
           </div>
@@ -752,9 +772,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12">
             <div>
-              <p className="text-primary text-sm font-medium mb-2">Get in Touch</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">Contact Us</h2>
-              <p className="text-muted-foreground mb-8">
+              <p className="text-primary text-xs font-medium mb-1">Get in Touch</p>
+              <p className="text-sm font-semibold text-foreground mb-2">Contact Us</p>
+              <p className="text-xs text-muted-foreground mb-6">
                 Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
               </p>
 
