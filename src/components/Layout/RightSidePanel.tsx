@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useUIStyles } from "@/hooks/useUIStyles";
 import {
   Plus,
   MessageSquare,
@@ -51,6 +52,7 @@ interface Notification {
 export function RightSidePanel() {
   const [activePanel, setActivePanel] = useState<PanelType>(null);
   const [addLearnerOpen, setAddLearnerOpen] = useState(false);
+  const { getTopbarClass } = useUIStyles();
 
   // Fetch contact messages
   const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
@@ -154,7 +156,10 @@ export function RightSidePanel() {
   return (
     <>
       {/* Right Icon Bar - Only visible on large screens */}
-      <div className="hidden lg:flex flex-col items-center py-4 px-2 border-l bg-background/50 backdrop-blur-sm gap-3 h-full">
+      <div className={cn(
+        "hidden lg:flex flex-col items-center py-4 px-2 border-l gap-3 h-full",
+        getTopbarClass()
+      )}>
         <TooltipProvider>
           {panelItems.map((item) => (
             <Tooltip key={item.id}>
@@ -190,7 +195,8 @@ export function RightSidePanel() {
       {/* Expandable Panel - Now relative positioned, not fixed */}
       <div
         className={cn(
-          "hidden lg:block bg-background border-l shadow-lg transition-all duration-300 h-full overflow-hidden",
+          "hidden lg:block border-l shadow-lg transition-all duration-300 h-full overflow-hidden",
+          getTopbarClass(),
           activePanel ? "w-80" : "w-0"
         )}
       >
