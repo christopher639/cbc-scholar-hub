@@ -31,6 +31,7 @@ interface FormData {
   gender: string;
   photoFile: File | null;
   birthCertificateNumber: string;
+  religion: string;
   isStaffChild: boolean;
   staffEmployeeNumber: string;
   boardingStatus: string;
@@ -74,6 +75,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
     gender: "",
     photoFile: null,
     birthCertificateNumber: "",
+    religion: "",
     isStaffChild: false,
     staffEmployeeNumber: "",
     boardingStatus: "day_scholar",
@@ -169,6 +171,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
       gender: "",
       photoFile: null,
       birthCertificateNumber: "",
+      religion: "",
       isStaffChild: false,
       staffEmployeeNumber: "",
       boardingStatus: "day_scholar",
@@ -234,6 +237,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         dateOfBirth: application.date_of_birth,
         gender: application.gender,
         birthCertificateNumber: application.birth_certificate_number || "",
+        religion: application.religion || "",
         boardingStatus: application.boarding_status === "boarding" ? "boarder" : "day_scholar",
         parentFirstName: application.parent_first_name,
         parentLastName: application.parent_last_name,
@@ -410,6 +414,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         parent_id: parentId,
         enrollment_date: formData.enrollmentDate,
         birth_certificate_number: formData.birthCertificateNumber || null,
+        religion: formData.religion || null,
         is_staff_child: formData.isStaffChild,
         boarding_status: formData.boardingStatus,
         house_id: formData.houseId || null,
@@ -646,6 +651,15 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                         placeholder="Enter birth certificate number"
                         value={formData.birthCertificateNumber}
                         onChange={(e) => setFormData({ ...formData, birthCertificateNumber: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="religion">Religion</Label>
+                      <Input
+                        id="religion"
+                        placeholder="e.g., Christian, Muslim, Hindu"
+                        value={formData.religion}
+                        onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">

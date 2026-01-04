@@ -28,6 +28,7 @@ const applicationSchema = z.object({
   dateOfBirth: z.date({ required_error: "Date of birth is required" }),
   gender: z.enum(["male", "female"], { required_error: "Please select gender" }),
   birthCertificateNumber: z.string().optional(),
+  religion: z.string().optional(),
   previousSchool: z.string().optional(),
   previousGrade: z.string().optional(),
   // Parent info
@@ -93,6 +94,7 @@ export default function Apply() {
       lastName: "",
       gender: undefined,
       birthCertificateNumber: "",
+      religion: "",
       previousSchool: "",
       previousGrade: "",
       parentFirstName: "",
@@ -184,6 +186,7 @@ export default function Apply() {
         date_of_birth: format(data.dateOfBirth, "yyyy-MM-dd"),
         gender: data.gender,
         birth_certificate_number: data.birthCertificateNumber || null,
+        religion: data.religion || null,
         previous_school: data.previousSchool || null,
         previous_grade: data.previousGrade || null,
         parent_first_name: data.parentFirstName,
@@ -498,19 +501,34 @@ export default function Apply() {
                         )}
                       />
                     </div>
-                    <FormField
-                      control={form.control}
-                      name="birthCertificateNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Birth Certificate Number</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Birth certificate number (optional)" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="birthCertificateNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Birth Certificate Number</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Birth certificate number (optional)" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="religion"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Religion</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Christian, Muslim, Hindu" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}

@@ -309,6 +309,7 @@ export type Database = {
           previous_grade: string | null
           previous_school: string | null
           rejection_reason: string | null
+          religion: string | null
           residence: string | null
           review_notes: string | null
           reviewed_at: string | null
@@ -345,6 +346,7 @@ export type Database = {
           previous_grade?: string | null
           previous_school?: string | null
           rejection_reason?: string | null
+          religion?: string | null
           residence?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -381,6 +383,7 @@ export type Database = {
           previous_grade?: string | null
           previous_school?: string | null
           rejection_reason?: string | null
+          religion?: string | null
           residence?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -1617,6 +1620,7 @@ export type Database = {
           previous_grade: string | null
           previous_school: string | null
           reason_for_transfer: string | null
+          religion: string | null
           status: string | null
           updated_at: string
           user_id: string | null
@@ -1646,6 +1650,7 @@ export type Database = {
           previous_grade?: string | null
           previous_school?: string | null
           reason_for_transfer?: string | null
+          religion?: string | null
           status?: string | null
           updated_at?: string
           user_id?: string | null
@@ -1675,6 +1680,7 @@ export type Database = {
           previous_grade?: string | null
           previous_school?: string | null
           reason_for_transfer?: string | null
+          religion?: string | null
           status?: string | null
           updated_at?: string
           user_id?: string | null
