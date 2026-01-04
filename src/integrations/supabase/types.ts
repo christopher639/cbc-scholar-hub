@@ -2576,6 +2576,89 @@ export type Database = {
           },
         ]
       }
+      timetable_entries: {
+        Row: {
+          academic_year: string
+          created_at: string
+          day_of_week: number
+          end_time: string
+          entry_type: string
+          grade_id: string
+          id: string
+          learning_area_id: string | null
+          room: string | null
+          start_time: string
+          stream_id: string
+          subject_name: string | null
+          teacher_id: string
+          term: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          entry_type?: string
+          grade_id: string
+          id?: string
+          learning_area_id?: string | null
+          room?: string | null
+          start_time: string
+          stream_id: string
+          subject_name?: string | null
+          teacher_id: string
+          term: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          entry_type?: string
+          grade_id?: string
+          id?: string
+          learning_area_id?: string | null
+          room?: string | null
+          start_time?: string
+          stream_id?: string
+          subject_name?: string | null
+          teacher_id?: string
+          term?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_entries_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_entries_learning_area_id_fkey"
+            columns: ["learning_area_id"]
+            isOneToOne: false
+            referencedRelation: "learning_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_entries_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "streams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_entries_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transfer_records: {
         Row: {
           created_at: string | null
@@ -2661,6 +2744,40 @@ export type Database = {
       check_stream_has_learners: {
         Args: { stream_id: string }
         Returns: boolean
+      }
+      check_timetable_stream_conflict: {
+        Args: {
+          p_academic_year: string
+          p_day_of_week: number
+          p_end_time: string
+          p_exclude_id?: string
+          p_start_time: string
+          p_stream_id: string
+          p_term: string
+        }
+        Returns: boolean
+      }
+      check_timetable_teacher_conflict: {
+        Args: {
+          p_academic_year: string
+          p_day_of_week: number
+          p_end_time: string
+          p_exclude_id?: string
+          p_start_time: string
+          p_teacher_id: string
+          p_term: string
+        }
+        Returns: boolean
+      }
+      clone_timetable: {
+        Args: {
+          p_grade_id?: string
+          p_source_academic_year: string
+          p_source_term: string
+          p_target_academic_year: string
+          p_target_term: string
+        }
+        Returns: number
       }
       count_admin_users: { Args: never; Returns: number }
       generate_admission_number: { Args: never; Returns: string }

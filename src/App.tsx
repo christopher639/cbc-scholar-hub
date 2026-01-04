@@ -43,6 +43,7 @@ import LearnerPortalLayout from "./components/LearnerPortalLayout";
 import LearnerDashboard from "./pages/LearnerDashboard";
 import LearnerFeeStructures from "./pages/LearnerFeeStructures";
 import LearnerFeesPage from "./pages/LearnerFeesPage";
+import LearnerTimetable from "./pages/LearnerTimetable";
 import Profile from "./pages/Profile";
 import AcademicYears from "./pages/AcademicYears";
 import Communication from "./pages/Communication";
@@ -57,12 +58,14 @@ import Gallery from "./pages/Gallery";
 import Programs from "./pages/Programs";
 import Houses from "./pages/Houses";
 import Departments from "./pages/Departments";
+import Timetable from "./pages/Timetable";
 import { TeacherPortalLayout } from "./components/TeacherPortalLayout";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import TeacherMarks from "./pages/TeacherMarks";
 import TeacherAssignments from "./pages/TeacherAssignments";
 import TeacherPortalProfile from "./pages/TeacherPortalProfile";
 import TeacherSettings from "./pages/TeacherSettings";
+import TeacherTimetable from "./pages/TeacherTimetable";
 import ReleaseMarks from "./pages/ReleaseMarks";
 
 const queryClient = new QueryClient();
@@ -105,6 +108,7 @@ function AppRoutes() {
         <Route path="profile" element={<LearnerProfilePage />} />
         <Route path="fees" element={<LearnerFeesPage />} />
         <Route path="fee-structures" element={<LearnerFeeStructures />} />
+        <Route path="timetable" element={<LearnerTimetable />} />
         <Route path="settings" element={<LearnerSettings />} />
       </Route>
 
@@ -120,6 +124,7 @@ function AppRoutes() {
         <Route index element={<TeacherDashboard />} />
         <Route path="marks" element={<TeacherMarks />} />
         <Route path="assignments" element={<TeacherAssignments />} />
+        <Route path="timetable" element={<TeacherTimetable />} />
         <Route path="profile" element={<TeacherPortalProfile />} />
         <Route path="settings" element={<TeacherSettings />} />
       </Route>
@@ -413,6 +418,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <AdminRoute>
               <Departments />
+            </AdminRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/timetable"
+        element={
+          <ProtectedRoute>
+            <AdminRoute>
+              <Timetable />
             </AdminRoute>
           </ProtectedRoute>
         }

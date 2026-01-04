@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Home, BookOpen, FileText, User, Settings, LogOut, GraduationCap, PanelLeft, PanelLeftClose, Menu } from "lucide-react";
+import { Home, BookOpen, FileText, User, Settings, LogOut, GraduationCap, PanelLeft, PanelLeftClose, Menu, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +29,7 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -41,6 +42,7 @@ const navItems = [
   { path: "/teacher-portal", icon: Home, label: "Dashboard" },
   { path: "/teacher-portal/marks", icon: BookOpen, label: "Marks" },
   { path: "/teacher-portal/assignments", icon: FileText, label: "Assignments" },
+  { path: "/teacher-portal/timetable", icon: Calendar, label: "Timetable" },
   { path: "/teacher-portal/profile", icon: User, label: "Profile" },
   { path: "/teacher-portal/settings", icon: Settings, label: "Settings" },
 ];
