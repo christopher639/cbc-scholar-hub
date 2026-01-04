@@ -158,6 +158,16 @@ const routeFetchers: Record<string, () => Promise<any>> = {
   "/offline-storage": async () => {
     return {}; // No prefetch needed
   },
+  "/timetable": async () => {
+    const [grades, streams, teachers, learningAreas, academicYears] = await Promise.all([
+      supabase.from("grades").select("id, name").order("grade_level"),
+      supabase.from("streams").select("id, name, grade_id"),
+      supabase.from("teachers").select("id, first_name, last_name"),
+      supabase.from("learning_areas").select("id, name"),
+      supabase.from("academic_years").select("*").order("year", { ascending: false }),
+    ]);
+    return { grades: grades.data, streams: streams.data, teachers: teachers.data, learningAreas: learningAreas.data, academicYears: academicYears.data };
+  },
 };
 
 // Check if cached data is valid and ready
