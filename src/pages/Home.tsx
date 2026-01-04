@@ -433,12 +433,12 @@ export default function Home() {
       </header>
 
       {/* Hero Section - Full Background */}
-      <section id="home" className="relative min-h-[70vh] flex items-center">
-        {/* Background Image */}
-        {(heroBackgrounds.length > 0 || schoolInfo?.hero_background_url) && (
+      <section id="home" className="relative min-h-[70vh] flex items-center bg-gradient-to-br from-primary/20 to-primary/5">
+        {/* Background Image - Only show if active hero backgrounds exist */}
+        {heroBackgrounds.length > 0 && (
           <img
             key={currentBgIndex}
-            src={heroBackgrounds.length > 0 ? heroBackgrounds[currentBgIndex] : schoolInfo?.hero_background_url}
+            src={heroBackgrounds[currentBgIndex]}
             alt="School Campus"
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
           />
