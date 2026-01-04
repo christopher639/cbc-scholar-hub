@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { PageMeta } from "@/components/SEO/PageMeta";
@@ -65,6 +66,7 @@ export default function Apply() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [applicationNumber, setApplicationNumber] = useState("");
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [grades, setGrades] = useState<{ id: string; name: string }[]>([]);
   const [feeSettings, setFeeSettings] = useState<{ 
     fee_enabled: boolean; 
@@ -816,6 +818,30 @@ export default function Apply() {
                         </p>
                       </div>
                     )}
+
+                    {/* Data Privacy Agreement */}
+                    <div className="border rounded-lg p-4 bg-muted/30">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="privacy-agreement"
+                          checked={privacyAgreed}
+                          onCheckedChange={(checked) => setPrivacyAgreed(checked === true)}
+                          className="mt-0.5"
+                        />
+                        <label htmlFor="privacy-agreement" className="text-sm cursor-pointer">
+                          I have read and agree to the{" "}
+                          <Link 
+                            to="/privacy-policy" 
+                            target="_blank"
+                            className="text-primary font-medium hover:underline"
+                          >
+                            Data Protection & Privacy Policy
+                          </Link>
+                          {" "}in accordance with the Kenya Data Protection Act, 2019. I consent to the collection, 
+                          processing, and use of personal data as described therein.
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -839,7 +865,7 @@ export default function Apply() {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || !privacyAgreed}>
                   {isSubmitting ? "Submitting..." : "Submit Application"}
                 </Button>
               )}
