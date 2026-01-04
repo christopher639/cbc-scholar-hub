@@ -1,5 +1,5 @@
 import { ArrowLeft, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
@@ -7,8 +7,20 @@ import { PageMeta } from "@/components/SEO/PageMeta";
 
 export default function PrivacyPolicy() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { schoolInfo } = useSchoolInfo();
   const schoolName = schoolInfo?.school_name || "The School";
+  
+  // Check if user came from the apply page
+  const fromApply = location.state?.fromApply === true;
+  
+  const handleGoBack = () => {
+    if (fromApply) {
+      navigate("/apply", { state: { returnToReview: true } });
+    } else {
+      navigate(-1);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background">
@@ -21,7 +33,7 @@ export default function PrivacyPolicy() {
       {/* Header */}
       <header className="bg-background border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
+          <Button variant="ghost" size="icon" onClick={handleGoBack} className="shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-3">
@@ -213,9 +225,9 @@ export default function PrivacyPolicy() {
             </section>
 
             <div className="mt-8 text-center">
-              <Button onClick={() => navigate(-1)}>
+              <Button onClick={handleGoBack}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Go Back
+                {fromApply ? "Back to Application" : "Go Back"}
               </Button>
             </div>
           </CardContent>
