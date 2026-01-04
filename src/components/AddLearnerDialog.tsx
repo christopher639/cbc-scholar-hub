@@ -6,12 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Users as UsersIcon, FileText, Heart, Loader2 } from "lucide-react";
+import { User, Users as UsersIcon, FileText, Heart, Loader2, Search, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { useLearners } from "@/hooks/useLearners";
 import { useHouses } from "@/hooks/useHouses";
+import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { learnerSchema } from "@/lib/validations/learner";
@@ -65,6 +66,8 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
   const [currentTab, setCurrentTab] = useState("basic");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [applicationNumber, setApplicationNumber] = useState("");
+  const [importingApplication, setImportingApplication] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -99,6 +102,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
   const { streams, loading: streamsLoading } = useStreams();
   const { houses } = useHouses();
   const { addLearner, fetchLearners } = useLearners();
+  const { schoolInfo } = useSchoolInfo();
   const { toast } = useToast();
   const { checkAccess } = useVisitorAccess();
 
@@ -191,8 +195,78 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
     });
     setImagePreview(null);
     setCurrentTab("basic");
+    setApplicationNumber("");
     localStorage.removeItem(FORM_STORAGE_KEY);
     onOpenChange(false);
+  };
+
+  // Import from application
+  const handleImportFromApplication = async () => {
+    if (!applicationNumber.trim()) {
+      toast({
+        title: "Application number required",
+        description: "Please enter an application number to import",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setImportingApplication(true);
+    try {
+      const { data: application, error } = await supabase
+        .from("applications")
+        .select("*")
+        .eq("application_number", applicationNumber.trim())
+        .eq("status", "approved")
+        .single();
+
+      if (error || !application) {
+        toast({
+          title: "Application not found",
+          description: "No approved application found with this number. Make sure the application has been approved.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Auto-fill form with application data
+      setFormData(prev => ({
+        ...prev,
+        firstName: application.first_name,
+        lastName: application.last_name,
+        dateOfBirth: application.date_of_birth,
+        gender: application.gender,
+        birthCertificateNumber: application.birth_certificate_number || "",
+        boardingStatus: application.boarding_status === "boarding" ? "boarder" : "day_scholar",
+        parentFirstName: application.parent_first_name,
+        parentLastName: application.parent_last_name,
+        parentPhone: application.parent_phone,
+        parentEmail: application.parent_email,
+        parentOccupation: application.parent_occupation || "",
+        parentAddress: application.parent_address || "",
+        gradeId: application.applying_for_grade_id || "",
+        previousSchool: application.previous_school || "",
+        previousGrade: application.previous_grade || "",
+        medicalInfo: application.medical_info || "",
+        allergies: application.allergies || "",
+        bloodType: application.blood_type || "",
+        emergencyContact: application.emergency_contact || "",
+        emergencyPhone: application.emergency_phone || "",
+      }));
+
+      toast({
+        title: "Application imported",
+        description: `Imported data for ${application.first_name} ${application.last_name}. Please complete the remaining fields.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Import failed",
+        description: error.message || "Failed to import application data",
+        variant: "destructive",
+      });
+    } finally {
+      setImportingApplication(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -377,7 +451,8 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                 admissionNumber: newLearner.admission_number,
                 birthCertificate: formData.birthCertificateNumber,
                 portalUrl: window.location.origin + "/auth"
-              }
+              },
+              schoolName: schoolInfo?.school_name || "School"
             }
           });
         } catch (smsError) {
@@ -443,6 +518,46 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
             Complete all sections to register a new learner
           </DialogDescription>
         </DialogHeader>
+
+        {/* Import from Application Section */}
+        <div className="p-4 bg-muted/50 rounded-lg border border-dashed mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Download className="h-4 w-4 text-primary" />
+            <Label className="font-medium">Import from Application</Label>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            Enter an approved application number to auto-fill learner details
+          </p>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Enter application number (e.g., APP-2026-0001)"
+                value={applicationNumber}
+                onChange={(e) => setApplicationNumber(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button 
+              type="button" 
+              variant="secondary" 
+              onClick={handleImportFromApplication}
+              disabled={importingApplication}
+            >
+              {importingApplication ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Import
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit}>
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">

@@ -238,6 +238,13 @@ export type Database = {
           fee_amount: number
           fee_enabled: boolean
           id: string
+          interview_date: string | null
+          interview_enabled: boolean
+          interview_fee: number | null
+          interview_fee_note: string | null
+          interview_location: string | null
+          interview_requirements: string | null
+          interview_time: string | null
           updated_at: string
         }
         Insert: {
@@ -246,6 +253,13 @@ export type Database = {
           fee_amount?: number
           fee_enabled?: boolean
           id?: string
+          interview_date?: string | null
+          interview_enabled?: boolean
+          interview_fee?: number | null
+          interview_fee_note?: string | null
+          interview_location?: string | null
+          interview_requirements?: string | null
+          interview_time?: string | null
           updated_at?: string
         }
         Update: {
@@ -254,6 +268,13 @@ export type Database = {
           fee_amount?: number
           fee_enabled?: boolean
           id?: string
+          interview_date?: string | null
+          interview_enabled?: boolean
+          interview_fee?: number | null
+          interview_fee_note?: string | null
+          interview_location?: string | null
+          interview_requirements?: string | null
+          interview_time?: string | null
           updated_at?: string
         }
         Relationships: []

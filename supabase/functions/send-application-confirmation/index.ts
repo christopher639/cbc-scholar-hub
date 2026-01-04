@@ -16,6 +16,14 @@ interface ApplicationConfirmationRequest {
   applicationNumber: string;
   gradeName: string;
   schoolName: string;
+  interviewEnabled?: boolean;
+  interviewDate?: string | null;
+  interviewTime?: string | null;
+  interviewLocation?: string | null;
+  interviewRequirements?: string | null;
+  interviewFee?: number | null;
+  interviewFeeNote?: string | null;
+  applicationFee?: number | null;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -30,8 +38,55 @@ const handler = async (req: Request): Promise<Response> => {
       childName, 
       applicationNumber, 
       gradeName,
-      schoolName 
+      schoolName,
+      interviewEnabled,
+      interviewDate,
+      interviewTime,
+      interviewLocation,
+      interviewRequirements,
+      interviewFee,
+      interviewFeeNote,
+      applicationFee
     }: ApplicationConfirmationRequest = await req.json();
+
+    console.log("Sending application confirmation to:", parentEmail);
+    console.log("Interview enabled:", interviewEnabled);
+
+    // Build interview section if enabled
+    let interviewSection = "";
+    if (interviewEnabled) {
+      interviewSection = `
+        <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <h3 style="margin: 0 0 10px 0; color: #92400e;">📅 Interview Invitation</h3>
+          <p style="margin: 5px 0;"><strong>Date:</strong> ${interviewDate || "To be announced"}</p>
+          ${interviewTime ? `<p style="margin: 5px 0;"><strong>Time:</strong> ${interviewTime}</p>` : ""}
+          ${interviewLocation ? `<p style="margin: 5px 0;"><strong>Location:</strong> ${interviewLocation}</p>` : ""}
+          ${interviewRequirements ? `
+            <div style="margin-top: 15px;">
+              <p style="margin: 5px 0;"><strong>Requirements:</strong></p>
+              <p style="margin: 5px 0; color: #666; white-space: pre-line;">${interviewRequirements}</p>
+            </div>
+          ` : ""}
+          ${interviewFee && interviewFee > 0 ? `
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #fcd34d;">
+              <p style="margin: 5px 0;"><strong>Interview Fee:</strong> KES ${interviewFee.toLocaleString()}</p>
+              ${interviewFeeNote ? `<p style="margin: 5px 0; font-size: 12px; color: #92400e; font-style: italic;">${interviewFeeNote}</p>` : ""}
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    // Build application fee section
+    let applicationFeeSection = "";
+    if (applicationFee && applicationFee > 0) {
+      applicationFeeSection = `
+        <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0;"><strong>Application Fee:</strong> KES ${applicationFee.toLocaleString()}</p>
+          <p style="margin: 5px 0 0 0; font-size: 12px; color: #1e40af;">Please pay the application fee to complete your application process.</p>
+        </div>
+      `;
+    }
 
     const emailResponse = await resend.emails.send({
       from: `${schoolName} <noreply@samge.sc.ke>`,
@@ -59,6 +114,9 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="margin: 5px 0;"><strong>Child's Name:</strong> ${childName}</p>
               <p style="margin: 5px 0;"><strong>Applying for:</strong> ${gradeName}</p>
             </div>
+            
+            ${interviewSection}
+            ${applicationFeeSection}
             
             <p>Our admissions team will review your application and get back to you within 5-7 working days. Please keep your application number safe for future reference.</p>
             

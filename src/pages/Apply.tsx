@@ -65,7 +65,18 @@ export default function Apply() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [applicationNumber, setApplicationNumber] = useState("");
   const [grades, setGrades] = useState<{ id: string; name: string }[]>([]);
-  const [feeSettings, setFeeSettings] = useState<{ fee_enabled: boolean; fee_amount: number; applications_open: boolean } | null>(null);
+  const [feeSettings, setFeeSettings] = useState<{ 
+    fee_enabled: boolean; 
+    fee_amount: number; 
+    applications_open: boolean;
+    interview_enabled: boolean;
+    interview_date: string | null;
+    interview_time: string | null;
+    interview_location: string | null;
+    interview_requirements: string | null;
+    interview_fee: number | null;
+    interview_fee_note: string | null;
+  } | null>(null);
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -188,7 +199,7 @@ export default function Apply() {
 
       if (insertError) throw insertError;
 
-      // Send confirmation email
+      // Send confirmation email with interview details if enabled
       await supabase.functions.invoke("send-application-confirmation", {
         body: {
           parentEmail: data.parentEmail,
@@ -197,6 +208,14 @@ export default function Apply() {
           applicationNumber: appNumber,
           gradeName: selectedGrade?.name || "",
           schoolName: schoolInfo?.school_name || "School",
+          interviewEnabled: feeSettings?.interview_enabled,
+          interviewDate: feeSettings?.interview_date,
+          interviewTime: feeSettings?.interview_time,
+          interviewLocation: feeSettings?.interview_location,
+          interviewRequirements: feeSettings?.interview_requirements,
+          interviewFee: feeSettings?.interview_fee,
+          interviewFeeNote: feeSettings?.interview_fee_note,
+          applicationFee: feeSettings?.fee_enabled ? feeSettings.fee_amount : null,
         },
       });
 
@@ -300,7 +319,10 @@ export default function Apply() {
       
       {/* Header */}
       <header className="bg-background border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
             {schoolInfo?.logo_url ? (
               <img src={schoolInfo.logo_url} alt="School Logo" className="h-10 w-10 object-contain" />
@@ -312,9 +334,6 @@ export default function Apply() {
               <p className="text-xs text-muted-foreground">Online Application</p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => navigate("/")}>
-            Back to Website
-          </Button>
         </div>
       </header>
 

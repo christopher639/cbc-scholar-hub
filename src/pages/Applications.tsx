@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { 
   FileText, Search, Eye, CheckCircle, XCircle, Clock, Settings, 
-  Mail, User, GraduationCap, Phone, Calendar, Filter
+  Mail, User, GraduationCap, Phone, Calendar, Filter, Download,
+  ClipboardList, Users, TrendingUp
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -20,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { useVisitorAccess } from "@/hooks/useVisitorAccess";
 import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 
@@ -56,6 +58,20 @@ interface Application {
   review_notes: string | null;
   rejection_reason: string | null;
   created_at: string;
+}
+
+interface ApplicationSettings {
+  id: string;
+  fee_enabled: boolean;
+  fee_amount: number;
+  applications_open: boolean;
+  interview_enabled: boolean;
+  interview_date: string | null;
+  interview_time: string | null;
+  interview_location: string | null;
+  interview_requirements: string | null;
+  interview_fee: number | null;
+  interview_fee_note: string | null;
 }
 
 export default function Applications() {
@@ -100,13 +116,16 @@ export default function Applications() {
         .select("*")
         .single();
       if (error) throw error;
-      return data;
+      return data as ApplicationSettings;
     },
   });
 
+  // Local settings state for editing
+  const [localSettings, setLocalSettings] = useState<Partial<ApplicationSettings>>({});
+
   // Update settings mutation
   const updateSettingsMutation = useMutation({
-    mutationFn: async (newSettings: { fee_enabled?: boolean; fee_amount?: number; applications_open?: boolean }) => {
+    mutationFn: async (newSettings: Partial<ApplicationSettings>) => {
       const { error } = await supabase
         .from("application_settings")
         .update(newSettings)
@@ -116,7 +135,6 @@ export default function Applications() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["application-settings"] });
       toast.success("Settings updated successfully");
-      setSettingsDialogOpen(false);
     },
     onError: (error: any) => {
       toast.error("Failed to update settings: " + error.message);
@@ -197,11 +215,11 @@ export default function Applications() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200"><Clock className="h-3 w-3 mr-1" /> Pending</Badge>;
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"><Clock className="h-3 w-3 mr-1" /> Pending</Badge>;
       case "approved":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><CheckCircle className="h-3 w-3 mr-1" /> Approved</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"><CheckCircle className="h-3 w-3 mr-1" /> Approved</Badge>;
       case "rejected":
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><XCircle className="h-3 w-3 mr-1" /> Rejected</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"><XCircle className="h-3 w-3 mr-1" /> Rejected</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -234,47 +252,99 @@ export default function Applications() {
     rejected: applications.filter(a => a.status === "rejected").length,
   };
 
+  const openSettings = () => {
+    setLocalSettings({
+      applications_open: settings?.applications_open,
+      fee_enabled: settings?.fee_enabled,
+      fee_amount: settings?.fee_amount,
+      interview_enabled: settings?.interview_enabled,
+      interview_date: settings?.interview_date,
+      interview_time: settings?.interview_time,
+      interview_location: settings?.interview_location,
+      interview_requirements: settings?.interview_requirements,
+      interview_fee: settings?.interview_fee,
+      interview_fee_note: settings?.interview_fee_note,
+    });
+    setSettingsDialogOpen(true);
+  };
+
+  const saveSettings = () => {
+    updateSettingsMutation.mutate(localSettings);
+    setSettingsDialogOpen(false);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Applications</h1>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <ClipboardList className="h-7 w-7 text-primary" />
+              Applications
+            </h1>
             <p className="text-muted-foreground">Manage learner admission applications</p>
           </div>
           {!isVisitor && (
-            <Button variant="outline" onClick={() => setSettingsDialogOpen(true)}>
-              <Settings className="h-4 w-4 mr-2" />
-              Application Settings
+            <Button onClick={openSettings} className="gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
             </Button>
           )}
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border-l-4 border-l-primary">
             <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-sm text-muted-foreground">Total Applications</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total</p>
+                  <p className="text-3xl font-bold">{stats.total}</p>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-l-4 border-l-yellow-500">
             <CardContent className="pt-4">
-              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-              <p className="text-sm text-muted-foreground">Pending Review</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Pending</p>
+                  <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-yellow-600" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-l-4 border-l-green-500">
             <CardContent className="pt-4">
-              <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
-              <p className="text-sm text-muted-foreground">Approved</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Approved</p>
+                  <p className="text-3xl font-bold text-green-600">{stats.approved}</p>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-l-4 border-l-red-500">
             <CardContent className="pt-4">
-              <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
-              <p className="text-sm text-muted-foreground">Rejected</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Rejected</p>
+                  <p className="text-3xl font-bold text-red-600">{stats.rejected}</p>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <XCircle className="h-6 w-6 text-red-600" />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -310,61 +380,87 @@ export default function Applications() {
 
         {/* Applications Table */}
         <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Applications List</CardTitle>
+            <CardDescription>
+              {filteredApplications.length} application{filteredApplications.length !== 1 ? 's' : ''} found
+            </CardDescription>
+          </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Application #</TableHead>
-                  <TableHead>Applicant</TableHead>
-                  <TableHead>Grade</TableHead>
-                  <TableHead>Parent Contact</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Application #</TableHead>
+                  <TableHead className="font-semibold">Applicant</TableHead>
+                  <TableHead className="font-semibold">Grade</TableHead>
+                  <TableHead className="font-semibold">Parent Contact</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
-                      Loading applications...
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        Loading applications...
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : filteredApplications.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      No applications found
+                    <TableCell colSpan={7} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <FileText className="h-12 w-12 text-muted-foreground/50" />
+                        <p className="text-muted-foreground">No applications found</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredApplications.map((app) => (
-                    <TableRow key={app.id}>
-                      <TableCell className="font-medium">{app.application_number}</TableCell>
+                    <TableRow key={app.id} className="hover:bg-muted/50">
+                      <TableCell className="font-mono text-sm font-medium">{app.application_number}</TableCell>
                       <TableCell>
-                        <div>
-                          <p className="font-medium">{app.first_name} {app.last_name}</p>
-                          <p className="text-sm text-muted-foreground capitalize">{app.gender}</p>
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{app.first_name} {app.last_name}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{app.gender}</p>
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell>{app.applying_for_grade_name}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{app.applying_for_grade_name}</Badge>
+                      </TableCell>
                       <TableCell>
                         <div>
-                          <p className="text-sm">{app.parent_first_name} {app.parent_last_name}</p>
-                          <p className="text-xs text-muted-foreground">{app.parent_phone}</p>
+                          <p className="text-sm font-medium">{app.parent_first_name} {app.parent_last_name}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {app.parent_phone}
+                          </p>
                         </div>
                       </TableCell>
                       <TableCell>{getStatusBadge(app.status)}</TableCell>
-                      <TableCell>{format(new Date(app.created_at), "MMM d, yyyy")}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {format(new Date(app.created_at), "MMM d, yyyy")}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="gap-1"
                           onClick={() => {
                             setSelectedApplication(app);
                             setViewDialogOpen(true);
                           }}
                         >
                           <Eye className="h-4 w-4" />
+                          View
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -380,52 +476,72 @@ export default function Applications() {
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Application Details</DialogTitle>
-            <DialogDescription>
-              {selectedApplication?.application_number} • Submitted on {selectedApplication && format(new Date(selectedApplication.created_at), "PPP")}
-            </DialogDescription>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">
+                  {selectedApplication?.first_name} {selectedApplication?.last_name}
+                </DialogTitle>
+                <DialogDescription className="flex items-center gap-2">
+                  <span className="font-mono">{selectedApplication?.application_number}</span>
+                  <span>•</span>
+                  <span>{selectedApplication && format(new Date(selectedApplication.created_at), "PPP")}</span>
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
           
           {selectedApplication && (
             <Tabs defaultValue="applicant" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="applicant">Applicant</TabsTrigger>
-                <TabsTrigger value="parent">Parent</TabsTrigger>
-                <TabsTrigger value="medical">Medical</TabsTrigger>
+                <TabsTrigger value="applicant" className="gap-1">
+                  <User className="h-4 w-4" />
+                  Applicant
+                </TabsTrigger>
+                <TabsTrigger value="parent" className="gap-1">
+                  <Users className="h-4 w-4" />
+                  Parent
+                </TabsTrigger>
+                <TabsTrigger value="medical" className="gap-1">
+                  <FileText className="h-4 w-4" />
+                  Medical
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="applicant" className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-muted-foreground">Full Name</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Full Name</Label>
                     <p className="font-medium">{selectedApplication.first_name} {selectedApplication.last_name}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Date of Birth</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Date of Birth</Label>
                     <p className="font-medium">{format(new Date(selectedApplication.date_of_birth), "PPP")}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Gender</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Gender</Label>
                     <p className="font-medium capitalize">{selectedApplication.gender}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Birth Certificate</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Birth Certificate</Label>
                     <p className="font-medium">{selectedApplication.birth_certificate_number || "-"}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Applying for Grade</Label>
-                    <p className="font-medium">{selectedApplication.applying_for_grade_name}</p>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Applying for Grade</Label>
+                    <Badge variant="secondary">{selectedApplication.applying_for_grade_name}</Badge>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Boarding Status</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Boarding Status</Label>
                     <p className="font-medium capitalize">{selectedApplication.boarding_status}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Previous School</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Previous School</Label>
                     <p className="font-medium">{selectedApplication.previous_school || "-"}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Previous Grade</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Previous Grade</Label>
                     <p className="font-medium">{selectedApplication.previous_grade || "-"}</p>
                   </div>
                 </div>
@@ -433,24 +549,24 @@ export default function Applications() {
               
               <TabsContent value="parent" className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-muted-foreground">Parent Name</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Parent Name</Label>
                     <p className="font-medium">{selectedApplication.parent_first_name} {selectedApplication.parent_last_name}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Email</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Email</Label>
                     <p className="font-medium">{selectedApplication.parent_email}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Phone</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Phone</Label>
                     <p className="font-medium">{selectedApplication.parent_phone}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Occupation</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Occupation</Label>
                     <p className="font-medium">{selectedApplication.parent_occupation || "-"}</p>
                   </div>
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">Address</Label>
+                  <div className="col-span-2 space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Address</Label>
                     <p className="font-medium">{selectedApplication.parent_address || "-"}</p>
                   </div>
                 </div>
@@ -458,24 +574,24 @@ export default function Applications() {
               
               <TabsContent value="medical" className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-muted-foreground">Blood Type</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Blood Type</Label>
                     <p className="font-medium">{selectedApplication.blood_type || "-"}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Allergies</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Allergies</Label>
                     <p className="font-medium">{selectedApplication.allergies || "-"}</p>
                   </div>
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">Medical Info</Label>
+                  <div className="col-span-2 space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Medical Info</Label>
                     <p className="font-medium">{selectedApplication.medical_info || "-"}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Emergency Contact</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Emergency Contact</Label>
                     <p className="font-medium">{selectedApplication.emergency_contact || "-"}</p>
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground">Emergency Phone</Label>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wide">Emergency Phone</Label>
                     <p className="font-medium">{selectedApplication.emergency_phone || "-"}</p>
                   </div>
                 </div>
@@ -484,22 +600,22 @@ export default function Applications() {
           )}
 
           {selectedApplication?.status === "pending" && !isVisitor && (
-            <DialogFooter className="mt-6">
-              <Button variant="outline" onClick={() => handleReview("reject")}>
-                <XCircle className="h-4 w-4 mr-2" />
+            <DialogFooter className="mt-6 gap-2">
+              <Button variant="outline" onClick={() => handleReview("reject")} className="gap-2">
+                <XCircle className="h-4 w-4" />
                 Reject
               </Button>
-              <Button onClick={() => handleReview("approve")}>
-                <CheckCircle className="h-4 w-4 mr-2" />
+              <Button onClick={() => handleReview("approve")} className="gap-2">
+                <CheckCircle className="h-4 w-4" />
                 Approve
               </Button>
             </DialogFooter>
           )}
 
           {selectedApplication?.status !== "pending" && (
-            <div className="mt-4 p-4 bg-muted rounded-lg">
-              <p className="text-sm">
-                <strong>Status:</strong> {selectedApplication?.status === "approved" ? "Approved" : "Rejected"}
+            <div className={`mt-4 p-4 rounded-lg ${selectedApplication?.status === "approved" ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"}`}>
+              <p className="text-sm font-medium">
+                Status: {selectedApplication?.status === "approved" ? "✓ Approved" : "✕ Rejected"}
               </p>
               {selectedApplication?.reviewed_at && (
                 <p className="text-sm text-muted-foreground">
@@ -520,7 +636,12 @@ export default function Applications() {
       <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {reviewAction === "approve" ? (
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-600" />
+              )}
               {reviewAction === "approve" ? "Approve Application" : "Reject Application"}
             </DialogTitle>
             <DialogDescription>
@@ -532,7 +653,7 @@ export default function Applications() {
           
           <div className="space-y-4">
             {reviewAction === "reject" && (
-              <div>
+              <div className="space-y-2">
                 <Label>Rejection Reason *</Label>
                 <Textarea
                   value={rejectionReason}
@@ -542,7 +663,7 @@ export default function Applications() {
                 />
               </div>
             )}
-            <div>
+            <div className="space-y-2">
               <Label>Review Notes (Internal)</Label>
               <Textarea
                 value={reviewNotes}
@@ -570,67 +691,173 @@ export default function Applications() {
 
       {/* Settings Dialog */}
       <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Application Settings</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Application Settings
+            </DialogTitle>
             <DialogDescription>
-              Configure application fee and other settings
+              Configure application process and fees
             </DialogDescription>
           </DialogHeader>
           
-          {settings && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Applications Open</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Allow visitors to submit new applications
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.applications_open}
-                  onCheckedChange={(checked) => 
-                    updateSettingsMutation.mutate({ applications_open: checked })
-                  }
-                />
+          <div className="space-y-6">
+            {/* Applications Open */}
+            <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div>
+                <Label className="font-medium">Applications Open</Label>
+                <p className="text-sm text-muted-foreground">
+                  Allow visitors to submit new applications
+                </p>
               </div>
+              <Switch
+                checked={localSettings.applications_open ?? settings?.applications_open}
+                onCheckedChange={(checked) => 
+                  setLocalSettings(prev => ({ ...prev, applications_open: checked }))
+                }
+              />
+            </div>
 
+            <Separator />
+
+            {/* Application Fee */}
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>Application Fee</Label>
+                  <Label className="font-medium">Application Fee</Label>
                   <p className="text-sm text-muted-foreground">
-                    Require payment before application submission
+                    Charge fee for application submission
                   </p>
                 </div>
                 <Switch
-                  checked={settings.fee_enabled}
+                  checked={localSettings.fee_enabled ?? settings?.fee_enabled}
                   onCheckedChange={(checked) => 
-                    updateSettingsMutation.mutate({ fee_enabled: checked })
+                    setLocalSettings(prev => ({ ...prev, fee_enabled: checked }))
                   }
                 />
               </div>
               
-              {settings.fee_enabled && (
-                <div>
-                  <Label>Fee Amount (KES)</Label>
-                  <Input
-                    type="number"
-                    value={settings.fee_amount}
-                    onChange={(e) => 
-                      updateSettingsMutation.mutate({ 
-                        fee_amount: parseFloat(e.target.value) || 0 
-                      })
-                    }
-                    placeholder="Enter fee amount"
-                  />
+              {(localSettings.fee_enabled ?? settings?.fee_enabled) && (
+                <div className="ml-4 pl-4 border-l-2 border-primary/20 space-y-3">
+                  <div className="space-y-2">
+                    <Label>Fee Amount (KES)</Label>
+                    <Input
+                      type="number"
+                      value={localSettings.fee_amount ?? settings?.fee_amount ?? 0}
+                      onChange={(e) => 
+                        setLocalSettings(prev => ({ 
+                          ...prev, 
+                          fee_amount: parseFloat(e.target.value) || 0 
+                        }))
+                      }
+                      placeholder="Enter fee amount"
+                    />
+                  </div>
                 </div>
               )}
             </div>
-          )}
 
-          <DialogFooter>
-            <Button onClick={() => setSettingsDialogOpen(false)}>
-              Done
+            <Separator />
+
+            {/* Interview Settings */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">Interview Required</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Require interview as part of admission process
+                  </p>
+                </div>
+                <Switch
+                  checked={localSettings.interview_enabled ?? settings?.interview_enabled}
+                  onCheckedChange={(checked) => 
+                    setLocalSettings(prev => ({ ...prev, interview_enabled: checked }))
+                  }
+                />
+              </div>
+              
+              {(localSettings.interview_enabled ?? settings?.interview_enabled) && (
+                <div className="ml-4 pl-4 border-l-2 border-primary/20 space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Interview Date</Label>
+                      <Input
+                        type="date"
+                        value={localSettings.interview_date ?? settings?.interview_date ?? ""}
+                        onChange={(e) => 
+                          setLocalSettings(prev => ({ ...prev, interview_date: e.target.value }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Interview Time</Label>
+                      <Input
+                        type="text"
+                        placeholder="e.g., 9:00 AM - 12:00 PM"
+                        value={localSettings.interview_time ?? settings?.interview_time ?? ""}
+                        onChange={(e) => 
+                          setLocalSettings(prev => ({ ...prev, interview_time: e.target.value }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Interview Location</Label>
+                    <Input
+                      placeholder="e.g., School Main Hall"
+                      value={localSettings.interview_location ?? settings?.interview_location ?? ""}
+                      onChange={(e) => 
+                        setLocalSettings(prev => ({ ...prev, interview_location: e.target.value }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Interview Requirements</Label>
+                    <Textarea
+                      placeholder="List requirements (e.g., bring report cards, birth certificate, etc.)"
+                      value={localSettings.interview_requirements ?? settings?.interview_requirements ?? ""}
+                      onChange={(e) => 
+                        setLocalSettings(prev => ({ ...prev, interview_requirements: e.target.value }))
+                      }
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Interview Fee (KES)</Label>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={localSettings.interview_fee ?? settings?.interview_fee ?? 0}
+                      onChange={(e) => 
+                        setLocalSettings(prev => ({ 
+                          ...prev, 
+                          interview_fee: parseFloat(e.target.value) || 0 
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Fee Note</Label>
+                    <Input
+                      placeholder="e.g., This fee is non-refundable"
+                      value={localSettings.interview_fee_note ?? settings?.interview_fee_note ?? ""}
+                      onChange={(e) => 
+                        setLocalSettings(prev => ({ ...prev, interview_fee_note: e.target.value }))
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setSettingsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveSettings} disabled={updateSettingsMutation.isPending}>
+              {updateSettingsMutation.isPending ? "Saving..." : "Save Settings"}
             </Button>
           </DialogFooter>
         </DialogContent>

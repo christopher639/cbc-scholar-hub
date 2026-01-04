@@ -97,16 +97,18 @@ export function RightSidePanel() {
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const [messagesResult, notificationsResult] = await Promise.all([
+      const [messagesResult, notificationsResult, pendingApplicationsResult] = await Promise.all([
         supabase.from("contact_messages").select("id", { count: "exact" }).eq("is_read", false),
         session?.user 
           ? supabase.from("notifications").select("id", { count: "exact" }).eq("user_id", session.user.id).eq("is_read", false)
-          : Promise.resolve({ count: 0 })
+          : Promise.resolve({ count: 0 }),
+        supabase.from("applications").select("id", { count: "exact" }).eq("status", "pending")
       ]);
       
       return {
         messages: messagesResult.count || 0,
         notifications: notificationsResult.count || 0,
+        applications: pendingApplicationsResult.count || 0,
       };
     },
   });
@@ -148,7 +150,7 @@ export function RightSidePanel() {
       label: "Applications",
       color: "text-purple-500",
       bgColor: "bg-purple-500/10 hover:bg-purple-500/20",
-      badge: 0,
+      badge: unreadCounts?.applications || 0,
       onClick: () => navigate("/applications"),
     },
     {
