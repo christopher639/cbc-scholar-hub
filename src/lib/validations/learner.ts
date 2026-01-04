@@ -97,11 +97,6 @@ export const learnerSchema = z.object({
     .max(500, "Allergies information must be less than 500 characters")
     .optional(),
   
-  bloodType: z.string()
-    .trim()
-    .max(10, "Blood type must be less than 10 characters")
-    .optional(),
-  
   emergencyContact: z.string()
     .trim()
     .max(200, "Emergency contact name must be less than 200 characters")

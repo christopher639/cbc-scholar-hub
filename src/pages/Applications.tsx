@@ -293,60 +293,36 @@ export default function Applications() {
           )}
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-l-4 border-l-primary">
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-3xl font-bold">{stats.total}</p>
-                </div>
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-6 w-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-yellow-500">
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Pending</p>
-                  <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
-                </div>
-                <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-yellow-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-green-500">
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Approved</p>
-                  <p className="text-3xl font-bold text-green-600">{stats.approved}</p>
-                </div>
-                <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-red-500">
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Rejected</p>
-                  <p className="text-3xl font-bold text-red-600">{stats.rejected}</p>
-                </div>
-                <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                  <XCircle className="h-6 w-6 text-red-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+            <FileText className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-2xl font-semibold">{stats.total}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-2xl font-semibold">{stats.pending}</p>
+              <p className="text-xs text-muted-foreground">Pending</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+            <CheckCircle className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-2xl font-semibold">{stats.approved}</p>
+              <p className="text-xs text-muted-foreground">Approved</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+            <XCircle className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-2xl font-semibold">{stats.rejected}</p>
+              <p className="text-xs text-muted-foreground">Rejected</p>
+            </div>
+          </div>
         </div>
 
         {/* Filters */}

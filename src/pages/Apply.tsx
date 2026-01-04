@@ -42,9 +42,10 @@ const applicationSchema = z.object({
   // Medical info
   medicalInfo: z.string().optional(),
   allergies: z.string().optional(),
-  bloodType: z.string().optional(),
   emergencyContact: z.string().optional(),
   emergencyPhone: z.string().optional(),
+  // Residence
+  residence: z.string().optional(),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -97,9 +98,9 @@ export default function Apply() {
       boardingStatus: "day",
       medicalInfo: "",
       allergies: "",
-      bloodType: "",
       emergencyContact: "",
       emergencyPhone: "",
+      residence: "",
     },
   });
 
@@ -189,7 +190,6 @@ export default function Apply() {
         boarding_status: data.boardingStatus,
         medical_info: data.medicalInfo || null,
         allergies: data.allergies || null,
-        blood_type: data.bloodType || null,
         emergency_contact: data.emergencyContact || null,
         emergency_phone: data.emergencyPhone || null,
         application_number: appNumber,
@@ -619,6 +619,19 @@ export default function Apply() {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="residence"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Residence / Estate</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. Westlands, Karen, Kileleshwa" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 )}
 
@@ -679,33 +692,6 @@ export default function Apply() {
                     <p className="text-sm text-muted-foreground mb-4">
                       This information helps us ensure your child's safety and well-being. All fields are optional.
                     </p>
-                    <FormField
-                      control={form.control}
-                      name="bloodType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Blood Type</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select blood type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="A+">A+</SelectItem>
-                              <SelectItem value="A-">A-</SelectItem>
-                              <SelectItem value="B+">B+</SelectItem>
-                              <SelectItem value="B-">B-</SelectItem>
-                              <SelectItem value="AB+">AB+</SelectItem>
-                              <SelectItem value="AB-">AB-</SelectItem>
-                              <SelectItem value="O+">O+</SelectItem>
-                              <SelectItem value="O-">O-</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                     <FormField
                       control={form.control}
                       name="allergies"
@@ -807,14 +793,14 @@ export default function Apply() {
                         </div>
                       </div>
 
-                      {(formValues.bloodType || formValues.allergies || formValues.medicalInfo) && (
+                      {(formValues.allergies || formValues.medicalInfo) && (
                         <div className="bg-muted/50 p-4 rounded-lg">
                           <h4 className="font-semibold mb-2 flex items-center gap-2">
                             <Heart className="h-4 w-4" /> Medical Information
                           </h4>
                           <div className="grid grid-cols-2 gap-2 text-sm">
-                            <p><span className="text-muted-foreground">Blood Type:</span> {formValues.bloodType || "-"}</p>
                             <p><span className="text-muted-foreground">Allergies:</span> {formValues.allergies || "-"}</p>
+                            <p><span className="text-muted-foreground">Medical Conditions:</span> {formValues.medicalInfo || "-"}</p>
                           </div>
                         </div>
                       )}
