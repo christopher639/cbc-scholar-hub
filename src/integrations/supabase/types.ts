@@ -233,6 +233,7 @@ export type Database = {
       }
       application_settings: {
         Row: {
+          applications_open: boolean
           created_at: string
           fee_amount: number
           fee_enabled: boolean
@@ -240,6 +241,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          applications_open?: boolean
           created_at?: string
           fee_amount?: number
           fee_enabled?: boolean
@@ -247,6 +249,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          applications_open?: boolean
           created_at?: string
           fee_amount?: number
           fee_enabled?: boolean

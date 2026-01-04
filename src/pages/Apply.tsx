@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, GraduationCap, User, Heart, FileText, CheckCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { CalendarIcon, GraduationCap, User, Heart, FileText, CheckCircle, ArrowLeft, ArrowRight, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -65,7 +65,7 @@ export default function Apply() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [applicationNumber, setApplicationNumber] = useState("");
   const [grades, setGrades] = useState<{ id: string; name: string }[]>([]);
-  const [feeSettings, setFeeSettings] = useState<{ fee_enabled: boolean; fee_amount: number } | null>(null);
+  const [feeSettings, setFeeSettings] = useState<{ fee_enabled: boolean; fee_amount: number; applications_open: boolean } | null>(null);
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -213,6 +213,38 @@ export default function Apply() {
 
   const formValues = form.watch();
 
+  // Show closed message if applications are not open
+  if (feeSettings && !feeSettings.applications_open) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex items-center justify-center p-4">
+        <PageMeta 
+          title="Applications Closed"
+          description="Applications are currently closed"
+        />
+        <Card className="max-w-lg w-full text-center">
+          <CardHeader>
+            <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <XCircle className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <CardTitle className="text-2xl">Applications Currently Closed</CardTitle>
+            <CardDescription className="text-base mt-2">
+              We are not accepting applications at this time
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Thank you for your interest in {schoolInfo?.school_name || "our school"}. 
+              Please check back later or contact us for more information about upcoming admission periods.
+            </p>
+            <Button onClick={() => navigate("/")} className="w-full mt-4">
+              Back to Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex items-center justify-center p-4">
@@ -222,10 +254,10 @@ export default function Apply() {
         />
         <Card className="max-w-lg w-full text-center">
           <CardHeader>
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle className="h-10 w-10 text-green-600" />
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="h-10 w-10 text-primary" />
             </div>
-            <CardTitle className="text-2xl text-green-600">Application Submitted!</CardTitle>
+            <CardTitle className="text-2xl text-primary">Application Submitted!</CardTitle>
             <CardDescription className="text-base mt-2">
               Thank you for applying to {schoolInfo?.school_name || "our school"}
             </CardDescription>
@@ -291,33 +323,41 @@ export default function Apply() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors",
-                    currentStep >= step.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {currentStep > step.id ? (
-                    <CheckCircle className="h-5 w-5" />
-                  ) : (
-                    <step.icon className="h-5 w-5" />
-                  )}
-                </div>
-                {index < steps.length - 1 && (
+              <div key={step.id} className="flex flex-col items-center">
+                <div className="flex items-center">
                   <div
                     className={cn(
-                      "hidden sm:block w-12 lg:w-24 h-1 mx-2 rounded",
-                      currentStep > step.id ? "bg-primary" : "bg-muted"
+                      "w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors",
+                      currentStep >= step.id
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
                     )}
-                  />
-                )}
+                  >
+                    {currentStep > step.id ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      <span className="text-sm font-bold">{step.id}</span>
+                    )}
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div
+                      className={cn(
+                        "hidden sm:block w-12 lg:w-24 h-1 mx-2 rounded",
+                        currentStep > step.id ? "bg-primary" : "bg-muted"
+                      )}
+                    />
+                  )}
+                </div>
+                <span className={cn(
+                  "text-xs mt-1 text-center hidden sm:block max-w-[80px]",
+                  currentStep >= step.id ? "text-primary font-medium" : "text-muted-foreground"
+                )}>
+                  {step.title}
+                </span>
               </div>
             ))}
           </div>
-          <div className="text-center">
+          <div className="text-center sm:hidden">
             <h2 className="text-xl font-semibold">{steps[currentStep - 1].title}</h2>
             <p className="text-sm text-muted-foreground">Step {currentStep} of {steps.length}</p>
           </div>

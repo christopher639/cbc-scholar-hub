@@ -102,6 +102,7 @@ export default function Home() {
   const [selectedGalleryImage, setSelectedGalleryImage] = useState<GalleryImage | null>(null);
   const [heroBackgrounds, setHeroBackgrounds] = useState<string[]>([]);
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
+  const [applicationsOpen, setApplicationsOpen] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -172,6 +173,20 @@ export default function Home() {
       setPrograms(data || []);
     };
     fetchPrograms();
+  }, []);
+
+  // Fetch application settings
+  useEffect(() => {
+    const fetchApplicationSettings = async () => {
+      const { data } = await supabase
+        .from("application_settings")
+        .select("applications_open")
+        .single();
+      if (data) {
+        setApplicationsOpen(data.applications_open);
+      }
+    };
+    fetchApplicationSettings();
   }, []);
 
   // Fetch hero backgrounds
@@ -461,12 +476,14 @@ export default function Home() {
             {/* Hero Buttons */}
             <div className="flex flex-col items-center gap-4">
               <div className="flex flex-wrap gap-3 justify-center">
-                <Link to="/apply">
-                  <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
-                    <GraduationCap className="h-4 w-4" />
-                    Apply Now
-                  </Button>
-                </Link>
+                {applicationsOpen && (
+                  <Link to="/apply">
+                    <Button size="sm" className="gap-2">
+                      <GraduationCap className="h-4 w-4" />
+                      Apply Now
+                    </Button>
+                  </Link>
+                )}
                 <a href="#about">
                   <Button variant="default" size="sm" className="gap-2">
                     Learn More
