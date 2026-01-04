@@ -22,7 +22,7 @@ import { useSchoolInfo } from "@/hooks/useSchoolInfo";
 import { PageMeta } from "@/components/SEO/PageMeta";
 
 const applicationSchema = z.object({
-  // Child info
+  // Learner info
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   dateOfBirth: z.date({ required_error: "Date of birth is required" }),
@@ -38,6 +38,7 @@ const applicationSchema = z.object({
   parentPhone: z.string().min(10, "Valid phone number is required"),
   parentOccupation: z.string().optional(),
   parentAddress: z.string().optional(),
+  parentRelationship: z.string().min(1, "Please select your relationship to the learner"),
   // Academic info
   applyingForGradeId: z.string().min(1, "Please select a grade"),
   boardingStatus: z.enum(["day", "boarding"], { required_error: "Please select boarding status" }),
@@ -53,7 +54,7 @@ const applicationSchema = z.object({
 type ApplicationFormData = z.infer<typeof applicationSchema>;
 
 const steps = [
-  { id: 1, title: "Child Information", icon: User },
+  { id: 1, title: "Learner Information", icon: User },
   { id: 2, title: "Parent/Guardian", icon: User },
   { id: 3, title: "Academic Details", icon: GraduationCap },
   { id: 4, title: "Medical Information", icon: Heart },
@@ -103,6 +104,7 @@ export default function Apply() {
       parentPhone: "",
       parentOccupation: "",
       parentAddress: "",
+      parentRelationship: "",
       applyingForGradeId: "",
       boardingStatus: "day",
       medicalInfo: "",
@@ -140,7 +142,7 @@ export default function Apply() {
         fieldsToValidate = ["firstName", "lastName", "dateOfBirth", "gender"];
         break;
       case 2:
-        fieldsToValidate = ["parentFirstName", "parentLastName", "parentEmail", "parentPhone"];
+        fieldsToValidate = ["parentFirstName", "parentLastName", "parentEmail", "parentPhone", "parentRelationship"];
         break;
       case 3:
         fieldsToValidate = ["applyingForGradeId", "boardingStatus"];
@@ -195,6 +197,7 @@ export default function Apply() {
         parent_phone: data.parentPhone,
         parent_occupation: data.parentOccupation || null,
         parent_address: data.parentAddress || null,
+        parent_relationship: data.parentRelationship || null,
         residence: data.residence || null,
         applying_for_grade_id: data.applyingForGradeId,
         applying_for_grade_name: selectedGrade?.name || "",
@@ -409,7 +412,7 @@ export default function Apply() {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <Card>
               <CardContent className="pt-6">
-                {/* Step 1: Child Information */}
+                {/* Step 1: Learner Information */}
                 {currentStep === 1 && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -619,19 +622,48 @@ export default function Apply() {
                         )}
                       />
                     </div>
-                    <FormField
-                      control={form.control}
-                      name="parentOccupation"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Occupation</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Your occupation" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="parentOccupation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Occupation</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Your occupation" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="parentRelationship"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Relationship to Learner *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select relationship" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="mother">Mother</SelectItem>
+                                <SelectItem value="father">Father</SelectItem>
+                                <SelectItem value="guardian">Guardian</SelectItem>
+                                <SelectItem value="grandparent">Grandparent</SelectItem>
+                                <SelectItem value="uncle">Uncle</SelectItem>
+                                <SelectItem value="aunt">Aunt</SelectItem>
+                                <SelectItem value="sibling">Sibling</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={form.control}
                       name="parentAddress"
@@ -785,12 +817,13 @@ export default function Apply() {
                     <div className="grid gap-4">
                       <div className="bg-muted/50 p-4 rounded-lg">
                         <h4 className="font-semibold mb-2 flex items-center gap-2">
-                          <User className="h-4 w-4" /> Child Information
+                          <User className="h-4 w-4" /> Learner Information
                         </h4>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <p><span className="text-muted-foreground">Name:</span> {formValues.firstName} {formValues.lastName}</p>
                           <p><span className="text-muted-foreground">DOB:</span> {formValues.dateOfBirth ? format(formValues.dateOfBirth, "PPP") : "-"}</p>
                           <p><span className="text-muted-foreground">Gender:</span> {formValues.gender}</p>
+                          <p><span className="text-muted-foreground">Religion:</span> {formValues.religion || "-"}</p>
                           <p><span className="text-muted-foreground">Birth Cert:</span> {formValues.birthCertificateNumber || "-"}</p>
                         </div>
                       </div>
@@ -801,6 +834,7 @@ export default function Apply() {
                         </h4>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <p><span className="text-muted-foreground">Name:</span> {formValues.parentFirstName} {formValues.parentLastName}</p>
+                          <p><span className="text-muted-foreground">Relationship:</span> {formValues.parentRelationship || "-"}</p>
                           <p><span className="text-muted-foreground">Email:</span> {formValues.parentEmail}</p>
                           <p><span className="text-muted-foreground">Phone:</span> {formValues.parentPhone}</p>
                           <p><span className="text-muted-foreground">Occupation:</span> {formValues.parentOccupation || "-"}</p>
