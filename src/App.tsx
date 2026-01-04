@@ -69,6 +69,7 @@ import TeacherTimetable from "./pages/TeacherTimetable";
 import ReleaseMarks from "./pages/ReleaseMarks";
 import Apply from "./pages/Apply";
 import Applications from "./pages/Applications";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,7 @@ function AppRoutes() {
       {/* Public School Website */}
       <Route path="/" element={<Home />} />
       <Route path="/apply" element={<Apply />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/blog/:id" element={<BlogDetail />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/otp-verification" element={<OTPVerification />} />
