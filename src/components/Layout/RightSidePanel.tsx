@@ -19,7 +19,9 @@ import {
   CheckCircle2,
   Circle,
   UserPlus,
+  FileCheck,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Tooltip,
   TooltipContent,
@@ -50,6 +52,7 @@ interface Notification {
 }
 
 export function RightSidePanel() {
+  const navigate = useNavigate();
   const [activePanel, setActivePanel] = useState<PanelType>(null);
   const [addLearnerOpen, setAddLearnerOpen] = useState(false);
   const { getTopbarClass } = useUIStyles();
@@ -108,7 +111,11 @@ export function RightSidePanel() {
     },
   });
 
-  const handlePanelClick = (panel: PanelType) => {
+  const handlePanelClick = (panel: PanelType, onClick?: () => void) => {
+    if (onClick) {
+      onClick();
+      return;
+    }
     if (panel === "add-learner") {
       setAddLearnerOpen(true);
       return;
@@ -134,6 +141,15 @@ export function RightSidePanel() {
       color: "text-emerald-500",
       bgColor: "bg-emerald-500/10 hover:bg-emerald-500/20",
       badge: 0,
+    },
+    {
+      id: "applications" as PanelType,
+      icon: FileCheck,
+      label: "Applications",
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10 hover:bg-purple-500/20",
+      badge: 0,
+      onClick: () => navigate("/applications"),
     },
     {
       id: "messages" as PanelType,
@@ -172,7 +188,7 @@ export function RightSidePanel() {
                     item.bgColor,
                     activePanel === item.id && "ring-2 ring-offset-2 ring-offset-background"
                   )}
-                  onClick={() => handlePanelClick(item.id)}
+                  onClick={() => handlePanelClick(item.id, (item as any).onClick)}
                 >
                   <item.icon className={cn("h-5 w-5", item.color)} />
                   {item.badge > 0 && (

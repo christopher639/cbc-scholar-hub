@@ -231,6 +231,146 @@ export type Database = {
         }
         Relationships: []
       }
+      application_settings: {
+        Row: {
+          created_at: string
+          fee_amount: number
+          fee_enabled: boolean
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fee_amount?: number
+          fee_enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fee_amount?: number
+          fee_enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      applications: {
+        Row: {
+          allergies: string | null
+          application_number: string
+          applying_for_grade_id: string | null
+          applying_for_grade_name: string
+          birth_certificate_number: string | null
+          blood_type: string | null
+          boarding_status: string
+          created_at: string
+          date_of_birth: string
+          emergency_contact: string | null
+          emergency_phone: string | null
+          fee_amount: number | null
+          fee_paid: boolean
+          first_name: string
+          gender: string
+          id: string
+          last_name: string
+          medical_info: string | null
+          parent_address: string | null
+          parent_email: string
+          parent_first_name: string
+          parent_last_name: string
+          parent_occupation: string | null
+          parent_phone: string
+          payment_reference: string | null
+          previous_grade: string | null
+          previous_school: string | null
+          rejection_reason: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          allergies?: string | null
+          application_number: string
+          applying_for_grade_id?: string | null
+          applying_for_grade_name: string
+          birth_certificate_number?: string | null
+          blood_type?: string | null
+          boarding_status?: string
+          created_at?: string
+          date_of_birth: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
+          fee_amount?: number | null
+          fee_paid?: boolean
+          first_name: string
+          gender: string
+          id?: string
+          last_name: string
+          medical_info?: string | null
+          parent_address?: string | null
+          parent_email: string
+          parent_first_name: string
+          parent_last_name: string
+          parent_occupation?: string | null
+          parent_phone: string
+          payment_reference?: string | null
+          previous_grade?: string | null
+          previous_school?: string | null
+          rejection_reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          allergies?: string | null
+          application_number?: string
+          applying_for_grade_id?: string | null
+          applying_for_grade_name?: string
+          birth_certificate_number?: string | null
+          blood_type?: string | null
+          boarding_status?: string
+          created_at?: string
+          date_of_birth?: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
+          fee_amount?: number | null
+          fee_paid?: boolean
+          first_name?: string
+          gender?: string
+          id?: string
+          last_name?: string
+          medical_info?: string | null
+          parent_address?: string | null
+          parent_email?: string
+          parent_first_name?: string
+          parent_last_name?: string
+          parent_occupation?: string | null
+          parent_phone?: string
+          payment_reference?: string | null
+          previous_grade?: string | null
+          previous_school?: string | null
+          rejection_reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_applying_for_grade_id_fkey"
+            columns: ["applying_for_grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignment_submissions: {
         Row: {
           assignment_id: string
@@ -2781,6 +2921,7 @@ export type Database = {
       }
       count_admin_users: { Args: never; Returns: number }
       generate_admission_number: { Args: never; Returns: string }
+      generate_application_number: { Args: never; Returns: string }
       generate_employee_number: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
       generate_learner_invoice:
