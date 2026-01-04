@@ -55,7 +55,6 @@ interface FormData {
   // Medical Info
   medicalInfo: string;
   allergies: string;
-  bloodType: string;
   emergencyContact: string;
   emergencyPhone: string;
 }
@@ -93,7 +92,6 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
     reasonForTransfer: "",
     medicalInfo: "",
     allergies: "",
-    bloodType: "",
     emergencyContact: "",
     emergencyPhone: "",
   });
@@ -189,7 +187,6 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
       reasonForTransfer: "",
       medicalInfo: "",
       allergies: "",
-      bloodType: "",
       emergencyContact: "",
       emergencyPhone: "",
     });
@@ -249,7 +246,6 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         previousGrade: application.previous_grade || "",
         medicalInfo: application.medical_info || "",
         allergies: application.allergies || "",
-        bloodType: application.blood_type || "",
         emergencyContact: application.emergency_contact || "",
         emergencyPhone: application.emergency_phone || "",
       }));
@@ -336,7 +332,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         setCurrentTab("parents");
       } else if (['gradeId', 'streamId', 'enrollmentDate', 'previousSchool', 'previousGrade', 'reasonForTransfer'].includes(firstError.path[0]?.toString())) {
         setCurrentTab("academic");
-      } else if (['medicalInfo', 'allergies', 'bloodType', 'emergencyContact', 'emergencyPhone'].includes(firstError.path[0]?.toString())) {
+      } else if (['medicalInfo', 'allergies', 'emergencyContact', 'emergencyPhone'].includes(firstError.path[0]?.toString())) {
         setCurrentTab("medical");
       } else {
         setCurrentTab("basic");
@@ -421,7 +417,6 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         previous_grade: formData.previousGrade || null,
         reason_for_transfer: formData.reasonForTransfer || null,
         allergies: formData.allergies || null,
-        blood_type: formData.bloodType || null,
         emergency_contact: formData.emergencyContact || null,
         emergency_phone: formData.emergencyPhone || null,
         medical_info: formData.medicalInfo || null,
@@ -929,24 +924,6 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                         value={formData.allergies}
                         onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bloodType">Blood Type</Label>
-                      <Select value={formData.bloodType} onValueChange={(value) => setFormData({ ...formData, bloodType: value })}>
-                        <SelectTrigger id="bloodType">
-                          <SelectValue placeholder="Select blood type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="A+">A+</SelectItem>
-                          <SelectItem value="A-">A-</SelectItem>
-                          <SelectItem value="B+">B+</SelectItem>
-                          <SelectItem value="B-">B-</SelectItem>
-                          <SelectItem value="AB+">AB+</SelectItem>
-                          <SelectItem value="AB-">AB-</SelectItem>
-                          <SelectItem value="O+">O+</SelectItem>
-                          <SelectItem value="O-">O-</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
