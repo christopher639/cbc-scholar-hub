@@ -309,6 +309,7 @@ export type Database = {
           previous_grade: string | null
           previous_school: string | null
           rejection_reason: string | null
+          residence: string | null
           review_notes: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -344,6 +345,7 @@ export type Database = {
           previous_grade?: string | null
           previous_school?: string | null
           rejection_reason?: string | null
+          residence?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -379,6 +381,7 @@ export type Database = {
           previous_grade?: string | null
           previous_school?: string | null
           rejection_reason?: string | null
+          residence?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null

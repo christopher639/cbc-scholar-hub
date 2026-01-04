@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -61,8 +61,13 @@ const steps = [
 
 export default function Apply() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { schoolInfo } = useSchoolInfo();
-  const [currentStep, setCurrentStep] = useState(1);
+  
+  // Check if returning from privacy policy
+  const returnToReview = location.state?.returnToReview === true;
+  
+  const [currentStep, setCurrentStep] = useState(returnToReview ? 5 : 1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [applicationNumber, setApplicationNumber] = useState("");
@@ -187,6 +192,7 @@ export default function Apply() {
         parent_phone: data.parentPhone,
         parent_occupation: data.parentOccupation || null,
         parent_address: data.parentAddress || null,
+        residence: data.residence || null,
         applying_for_grade_id: data.applyingForGradeId,
         applying_for_grade_name: selectedGrade?.name || "",
         boarding_status: data.boardingStatus,
@@ -832,7 +838,7 @@ export default function Apply() {
                           I have read and agree to the{" "}
                           <Link 
                             to="/privacy-policy" 
-                            target="_blank"
+                            state={{ fromApply: true }}
                             className="text-primary font-medium hover:underline"
                           >
                             Data Protection & Privacy Policy
