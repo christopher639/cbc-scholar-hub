@@ -305,6 +305,7 @@ export type Database = {
           parent_last_name: string
           parent_occupation: string | null
           parent_phone: string
+          parent_relationship: string | null
           payment_reference: string | null
           previous_grade: string | null
           previous_school: string | null
@@ -342,6 +343,7 @@ export type Database = {
           parent_last_name: string
           parent_occupation?: string | null
           parent_phone: string
+          parent_relationship?: string | null
           payment_reference?: string | null
           previous_grade?: string | null
           previous_school?: string | null
@@ -379,6 +381,7 @@ export type Database = {
           parent_last_name?: string
           parent_occupation?: string | null
           parent_phone?: string
+          parent_relationship?: string | null
           payment_reference?: string | null
           previous_grade?: string | null
           previous_school?: string | null
@@ -2047,6 +2050,7 @@ export type Database = {
           last_name: string
           occupation: string | null
           phone: string
+          relationship: string | null
           updated_at: string
           user_id: string | null
         }
@@ -2059,6 +2063,7 @@ export type Database = {
           last_name: string
           occupation?: string | null
           phone: string
+          relationship?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -2071,6 +2076,7 @@ export type Database = {
           last_name?: string
           occupation?: string | null
           phone?: string
+          relationship?: string | null
           updated_at?: string
           user_id?: string | null
         }

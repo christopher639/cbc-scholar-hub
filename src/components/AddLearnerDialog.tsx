@@ -44,6 +44,7 @@ interface FormData {
   parentEmail: string;
   parentOccupation: string;
   parentAddress: string;
+  parentRelationship: string;
   
   // Academic Info
   gradeId: string;
@@ -86,6 +87,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
     parentEmail: "",
     parentOccupation: "",
     parentAddress: "",
+    parentRelationship: "",
     gradeId: "",
     streamId: "",
     enrollmentDate: new Date().toISOString().split('T')[0],
@@ -182,6 +184,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
       parentEmail: "",
       parentOccupation: "",
       parentAddress: "",
+      parentRelationship: "",
       gradeId: "",
       streamId: "",
       enrollmentDate: new Date().toISOString().split('T')[0],
@@ -245,6 +248,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
         parentEmail: application.parent_email,
         parentOccupation: application.parent_occupation || "",
         parentAddress: application.parent_address || "",
+        parentRelationship: application.parent_relationship || "",
         gradeId: application.applying_for_grade_id || "",
         previousSchool: application.previous_school || "",
         previousGrade: application.previous_grade || "",
@@ -393,6 +397,7 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
               email: formData.parentEmail,
               occupation: formData.parentOccupation,
               address: formData.parentAddress,
+              relationship: formData.parentRelationship,
             })
             .select()
             .single();
@@ -799,6 +804,28 @@ export function AddLearnerDialog({ open, onOpenChange }: AddLearnerDialogProps) 
                         value={formData.parentOccupation}
                         onChange={(e) => setFormData({ ...formData, parentOccupation: e.target.value })}
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="parentRelationship">Relationship to Learner *</Label>
+                      <Select 
+                        value={formData.parentRelationship} 
+                        onValueChange={(value) => setFormData({ ...formData, parentRelationship: value })}
+                        required
+                      >
+                        <SelectTrigger id="parentRelationship">
+                          <SelectValue placeholder="Select relationship" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mother">Mother</SelectItem>
+                          <SelectItem value="father">Father</SelectItem>
+                          <SelectItem value="guardian">Guardian</SelectItem>
+                          <SelectItem value="grandparent">Grandparent</SelectItem>
+                          <SelectItem value="uncle">Uncle</SelectItem>
+                          <SelectItem value="aunt">Aunt</SelectItem>
+                          <SelectItem value="sibling">Sibling</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2 md:col-span-2">
                       <Label htmlFor="parentAddress">Address</Label>
