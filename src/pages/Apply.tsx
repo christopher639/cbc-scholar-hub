@@ -88,9 +88,29 @@ export default function Apply() {
     interview_fee_note: string | null;
   } | null>(null);
 
+  // Get saved form data from sessionStorage
+  const getSavedFormData = () => {
+    const saved = sessionStorage.getItem("applicationFormData");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Convert dateOfBirth back to Date object if it exists
+        if (parsed.dateOfBirth) {
+          parsed.dateOfBirth = new Date(parsed.dateOfBirth);
+        }
+        return parsed;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const savedData = returnToReview ? getSavedFormData() : null;
+
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
-    defaultValues: {
+    defaultValues: savedData || {
       firstName: "",
       lastName: "",
       gender: undefined,
@@ -115,6 +135,16 @@ export default function Apply() {
     },
   });
 
+  // Restore privacy agreement state when returning
+  useEffect(() => {
+    if (returnToReview) {
+      const savedPrivacy = sessionStorage.getItem("applicationPrivacyAgreed");
+      if (savedPrivacy === "true") {
+        setPrivacyAgreed(true);
+      }
+    }
+  }, [returnToReview]);
+
   useEffect(() => {
     const fetchData = async () => {
       // Fetch grades
@@ -133,6 +163,13 @@ export default function Apply() {
     };
     fetchData();
   }, []);
+
+  // Save form data to sessionStorage before navigating to privacy policy
+  const saveFormDataToStorage = () => {
+    const values = form.getValues();
+    sessionStorage.setItem("applicationFormData", JSON.stringify(values));
+    sessionStorage.setItem("applicationPrivacyAgreed", String(privacyAgreed));
+  };
 
   const validateStep = async (step: number): Promise<boolean> => {
     let fieldsToValidate: (keyof ApplicationFormData)[] = [];
@@ -232,6 +269,10 @@ export default function Apply() {
           applicationFee: feeSettings?.fee_enabled ? feeSettings.fee_amount : null,
         },
       });
+
+      // Clear saved form data from sessionStorage
+      sessionStorage.removeItem("applicationFormData");
+      sessionStorage.removeItem("applicationPrivacyAgreed");
 
       setApplicationNumber(appNumber);
       setIsSubmitted(true);
@@ -891,6 +932,7 @@ export default function Apply() {
                           <Link 
                             to="/privacy-policy" 
                             state={{ fromApply: true }}
+                            onClick={saveFormDataToStorage}
                             className="text-primary font-medium hover:underline"
                           >
                             Data Protection & Privacy Policy
