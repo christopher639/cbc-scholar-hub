@@ -460,7 +460,13 @@ export default function Home() {
 
             {/* Hero Buttons */}
             <div className="flex flex-col items-center gap-4">
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Link to="/apply">
+                  <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
+                    <GraduationCap className="h-4 w-4" />
+                    Apply Now
+                  </Button>
+                </Link>
                 <a href="#about">
                   <Button variant="default" size="sm" className="gap-2">
                     Learn More

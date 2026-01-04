@@ -67,6 +67,8 @@ import TeacherPortalProfile from "./pages/TeacherPortalProfile";
 import TeacherSettings from "./pages/TeacherSettings";
 import TeacherTimetable from "./pages/TeacherTimetable";
 import ReleaseMarks from "./pages/ReleaseMarks";
+import Apply from "./pages/Apply";
+import Applications from "./pages/Applications";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +90,7 @@ function AppRoutes() {
     <Routes>
       {/* Public School Website */}
       <Route path="/" element={<Home />} />
+      <Route path="/apply" element={<Apply />} />
       <Route path="/blog/:id" element={<BlogDetail />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/otp-verification" element={<OTPVerification />} />
@@ -428,6 +431,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <AdminRoute>
               <Timetable />
+            </AdminRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/applications"
+        element={
+          <ProtectedRoute>
+            <AdminRoute>
+              <Applications />
             </AdminRoute>
           </ProtectedRoute>
         }

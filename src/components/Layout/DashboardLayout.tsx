@@ -114,7 +114,7 @@ function ThemeToggle() {
   );
 }
 
-import { Newspaper, Images, BookOpen, Home, Building2, Calendar } from "lucide-react";
+import { Newspaper, Images, BookOpen, Home, Building2, Calendar, FileCheck } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "finance", "visitor"] },
@@ -134,6 +134,7 @@ const navigation = [
   { name: "Gallery", href: "/gallery", icon: Images, roles: ["admin", "finance", "visitor"] },
   { name: "Communication", href: "/communication", icon: MessageSquare, roles: ["admin", "finance", "visitor"] },
   { name: "Admissions", href: "/admissions", icon: UserCheck, roles: ["admin", "finance", "visitor"] },
+  { name: "Applications", href: "/applications", icon: FileCheck, roles: ["admin", "finance", "visitor"] },
   { name: "Alumni", href: "/alumni", icon: GraduationCap, roles: ["admin", "teacher", "finance", "visitor"] },
   { name: "Reports", href: "/reports", icon: FileText, roles: ["admin", "teacher", "finance", "visitor"] },
   { name: "Learner Reports", href: "/bulk-learner-reports", icon: FileText, roles: ["admin", "finance", "visitor"] },
