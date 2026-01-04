@@ -106,7 +106,7 @@ export default function Applications() {
 
   // Update settings mutation
   const updateSettingsMutation = useMutation({
-    mutationFn: async (newSettings: { fee_enabled: boolean; fee_amount: number }) => {
+    mutationFn: async (newSettings: { fee_enabled?: boolean; fee_amount?: number; applications_open?: boolean }) => {
       const { error } = await supabase
         .from("application_settings")
         .update(newSettings)
@@ -582,6 +582,21 @@ export default function Applications() {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
+                  <Label>Applications Open</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Allow visitors to submit new applications
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.applications_open}
+                  onCheckedChange={(checked) => 
+                    updateSettingsMutation.mutate({ applications_open: checked })
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
                   <Label>Application Fee</Label>
                   <p className="text-sm text-muted-foreground">
                     Require payment before application submission
@@ -590,10 +605,7 @@ export default function Applications() {
                 <Switch
                   checked={settings.fee_enabled}
                   onCheckedChange={(checked) => 
-                    updateSettingsMutation.mutate({ 
-                      fee_enabled: checked, 
-                      fee_amount: settings.fee_amount 
-                    })
+                    updateSettingsMutation.mutate({ fee_enabled: checked })
                   }
                 />
               </div>
@@ -606,7 +618,6 @@ export default function Applications() {
                     value={settings.fee_amount}
                     onChange={(e) => 
                       updateSettingsMutation.mutate({ 
-                        fee_enabled: settings.fee_enabled, 
                         fee_amount: parseFloat(e.target.value) || 0 
                       })
                     }
