@@ -448,55 +448,74 @@ export default function Home() {
       </header>
 
       {/* Hero Section - Full Background */}
-      <section id="home" className="relative min-h-[70vh] flex items-center bg-gradient-to-br from-primary/20 to-primary/5">
-        {/* Background Image - Only show if active hero backgrounds exist */}
-        {heroBackgrounds.length > 0 && (
-          <img
-            key={currentBgIndex}
-            src={heroBackgrounds[currentBgIndex]}
-            alt="School Campus"
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
-          />
+      <section id="home" className="relative min-h-[85vh] flex items-center">
+        {/* Background - Gradient or Image */}
+        {heroBackgrounds.length > 0 ? (
+          <>
+            <img
+              key={currentBgIndex}
+              src={heroBackgrounds[currentBgIndex]}
+              alt="School Campus"
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 animate-fade-in"
+            />
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-primary/60" />
         )}
 
-        <div className="relative w-full pt-24 pb-16 flex items-center justify-center min-h-[70vh]">
-          <div className="text-center px-4">
+        <div className="relative w-full pt-32 pb-20 flex items-center justify-center min-h-[85vh]">
+          <div className="text-center px-4 max-w-4xl mx-auto">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
+              <Award className="h-4 w-4 text-white" />
+              <span className="text-sm font-medium text-white">Excellence in Education</span>
+            </div>
+            
             {schoolInfo?.school_name && (
-              <p className="text-lg md:text-xl font-bold text-white leading-tight mb-2 drop-shadow-lg">
-                Welcome to {schoolInfo.school_name}
-              </p>
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 drop-shadow-lg">
+                Welcome to <br className="sm:hidden" />
+                <span className="text-white">{schoolInfo.school_name}</span>
+              </h1>
             )}
 
             {schoolInfo?.motto && (
-              <p className="text-sm text-white/90 font-medium drop-shadow-md mb-6">
+              <p className="text-base md:text-lg text-white/90 font-medium drop-shadow-md mb-8 max-w-2xl mx-auto">
                 "{schoolInfo.motto}"
               </p>
             )}
 
             {/* Hero Buttons */}
-            <div className="flex flex-col items-center gap-4">
-              <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-col items-center gap-6">
+              <div className="flex flex-wrap gap-4 justify-center">
                 {applicationsOpen && (
                   <Link to="/apply">
-                    <Button size="sm" className="gap-2">
-                      <GraduationCap className="h-4 w-4" />
+                    <Button size="lg" className="gap-2 shadow-lg hover:shadow-xl transition-shadow">
+                      <GraduationCap className="h-5 w-5" />
                       Apply Now
                     </Button>
                   </Link>
                 )}
                 <a href="#about">
-                  <Button variant="default" size="sm" className="gap-2">
+                  <Button variant="secondary" size="lg" className="gap-2 bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30">
                     Learn More
                   </Button>
                 </a>
                 <a href="#contact">
-                  <Button variant="outline" size="sm" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20">
+                  <Button variant="outline" size="lg" className="gap-2 bg-transparent border-white/40 text-white hover:bg-white/10">
+                    <Phone className="h-4 w-4" />
                     Contact Us
                   </Button>
                 </a>
               </div>
-              <div className="animate-bounce mt-4">
-                <Mouse className="h-5 w-5 text-white/70" />
+              
+              {/* Scroll Indicator */}
+              <div className="animate-bounce mt-8">
+                <a href="#about" className="flex flex-col items-center gap-2 text-white/70 hover:text-white transition-colors">
+                  <span className="text-xs font-medium">Scroll to explore</span>
+                  <Mouse className="h-6 w-6" />
+                </a>
               </div>
             </div>
           </div>
@@ -505,21 +524,23 @@ export default function Home() {
 
       {/* Blog Section */}
       {blogs.length > 0 && (
-        <section id="blog" className="py-8 md:py-12 bg-muted/30">
+        <section id="blog" className="py-16 md:py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <p className="text-primary text-sm font-medium mb-1">Latest Updates</p>
-              <p className="text-base font-semibold text-foreground mb-2">News & Blog</p>
-              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            <div className="text-center mb-12">
+              <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+                Latest Updates
+              </span>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">News & Blog</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 Stay updated with the latest news, events, and stories from our school community.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 gap-8">
               {blogs.map((blog) => (
                 <Card
                   key={blog.id}
-                  className="overflow-hidden border bg-card hover:shadow-lg transition-shadow group cursor-pointer"
+                  className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer bg-card"
                   onClick={() => navigate(`/blog/${blog.id}`)}
                 >
                   {blog.image_url && (
@@ -527,14 +548,14 @@ export default function Home() {
                       <img
                         src={blog.image_url}
                         alt={blog.title}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
                   )}
-                  <CardContent className="p-5">
-                    <div className="flex items-center justify-between gap-2 mb-3">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between gap-2 mb-4">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
+                        <Calendar className="h-3.5 w-3.5" />
                         {new Date(blog.created_at).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "long",
@@ -547,20 +568,20 @@ export default function Home() {
                           handleLikeBlog(blog.id);
                         }}
                         disabled={likingBlog === blog.id}
-                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                           likedBlogs.has(blog.id)
-                            ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                            : "bg-muted text-muted-foreground hover:bg-red-100 hover:text-red-600"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
                         }`}
                       >
-                        <Heart className={`h-3 w-3 ${likedBlogs.has(blog.id) ? "fill-current" : ""}`} />
+                        <Heart className={`h-3.5 w-3.5 ${likedBlogs.has(blog.id) ? "fill-current" : ""}`} />
                         {blog.likes_count}
                       </button>
                     </div>
-                    <p className="font-semibold text-sm text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                       {blog.title}
-                    </p>
-                    <p className="text-muted-foreground text-sm line-clamp-3">{blog.description}</p>
+                    </h3>
+                    <p className="text-muted-foreground line-clamp-3">{blog.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -571,12 +592,14 @@ export default function Home() {
 
       {/* Photo Gallery Section */}
       {galleryImages.length > 0 && (
-        <section id="gallery" className="py-8 md:py-12">
+        <section id="gallery" className="py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <p className="text-primary text-sm font-medium mb-1">Our School</p>
-              <p className="text-base font-semibold text-foreground mb-2">Photo Gallery</p>
-              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            <div className="text-center mb-12">
+              <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+                Our School
+              </span>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">Photo Gallery</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 Explore our facilities, events, and vibrant school life through our gallery.
               </p>
             </div>
@@ -585,18 +608,18 @@ export default function Home() {
               {galleryImages.map((image) => (
                 <div
                   key={image.id}
-                  className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer"
+                  className="group relative aspect-square overflow-hidden rounded-2xl cursor-pointer shadow-md hover:shadow-xl transition-all duration-300"
                   onClick={() => setSelectedGalleryImage(image)}
                 >
                   <img
                     src={image.image_url}
                     alt={image.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <p className="text-white font-medium text-sm truncate">{image.title}</p>
-                      <p className="text-white/70 text-xs capitalize">{image.category}</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <p className="text-white font-semibold truncate">{image.title}</p>
+                      <p className="text-white/70 text-sm capitalize">{image.category}</p>
                     </div>
                   </div>
                 </div>
@@ -634,50 +657,52 @@ export default function Home() {
         </div>
       )}
 
-      <section id="about" className="py-8 md:py-12 relative">
+      <section id="about" className="py-16 md:py-24 relative bg-muted/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <p className="text-primary text-sm font-medium mb-1">About Us</p>
-            <p className="text-base font-semibold text-foreground mb-2">
+          <div className="text-center mb-12">
+            <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+              About Us
+            </span>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
               Shaping Tomorrow's Leaders
-            </p>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               We are committed to providing quality education that empowers students to achieve their full potential.
             </p>
           </div>
 
           {(schoolInfo?.mission || schoolInfo?.vision || schoolInfo?.core_values) && (
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
               {schoolInfo?.mission && (
-                <Card className="border bg-card">
-                  <CardContent className="p-5 text-center">
-                    <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <Target className="h-5 w-5 text-primary" />
+                <Card className="border-0 shadow-lg bg-card hover:shadow-xl transition-shadow">
+                  <CardContent className="p-8 text-center">
+                    <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <Target className="h-7 w-7 text-primary" />
                     </div>
-                    <p className="text-sm font-semibold text-foreground mb-2">Our Mission</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{schoolInfo.mission}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-3">Our Mission</h3>
+                    <p className="text-muted-foreground leading-relaxed">{schoolInfo.mission}</p>
                   </CardContent>
                 </Card>
               )}
               {schoolInfo?.vision && (
-                <Card className="border bg-card">
-                  <CardContent className="p-5 text-center">
-                    <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <Lightbulb className="h-5 w-5 text-primary" />
+                <Card className="border-0 shadow-lg bg-card hover:shadow-xl transition-shadow">
+                  <CardContent className="p-8 text-center">
+                    <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <Lightbulb className="h-7 w-7 text-primary" />
                     </div>
-                    <p className="text-sm font-semibold text-foreground mb-2">Our Vision</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{schoolInfo.vision}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-3">Our Vision</h3>
+                    <p className="text-muted-foreground leading-relaxed">{schoolInfo.vision}</p>
                   </CardContent>
                 </Card>
               )}
               {schoolInfo?.core_values && (
-                <Card className="border bg-card">
-                  <CardContent className="p-5 text-center">
-                    <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <Heart className="h-5 w-5 text-primary" />
+                <Card className="border-0 shadow-lg bg-card hover:shadow-xl transition-shadow">
+                  <CardContent className="p-8 text-center">
+                    <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <Heart className="h-7 w-7 text-primary" />
                     </div>
-                    <p className="text-sm font-semibold text-foreground mb-2">Core Values</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{schoolInfo.core_values}</p>
+                    <h3 className="text-lg font-bold text-foreground mb-3">Core Values</h3>
+                    <p className="text-muted-foreground leading-relaxed">{schoolInfo.core_values}</p>
                   </CardContent>
                 </Card>
               )}
@@ -686,35 +711,37 @@ export default function Home() {
 
           {/* Director Message */}
           {schoolInfo?.director_name && (
-            <Card className="bg-muted/30 border">
-              <CardContent className="p-6 md:p-10">
-                <div className="flex flex-col lg:flex-row gap-6 items-center">
+            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-0 shadow-lg overflow-hidden">
+              <CardContent className="p-8 md:p-12">
+                <div className="flex flex-col lg:flex-row gap-8 items-center">
                   <div className="flex-shrink-0">
                     {schoolInfo.director_photo_url ? (
                       <img
                         src={schoolInfo.director_photo_url}
                         alt={schoolInfo.director_name}
-                        className="h-32 w-32 md:h-40 md:w-40 rounded-2xl object-cover"
+                        className="h-36 w-36 md:h-48 md:w-48 rounded-3xl object-cover shadow-xl ring-4 ring-white"
                       />
                     ) : (
-                      <div className="h-32 w-32 md:h-40 md:w-40 bg-muted rounded-2xl flex items-center justify-center">
-                        <Users className="h-12 w-12 text-muted-foreground" />
+                      <div className="h-36 w-36 md:h-48 md:w-48 bg-gradient-to-br from-primary to-primary/70 rounded-3xl flex items-center justify-center shadow-xl">
+                        <Users className="h-16 w-16 text-primary-foreground" />
                       </div>
                     )}
                   </div>
                   <div className="text-center lg:text-left flex-1">
-                    <p className="text-primary text-sm font-medium mb-1">Message from Leadership</p>
-                    <p className="text-base font-semibold text-foreground mb-3">From the Director's Desk</p>
-                    <p className="text-muted-foreground italic mb-4 leading-relaxed text-sm">
+                    <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+                      Message from Leadership
+                    </span>
+                    <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4">From the Director's Desk</h3>
+                    <p className="text-muted-foreground italic mb-6 leading-relaxed text-lg">
                       "
                       {schoolInfo.director_message ||
                         "Welcome to our school. We are committed to providing the best education for your children."}
                       "
                     </p>
                     <div>
-                      <p className="font-bold text-foreground text-sm">{schoolInfo.director_name}</p>
+                      <p className="font-bold text-foreground text-lg">{schoolInfo.director_name}</p>
                       {schoolInfo.director_qualification && (
-                        <p className="text-muted-foreground text-sm">{schoolInfo.director_qualification}</p>
+                        <p className="text-muted-foreground">{schoolInfo.director_qualification}</p>
                       )}
                     </div>
                   </div>
@@ -727,27 +754,29 @@ export default function Home() {
 
       {/* Programs Section */}
       {programs.length > 0 && (
-        <section id="programs" className="py-8 md:py-12 bg-muted/30">
+        <section id="programs" className="py-16 md:py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <p className="text-primary text-sm font-medium mb-1">What We Offer</p>
-              <p className="text-base font-semibold text-foreground mb-2">Our Programs</p>
-              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            <div className="text-center mb-12">
+              <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+                What We Offer
+              </span>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">Our Programs</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
                 Comprehensive educational programs designed to nurture every aspect of your child's development.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {programs.map((program) => {
                 const IconComponent = iconMap[program.icon] || BookOpen;
                 return (
-                  <Card key={program.id} className="border bg-card hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${program.color}`}>
-                        <IconComponent className="h-6 w-6" />
+                  <Card key={program.id} className="border-0 shadow-lg bg-card hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <CardContent className="p-8">
+                      <div className={`h-14 w-14 rounded-2xl flex items-center justify-center mb-5 ${program.color}`}>
+                        <IconComponent className="h-7 w-7" />
                       </div>
-                      <p className="text-sm font-semibold text-foreground mb-2">{program.title}</p>
-                      <p className="text-muted-foreground text-sm">{program.description}</p>
+                      <h3 className="text-lg font-bold text-foreground mb-3">{program.title}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{program.description}</p>
                     </CardContent>
                   </Card>
                 );
@@ -758,28 +787,30 @@ export default function Home() {
       )}
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-8 md:py-12">
+      <section id="testimonials" className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <p className="text-primary text-sm font-medium mb-1">Testimonials</p>
-            <p className="text-base font-semibold text-foreground mb-2">What Parents Say</p>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+              Testimonials
+            </span>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">What Parents Say</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Hear from our community of satisfied parents and guardians.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, i) => (
-              <Card key={i} className="border bg-card">
-                <CardContent className="p-6">
-                  <Quote className="h-8 w-8 text-primary/30 mb-4" />
-                  <p className="text-muted-foreground mb-6 italic leading-relaxed text-sm">"{testimonial.content}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-primary font-bold text-sm">{testimonial.avatar}</span>
+              <Card key={i} className="border-0 shadow-lg bg-card hover:shadow-xl transition-shadow">
+                <CardContent className="p-8">
+                  <Quote className="h-10 w-10 text-primary/20 mb-5" />
+                  <p className="text-muted-foreground mb-6 italic leading-relaxed">"{testimonial.content}"</p>
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <span className="text-primary font-bold">{testimonial.avatar}</span>
                     </div>
                     <div>
-                      <p className="font-bold text-foreground text-sm">{testimonial.name}</p>
+                      <p className="font-bold text-foreground">{testimonial.name}</p>
                       <p className="text-muted-foreground text-sm">{testimonial.role}</p>
                     </div>
                   </div>
@@ -791,50 +822,59 @@ export default function Home() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-8 md:py-12 bg-muted/30">
+      <section id="contact" className="py-16 md:py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12">
             <div>
-              <p className="text-primary text-sm font-medium mb-1">Get in Touch</p>
-              <p className="text-base font-semibold text-foreground mb-2">Contact Us</p>
-              <p className="text-sm text-muted-foreground mb-6">
+              <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+                Get in Touch
+              </span>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">Contact Us</h2>
+              <p className="text-muted-foreground mb-8">
                 Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
               </p>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {schoolInfo?.address && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-primary mt-1" />
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-xl">
+                      <MapPin className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
-                      <p className="font-medium text-foreground text-sm">Address</p>
-                      <p className="text-muted-foreground text-sm">{schoolInfo.address}</p>
+                      <p className="font-semibold text-foreground">Address</p>
+                      <p className="text-muted-foreground">{schoolInfo.address}</p>
                     </div>
                   </div>
                 )}
                 {schoolInfo?.phone && (
-                  <div className="flex items-start gap-3">
-                    <Phone className="h-5 w-5 text-primary mt-1" />
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-xl">
+                      <Phone className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
-                      <p className="font-medium text-foreground text-sm">Phone</p>
-                      <p className="text-muted-foreground text-sm">{schoolInfo.phone}</p>
+                      <p className="font-semibold text-foreground">Phone</p>
+                      <p className="text-muted-foreground">{schoolInfo.phone}</p>
                     </div>
                   </div>
                 )}
                 {schoolInfo?.email && (
-                  <div className="flex items-start gap-3">
-                    <Mail className="h-5 w-5 text-primary mt-1" />
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-primary/10 rounded-xl">
+                      <Mail className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
-                      <p className="font-medium text-foreground text-sm">Email</p>
-                      <p className="text-muted-foreground text-sm">{schoolInfo.email}</p>
+                      <p className="font-semibold text-foreground">Email</p>
+                      <p className="text-muted-foreground">{schoolInfo.email}</p>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            <Card className="border bg-card">
-              <CardContent className="p-6">
-                <form onSubmit={handleContactSubmit} className="space-y-4">
+            <Card className="border-0 shadow-xl bg-card">
+              <CardContent className="p-8">
+                <h3 className="text-lg font-bold text-foreground mb-6">Send us a Message</h3>
+                <form onSubmit={handleContactSubmit} className="space-y-5">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name *</Label>
                     <Input
@@ -842,6 +882,7 @@ export default function Home() {
                       value={contactForm.name}
                       onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                       placeholder="Your full name"
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
@@ -852,12 +893,13 @@ export default function Home() {
                       value={contactForm.email}
                       onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                       placeholder="your@email.com"
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone *</Label>
                     <div className="flex">
-                      <div className="flex items-center justify-center px-3 border border-r-0 rounded-l-md bg-muted text-muted-foreground text-xs">
+                      <div className="flex items-center justify-center px-4 border border-r-0 rounded-l-md bg-muted text-muted-foreground font-medium">
                         +254
                       </div>
                       <Input
@@ -868,7 +910,7 @@ export default function Home() {
                           setContactForm({ ...contactForm, phone: value });
                         }}
                         placeholder="7XX XXX XXX"
-                        className="rounded-l-none"
+                        className="rounded-l-none h-11"
                         maxLength={9}
                       />
                     </div>
@@ -882,10 +924,11 @@ export default function Home() {
                       onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                       placeholder="How can we help you?"
                       rows={4}
+                      className="resize-none"
                     />
                   </div>
-                  <Button type="submit" className="w-full gap-2" disabled={submitting}>
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  <Button type="submit" size="lg" className="w-full gap-2" disabled={submitting}>
+                    {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                     Send Message
                   </Button>
                 </form>
@@ -896,20 +939,27 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-card border-t border-border py-8">
+      <footer className="bg-foreground text-background py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
               {schoolInfo?.logo_url ? (
-                <div className="h-8 w-8 rounded-full overflow-hidden">
-                  <img src={schoolInfo.logo_url} alt="Logo" className="h-full w-full object-cover" />
+                <div className="h-10 w-10 rounded-full overflow-hidden bg-white p-1">
+                  <img src={schoolInfo.logo_url} alt="Logo" className="h-full w-full object-contain" />
                 </div>
               ) : (
-                <GraduationCap className="h-6 w-6 text-primary" />
+                <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center">
+                  <GraduationCap className="h-5 w-5 text-primary-foreground" />
+                </div>
               )}
-              <span className="font-bold text-foreground text-sm">{schoolInfo?.school_name || "SAGME School"}</span>
+              <div>
+                <span className="font-bold text-background">{schoolInfo?.school_name || "SAGME School"}</span>
+                {schoolInfo?.motto && (
+                  <p className="text-background/70 text-sm">{schoolInfo.motto}</p>
+                )}
+              </div>
             </div>
-            <p className="text-muted-foreground text-sm text-center">
+            <p className="text-background/70 text-center">
               © {new Date().getFullYear()} {schoolInfo?.school_name || "SAGME School"}. All rights reserved.
             </p>
           </div>

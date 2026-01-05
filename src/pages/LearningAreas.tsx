@@ -242,32 +242,32 @@ const LearningAreas = () => {
             </div>
             
             {/* Inline Stats for Large Screens */}
-            <div className="hidden lg:flex items-center gap-4 ml-4 pl-4 border-l">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded">
-                  <BookOpen className="h-3.5 w-3.5 text-primary" />
+            <div className="hidden lg:flex items-center gap-6 ml-4 pl-4 border-l border-border">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <BookOpen className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Total</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : learningAreas.length}</p>
+                  <p className="text-xs text-muted-foreground font-medium">Total</p>
+                  <p className="text-sm font-semibold text-foreground">{loading ? "..." : learningAreas.length}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-green-500/10 rounded">
-                  <GraduationCap className="h-3.5 w-3.5 text-green-600" />
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <GraduationCap className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">With Teachers</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : assignedCount}</p>
+                  <p className="text-xs text-muted-foreground font-medium">With Teachers</p>
+                  <p className="text-sm font-semibold text-foreground">{loading ? "..." : assignedCount}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-orange-500/10 rounded">
-                  <Users className="h-3.5 w-3.5 text-orange-600" />
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-muted rounded-lg">
+                  <Users className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Unassigned</p>
-                  <p className="text-sm font-semibold">{loading ? "..." : learningAreas.length - assignedCount}</p>
+                  <p className="text-xs text-muted-foreground font-medium">Unassigned</p>
+                  <p className="text-sm font-semibold text-foreground">{loading ? "..." : learningAreas.length - assignedCount}</p>
                 </div>
               </div>
             </div>
@@ -295,30 +295,36 @@ const LearningAreas = () => {
 
         {/* Mobile Stats */}
         <div className="grid grid-cols-3 gap-2 lg:hidden">
-          <Card className="p-3">
+          <Card className="p-3 border-border">
             <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-primary" />
+              <div className="p-1.5 bg-primary/10 rounded-lg">
+                <BookOpen className="h-4 w-4 text-primary" />
+              </div>
               <div>
-                <p className="text-xs text-muted-foreground">Total</p>
-                <p className="text-lg font-bold">{loading ? "..." : learningAreas.length}</p>
+                <p className="text-xs text-muted-foreground font-medium">Total</p>
+                <p className="text-sm font-semibold text-foreground">{loading ? "..." : learningAreas.length}</p>
               </div>
             </div>
           </Card>
-          <Card className="p-3">
+          <Card className="p-3 border-border">
             <div className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-green-600" />
+              <div className="p-1.5 bg-primary/10 rounded-lg">
+                <GraduationCap className="h-4 w-4 text-primary" />
+              </div>
               <div>
-                <p className="text-xs text-muted-foreground">Assigned</p>
-                <p className="text-lg font-bold">{loading ? "..." : assignedCount}</p>
+                <p className="text-xs text-muted-foreground font-medium">Assigned</p>
+                <p className="text-sm font-semibold text-foreground">{loading ? "..." : assignedCount}</p>
               </div>
             </div>
           </Card>
-          <Card className="p-3">
+          <Card className="p-3 border-border">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-orange-600" />
+              <div className="p-1.5 bg-muted rounded-lg">
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </div>
               <div>
-                <p className="text-xs text-muted-foreground">Unassigned</p>
-                <p className="text-lg font-bold">{loading ? "..." : learningAreas.length - assignedCount}</p>
+                <p className="text-xs text-muted-foreground font-medium">Unassigned</p>
+                <p className="text-sm font-semibold text-foreground">{loading ? "..." : learningAreas.length - assignedCount}</p>
               </div>
             </div>
           </Card>
