@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -534,7 +534,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Main content area with Right Side Panel */}
           <div className="flex-1 flex overflow-hidden">
-            <div className="flex-1 overflow-auto px-1 sm:px-2 md:px-4 py-2 md:py-4 pb-20 lg:pb-4">
+            <div className="flex-1 overflow-auto px-1 sm:px-2 md:px-4 py-2 md:py-4 pb-20 lg:pb-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-border">
               {children}
             </div>
             
