@@ -44,14 +44,13 @@ const Dashboard = () => {
   const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   const isAdmin = user?.role === "admin";
 
-  // Show loading inside layout while data is being fetched
+  // Show full-page loading BEFORE DashboardLayout to sync sidebar + content
   if (authLoading || loading || schoolLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
-      </DashboardLayout>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-muted-foreground text-sm">Loading dashboard...</p>
+      </div>
     );
   }
 

@@ -355,8 +355,8 @@ const SidebarContent = React.forwardRef<HTMLDivElement, React.ComponentProps<"di
       data-sidebar="content"
       className={cn(
         "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
-        "[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border/50 [&::-webkit-scrollbar-thumb]:rounded-full",
-        "hover:[&::-webkit-scrollbar-thumb]:bg-sidebar-border",
+        "[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-sidebar-accent/20 [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full",
+        "hover:[&::-webkit-scrollbar-thumb]:bg-sidebar-primary/60",
         className,
       )}
       {...props}

@@ -2,10 +2,11 @@ import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { getCachedData } from "@/hooks/useAdminNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit, Trash2, Clock, UserCheck, UserX, DollarSign, MoreHorizontal, Search } from "lucide-react";
+import { Shield, ShieldCheck, Users as UsersIcon, Plus, Edit, Trash2, Clock, UserCheck, UserX, DollarSign, MoreHorizontal, Search, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,8 +95,43 @@ const Users = () => {
   const { toast } = useToast();
   const { checkAccess, isVisitor, isFinance, checkFinanceAccess } = useVisitorAccess();
 
-  const fetchUsers = async () => {
+  // Check for prefetched data from navigation
+  const prefetchedData = useMemo(() => getCachedData('/users'), []);
+
+  const fetchUsers = async (usePrefetched = false) => {
     try {
+      // If we have prefetched data, use it immediately
+      if (usePrefetched && prefetchedData?.profiles && prefetchedData?.userRoles) {
+        const profiles = prefetchedData.profiles;
+        const roles = prefetchedData.userRoles;
+        
+        const allUsers = profiles?.map((profile: any) => {
+          const userRole = roles?.find((r: any) => r.user_id === profile.id);
+          return {
+            id: profile.id,
+            name: profile.full_name,
+            email: "—",
+            created_at: profile.created_at,
+            role: (userRole?.role || "learner") as AppRole,
+            is_activated: profile.is_activated ?? false,
+            activation_status: profile.activation_status ?? "pending",
+            avatar_url: profile.avatar_url,
+          };
+        }) || [];
+
+        const active = allUsers.filter((u: any) => u.is_activated || u.activation_status === "activated");
+        const pending = allUsers.filter((u: any) => !u.is_activated && u.activation_status === "pending");
+        
+        setUsers(active);
+        setPendingUsers(pending);
+        setLoading(false);
+        setInitialLoadComplete(true);
+        
+        // Fetch emails in background
+        fetchUserEmails(profiles);
+        return;
+      }
+      
       setLoading(true);
       
       const { data: profiles, error: profilesError } = await supabase
@@ -166,8 +202,43 @@ const Users = () => {
     }
   };
 
+  // Fetch emails in background after prefetched data is used
+  const fetchUserEmails = async (profiles: any[]) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-user-emails`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userIds: profiles?.map(p => p.id) || [] }),
+      });
+      if (response.ok) {
+        const emailData = await response.json();
+        const emailMap: Record<string, string> = {};
+        emailData.emails?.forEach((e: { id: string; email: string }) => {
+          emailMap[e.id] = e.email;
+        });
+        
+        // Update users with emails
+        setUsers(prev => prev.map(u => ({ ...u, email: emailMap[u.id] || u.email })));
+        setPendingUsers(prev => prev.map(u => ({ ...u, email: emailMap[u.id] || u.email })));
+      }
+    } catch (e) {
+      console.log("Could not fetch emails:", e);
+    }
+  };
+
   useEffect(() => {
-    fetchUsers();
+    // Use prefetched data if available
+    if (prefetchedData?.profiles) {
+      fetchUsers(true);
+    } else {
+      fetchUsers(false);
+    }
   }, []);
 
   const updateUserRole = async (userId: string, newRole: string) => {
@@ -494,17 +565,13 @@ const Users = () => {
     </div>
   );
 
-  // Show loading state until initial data is fetched
+  // Show full-page loading state until initial data is fetched
   if (!initialLoadComplete) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center py-16">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-sm text-muted-foreground">Loading users...</p>
-          </div>
-        </div>
-      </DashboardLayout>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-muted-foreground text-sm">Loading users...</p>
+      </div>
     );
   }
 
