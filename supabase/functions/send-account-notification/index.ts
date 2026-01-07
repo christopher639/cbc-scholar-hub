@@ -103,9 +103,9 @@ serve(async (req) => {
           </div>
           <p>You can now login to access your portal. Click the button below to login:</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${supabaseUrl.replace('.supabase.co', '.lovableproject.com')}/auth" 
+            <a href="https://samge.sc.ke/auth" 
                style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
-              Login Now
+              Login to Portal
             </a>
           </div>
           <p style="color: #999; font-size: 12px; margin-top: 30px;">Thank you for being part of our school community!</p>
