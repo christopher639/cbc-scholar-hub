@@ -534,7 +534,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Main content area with Right Side Panel */}
           <div className="flex-1 flex overflow-hidden">
-            <div className="flex-1 overflow-auto px-1 sm:px-2 md:px-4 py-2 md:py-4 pb-20 lg:pb-4 [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-muted/30 [&::-webkit-scrollbar-thumb]:bg-primary/40 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-transparent hover:[&::-webkit-scrollbar-thumb]:bg-primary/60">
+            <div className="flex-1 overflow-auto px-1 sm:px-2 md:px-4 py-2 md:py-4 pb-20 lg:pb-4">
               {children}
             </div>
             

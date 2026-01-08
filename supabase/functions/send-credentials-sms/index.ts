@@ -21,6 +21,7 @@ const formatPhoneNumber = (phone: string): string => {
 
 interface CredentialEmailParams {
   schoolName: string;
+  schoolLogo: string;
   recipientName: string;
   title: string;
   introText: string;
@@ -31,7 +32,7 @@ interface CredentialEmailParams {
 }
 
 const generateCredentialEmailTemplate = (params: CredentialEmailParams): string => {
-  const { schoolName, recipientName, title, introText, details, credentials, loginUrl, footerText } = params;
+  const { schoolName, schoolLogo, recipientName, title, introText, details, credentials, loginUrl, footerText } = params;
   
   const detailsHtml = details && details.length > 0 ? `
     <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 20px; margin: 20px 0;">
@@ -60,12 +61,16 @@ const generateCredentialEmailTemplate = (params: CredentialEmailParams): string 
         <tr>
           <td align="center" style="padding: 40px 20px;">
             <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-              <!-- Header -->
+              <!-- Header with Logo -->
               <tr>
                 <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 32px 40px; text-align: center;">
-                  <div style="width: 70px; height: 70px; background-color: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-size: 28px; font-weight: bold;">${schoolName.charAt(0)}</span>
-                  </div>
+                  ${schoolLogo ? `
+                    <img src="${schoolLogo}" alt="${schoolName}" style="max-height: 70px; max-width: 200px; margin-bottom: 12px;">
+                  ` : `
+                    <div style="width: 70px; height: 70px; background-color: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center;">
+                      <span style="color: white; font-size: 28px; font-weight: bold;">${schoolName.charAt(0)}</span>
+                    </div>
+                  `}
                   <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600;">${schoolName}</h1>
                 </td>
               </tr>
@@ -152,17 +157,18 @@ serve(async (req) => {
     const smsApiKey = Deno.env.get("TEXT_SMS_API_KEY");
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
-    // Get school info
-    const { data: school } = await supabase.from("school_info").select("school_name, email").single();
+    // Get school info including logo
+    const { data: school } = await supabase.from("school_info").select("school_name, email, logo_url").single();
     const schoolName = school?.school_name || "School";
     const schoolEmail = school?.email;
+    const schoolLogo = school?.logo_url || "";
 
     let smsMessage = "";
     let emailSubject = "";
     let emailHtml = "";
 
-    // Login URL for the school portal
-    const loginUrl = "https://samge.sc.ke";
+    // Login URL for the school portal - pointing to auth page
+    const loginUrl = "https://samge.sc.ke/auth";
 
     if (type === "learner") {
       // Credentials for learner (sent to parent)
@@ -170,6 +176,7 @@ serve(async (req) => {
       emailSubject = `${schoolName} - Learner Portal Credentials`;
       emailHtml = generateCredentialEmailTemplate({
         schoolName,
+        schoolLogo,
         recipientName: credentials.parentName || "Parent/Guardian",
         title: "Learner Portal Credentials",
         introText: `Your child <strong>${credentials.learnerName}</strong> has been successfully enrolled at ${schoolName}.`,
@@ -186,6 +193,7 @@ serve(async (req) => {
       emailSubject = `${schoolName} - Teacher Portal Credentials`;
       emailHtml = generateCredentialEmailTemplate({
         schoolName,
+        schoolLogo,
         recipientName: credentials.name,
         title: "Teacher Portal Credentials",
         introText: `Your teacher account has been created successfully at ${schoolName}.`,
@@ -205,6 +213,7 @@ serve(async (req) => {
       emailSubject = `${schoolName} - Staff Portal Credentials`;
       emailHtml = generateCredentialEmailTemplate({
         schoolName,
+        schoolLogo,
         recipientName: credentials.name,
         title: "Staff Portal Credentials",
         introText: `Your staff account has been created successfully at ${schoolName}.`,
@@ -231,6 +240,7 @@ serve(async (req) => {
       emailSubject = `${schoolName} - Your Account Credentials`;
       emailHtml = generateCredentialEmailTemplate({
         schoolName,
+        schoolLogo,
         recipientName: credentials.name,
         title: "Your Account Credentials",
         introText: `Your ${roleLabel} account has been created successfully at ${schoolName}.`,
@@ -290,8 +300,7 @@ serve(async (req) => {
       try {
         const resend = new Resend(resendApiKey);
         
-        // Use verified domain email - same as bulk emails and OTP (noreply@samge.sc.ke)
-        // This domain is verified in Resend and works for sending to all recipients
+        // Use verified domain email
         const fromAddress = `${schoolName} <noreply@samge.sc.ke>`;
         
         console.log("Sending credentials email to:", email, "from:", fromAddress);

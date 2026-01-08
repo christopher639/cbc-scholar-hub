@@ -62,9 +62,10 @@ serve(async (req) => {
       }
     }
 
-    // Get school info
-    const { data: school } = await supabase.from("school_info").select("school_name").single();
+    // Get school info including logo
+    const { data: school } = await supabase.from("school_info").select("school_name, logo_url").single();
     const schoolName = school?.school_name || "School";
+    const schoolLogo = school?.logo_url || "";
 
     let smsSent = false;
     let emailSent = false;
@@ -74,42 +75,133 @@ serve(async (req) => {
     let emailSubject = "";
     let emailHtml = "";
 
+    const loginUrl = "https://samge.sc.ke/auth";
+
     if (notificationType === "account_created") {
       smsMessage = `Hello ${fullName || "User"}! Your ${schoolName} account has been created. Please wait for admin approval. If it takes too long, please contact the school admin. You will be notified once verified.`;
       emailSubject = `Account Created - ${schoolName}`;
       emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #333;">Welcome to ${schoolName}!</h2>
-          <p>Hello ${fullName || "User"},</p>
-          <p>Your account has been created successfully.</p>
-          <div style="background-color: #f4f4f4; padding: 20px; margin: 20px 0; border-radius: 8px;">
-            <p style="margin: 0; color: #666;"><strong>Status:</strong> Pending Verification</p>
-          </div>
-          <p>Please wait for admin approval. You will receive another notification once your account is verified and activated.</p>
-          <p style="color: #666; font-style: italic;">If it's taking too long, please contact the school administration directly.</p>
-          <p style="color: #999; font-size: 12px; margin-top: 30px;">If you didn't create this account, please ignore this email.</p>
-        </div>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Account Created</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9;">
+          <table role="presentation" style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                  <!-- Header with Logo -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 32px 40px; text-align: center;">
+                      ${schoolLogo ? `
+                        <img src="${schoolLogo}" alt="${schoolName}" style="max-height: 70px; max-width: 200px; margin-bottom: 12px;">
+                      ` : `
+                        <div style="width: 70px; height: 70px; background-color: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center;">
+                          <span style="color: white; font-size: 28px; font-weight: bold;">${schoolName.charAt(0)}</span>
+                        </div>
+                      `}
+                      <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600;">${schoolName}</h1>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px;">
+                      <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 24px;">Welcome to ${schoolName}!</h2>
+                      <p style="margin: 0 0 16px 0; color: #475569; font-size: 15px; line-height: 1.6;">Hello ${fullName || "User"},</p>
+                      <p style="margin: 0 0 24px 0; color: #475569; font-size: 15px; line-height: 1.6;">Your account has been created successfully.</p>
+                      
+                      <div style="background-color: #fef3c7; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                        <p style="margin: 0; color: #92400e; font-weight: 600;">⏳ Status: Pending Verification</p>
+                        <p style="margin: 8px 0 0 0; color: #92400e; font-size: 14px;">Please wait for admin approval. You will receive another notification once your account is verified and activated.</p>
+                      </div>
+                      
+                      <p style="color: #64748b; font-size: 14px; font-style: italic;">If it's taking too long, please contact the school administration directly.</p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #f8fafc; padding: 24px 40px; border-top: 1px solid #e2e8f0; text-align: center;">
+                      <p style="margin: 0; color: #64748b; font-size: 13px;">This is an official communication from ${schoolName}</p>
+                      <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 12px;">If you didn't create this account, please ignore this email.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `;
     } else if (notificationType === "account_verified") {
       smsMessage = `Hello ${fullName || "User"}! Great news! Your ${schoolName} account has been verified and activated. You can now login to access your portal.`;
       emailSubject = `Account Verified - ${schoolName}`;
       emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #22c55e;">Account Verified!</h2>
-          <p>Hello ${fullName || "User"},</p>
-          <p>Great news! Your ${schoolName} account has been verified and activated.</p>
-          <div style="background-color: #dcfce7; padding: 20px; margin: 20px 0; border-radius: 8px;">
-            <p style="margin: 0; color: #166534;"><strong>Status:</strong> Active</p>
-          </div>
-          <p>You can now login to access your portal. Click the button below to login:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="https://samge.sc.ke/auth" 
-               style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
-              Login to Portal
-            </a>
-          </div>
-          <p style="color: #999; font-size: 12px; margin-top: 30px;">Thank you for being part of our school community!</p>
-        </div>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Account Verified</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9;">
+          <table role="presentation" style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                  <!-- Header with Logo -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding: 32px 40px; text-align: center;">
+                      ${schoolLogo ? `
+                        <img src="${schoolLogo}" alt="${schoolName}" style="max-height: 70px; max-width: 200px; margin-bottom: 12px;">
+                      ` : `
+                        <div style="width: 70px; height: 70px; background-color: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center;">
+                          <span style="color: white; font-size: 28px; font-weight: bold;">${schoolName.charAt(0)}</span>
+                        </div>
+                      `}
+                      <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600;">${schoolName}</h1>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px;">
+                      <h2 style="margin: 0 0 16px 0; color: #22c55e; font-size: 24px;">🎉 Account Verified!</h2>
+                      <p style="margin: 0 0 16px 0; color: #475569; font-size: 15px; line-height: 1.6;">Hello ${fullName || "User"},</p>
+                      <p style="margin: 0 0 24px 0; color: #475569; font-size: 15px; line-height: 1.6;">Great news! Your ${schoolName} account has been verified and activated.</p>
+                      
+                      <div style="background-color: #dcfce7; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #22c55e;">
+                        <p style="margin: 0; color: #166534; font-weight: 600;">✅ Status: Active</p>
+                        <p style="margin: 8px 0 0 0; color: #166534; font-size: 14px;">You can now login to access your portal.</p>
+                      </div>
+                      
+                      <!-- Login Button -->
+                      <div style="text-align: center; margin: 32px 0;">
+                        <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: #ffffff; text-decoration: none; padding: 16px 48px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);">
+                          Login to Portal
+                        </a>
+                      </div>
+                      
+                      <p style="color: #64748b; font-size: 14px; text-align: center;">Thank you for being part of our school community!</p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #f8fafc; padding: 24px 40px; border-top: 1px solid #e2e8f0; text-align: center;">
+                      <p style="margin: 0; color: #64748b; font-size: 13px;">This is an official communication from ${schoolName}</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `;
     } else {
       return new Response(
@@ -162,8 +254,6 @@ serve(async (req) => {
         console.log("Sending notification email to:", email);
 
         try {
-          // Use verified domain email - same as bulk emails and OTP (noreply@samge.sc.ke)
-          // This domain is verified in Resend and works for sending to all recipients
           const fromAddress = `${schoolName} <noreply@samge.sc.ke>`;
 
           console.log("Sending account notification email to:", email, "from:", fromAddress);

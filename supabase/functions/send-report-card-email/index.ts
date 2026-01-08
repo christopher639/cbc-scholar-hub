@@ -190,10 +190,14 @@ serve(async (req) => {
           <td align="center" style="padding: 20px;">
             <table role="presentation" style="width: 100%; max-width: 700px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
               
-              <!-- Header -->
+              <!-- Header with Logo -->
               <tr>
                 <td style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 24px; text-align: center;">
-                  ${schoolLogo ? `<img src="${schoolLogo}" alt="${schoolName}" style="max-height: 60px; max-width: 180px; margin-bottom: 8px;">` : ""}
+                  ${schoolLogo ? `<img src="${schoolLogo}" alt="${schoolName}" style="max-height: 60px; max-width: 180px; margin-bottom: 8px;">` : `
+                    <div style="width: 60px; height: 60px; background-color: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 8px auto; display: flex; align-items: center; justify-content: center;">
+                      <span style="color: white; font-size: 24px; font-weight: bold;">${schoolName.charAt(0)}</span>
+                    </div>
+                  `}
                   <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 600;">${schoolName}</h1>
                   ${schoolMotto ? `<p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.9); font-size: 12px; font-style: italic;">${schoolMotto}</p>` : ""}
                   ${schoolAddress ? `<p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.8); font-size: 11px;">${schoolAddress}</p>` : ""}
@@ -332,10 +336,8 @@ serve(async (req) => {
 
     console.log("Sending report card email to:", toEmail);
 
-    // Determine from address - use school email if from verified domain, otherwise fallback
-    const fromAddress = schoolEmail && !schoolEmail.includes("gmail.com") && !schoolEmail.includes("yahoo.com") 
-      ? `${schoolName} <${schoolEmail}>`
-      : `${schoolName} <onboarding@resend.dev>`;
+    // Use verified domain email
+    const fromAddress = `${schoolName} <noreply@samge.sc.ke>`;
 
     const emailResponse = await resend.emails.send({
       from: fromAddress,
