@@ -209,9 +209,6 @@ export default function OTPVerification() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        {isPrefetching && (
-          <p className="text-sm text-muted-foreground">Loading your dashboard...</p>
-        )}
       </div>
     );
   }

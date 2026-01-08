@@ -83,7 +83,6 @@ const Users = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [pendingUsers, setPendingUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -125,7 +124,6 @@ const Users = () => {
         setUsers(active);
         setPendingUsers(pending);
         setLoading(false);
-        setInitialLoadComplete(true);
         
         // Fetch emails in background
         fetchUserEmails(profiles);
@@ -198,7 +196,6 @@ const Users = () => {
       });
     } finally {
       setLoading(false);
-      setInitialLoadComplete(true);
     }
   };
 
@@ -564,16 +561,6 @@ const Users = () => {
       </Table>
     </div>
   );
-
-  // Show full-page loading state until initial data is fetched
-  if (!initialLoadComplete) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground text-sm">Loading users...</p>
-      </div>
-    );
-  }
 
   return (
     <DashboardLayout>

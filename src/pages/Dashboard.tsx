@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,13 +43,30 @@ const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { schoolInfo, loading: schoolLoading } = useSchoolInfo();
   const isAdmin = user?.role === "admin";
+  
+  // Track if this is the initial load (user just logged in)
+  const isInitialLoadRef = useRef(true);
+  const hasEverLoaded = useRef(false);
+  
+  useEffect(() => {
+    // Mark initial load as complete once data is loaded
+    if (!loading && !authLoading && !schoolLoading) {
+      hasEverLoaded.current = true;
+      // After first successful load, no longer treat as initial
+      setTimeout(() => {
+        isInitialLoadRef.current = false;
+      }, 100);
+    }
+  }, [loading, authLoading, schoolLoading]);
 
-  // Show full-page loading BEFORE DashboardLayout to sync sidebar + content
-  if (authLoading || loading || schoolLoading) {
+  // Only show full-page loading on INITIAL load (first time after login)
+  // After that, show content with loading states inside
+  const isStillInitialLoad = isInitialLoadRef.current && !hasEverLoaded.current;
+  
+  if ((authLoading || loading || schoolLoading) && isStillInitialLoad) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background space-y-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground text-sm">Loading dashboard...</p>
       </div>
     );
   }
