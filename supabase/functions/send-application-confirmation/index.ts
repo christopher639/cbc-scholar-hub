@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@4.0.0";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +31,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const { 
       parentEmail, 
       parentName, 
@@ -51,6 +55,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending application confirmation to:", parentEmail);
     console.log("Interview enabled:", interviewEnabled);
+
+    // Get school logo
+    const { data: school } = await supabase.from("school_info").select("logo_url").single();
+    const schoolLogo = school?.logo_url || "";
 
     // Build interview section if enabled
     let interviewSection = "";
@@ -94,44 +102,77 @@ const handler = async (req: Request): Promise<Response> => {
       subject: `Application Received - ${applicationNumber}`,
       html: `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
-          <meta charset="utf-8">
+          <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Application Received</title>
         </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Application Received</h1>
-          </div>
-          
-          <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-            <p style="font-size: 16px;">Dear ${parentName},</p>
-            
-            <p>Thank you for applying to <strong>${schoolName}</strong>. We have received your application for:</p>
-            
-            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
-              <p style="margin: 5px 0;"><strong>Application Number:</strong> ${applicationNumber}</p>
-              <p style="margin: 5px 0;"><strong>Child's Name:</strong> ${childName}</p>
-              <p style="margin: 5px 0;"><strong>Applying for:</strong> ${gradeName}</p>
-            </div>
-            
-            ${interviewSection}
-            ${applicationFeeSection}
-            
-            <p>Our admissions team will review your application and get back to you within 5-7 working days. Please keep your application number safe for future reference.</p>
-            
-            <p>If you have any questions, please don't hesitate to contact us.</p>
-            
-            <p style="margin-top: 30px;">
-              Best regards,<br>
-              <strong>Admissions Team</strong><br>
-              ${schoolName}
-            </p>
-          </div>
-          
-          <div style="text-align: center; margin-top: 20px; color: #888; font-size: 12px;">
-            <p>This is an automated message. Please do not reply directly to this email.</p>
-          </div>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9;">
+          <table role="presentation" style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                  <!-- Header with Logo -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px 40px; text-align: center;">
+                      ${schoolLogo ? `
+                        <img src="${schoolLogo}" alt="${schoolName}" style="max-height: 70px; max-width: 200px; margin-bottom: 12px;">
+                      ` : `
+                        <div style="width: 70px; height: 70px; background-color: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center;">
+                          <span style="color: white; font-size: 28px; font-weight: bold;">${schoolName.charAt(0)}</span>
+                        </div>
+                      `}
+                      <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600;">${schoolName}</h1>
+                      <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Application Received</p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px;">
+                      <p style="margin: 0 0 16px 0; color: #475569; font-size: 16px;">Dear ${parentName},</p>
+                      
+                      <p style="margin: 0 0 24px 0; color: #475569; font-size: 15px; line-height: 1.6;">
+                        Thank you for applying to <strong>${schoolName}</strong>. We have received your application for:
+                      </p>
+                      
+                      <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+                        <p style="margin: 5px 0;"><strong>Application Number:</strong> ${applicationNumber}</p>
+                        <p style="margin: 5px 0;"><strong>Child's Name:</strong> ${childName}</p>
+                        <p style="margin: 5px 0;"><strong>Applying for:</strong> ${gradeName}</p>
+                      </div>
+                      
+                      ${interviewSection}
+                      ${applicationFeeSection}
+                      
+                      <p style="margin: 16px 0; color: #475569; font-size: 15px; line-height: 1.6;">
+                        Our admissions team will review your application and get back to you within 5-7 working days. Please keep your application number safe for future reference.
+                      </p>
+                      
+                      <p style="margin: 16px 0; color: #475569; font-size: 15px;">
+                        If you have any questions, please don't hesitate to contact us.
+                      </p>
+                      
+                      <p style="margin-top: 30px; color: #475569;">
+                        Best regards,<br>
+                        <strong>Admissions Team</strong><br>
+                        ${schoolName}
+                      </p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #f8fafc; padding: 24px 40px; border-top: 1px solid #e2e8f0; text-align: center;">
+                      <p style="margin: 0; color: #64748b; font-size: 13px;">This is an official communication from ${schoolName}</p>
+                      <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 12px;">Please do not reply directly to this email.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </body>
         </html>
       `,
