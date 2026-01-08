@@ -634,9 +634,6 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">
-            {isPrefetching ? "Preparing your dashboard..." : "Loading..."}
-          </p>
         </div>
       </div>
     );
