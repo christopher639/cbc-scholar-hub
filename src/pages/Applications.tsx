@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { 
   FileText, Search, Eye, CheckCircle, XCircle, Clock, Settings, 
@@ -293,43 +294,69 @@ export default function Applications() {
           )}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-            <FileText className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="text-2xl font-semibold">{stats.total}</p>
-              <p className="text-xs text-muted-foreground">Total</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-            <Clock className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="text-2xl font-semibold">{stats.pending}</p>
-              <p className="text-xs text-muted-foreground">Pending</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-            <CheckCircle className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="text-2xl font-semibold">{stats.approved}</p>
-              <p className="text-xs text-muted-foreground">Approved</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-            <XCircle className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="text-2xl font-semibold">{stats.rejected}</p>
-              <p className="text-xs text-muted-foreground">Rejected</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
+        {/* Applications Table with inline stats */}
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <CardTitle className="text-lg">Applications List</CardTitle>
+                <CardDescription>
+                  {filteredApplications.length} application{filteredApplications.length !== 1 ? 's' : ''} found
+                </CardDescription>
+              </div>
+              
+              {/* Inline Stats */}
+              <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                <button
+                  onClick={() => setStatusFilter("all")}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
+                    statusFilter === "all" ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                  )}
+                >
+                  <FileText className="h-4 w-4" />
+                  <span className="text-base font-semibold">{stats.total}</span>
+                  <span className="text-sm text-muted-foreground">Total</span>
+                </button>
+                <button
+                  onClick={() => setStatusFilter("pending")}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
+                    statusFilter === "pending" ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" : "hover:bg-muted"
+                  )}
+                >
+                  <Clock className="h-4 w-4" />
+                  <span className="text-base font-semibold">{stats.pending}</span>
+                  <span className="text-sm text-muted-foreground">Pending</span>
+                </button>
+                <button
+                  onClick={() => setStatusFilter("approved")}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
+                    statusFilter === "approved" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "hover:bg-muted"
+                  )}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="text-base font-semibold">{stats.approved}</span>
+                  <span className="text-sm text-muted-foreground">Approved</span>
+                </button>
+                <button
+                  onClick={() => setStatusFilter("rejected")}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
+                    statusFilter === "rejected" ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400" : "hover:bg-muted"
+                  )}
+                >
+                  <XCircle className="h-4 w-4" />
+                  <span className="text-base font-semibold">{stats.rejected}</span>
+                  <span className="text-sm text-muted-foreground">Rejected</span>
+                </button>
+              </div>
+            </div>
+            
+            {/* Search */}
+            <div className="mt-4">
+              <div className="relative max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name, application number, or email..."
@@ -338,29 +365,7 @@ export default function Applications() {
                   className="pl-10"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Applications Table */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Applications List</CardTitle>
-            <CardDescription>
-              {filteredApplications.length} application{filteredApplications.length !== 1 ? 's' : ''} found
-            </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
