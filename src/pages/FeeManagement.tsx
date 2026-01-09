@@ -417,8 +417,8 @@ const FeeManagement = () => {
                   <DollarSign className="h-3.5 w-3.5 text-primary" />
                 </div>
               <div>
-                <p className="text-xs text-muted-foreground">Collected</p>
-                <p className="text-sm font-semibold">{statsLoading ? "..." : formatCurrency(stats?.totalCollected || 0)}</p>
+              <p className="text-sm text-muted-foreground">Collected</p>
+                <p className="text-base font-semibold">{statsLoading ? "..." : formatCurrency(stats?.totalCollected || 0)}</p>
               </div>
             </div>
               <div className="flex items-center gap-2">
@@ -426,8 +426,8 @@ const FeeManagement = () => {
                   <AlertCircle className="h-3.5 w-3.5 text-red-600" />
                 </div>
               <div>
-                <p className="text-xs text-muted-foreground">Outstanding</p>
-                <p className="text-sm font-semibold">{statsLoading ? "..." : formatCurrency(stats?.outstanding || 0)}</p>
+              <p className="text-sm text-muted-foreground">Outstanding</p>
+                <p className="text-base font-semibold">{statsLoading ? "..." : formatCurrency(stats?.outstanding || 0)}</p>
               </div>
             </div>
               <div className="flex items-center gap-2">
@@ -435,8 +435,8 @@ const FeeManagement = () => {
                   <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
                 </div>
               <div>
-                <p className="text-xs text-muted-foreground">Rate</p>
-                <p className="text-sm font-semibold">{statsLoading ? "..." : `${(stats?.collectionRate || 0).toFixed(0)}%`}</p>
+              <p className="text-sm text-muted-foreground">Rate</p>
+                <p className="text-base font-semibold">{statsLoading ? "..." : `${(stats?.collectionRate || 0).toFixed(0)}%`}</p>
               </div>
             </div>
             </div>
@@ -490,41 +490,41 @@ const FeeManagement = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="h-9">
-            <TabsTrigger value="overview" className="text-xs h-7">Overview</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-xs h-7">Invoices</TabsTrigger>
-            <TabsTrigger value="learner" className="text-xs h-7">Learner Fees</TabsTrigger>
-            <TabsTrigger value="structures" className="text-xs h-7">Structures</TabsTrigger>
+          <TabsList className="h-10">
+            <TabsTrigger value="overview" className="text-sm h-8">Overview</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-sm h-8">Invoices</TabsTrigger>
+            <TabsTrigger value="learner" className="text-sm h-8">Learner Fees</TabsTrigger>
+            <TabsTrigger value="structures" className="text-sm h-8">Structures</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4 mt-3">
             {/* Mobile Stats */}
-            <div className="grid gap-2 grid-cols-3 xl:hidden">
-              <Card className="p-3">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-primary" />
+            <div className="grid gap-3 grid-cols-3 xl:hidden">
+              <Card className="p-4">
+                <div className="flex items-center gap-3">
+                  <DollarSign className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Collected</p>
-                    <p className="text-sm font-bold">{statsLoading ? "..." : formatCurrency(stats?.totalCollected || 0)}</p>
+                    <p className="text-sm text-muted-foreground">Collected</p>
+                    <p className="text-base font-bold">{statsLoading ? "..." : formatCurrency(stats?.totalCollected || 0)}</p>
                   </div>
                 </div>
               </Card>
-              <Card className="p-3">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
+              <Card className="p-4">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Outstanding</p>
-                    <p className="text-sm font-bold">{statsLoading ? "..." : formatCurrency(stats?.outstanding || 0)}</p>
+                    <p className="text-sm text-muted-foreground">Outstanding</p>
+                    <p className="text-base font-bold">{statsLoading ? "..." : formatCurrency(stats?.outstanding || 0)}</p>
                   </div>
                 </div>
               </Card>
-              <Card className="p-3">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-blue-600" />
+              <Card className="p-4">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Rate</p>
-                    <p className="text-sm font-bold">{statsLoading ? "..." : `${(stats?.collectionRate || 0).toFixed(0)}%`}</p>
+                    <p className="text-sm text-muted-foreground">Rate</p>
+                    <p className="text-base font-bold">{statsLoading ? "..." : `${(stats?.collectionRate || 0).toFixed(0)}%`}</p>
                   </div>
                 </div>
               </Card>
@@ -534,8 +534,8 @@ const FeeManagement = () => {
             <div className="grid gap-4 lg:grid-cols-2">
               {/* Chart */}
               <Card>
-                <CardHeader className="py-3 px-4">
-                  <CardTitle className="text-sm font-medium">Payment Trend</CardTitle>
+                <CardHeader className="py-4 px-4">
+                  <CardTitle className="text-base font-medium">Payment Trend</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
                   {statsLoading ? (
@@ -562,8 +562,8 @@ const FeeManagement = () => {
 
               {/* Recent Payments */}
               <Card>
-                <CardHeader className="py-3 px-4">
-                  <CardTitle className="text-sm font-medium">Recent Payments</CardTitle>
+                <CardHeader className="py-4 px-4">
+                  <CardTitle className="text-base font-medium">Recent Payments</CardTitle>
                 </CardHeader>
                 <CardContent className="px-0 pb-0">
                   {paymentsLoading ? (
@@ -582,19 +582,19 @@ const FeeManagement = () => {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="py-2 text-xs">Admission</TableHead>
-                          <TableHead className="py-2 text-xs">Name</TableHead>
-                          <TableHead className="py-2 text-xs hidden md:table-cell">Grade</TableHead>
-                          <TableHead className="py-2 text-xs text-right">Amount</TableHead>
+                          <TableHead className="py-2 text-sm">Admission</TableHead>
+                          <TableHead className="py-2 text-sm">Name</TableHead>
+                          <TableHead className="py-2 text-sm hidden md:table-cell">Grade</TableHead>
+                          <TableHead className="py-2 text-sm text-right">Amount</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {payments.slice(0, 5).map((payment: any) => (
                           <TableRow key={payment.id}>
-                            <TableCell className="py-2 text-xs font-mono">{payment.learner?.admission_number || 'N/A'}</TableCell>
-                            <TableCell className="py-2 text-xs">{payment.learner?.first_name} {payment.learner?.last_name}</TableCell>
-                            <TableCell className="py-2 text-xs hidden md:table-cell">{payment.learner?.current_grade?.name || 'N/A'}</TableCell>
-                            <TableCell className="py-2 text-xs text-right font-medium">{formatCurrency(Number(payment.amount_paid))}</TableCell>
+                            <TableCell className="py-2 text-sm font-mono">{payment.learner?.admission_number || 'N/A'}</TableCell>
+                            <TableCell className="py-2 text-sm">{payment.learner?.first_name} {payment.learner?.last_name}</TableCell>
+                            <TableCell className="py-2 text-sm hidden md:table-cell">{payment.learner?.current_grade?.name || 'N/A'}</TableCell>
+                            <TableCell className="py-2 text-sm text-right font-medium">{formatCurrency(Number(payment.amount_paid))}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
