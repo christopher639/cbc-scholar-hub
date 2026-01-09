@@ -89,6 +89,45 @@ export function SetFeeStructureDialogEnhanced({
     }
   }, [open, existingStructure]);
 
+  // Auto-fill when grade and year are selected
+  useEffect(() => {
+    if (open && selectedGrade && selectedYear && !existingStructure) {
+      fetchExistingFeeStructures();
+    }
+  }, [selectedGrade, selectedYear, open, existingStructure]);
+
+  const fetchExistingFeeStructures = async () => {
+    if (!selectedGrade || !selectedYear) return;
+
+    const { data } = await supabase
+      .from("fee_structures")
+      .select(`*, fee_structure_items(*)`)
+      .eq("grade_id", selectedGrade)
+      .eq("academic_year", selectedYear);
+
+    if (data && data.length > 0) {
+      const newTermFees: TermFees = {
+        term_1: [{ item_name: "", amount: 0, description: "", is_optional: false }],
+        term_2: [{ item_name: "", amount: 0, description: "", is_optional: false }],
+        term_3: [{ item_name: "", amount: 0, description: "", is_optional: false }],
+      };
+
+      data.forEach((structure: any) => {
+        const term = structure.term as Term;
+        if (structure.fee_structure_items && structure.fee_structure_items.length > 0) {
+          newTermFees[term] = structure.fee_structure_items.map((item: any) => ({
+            item_name: item.item_name,
+            amount: Number(item.amount),
+            description: item.description || "",
+            is_optional: item.is_optional || false,
+          }));
+        }
+      });
+
+      setTermFees(newTermFees);
+    }
+  };
+
   const fetchGrades = async () => {
     const { data } = await supabase.from("grades").select("*").order("name");
     setGrades(data || []);
@@ -269,45 +308,48 @@ export function SetFeeStructureDialogEnhanced({
   };
 
   const renderTermSection = (term: Term, termLabel: string) => (
-    <Card key={term} className="border-2">
-      <CardHeader className="bg-secondary/30">
-        <CardTitle className="text-lg flex items-center justify-between">
+    <Card key={term} className="border border-border">
+      <CardHeader className="bg-muted/50 py-4">
+        <CardTitle className="text-base flex items-center justify-between text-foreground">
           <span className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+            <FileText className="h-4 w-4" />
             {termLabel}
           </span>
-          <span className="text-primary font-mono">
+          <span className="font-mono text-sm">
             Total: KSh {calculateTermTotal(term).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 pt-6">
+      <CardContent className="space-y-4 pt-4">
         {termFees[term].map((item, index) => (
-          <div key={index} className="grid gap-4 p-4 border rounded-lg bg-card">
+          <div key={index} className="grid gap-4 p-4 border border-border rounded-lg bg-background">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label>Fee Item *</Label>
+                <Label className="text-foreground">Fee Item *</Label>
                 <Input
                   placeholder="e.g., Tuition Fee"
                   value={item.item_name}
                   onChange={(e) => updateFeeItem(term, index, "item_name", e.target.value)}
+                  className="text-foreground"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Amount *</Label>
+                <Label className="text-foreground">Amount *</Label>
                 <Input
                   type="number"
                   placeholder="0.00"
                   value={item.amount || ""}
                   onChange={(e) => updateFeeItem(term, index, "amount", parseFloat(e.target.value) || 0)}
+                  className="text-foreground"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Description</Label>
+                <Label className="text-foreground">Description</Label>
                 <Input
                   placeholder="Optional details"
                   value={item.description}
                   onChange={(e) => updateFeeItem(term, index, "description", e.target.value)}
+                  className="text-foreground"
                 />
               </div>
             </div>
@@ -355,15 +397,15 @@ export function SetFeeStructureDialogEnhanced({
 
         <div className="space-y-6">
           {/* Grade and Year Selection */}
-          <div className="grid gap-4 md:grid-cols-2 p-4 border rounded-lg bg-secondary/20">
+          <div className="grid gap-4 md:grid-cols-2 p-4 border border-border rounded-lg bg-muted/30">
             <div className="space-y-2">
-              <Label>Grade / Class *</Label>
+              <Label className="text-foreground">Grade / Class *</Label>
               <Select 
                 value={selectedGrade} 
                 onValueChange={setSelectedGrade}
                 disabled={!!existingStructure}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-foreground">
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -376,13 +418,13 @@ export function SetFeeStructureDialogEnhanced({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Academic Year *</Label>
+              <Label className="text-foreground">Academic Year *</Label>
               <Select 
                 value={selectedYear} 
                 onValueChange={setSelectedYear}
                 disabled={!!existingStructure}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-foreground">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -415,11 +457,11 @@ export function SetFeeStructureDialogEnhanced({
 
           {/* Grand Total - Only show when creating all terms */}
           {!existingStructure && (
-            <Card className="border-2 border-primary">
+            <Card className="border border-border bg-muted/30">
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">TOTAL ANNUAL FEES</span>
-                  <span className="text-2xl font-bold text-primary font-mono">
+                  <span className="text-base font-semibold text-foreground">TOTAL ANNUAL FEES</span>
+                  <span className="text-xl font-bold text-foreground font-mono">
                     KSh {(calculateTermTotal("term_1") + calculateTermTotal("term_2") + calculateTermTotal("term_3")).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>

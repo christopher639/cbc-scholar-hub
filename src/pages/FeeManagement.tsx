@@ -491,10 +491,10 @@ const FeeManagement = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="h-10">
-            <TabsTrigger value="overview" className="text-sm h-8">Overview</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-sm h-8">Invoices</TabsTrigger>
-            <TabsTrigger value="learner" className="text-sm h-8">Learner Fees</TabsTrigger>
-            <TabsTrigger value="structures" className="text-sm h-8">Structures</TabsTrigger>
+            <TabsTrigger value="overview" className="text-base px-4 h-9">Overview</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-base px-4 h-9">Invoices</TabsTrigger>
+            <TabsTrigger value="learner" className="text-base px-4 h-9">Learner Fees</TabsTrigger>
+            <TabsTrigger value="structures" className="text-base px-4 h-9">Structures</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
