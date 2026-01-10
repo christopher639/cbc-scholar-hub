@@ -24,6 +24,7 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
     email: "",
     password: "",
     role: "admin",
+    phone: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,12 +75,13 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
 
         if (roleError) throw roleError;
 
-        // Auto-activate the user since admin is creating them
+        // Auto-activate the user and save phone number since admin is creating them
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             is_activated: true,
             activation_status: 'active',
+            phone_number: formData.phone || null,
           })
           .eq('id', authData.user.id);
 
@@ -96,12 +98,13 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
           p_entity_id: authData.user.id,
         });
 
-        // Send login credentials to user via email
+        // Send login credentials to user via email and/or SMS
         try {
           await supabase.functions.invoke("send-credentials-sms", {
             body: {
               type: "user",
               email: normalizedEmail,
+              phone: formData.phone || null,
               credentials: {
                 name: formData.fullName,
                 email: normalizedEmail,
@@ -125,6 +128,7 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
           email: "",
           password: "",
           role: "admin",
+          phone: "",
         });
 
         onSuccess();
@@ -182,6 +186,17 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number (for 2FA)</Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="e.g., 0712345678"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">Optional - Required for SMS-based 2FA verification</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="role">Role *</Label>
