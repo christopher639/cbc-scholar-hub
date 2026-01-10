@@ -142,7 +142,7 @@ serve(async (req) => {
           } else {
             // Try to find as admin user by email
             const { data: authData } = await supabase.auth.admin.listUsers();
-            const authUser = authData?.users?.find(u => u.email === username);
+            const authUser = authData?.users?.find(u => u.email?.toLowerCase() === username.toLowerCase());
             
             if (authUser) {
               // Now get profile with phone number
@@ -156,7 +156,9 @@ serve(async (req) => {
                 userId = profile.id;
                 detectedUserType = "admin";
                 userPhone = profile.phone_number || "";
+                // IMPORTANT: Use the auth user's email for OTP delivery
                 userEmail = authUser.email || "";
+                console.log("Found admin user:", { userId, hasPhone: !!userPhone, hasEmail: !!userEmail });
               }
             }
           }
@@ -174,15 +176,28 @@ serve(async (req) => {
     }
 
     if (!userPhone && !userEmail) {
+      // For 2FA mode with no contact info, we should skip 2FA rather than fail
+      if (is2FAMode) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            no_phone: true,
+            message: "No phone number or email associated with this account. 2FA verification skipped.",
+            userId: userId,
+            userType: detectedUserType
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ 
           success: false, 
-          no_phone: true,
-          message: "No phone number or email associated with this account",
+          message: "No phone number or email associated with this account. Please contact admin to update your profile.",
           userId: userId,
           userType: detectedUserType
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
 
