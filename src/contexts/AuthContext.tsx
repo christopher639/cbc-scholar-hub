@@ -363,24 +363,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, role: "learner", userType: "learner" };
       }
 
-      // Check admin credentials (just verify, don't sign in)
+      // Check admin credentials (verify by signing in briefly, then signing out)
       const { data, error } = await supabase.auth.signInWithPassword({
         email: username.trim().toLowerCase(),
         password: password.trim(),
       });
 
       if (!error && data.user) {
-        // Check if user is activated
+        // IMPORTANT: while authenticated, read activation + role (RLS may require auth)
         const { data: profileData } = await supabase
           .from("profiles")
           .select("is_activated, activation_status")
           .eq("id", data.user.id)
           .maybeSingle();
 
-        // Sign out immediately - we only validated
-        await supabase.auth.signOut();
-
         if (profileData && profileData.is_activated === false) {
+          await supabase.auth.signOut();
           toast({
             title: "Account Pending",
             description: "Your account is pending admin approval. Please wait for activation.",
@@ -395,9 +393,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq("user_id", data.user.id)
           .maybeSingle();
 
-        if (roleData) {
+        // Sign out after we’ve read what we need (this function should not keep a session)
+        await supabase.auth.signOut();
+
+        if (roleData?.role) {
           return { success: true, role: roleData.role, userType: "admin" };
         }
+
+        // No role assigned (treat as failed login)
+        toast({
+          title: "Login Failed",
+          description: "Your account is not assigned a role yet. Please contact admin.",
+          variant: "destructive",
+        });
+        return { success: false, role: null, userType: null };
       }
 
       toast({
