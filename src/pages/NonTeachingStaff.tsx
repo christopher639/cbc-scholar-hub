@@ -61,15 +61,29 @@ export default function NonTeachingStaff() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="flex-shrink-0">
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Briefcase className="h-7 w-7 text-primary" />
               Non-Teaching Staff
             </h1>
             <p className="text-muted-foreground">Manage support staff members</p>
           </div>
-          <Button onClick={() => setShowAddDialog(true)} className="gap-2">
+          
+          {/* Search - between title and button on large screens */}
+          <div className="w-full lg:flex-1 lg:max-w-md lg:mx-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, job title, or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          
+          <Button onClick={() => setShowAddDialog(true)} className="gap-2 flex-shrink-0">
             <Plus className="h-4 w-4" />
             Add Staff
           </Button>
@@ -126,19 +140,6 @@ export default function NonTeachingStaff() {
                   <span className="text-base font-semibold">{loading ? "..." : stats.departments}</span>
                   <span className="text-sm text-muted-foreground">Departments</span>
                 </div>
-              </div>
-            </div>
-            
-            {/* Search */}
-            <div className="mt-4">
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, job title, or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
               </div>
             </div>
           </CardHeader>
