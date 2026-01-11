@@ -216,11 +216,11 @@ export default function Applications() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"><Clock className="h-3 w-3 mr-1" /> Pending</Badge>;
+        return <Badge variant="outline" className="bg-accent text-accent-foreground border-border"><Clock className="h-3 w-3 mr-1" /> Pending</Badge>;
       case "approved":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"><CheckCircle className="h-3 w-3 mr-1" /> Approved</Badge>;
+        return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20"><CheckCircle className="h-3 w-3 mr-1" /> Approved</Badge>;
       case "rejected":
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"><XCircle className="h-3 w-3 mr-1" /> Rejected</Badge>;
+        return <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20"><XCircle className="h-3 w-3 mr-1" /> Rejected</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -278,16 +278,30 @@ export default function Applications() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="flex-shrink-0">
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <ClipboardList className="h-7 w-7 text-primary" />
               Applications
             </h1>
             <p className="text-muted-foreground">Manage learner admission applications</p>
           </div>
+          
+          {/* Search - between title and button on large screens */}
+          <div className="w-full lg:flex-1 lg:max-w-md lg:mx-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, application number, or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-background border-input"
+              />
+            </div>
+          </div>
+          
           {!isVisitor && (
-            <Button onClick={openSettings} className="gap-2">
+            <Button onClick={openSettings} className="gap-2 flex-shrink-0">
               <Settings className="h-4 w-4" />
               Settings
             </Button>
@@ -322,7 +336,7 @@ export default function Applications() {
                   onClick={() => setStatusFilter("pending")}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
-                    statusFilter === "pending" ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" : "hover:bg-muted"
+                    statusFilter === "pending" ? "bg-accent text-accent-foreground" : "hover:bg-muted"
                   )}
                 >
                   <Clock className="h-4 w-4" />
@@ -333,7 +347,7 @@ export default function Applications() {
                   onClick={() => setStatusFilter("approved")}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
-                    statusFilter === "approved" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "hover:bg-muted"
+                    statusFilter === "approved" ? "bg-primary/10 text-primary" : "hover:bg-muted"
                   )}
                 >
                   <CheckCircle className="h-4 w-4" />
@@ -344,7 +358,7 @@ export default function Applications() {
                   onClick={() => setStatusFilter("rejected")}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
-                    statusFilter === "rejected" ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400" : "hover:bg-muted"
+                    statusFilter === "rejected" ? "bg-destructive/10 text-destructive" : "hover:bg-muted"
                   )}
                 >
                   <XCircle className="h-4 w-4" />
@@ -354,18 +368,6 @@ export default function Applications() {
               </div>
             </div>
             
-            {/* Search */}
-            <div className="mt-4">
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, application number, or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
           </CardHeader>
           <CardContent className="p-0">
             <Table>

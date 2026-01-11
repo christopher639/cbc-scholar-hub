@@ -77,7 +77,7 @@ const Teachers = () => {
                 placeholder="Search by name, email, or employee number..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-background border-input"
               />
             </div>
           </div>
@@ -116,7 +116,7 @@ const Teachers = () => {
                   onClick={() => setStatusFilter("active")}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
-                    statusFilter === "active" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "hover:bg-muted"
+                    statusFilter === "active" ? "bg-primary/10 text-primary" : "hover:bg-muted"
                   )}
                 >
                   <CheckCircle className="h-4 w-4" />
@@ -127,7 +127,7 @@ const Teachers = () => {
                   onClick={() => setStatusFilter("inactive")}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
-                    statusFilter === "inactive" ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400" : "hover:bg-muted"
+                    statusFilter === "inactive" ? "bg-destructive/10 text-destructive" : "hover:bg-muted"
                   )}
                 >
                   <XCircle className="h-4 w-4" />
@@ -138,7 +138,7 @@ const Teachers = () => {
                   onClick={() => setStatusFilter("with_subjects")}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
-                    statusFilter === "with_subjects" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "hover:bg-muted"
+                    statusFilter === "with_subjects" ? "bg-accent text-accent-foreground" : "hover:bg-muted"
                   )}
                 >
                   <GraduationCap className="h-4 w-4" />
@@ -233,8 +233,8 @@ const Teachers = () => {
                           variant="outline" 
                           className={cn(
                             teacher.status === "active" 
-                              ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800" 
-                              : "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
+                              ? "bg-primary/10 text-primary border-primary/20" 
+                              : "bg-destructive/10 text-destructive border-destructive/20"
                           )}
                         >
                           {teacher.status === "active" ? (

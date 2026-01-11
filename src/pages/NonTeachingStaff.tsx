@@ -78,7 +78,7 @@ export default function NonTeachingStaff() {
                 placeholder="Search by name, job title, or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-background border-input"
               />
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function NonTeachingStaff() {
                   onClick={() => setStatusFilter("active")}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
-                    statusFilter === "active" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "hover:bg-muted"
+                    statusFilter === "active" ? "bg-primary/10 text-primary" : "hover:bg-muted"
                   )}
                 >
                   <CheckCircle className="h-4 w-4" />
@@ -128,7 +128,7 @@ export default function NonTeachingStaff() {
                   onClick={() => setStatusFilter("inactive")}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer",
-                    statusFilter === "inactive" ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400" : "hover:bg-muted"
+                    statusFilter === "inactive" ? "bg-destructive/10 text-destructive" : "hover:bg-muted"
                   )}
                 >
                   <XCircle className="h-4 w-4" />
@@ -219,8 +219,8 @@ export default function NonTeachingStaff() {
                           variant="outline" 
                           className={cn(
                             member.status === "active" 
-                              ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800" 
-                              : "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
+                              ? "bg-primary/10 text-primary border-primary/20" 
+                              : "bg-destructive/10 text-destructive border-destructive/20"
                           )}
                         >
                           {member.status === "active" ? (
