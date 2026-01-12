@@ -3,11 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical, User, X, ChevronDown, Loader2 } from "lucide-react";
+import { Search, Plus, Filter, Download, Eye, Edit, MoreVertical, User, X, ChevronDown, Loader2, UserCircle } from "lucide-react";
 import { useGrades } from "@/hooks/useGrades";
 import { useStreams } from "@/hooks/useStreams";
 import { AddLearnerDialog } from "@/components/AddLearnerDialog";
 import { EditLearnerDialog } from "@/components/EditLearnerDialog";
+import { LearnerQuickViewDialog } from "@/components/LearnerQuickViewDialog";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLearners } from "@/hooks/useLearners";
@@ -36,6 +37,8 @@ import {
 const Learners = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [quickViewLearnerId, setQuickViewLearnerId] = useState<string | null>(null);
   const [selectedLearner, setSelectedLearner] = useState<any>(null);
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedStream, setSelectedStream] = useState("");
@@ -265,6 +268,14 @@ const Learners = () => {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={(e) => {
                                 e.stopPropagation();
+                                setQuickViewLearnerId(learner.id);
+                                setIsQuickViewOpen(true);
+                              }}>
+                                <UserCircle className="mr-2 h-4 w-4" />
+                                Quick View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
                                 navigate(`/learner/${learner.id}`);
                               }}>
                                 <Eye className="mr-2 h-4 w-4" />
@@ -297,6 +308,11 @@ const Learners = () => {
         onOpenChange={setIsEditDialogOpen}
         learner={selectedLearner}
         onSuccess={fetchLearners}
+      />
+      <LearnerQuickViewDialog
+        open={isQuickViewOpen}
+        onOpenChange={setIsQuickViewOpen}
+        learnerId={quickViewLearnerId}
       />
     </DashboardLayout>
   );
