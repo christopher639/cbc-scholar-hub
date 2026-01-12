@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/Layout/DashboardLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useLearningAreas } from "@/hooks/useLearningAreas";
 import { useTeachers } from "@/hooks/useTeachers";
@@ -18,7 +19,6 @@ import {
   Trash2, 
   Search,
   Loader2,
-  Filter,
   GraduationCap,
   Users,
   MoreHorizontal
@@ -56,12 +56,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+type FilterType = "all" | "assigned" | "unassigned";
+
 const LearningAreas = () => {
   const { toast } = useToast();
   const { learningAreas, loading, addLearningArea, updateLearningArea, deleteLearningArea } = useLearningAreas();
   const { teachers } = useTeachers();
   
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -76,10 +79,24 @@ const LearningAreas = () => {
   
   const [editData, setEditData] = useState<any>(null);
 
-  const filteredAreas = learningAreas.filter(area =>
-    area.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    area.code.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const assignedCount = learningAreas.filter(a => a.teacher_id).length;
+  const unassignedCount = learningAreas.length - assignedCount;
+
+  const filteredAreas = learningAreas.filter(area => {
+    const matchesSearch = area.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      area.code.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (!matchesSearch) return false;
+    
+    switch (activeFilter) {
+      case "assigned":
+        return area.teacher_id !== null;
+      case "unassigned":
+        return area.teacher_id === null;
+      default:
+        return true;
+    }
+  });
 
   const resetForm = () => {
     setFormData({ name: "", code: "", description: "", teacher_id: "" });
@@ -158,231 +175,200 @@ const LearningAreas = () => {
     }
   };
 
-  const assignedCount = learningAreas.filter(a => a.teacher_id).length;
-
-  // Split filtered areas into columns
-  const getColumns = (items: any[], numCols: number) => {
-    const cols: any[][] = Array.from({ length: numCols }, () => []);
-    items.forEach((item, idx) => {
-      cols[idx % numCols].push({ ...item, originalIndex: idx });
-    });
-    return cols;
+  const getTeacherInitials = (teacher: any) => {
+    if (!teacher) return "?";
+    return `${teacher.first_name?.[0] || ""}${teacher.last_name?.[0] || ""}`.toUpperCase();
   };
-
-  const renderTable = (items: any[]) => (
-    <Card className="overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-muted/50">
-            <TableHead className="w-8 py-1.5 px-2 text-[11px] font-medium">#</TableHead>
-            <TableHead className="py-1.5 px-2 text-[11px] font-medium">Code</TableHead>
-            <TableHead className="py-1.5 px-2 text-[11px] font-medium">Name</TableHead>
-            <TableHead className="py-1.5 px-2 text-[11px] font-medium hidden md:table-cell">Teacher</TableHead>
-            <TableHead className="py-1.5 px-1 w-8"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((area) => (
-            <TableRow key={area.id} className="hover:bg-muted/30">
-              <TableCell className="py-1 px-2 text-[11px] text-muted-foreground">{area.originalIndex + 1}</TableCell>
-              <TableCell className="py-1 px-2">
-                <Badge variant="secondary" className="font-mono text-[10px] px-1.5 py-0">{area.code}</Badge>
-              </TableCell>
-              <TableCell className="py-1 px-2">
-                <p className="text-xs font-medium leading-tight">{area.name}</p>
-                <p className="text-[10px] text-muted-foreground md:hidden leading-tight">
-                  {area.teacher ? `${area.teacher.first_name} ${area.teacher.last_name}` : 'Unassigned'}
-                </p>
-              </TableCell>
-              <TableCell className="py-1 px-2 hidden md:table-cell">
-                {area.teacher ? (
-                  <span className="text-xs">{area.teacher.first_name} {area.teacher.last_name}</span>
-                ) : (
-                  <span className="text-[11px] text-muted-foreground italic">Unassigned</span>
-                )}
-              </TableCell>
-              <TableCell className="py-1 px-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <MoreHorizontal className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEdit(area)}>
-                      <Pencil className="mr-2 h-3 w-3" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => setDeleteConfirmId(area.id)}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="mr-2 h-3 w-3" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Card>
-  );
 
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        {/* Compact Header with Stats - matching Teachers page */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Learning Areas</h1>
-              <p className="text-sm text-muted-foreground">Manage learning areas</p>
-            </div>
-            
-            {/* Inline Stats for Large Screens */}
-            <div className="hidden lg:flex items-center gap-6 ml-4 pl-4 border-l border-border">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <BookOpen className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Total</p>
-                  <p className="text-sm font-semibold text-foreground">{loading ? "..." : learningAreas.length}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <GraduationCap className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">With Teachers</p>
-                  <p className="text-sm font-semibold text-foreground">{loading ? "..." : assignedCount}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-muted rounded-lg">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Unassigned</p>
-                  <p className="text-sm font-semibold text-foreground">{loading ? "..." : learningAreas.length - assignedCount}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 lg:w-64">
+        {/* Header with Search */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-xl font-bold text-foreground">Learning Areas</h1>
+          
+          <div className="flex items-center gap-2 flex-1 sm:flex-initial sm:justify-end">
+            <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search areas..."
-                className="pl-8 h-9"
+                placeholder="Search learning areas..."
+                className="pl-8 h-9 bg-background border-input"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
-              <Filter className="h-4 w-4" />
-            </Button>
-            <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="h-9">
+            <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="h-9 shrink-0">
               <Plus className="h-4 w-4 mr-1" />
-              Add Area
+              <span className="hidden sm:inline">Add Area</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
         </div>
 
-        {/* Mobile Stats */}
-        <div className="grid grid-cols-3 gap-2 lg:hidden">
-          <Card className="p-3 border-border">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-primary/10 rounded-lg">
-                <BookOpen className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Total</p>
-                <p className="text-sm font-semibold text-foreground">{loading ? "..." : learningAreas.length}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-3 border-border">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-primary/10 rounded-lg">
-                <GraduationCap className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Assigned</p>
-                <p className="text-sm font-semibold text-foreground">{loading ? "..." : assignedCount}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-3 border-border">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-muted rounded-lg">
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Unassigned</p>
-                <p className="text-sm font-semibold text-foreground">{loading ? "..." : learningAreas.length - assignedCount}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Learning Areas Tables in Columns */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="p-4">
-                <div className="space-y-2">
-                  {[1, 2, 3, 4].map((j) => (
-                    <Skeleton key={j} className="h-10 w-full" />
-                  ))}
+        {/* Main Card with Stats and Table */}
+        <Card>
+          <CardHeader className="pb-4">
+            {/* Clickable Stats Cards */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setActiveFilter("all")}
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg border transition-colors ${
+                  activeFilter === "all"
+                    ? "bg-primary/10 border-primary text-primary"
+                    : "bg-background border-border hover:bg-muted"
+                }`}
+              >
+                <div className={`p-1.5 rounded-lg ${activeFilter === "all" ? "bg-primary/20" : "bg-muted"}`}>
+                  <BookOpen className={`h-4 w-4 ${activeFilter === "all" ? "text-primary" : "text-muted-foreground"}`} />
                 </div>
-              </Card>
-            ))}
-          </div>
-        ) : filteredAreas.length === 0 ? (
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center">
+                <div className="text-left">
+                  <p className="text-xs text-muted-foreground font-medium">Total</p>
+                  <p className="text-sm font-semibold">{loading ? "..." : learningAreas.length}</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setActiveFilter("assigned")}
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg border transition-colors ${
+                  activeFilter === "assigned"
+                    ? "bg-primary/10 border-primary text-primary"
+                    : "bg-background border-border hover:bg-muted"
+                }`}
+              >
+                <div className={`p-1.5 rounded-lg ${activeFilter === "assigned" ? "bg-primary/20" : "bg-muted"}`}>
+                  <GraduationCap className={`h-4 w-4 ${activeFilter === "assigned" ? "text-primary" : "text-muted-foreground"}`} />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-muted-foreground font-medium">Assigned</p>
+                  <p className="text-sm font-semibold">{loading ? "..." : assignedCount}</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setActiveFilter("unassigned")}
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg border transition-colors ${
+                  activeFilter === "unassigned"
+                    ? "bg-accent border-accent text-accent-foreground"
+                    : "bg-background border-border hover:bg-muted"
+                }`}
+              >
+                <div className={`p-1.5 rounded-lg ${activeFilter === "unassigned" ? "bg-accent" : "bg-muted"}`}>
+                  <Users className={`h-4 w-4 ${activeFilter === "unassigned" ? "text-accent-foreground" : "text-muted-foreground"}`} />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-muted-foreground font-medium">Unassigned</p>
+                  <p className="text-sm font-semibold">{loading ? "..." : unassignedCount}</p>
+                </div>
+              </button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pt-0">
+            {loading ? (
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : filteredAreas.length === 0 ? (
+              <div className="py-12 text-center">
                 <BookOpen className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
                 <p className="text-muted-foreground text-sm mb-3">
-                  {searchQuery ? "No learning areas match your search" : "No learning areas found"}
+                  {searchQuery || activeFilter !== "all" 
+                    ? "No learning areas match your criteria" 
+                    : "No learning areas found"}
                 </p>
-                {!searchQuery && (
+                {!searchQuery && activeFilter === "all" && (
                   <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-1" />
                     Add First Area
                   </Button>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {/* 2 columns on sm, 3 on lg */}
-            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {getColumns(filteredAreas, 3).map((col, colIdx) => (
-                <div key={colIdx} className={colIdx === 2 ? "hidden lg:block" : ""}>
-                  {col.length > 0 && renderTable(col)}
-                </div>
-              ))}
-            </div>
-            {/* Single column on mobile */}
-            <div className="sm:hidden">
-              {renderTable(filteredAreas.map((area, idx) => ({ ...area, originalIndex: idx })))}
-            </div>
-          </>
-        )}
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="w-10 text-xs">#</TableHead>
+                      <TableHead className="text-xs">Code</TableHead>
+                      <TableHead className="text-xs">Name</TableHead>
+                      <TableHead className="text-xs hidden md:table-cell">Teacher</TableHead>
+                      <TableHead className="text-xs hidden lg:table-cell">Description</TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAreas.map((area, index) => (
+                      <TableRow key={area.id} className="hover:bg-muted/30">
+                        <TableCell className="text-xs text-muted-foreground">{index + 1}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="font-mono text-xs">{area.code}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm font-medium">{area.name}</p>
+                            <p className="text-xs text-muted-foreground md:hidden">
+                              {area.teacher ? `${area.teacher.first_name} ${area.teacher.last_name}` : "Unassigned"}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {area.teacher ? (
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-7 w-7">
+                                <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                                  {getTeacherInitials(area.teacher)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm">{area.teacher.first_name} {area.teacher.last_name}</span>
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-xs text-muted-foreground">Unassigned</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                            {area.description || "-"}
+                          </p>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(area)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => setDeleteConfirmId(area.id)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Add Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="border-border">
           <DialogHeader>
-            <DialogTitle>Add Learning Area</DialogTitle>
+            <DialogTitle className="text-foreground">Add Learning Area</DialogTitle>
             <DialogDescription>
               Create a new learning area for tracking student performance
             </DialogDescription>
@@ -451,9 +437,9 @@ const LearningAreas = () => {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) setEditData(null); }}>
-        <DialogContent>
+        <DialogContent className="border-border">
           <DialogHeader>
-            <DialogTitle>Edit Learning Area</DialogTitle>
+            <DialogTitle className="text-foreground">Edit Learning Area</DialogTitle>
             <DialogDescription>
               Update the learning area details
             </DialogDescription>
